@@ -1,0 +1,68 @@
+🏗️ Structure Complète Explicative
+📁 .expo/ - Configuration Expo
+devices.json - Appareils de développement enregistrés
+
+Configuration cache et métadonnées Expo
+
+📁 assets/ - Ressources statiques
+Icônes adaptatives, favicon, splash screen
+
+📁 src/app/ - Couche Application
+typescript
+// 📁 navigation/ - Routage et navigation
+// 📁 providers/ - Contexts et providers React
+// 📁 hooks/ - Hooks personnalisés globaux
+
+📁 src/core/ - Cœur Métier (DDD)
+typescript
+// 📁 domain/ - Logique métier pure
+//   📁 entities/ - Client, Transaction, Produit
+//   📁 value-objects/ - Montant, Email, etc.
+//   📁 services/ - Services métier
+//   📁 repositories/ - Interfaces de données
+
+// 📁 application/ - Cas d'utilisation
+//   📁 use-cases/ - AuthentifierClient, CréerTransaction
+//   📁 commands/ - Commandes CQRS
+//   📁 queries/ - Requêtes CQRS
+
+// 📁 infrastructure/ - Accès aux données
+//   📁 api/ - Clients HTTP, endpoints
+//   📁 storage/ - Stockage local, SecureStore
+//   📁 repositories/ - Implémentations concrètes
+
+// 📁 security/ - Sécurité
+//   📁 encryption/ - Chiffrement données
+//   📁 biometrics/ - Authentification biométrique
+//   📁 audit/ - Logs de sécurité
+
+📁 src/modules/ - Modules Fonctionnels
+typescript
+// 📁 auth/ - Authentification
+//   📁 screens/ - Login, MotDePasseOublie
+//   📁 components/ - InputAuth, ButtonAuth
+//   📁 services/ - AuthService, TokenService
+//   📁 types/ - LoginDTO, User, AuthResponse
+
+// 📁 dashboard/ - Page d'accueil scroll
+//   📁 screens/ - DashboardScreen avec sections 1,2,3
+//   📁 components/ - Section1, Section2, Section3
+
+// 📁 transactions/ - Fenêtre transaction
+//   📁 screens/ - TransactionsScreen
+//   📁 components/ - TransactionList, TransactionItem
+
+// 📁 products/ - Fenêtre mes produits  
+//   📁 screens/ - ProductsScreen
+//   📁 components/ - ProductCard, ProductList
+
+// 📁 settings/ - Fenêtres paramètres
+//   📁 screens/ - SettingsScreen, ChangePassword
+//   📁 components/ - SettingItem, SecuritySettings
+
+📁 src/shared/ - Éléments Partagés
+typescript
+// 📁 components/ - Composants réutilisables
+// 📁 utils/ - Helpers, formatters
+// 📁 styles/ - Theme, couleurs, Design System
+// 📁 store/ - Gestion d'état (Zustand/Redux)
