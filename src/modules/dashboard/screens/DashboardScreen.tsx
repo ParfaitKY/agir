@@ -183,7 +183,10 @@ export const DashboardScreen: React.FC = () => {
             <Ionicons name="list-outline" size={18} color="#007AFF" />
             <Text style={styles.actionText}>Comptes</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.actionBtn}>
+          <TouchableOpacity 
+            style={styles.actionBtn}
+            onPress={() => navigation.navigate('Cards' as never)}
+          >
             <Ionicons name="card-outline" size={18} color="#007AFF" />
             <Text style={styles.actionText}>Cartes</Text>
           </TouchableOpacity>
@@ -218,7 +221,7 @@ export const DashboardScreen: React.FC = () => {
             <Text style={styles.quickActionTitle}>Mes produits</Text>
             <Text style={styles.quickActionSubtitle}>Découvrir</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.quickActionCard}>
+          <TouchableOpacity style={styles.quickActionCard} onPress={() => navigation.navigate('Cards' as never)}>
             <View style={[styles.quickActionIcon, { backgroundColor: '#F3E5F5' }]}>
               <Ionicons name="card-outline" size={24} color="#AF52DE" />
             </View>

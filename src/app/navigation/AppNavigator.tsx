@@ -8,6 +8,7 @@ import { LoginScreen } from '../../modules/auth/screens/LoginScreen';
 import { ForgotPasswordScreen } from '../../modules/auth/screens/ForgotPasswordScreen';
 import { ChangePasswordScreen } from '../../modules/auth/screens/ChangePasswordScreen';
 import { DashboardScreen } from '../../modules/dashboard/screens/DashboardScreen';
+import { CardsScreen } from '../../modules/cards/screens/CardsScreen';
 import { TransactionsScreen } from '../../modules/transactions/screens/TransactionsScreen';
 import { ProductsScreen } from '../../modules/products/screens/ProductsScreen';
 import { SettingsScreen } from '../../modules/settings/screens/SettingsScreen';
@@ -77,6 +78,11 @@ export const AppNavigator: React.FC = () => {
             name="AccountDetails" 
             component={AccountDetailsScreen} 
             options={{ headerShown: true, title: 'Détails du compte' }} 
+          />
+          <Stack.Screen 
+            name="Cards" 
+            component={CardsScreen} 
+            options={{ headerShown: true, title: 'Mes Cartes' }} 
           />
         </>
       ) : (
