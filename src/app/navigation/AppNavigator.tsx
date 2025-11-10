@@ -11,6 +11,7 @@ import { DashboardScreen } from '../../modules/dashboard/screens/DashboardScreen
 import { TransactionsScreen } from '../../modules/transactions/screens/TransactionsScreen';
 import { ProductsScreen } from '../../modules/products/screens/ProductsScreen';
 import { SettingsScreen } from '../../modules/settings/screens/SettingsScreen';
+import { TransferScreen } from '../../modules/transactions/screens/TransferScreen';
 import { useAuth } from '../hooks/useAuth';
 
 const Tab = createBottomTabNavigator();
@@ -58,7 +59,14 @@ export const AppNavigator: React.FC = () => {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       {isAuthenticated ? (
-        <Stack.Screen name="Main" component={MainTabs} />
+        <>
+          <Stack.Screen name="Main" component={MainTabs} />
+          <Stack.Screen 
+            name="Transfer" 
+            component={TransferScreen} 
+            options={{ headerShown: true, title: 'Virement' }} 
+          />
+        </>
       ) : (
         <Stack.Screen name="Auth" component={LoginScreen} />
       )}

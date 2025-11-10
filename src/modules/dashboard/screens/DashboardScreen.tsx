@@ -8,10 +8,12 @@ import {
   FlatList 
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 
 export const DashboardScreen: React.FC = () => {
   const [currentOffer, setCurrentOffer] = useState(0);
   const servicesScrollRef = useRef<FlatList>(null);
+  const navigation = useNavigation();
 
   const offers = [
     // ... (offres existantes restent identiques)
@@ -167,7 +169,10 @@ export const DashboardScreen: React.FC = () => {
           </View>
         </View>
         <View style={styles.actions}>
-          <TouchableOpacity style={styles.actionBtn}>
+          <TouchableOpacity 
+            style={styles.actionBtn}
+            onPress={() => navigation.navigate('Transfer' as never)}
+          >
             <Ionicons name="arrow-forward-circle-outline" size={18} color="#007AFF" />
             <Text style={styles.actionText}>Virement</Text>
           </TouchableOpacity>
@@ -185,8 +190,11 @@ export const DashboardScreen: React.FC = () => {
       {/* Actions rapides - EXISTANT */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Actions rapides</Text>
-        <View style={styles.quickActions}>
-          <TouchableOpacity style={styles.quickActionCard}>
+          <View style={styles.quickActions}>
+          <TouchableOpacity 
+            style={styles.quickActionCard}
+            onPress={() => navigation.navigate('Transfer' as never)}
+          >
             <View style={[styles.quickActionIcon, { backgroundColor: '#E3F2FD' }]}>
               <Ionicons name="swap-horizontal" size={24} color="#007AFF" />
             </View>
