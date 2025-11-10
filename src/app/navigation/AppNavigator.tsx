@@ -12,6 +12,8 @@ import { TransactionsScreen } from '../../modules/transactions/screens/Transacti
 import { ProductsScreen } from '../../modules/products/screens/ProductsScreen';
 import { SettingsScreen } from '../../modules/settings/screens/SettingsScreen';
 import { TransferScreen } from '../../modules/transactions/screens/TransferScreen';
+import { AccountsScreen } from '../../modules/accounts/screens/AccountsScreen';
+import { AccountDetailsScreen } from '../../modules/accounts/screens/AccountDetailsScreen';
 import { useAuth } from '../hooks/useAuth';
 
 const Tab = createBottomTabNavigator();
@@ -65,6 +67,16 @@ export const AppNavigator: React.FC = () => {
             name="Transfer" 
             component={TransferScreen} 
             options={{ headerShown: true, title: 'Virement' }} 
+          />
+          <Stack.Screen 
+            name="Accounts" 
+            component={AccountsScreen} 
+            options={{ headerShown: true, title: 'Mes Comptes' }} 
+          />
+          <Stack.Screen 
+            name="AccountDetails" 
+            component={AccountDetailsScreen} 
+            options={{ headerShown: true, title: 'Détails du compte' }} 
           />
         </>
       ) : (

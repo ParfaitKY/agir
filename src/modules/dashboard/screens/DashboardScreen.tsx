@@ -176,7 +176,10 @@ export const DashboardScreen: React.FC = () => {
             <Ionicons name="arrow-forward-circle-outline" size={18} color="#007AFF" />
             <Text style={styles.actionText}>Virement</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.actionBtn}>
+          <TouchableOpacity 
+            style={styles.actionBtn}
+            onPress={() => navigation.navigate('Accounts' as never)}
+          >
             <Ionicons name="list-outline" size={18} color="#007AFF" />
             <Text style={styles.actionText}>Comptes</Text>
           </TouchableOpacity>
