@@ -1,9 +1,9 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { createNativeStackNavigator, NativeStackScreenProps } from '@react-navigation/native-stack';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 
-// Import des écrans
+// Import avec les bons chemins relatifs
 import { LoginScreen } from '../../modules/auth/screens/LoginScreen';
 import { ForgotPasswordScreen } from '../../modules/auth/screens/ForgotPasswordScreen';
 import { ChangePasswordScreen } from '../../modules/auth/screens/ChangePasswordScreen';
@@ -15,37 +15,20 @@ import { SettingsScreen } from '../../modules/settings/screens/SettingsScreen';
 import { TransferScreen } from '../../modules/transactions/screens/TransferScreen';
 import { AccountsScreen } from '../../modules/accounts/screens/AccountsScreen';
 import { AccountDetailsScreen } from '../../modules/accounts/screens/AccountDetailsScreen';
+
+// ✅ IMPORT CORRECT (default export)
 import ProductDetailPage from '../../modules/products/screens/DetailsProduitsScreen';
 
 import { useAuth } from '../hooks/useAuth';
 
-// Définition des types pour la stack principale
-export type RootStackParamList = {
-  Auth: undefined;
-  Main: undefined;
-  Transfer: undefined;
-  Accounts: undefined;
-  AccountDetails: undefined;
-  Cards: undefined;
-  DetailsProduits: undefined;
-};
+const Tab = createBottomTabNavigator();
+const Stack = createNativeStackNavigator();
 
-// Définition des types pour le bottom tab
-export type MainTabParamList = {
-  Dashboard: undefined;
-  Transactions: undefined;
-  Products: undefined;
-  Settings: undefined;
-};
-
-const Tab = createBottomTabNavigator<MainTabParamList>();
-const Stack = createNativeStackNavigator<RootStackParamList>();
-
-const MainTabs: React.FC = () => (
+const MainTabs = () => (
   <Tab.Navigator
     screenOptions={({ route }) => ({
       tabBarIcon: ({ focused, color, size }) => {
-        let iconName: keyof typeof Ionicons.glyphMap = 'help-outline';
+        let iconName: any;
         switch (route.name) {
           case 'Dashboard':
             iconName = focused ? 'home' : 'home-outline';
@@ -59,6 +42,8 @@ const MainTabs: React.FC = () => (
           case 'Settings':
             iconName = focused ? 'settings' : 'settings-outline';
             break;
+          default:
+            iconName = 'help-outline';
         }
         return <Ionicons name={iconName} size={size} color={color} />;
       },
@@ -79,48 +64,52 @@ export const AppNavigator: React.FC = () => {
 
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
-      {/*
-      !isAuthenticated ? (
-        <>
-          <Stack.Screen name="Auth" component={LoginScreen} />
-          <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
-          <Stack.Screen name="ChangePassword" component={ChangePasswordScreen} />
-        </>
-      ) :
-      */}
-      <>
-        <Stack.Screen name="Main" component={MainTabs} />
 
-        <Stack.Screen
-          name="Transfer"
-          component={TransferScreen}
-          options={{ headerShown: true, title: 'Virement' }}
-        />
+      {
+        !isAuthenticated ? (
+          <>
+            <Stack.Screen name="Auth" component={LoginScreen} />
+            {/* éventuellement Forget et ChangePassword */}
+          </>
+        ) :
+          (
+            <>
+              {/* ✅ Un seul Main */}
+              <Stack.Screen name="Main" component={MainTabs} />
 
-        <Stack.Screen
-          name="Accounts"
-          component={AccountsScreen}
-          options={{ headerShown: true, title: 'Mes Comptes' }}
-        />
+              <Stack.Screen
+                name="Transfer"
+                component={TransferScreen}
+                options={{ headerShown: true, title: 'Virement' }}
+              />
 
-        <Stack.Screen
-          name="AccountDetails"
-          component={AccountDetailsScreen}
-          options={{ headerShown: true, title: 'Détails du compte' }}
-        />
+              <Stack.Screen
+                name="Accounts"
+                component={AccountsScreen}
+                options={{ headerShown: true, title: 'Mes Comptes' }}
+              />
 
-        <Stack.Screen
-          name="Cards"
-          component={CardsScreen}
-          options={{ headerShown: true, title: 'Mes Cartes' }}
-        />
+              <Stack.Screen
+                name="AccountDetails"
+                component={AccountDetailsScreen}
+                options={{ headerShown: true, title: 'Détails du compte' }}
+              />
 
-        <Stack.Screen
-          name="DetailsProduits"
-          component={ProductDetailPage}
-          options={{ headerShown: true, title: 'Détail du produit' }}
-        />
-      </>
+              <Stack.Screen
+                name="Cards"
+                component={CardsScreen}
+                options={{ headerShown: true, title: 'Mes Cartes' }}
+              />
+
+              {/* ✅ Détails Produit — accessible uniquement connecté */}
+              <Stack.Screen
+                name="DetailsProduits"
+                component={ProductDetailPage}
+                options={{ headerShown: true, title: 'Détail du produit' }}
+              />
+            </>
+          )}
+
     </Stack.Navigator>
   );
 };
