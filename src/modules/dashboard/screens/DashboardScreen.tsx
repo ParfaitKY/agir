@@ -328,7 +328,7 @@ export const DashboardScreen: React.FC = () => {
               {t("dashboard.quick.transfer.subtitle")}
             </Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.quickActionCard}>
+          <TouchableOpacity style={styles.quickActionCard} onPress={() => navigation.navigate("BeneficiairesPage" as never)}>
             <View
               style={[styles.quickActionIcon, { backgroundColor: "#E8F5E8" }]}
             >
@@ -341,7 +341,7 @@ export const DashboardScreen: React.FC = () => {
               {t("dashboard.quick.beneficiaries.subtitle")}
             </Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.quickActionCard}>
+          <TouchableOpacity style={styles.quickActionCard} onPress={() => navigation.navigate("DetailsProduits" as never)}>
             <View
               style={[styles.quickActionIcon, { backgroundColor: "#FFF3E0" }]}
             >
