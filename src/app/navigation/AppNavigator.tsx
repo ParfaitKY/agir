@@ -72,9 +72,14 @@ export const AppNavigator: React.FC = () => {
 
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
+      {!isAuthenticated && (
+        <>
+          <Stack.Screen name="Auth" component={LoginScreen} />
+          {/* Forget & ChangePassword */}
+        </>
+      )}
 
-      {/* isAuthenticated &&  */}
-      {(
+      {isAuthenticated && (
         <>
           <Stack.Screen name="Main" component={MainTabs} />
           <Stack.Screen
