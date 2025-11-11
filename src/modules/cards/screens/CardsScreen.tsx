@@ -1,12 +1,14 @@
 import React, { useRef, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, FlatList, Dimensions, Alert, Modal } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useI18n } from '../../../app/providers/I18nProvider';
 
 export const CardsScreen: React.FC = () => {
+  const { t } = useI18n();
   const stats = [
-    { id: 1, value: '2', label: 'Cartes', icon: 'card-outline', iconBg: '#EAF2FF', iconColor: '#007AFF' },
-    { id: 2, value: '228k', label: 'Solde total', icon: 'wallet-outline', iconBg: '#EAF7EA', iconColor: '#34C759' },
-    { id: 3, value: '8', label: 'Transactions', icon: 'flash-outline', iconBg: '#FFF5E5', iconColor: '#FFCC00' },
+    { id: 1, value: '2', label: t('cards.stats.cards'), icon: 'card-outline', iconBg: '#EAF2FF', iconColor: '#007AFF' },
+    { id: 2, value: '228k', label: t('cards.stats.totalBalance'), icon: 'wallet-outline', iconBg: '#EAF7EA', iconColor: '#34C759' },
+    { id: 3, value: '8', label: t('cards.stats.transactions'), icon: 'flash-outline', iconBg: '#FFF5E5', iconColor: '#FFCC00' },
   ];
 
   const cards = [
@@ -24,9 +26,9 @@ export const CardsScreen: React.FC = () => {
   const scrollRef = useRef<ScrollView>(null);
   const cardWidth = Dimensions.get('window').width - 32; // largeur page = écran - padding
   const transactions = [
-    { id: 1, name: 'Amazon', time: 'Aujourd\'hui', amount: -15000, icon: 'bag-handle-outline', iconBg: '#FDF3F3' },
-    { id: 2, name: 'Restaurant', time: 'Hier', amount: -8500, icon: 'close-circle-outline', iconBg: '#FFF4F4' },
-    { id: 3, name: 'Station service', time: 'Il y a 3 jours', amount: -12000, icon: 'car-sport-outline', iconBg: '#FDF7F0' },
+    { id: 1, name: 'Amazon', time: t('dashboard.date.today'), amount: -15000, icon: 'bag-handle-outline', iconBg: '#FDF3F3' },
+    { id: 2, name: 'Restaurant', time: t('dashboard.date.yesterday'), amount: -8500, icon: 'close-circle-outline', iconBg: '#FFF4F4' },
+    { id: 3, name: 'Station service', time: t('dashboard.date.3days'), amount: -12000, icon: 'car-sport-outline', iconBg: '#FDF7F0' },
   ];
 
   const handleCopyNumber = async () => {
@@ -35,15 +37,15 @@ export const CardsScreen: React.FC = () => {
       if (typeof navigator !== 'undefined' && (navigator as any).clipboard?.writeText) {
         await (navigator as any).clipboard.writeText(full);
       }
-      Alert.alert('Copié', 'Copié dans le presse papier');
+      Alert.alert(t('cards.alert.copy.title'), t('cards.alert.copy.body'));
     } catch (e) {
-      Alert.alert('Erreur', 'Impossible de copier le numéro');
+      Alert.alert(t('cards.alert.error.title'), t('cards.alert.copy.error'));
     }
   };
 
   const handleConfirmNewCard = () => {
     setShowNewCardModal(false);
-    Alert.alert('Confirmation', 'Votre demande de nouvelle carte a été enregistrée');
+    Alert.alert(t('cards.alert.confirmation.title'), t('cards.alert.newCardSaved'));
   };
 
   return (
@@ -53,28 +55,28 @@ export const CardsScreen: React.FC = () => {
         <View style={styles.sheetOverlay}>
           <View style={styles.sheetContainer}>
             <View style={styles.sheetHandle} />
-            <Text style={styles.sheetTitle}>Actions sur la carte</Text>
+            <Text style={styles.sheetTitle}>{t('cards.sheet.title')}</Text>
 
             {/* Bloquer */}
-            <TouchableOpacity style={styles.sheetItem} activeOpacity={0.85} onPress={() => { setShowActionsModal(false); Alert.alert('Blocage', 'Temporairement ou définitivement'); }}>
+            <TouchableOpacity style={styles.sheetItem} activeOpacity={0.85} onPress={() => { setShowActionsModal(false); Alert.alert(t('cards.sheet.block.title'), t('cards.sheet.block.subtitle')); }}>
               <View style={[styles.sheetIconBg, { backgroundColor: '#F7F7F7' }]}>
                 <Ionicons name="lock-closed-outline" size={22} color="#FF3B30" />
               </View>
               <View style={styles.sheetTexts}>
-                <Text style={styles.sheetItemTitle}>Bloquer la carte</Text>
-                <Text style={styles.sheetItemSub}>Temporairement ou définitivement</Text>
+                <Text style={styles.sheetItemTitle}>{t('cards.sheet.block.title')}</Text>
+                <Text style={styles.sheetItemSub}>{t('cards.sheet.block.subtitle')}</Text>
               </View>
               <Ionicons name="chevron-forward" size={18} color="#9AA0A6" />
             </TouchableOpacity>
 
             {/* Modifier PIN */}
-            <TouchableOpacity style={[styles.sheetItem, styles.sheetItemDivider]} activeOpacity={0.85} onPress={() => { setShowActionsModal(false); Alert.alert('Code PIN', 'Changer votre code de sécurité'); }}>
+            <TouchableOpacity style={[styles.sheetItem, styles.sheetItemDivider]} activeOpacity={0.85} onPress={() => { setShowActionsModal(false); Alert.alert(t('cards.sheet.pin.title'), t('cards.sheet.pin.subtitle')); }}>
               <View style={[styles.sheetIconBg, { backgroundColor: '#F7F7F7' }]}>
                 <Ionicons name="card-outline" size={22} color="#0A84FF" />
               </View>
               <View style={styles.sheetTexts}>
-                <Text style={styles.sheetItemTitle}>Modifier le code PIN</Text>
-                <Text style={styles.sheetItemSub}>Changez votre code de sécurité</Text>
+                <Text style={styles.sheetItemTitle}>{t('cards.sheet.pin.title')}</Text>
+                <Text style={styles.sheetItemSub}>{t('cards.sheet.pin.subtitle')}</Text>
               </View>
               <Ionicons name="chevron-forward" size={18} color="#9AA0A6" />
             </TouchableOpacity>
@@ -85,14 +87,14 @@ export const CardsScreen: React.FC = () => {
                 <Ionicons name="refresh-outline" size={22} color="#0A84FF" />
               </View>
               <View style={styles.sheetTexts}>
-                <Text style={styles.sheetItemTitle}>Renouveler</Text>
-                <Text style={styles.sheetItemSub}>Commander une nouvelle carte</Text>
+                <Text style={styles.sheetItemTitle}>{t('cards.sheet.renew.title')}</Text>
+                <Text style={styles.sheetItemSub}>{t('cards.sheet.renew.subtitle')}</Text>
               </View>
               <Ionicons name="chevron-forward" size={18} color="#9AA0A6" />
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.sheetCancelBtn} activeOpacity={0.85} onPress={() => setShowActionsModal(false)}>
-              <Text style={styles.sheetCancelText}>Annuler</Text>
+              <Text style={styles.sheetCancelText}>{t('common.cancel')}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -102,12 +104,12 @@ export const CardsScreen: React.FC = () => {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <View>
-              <Text style={styles.modalTitle}>INFO</Text>
-              <Text style={styles.modalText}>FONCTIONNALITE A VENIR</Text>
+              <Text style={styles.modalTitle}>{t('cards.modal.info.title')}</Text>
+              <Text style={styles.modalText}>{t('cards.modal.info.body')}</Text>
             </View>
             <View style={styles.modalActions}>
               <TouchableOpacity onPress={() => setShowInfoModal(false)} activeOpacity={0.8}>
-                <Text style={styles.modalActionText}>OK</Text>
+                <Text style={styles.modalActionText}>{t('common.ok')}</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -117,15 +119,15 @@ export const CardsScreen: React.FC = () => {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <View>
-              <Text style={styles.modalTitle}>Nouvelle carte</Text>
-              <Text style={styles.modalText}>Souhaitez-vous demander une nouvelle{"\n"}carte ?</Text>
+              <Text style={styles.modalTitle}>{t('cards.modal.newCard.title')}</Text>
+              <Text style={styles.modalText}>{t('cards.modal.newCard.body')}</Text>
             </View>
             <View style={styles.modalActions}>
               <TouchableOpacity onPress={() => setShowNewCardModal(false)} activeOpacity={0.8}>
-                <Text style={styles.modalActionText}>ANNULER</Text>
+                <Text style={styles.modalActionText}>{t('common.cancel.upper')}</Text>
               </TouchableOpacity>
               <TouchableOpacity onPress={handleConfirmNewCard} activeOpacity={0.8}>
-                <Text style={styles.modalActionText}>CONFIRMER</Text>
+                <Text style={styles.modalActionText}>{t('common.confirm.upper')}</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -134,8 +136,8 @@ export const CardsScreen: React.FC = () => {
       {/* En-tête section */}
       <View style={styles.headerCard}>
         <View>
-          <Text style={styles.headerTitle}>Mes cartes</Text>
-          <Text style={styles.headerSub}>2 cartes actives</Text>
+          <Text style={styles.headerTitle}>{t('cards.header.title')}</Text>
+          <Text style={styles.headerSub}>{t('cards.header.subtitle')}</Text>
         </View>
         <TouchableOpacity style={styles.addBtn} activeOpacity={0.85} onPress={() => setShowNewCardModal(true)}>
           <Ionicons name="add" size={24} color="#fff" />
@@ -170,7 +172,7 @@ export const CardsScreen: React.FC = () => {
               <View style={styles.bankChip}><Text style={styles.bankChipText}>{item.bank}</Text></View>
               <View style={[styles.statusPill, { backgroundColor: item.statusBg }]}>
                 <View style={styles.statusDot} />
-                <Text style={styles.statusText}>Active</Text>
+                <Text style={styles.statusText}>{t('cards.card.status.active')}</Text>
               </View>
             </View>
 
@@ -182,11 +184,11 @@ export const CardsScreen: React.FC = () => {
 
               <View style={styles.cardMetaRow}>
                 <View style={{ flex: 1 }}>
-                  <Text style={styles.metaLabel}>TITULAIRE</Text>
+                  <Text style={styles.metaLabel}>{t('cards.card.meta.holderLabel')}</Text>
                   <Text style={styles.metaValue}>{item.holder}</Text>
                 </View>
                 <View style={{ width: 140 }}>
-                  <Text style={styles.metaLabel}>EXPIRE LE</Text>
+                  <Text style={styles.metaLabel}>{t('cards.card.meta.expiryLabel')}</Text>
                   <Text style={styles.metaValue}>{item.expiry}</Text>
                 </View>
               </View>
@@ -210,15 +212,15 @@ export const CardsScreen: React.FC = () => {
 
       {/* Actions rapides (placées avant détails) */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Actions rapides</Text>
+        <Text style={styles.sectionTitle}>{t('cards.quick.title')}</Text>
 
         <TouchableOpacity style={styles.quickItem} activeOpacity={0.85} onPress={() => setShowActionsModal(true)}>
           <View style={[styles.quickIconBg, { backgroundColor: '#EAF2FF' }]}> 
             <Ionicons name="lock-closed-outline" size={22} color="#007AFF" />
           </View>
           <View style={styles.quickTexts}>
-            <Text style={styles.quickTitle}>Bloquer</Text>
-            <Text style={styles.quickSub}>Carte temporairement</Text>
+            <Text style={styles.quickTitle}>{t('cards.quick.block.title')}</Text>
+            <Text style={styles.quickSub}>{t('cards.quick.block.subtitle')}</Text>
           </View>
           <Ionicons name="chevron-forward" size={18} color="#9AA0A6" />
         </TouchableOpacity>
@@ -228,8 +230,8 @@ export const CardsScreen: React.FC = () => {
             <Ionicons name="settings-outline" size={22} color="#34C759" />
           </View>
           <View style={styles.quickTexts}>
-            <Text style={styles.quickTitle}>Gérer</Text>
-            <Text style={styles.quickSub}>Limites et paramètres</Text>
+            <Text style={styles.quickTitle}>{t('cards.quick.manage.title')}</Text>
+            <Text style={styles.quickSub}>{t('cards.quick.manage.subtitle')}</Text>
           </View>
           <Ionicons name="chevron-forward" size={18} color="#9AA0A6" />
         </TouchableOpacity>
@@ -239,8 +241,8 @@ export const CardsScreen: React.FC = () => {
             <Ionicons name="add-circle-outline" size={22} color="#0A84FF" />
           </View>
           <View style={styles.quickTexts}>
-            <Text style={styles.quickTitle}>Commander</Text>
-            <Text style={styles.quickSub}>Nouvelle carte</Text>
+            <Text style={styles.quickTitle}>{t('cards.quick.order.title')}</Text>
+            <Text style={styles.quickSub}>{t('cards.quick.order.subtitle')}</Text>
           </View>
           <Ionicons name="chevron-forward" size={18} color="#9AA0A6" />
         </TouchableOpacity>
@@ -248,11 +250,11 @@ export const CardsScreen: React.FC = () => {
 
       {/* Détails de la carte */}
       <View style={styles.sectionHeaderRow}>
-        <Text style={styles.sectionHeader}>Détails de la carte</Text>
+        <Text style={styles.sectionHeader}>{t('cards.details.title')}</Text>
       </View>
       <View style={styles.detailBox} onLayout={(e) => setDetailsY(e.nativeEvent.layout.y)}>
         <View style={styles.detailRowFirst}>
-          <Text style={styles.detailLabel}>Numéro complet</Text>
+          <Text style={styles.detailLabel}>{t('cards.details.fullNumber')}</Text>
           <View style={styles.detailRightRow}>
             <Text style={styles.detailValue}>{cards[activeIndex].number}</Text>
             <TouchableOpacity onPress={handleCopyNumber} activeOpacity={0.7}>
@@ -261,7 +263,7 @@ export const CardsScreen: React.FC = () => {
           </View>
         </View>
         <View style={styles.detailRow}>
-          <Text style={styles.detailLabel}>CVV</Text>
+          <Text style={styles.detailLabel}>{t('cards.details.cvv')}</Text>
           <View style={styles.detailRightRow}>
             <Text style={styles.detailValue}>{showCVV ? cards[activeIndex].cvv : '•••'}</Text>
             <TouchableOpacity onPress={() => setShowCVV(v => !v)} activeOpacity={0.7}>
@@ -270,19 +272,19 @@ export const CardsScreen: React.FC = () => {
           </View>
         </View>
         <View style={styles.detailRow}>
-          <Text style={styles.detailLabel}>Date d'expiration</Text>
+          <Text style={styles.detailLabel}>{t("cards.details.expiry")}</Text>
           <Text style={styles.detailValue}>{cards[activeIndex].expiry}</Text>
         </View>
         <View style={styles.detailRow}>
-          <Text style={styles.detailLabel}>Type</Text>
+          <Text style={styles.detailLabel}>{t('cards.details.type')}</Text>
           <Text style={styles.detailValue}>{cards[activeIndex].bank}</Text>
         </View>
       </View>
 
       {/* Limites de dépenses */}
       <View style={styles.sectionHeaderRow}>
-        <Text style={styles.sectionHeader}>Limites de dépenses</Text>
-        <TouchableOpacity activeOpacity={0.85}><Text style={styles.sectionLink}>Modifier</Text></TouchableOpacity>
+        <Text style={styles.sectionHeader}>{t('cards.limits.title')}</Text>
+        <TouchableOpacity activeOpacity={0.85}><Text style={styles.sectionLink}>{t('cards.limits.edit')}</Text></TouchableOpacity>
       </View>
 
       {/* Paiements quotidiens */}
@@ -292,8 +294,8 @@ export const CardsScreen: React.FC = () => {
             <Ionicons name="card-outline" size={20} color="#0A84FF" />
           </View>
           <View style={{ flex: 1 }}>
-            <Text style={styles.limitTitle}>Paiements quotidiens</Text>
-            <Text style={styles.limitSub}>Aujourd'hui</Text>
+            <Text style={styles.limitTitle}>{t('cards.limits.dailyPayments')}</Text>
+            <Text style={styles.limitSub}>{t('cards.limits.today')}</Text>
           </View>
         </View>
         <View style={styles.progressTrack}>
@@ -313,8 +315,8 @@ export const CardsScreen: React.FC = () => {
             <Ionicons name="cash-outline" size={20} color="#0A84FF" />
           </View>
           <View style={{ flex: 1 }}>
-            <Text style={styles.limitTitle}>Retraits mensuels</Text>
-            <Text style={styles.limitSub}>Ce mois</Text>
+            <Text style={styles.limitTitle}>{t('cards.limits.monthlyWithdrawals')}</Text>
+            <Text style={styles.limitSub}>{t('cards.limits.thisMonth')}</Text>
           </View>
         </View>
         <View style={styles.progressTrack}>
@@ -328,8 +330,8 @@ export const CardsScreen: React.FC = () => {
 
       {/* Transactions récentes */}
       <View style={styles.sectionHeaderRow}>
-        <Text style={styles.sectionHeader}>Transactions récentes</Text>
-        <TouchableOpacity activeOpacity={0.85}><Text style={styles.sectionLink}>Tout voir</Text></TouchableOpacity>
+        <Text style={styles.sectionHeader}>{t('cards.recent.title')}</Text>
+        <TouchableOpacity activeOpacity={0.85}><Text style={styles.sectionLink}>{t('cards.recent.seeAll')}</Text></TouchableOpacity>
       </View>
       {transactions.map(t => (
         <View key={t.id} style={styles.txCard}>
@@ -354,11 +356,7 @@ export const CardsScreen: React.FC = () => {
             <Ionicons name="checkmark" size={16} color="#fff" />
           </View>
         </View>
-        <Text style={styles.securityMessage}>
-          Vos cartes sont protégées par la technologie 3D Secure
-          
-          et des alertes en temps réel
-        </Text>
+        <Text style={styles.securityMessage}>{t('cards.security.message')}</Text>
       </View>
 
      
