@@ -344,6 +344,83 @@ const TRANSLATIONS: Translations = {
     zh: "最近活动",
   },
   "dashboard.recent.seeAll": { fr: "Tout voir", en: "See all", zh: "查看全部" },
+
+  // Beneficiaries page
+  "beneficiaries.header.title": {
+    fr: "Bénéficiaires",
+    en: "Beneficiaries",
+    zh: "收款人",
+  },
+  "beneficiaries.header.countSuffix": {
+    fr: "contacts",
+    en: "contacts",
+    zh: "联系人",
+  },
+  "beneficiaries.stats.favorites": {
+    fr: "Favoris",
+    en: "Favorites",
+    zh: "收藏",
+  },
+  "beneficiaries.stats.transferred": {
+    fr: "Transféré",
+    en: "Transferred",
+    zh: "已转账",
+  },
+  "beneficiaries.stats.total": { fr: "Total", en: "Total", zh: "总计" },
+  "beneficiaries.quick.title": {
+    fr: "Accès rapide",
+    en: "Quick access",
+    zh: "快速访问",
+  },
+  "beneficiaries.search.placeholder": {
+    fr: "Rechercher un bénéficiaire...",
+    en: "Search a beneficiary...",
+    zh: "搜索收款人...",
+  },
+  "beneficiaries.tabs.all": { fr: "Tous", en: "All", zh: "全部" },
+  "beneficiaries.tabs.favorites": {
+    fr: "Favoris",
+    en: "Favorites",
+    zh: "收藏",
+  },
+  "beneficiaries.help.contact": {
+    fr: "Pour toute question, contactez votre conseiller ou notre service client au +241 XX XX XX XX",
+    en: "For any questions, contact your advisor or our customer service at +241 XX XX XX XX",
+    zh: "如有疑问，请联系您的顾问或致电客户服务 +241 XX XX XX XX",
+  },
+
+  // Beneficiaries modal
+  "beneficiaries.modal.title": {
+    fr: "Nouveau bénéficiaire",
+    en: "New beneficiary",
+    zh: "新增收款人",
+  },
+  "beneficiaries.modal.fullName": {
+    fr: "Nom complet",
+    en: "Full name",
+    zh: "姓名",
+  },
+  "beneficiaries.modal.accountNumber": {
+    fr: "Numéro de compte",
+    en: "Account number",
+    zh: "账户号码",
+  },
+  "beneficiaries.modal.bank": { fr: "Banque", en: "Bank", zh: "银行" },
+  "beneficiaries.modal.selectBank": {
+    fr: "Sélectionner une banque",
+    en: "Select a bank",
+    zh: "选择银行",
+  },
+  "beneficiaries.modal.emailOptional": {
+    fr: "Email (optionnel)",
+    en: "Email (optional)",
+    zh: "邮箱（可选）",
+  },
+  "beneficiaries.modal.save": {
+    fr: "✓ Enregistrer",
+    en: "✓ Save",
+    zh: "✓ 保存",
+  },
   "dashboard.offer.badge.new": { fr: "Nouveau", en: "New", zh: "新品" },
   "dashboard.offer.badge.limited": { fr: "Limitée", en: "Limited", zh: "限时" },
   "dashboard.offer.creditExpress": {
@@ -756,6 +833,66 @@ const TRANSLATIONS: Translations = {
     fr: "Vos transactions sont sécurisées et cryptées",
     en: "Your transactions are secure and encrypted",
     zh: "您的交易是安全且加密的",
+  },
+
+  // Wallet screen
+  "wallet.header.title": { fr: "Wallet", en: "Wallet", zh: "钱包" },
+  "wallet.header.subtitle": {
+    fr: "Gérez vos transferts entre wallet et compte bancaire",
+    en: "Manage transfers between wallet and bank account",
+    zh: "管理钱包与银行账户之间的转账",
+  },
+  "wallet.type.walletToBank.title": {
+    fr: "💳 Wallet → Banque",
+    en: "💳 Wallet → Bank",
+    zh: "💳 钱包 → 银行",
+  },
+  "wallet.type.walletToBank.subtitle": {
+    fr: "Transférer vers compte bancaire",
+    en: "Transfer to bank account",
+    zh: "转至银行账户",
+  },
+  "wallet.type.bankToWallet.title": {
+    fr: "🏦 Banque → Wallet",
+    en: "🏦 Bank → Wallet",
+    zh: "🏦 银行 → 钱包",
+  },
+  "wallet.type.bankToWallet.subtitle": {
+    fr: "Recharger votre wallet",
+    en: "Top up your wallet",
+    zh: "为钱包充值",
+  },
+  "wallet.form.walletSource.label": {
+    fr: "Wallet source",
+    en: "Source wallet",
+    zh: "来源钱包",
+  },
+  "wallet.form.walletSource.placeholder": {
+    fr: "Numéro Wallet (ex: 077 xx xx xx)",
+    en: "Wallet number (e.g., 077 xx xx xx)",
+    zh: "钱包号码（如：077 xx xx xx）",
+  },
+  "wallet.form.bankDest.label": {
+    fr: "Compte bancaire destinataire",
+    en: "Destination bank account",
+    zh: "收款银行账户",
+  },
+  "wallet.form.bankDest.placeholder": {
+    fr: "Ex: SGBCI, NSIA, Ecobank",
+    en: "e.g., SGBCI, NSIA, Ecobank",
+    zh: "例如：SGBCI、NSIA、Ecobank",
+  },
+  "wallet.form.amount.label": { fr: "Montant", en: "Amount", zh: "金额" },
+  "common.currency.xaf": { fr: "XAF", en: "XAF", zh: "XAF" },
+  "wallet.action.submit": {
+    fr: "Effectuer le transfert",
+    en: "Make the transfer",
+    zh: "执行转账",
+  },
+  "wallet.note.secure": {
+    fr: "Vos transferts sont sécurisés et cryptés",
+    en: "Your transfers are secure and encrypted",
+    zh: "您的转账是安全且加密的",
   },
 
   // Cards (Quick Action)

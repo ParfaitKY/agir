@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import {
   View,
   Text,
@@ -8,12 +8,12 @@ import {
   SafeAreaView,
   Switch,
   Modal,
-  TextInput
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { useAuth } from '../../../app/hooks/useAuth';
-import { useNavigation } from '@react-navigation/native';
-import { useI18n } from '../../../app/providers/I18nProvider';
+  TextInput,
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { useAuth } from "../../../app/hooks/useAuth";
+import { useNavigation } from "@react-navigation/native";
+import { useI18n } from "../../../app/providers/I18nProvider";
 // (Mode sombre retiré) Pas d'intégration ThemeProvider
 
 export const SettingsScreen: React.FC = () => {
@@ -24,15 +24,16 @@ export const SettingsScreen: React.FC = () => {
   const [biometricEnabled, setBiometricEnabled] = React.useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = React.useState(true);
   const [darkModeEnabled, setDarkModeEnabled] = React.useState(false);
-  const [showChangePasswordModal, setShowChangePasswordModal] = React.useState(false);
+  const [showChangePasswordModal, setShowChangePasswordModal] =
+    React.useState(false);
   const [showChangePinModal, setShowChangePinModal] = React.useState(false);
-  const [currentPassword, setCurrentPassword] = React.useState('');
-  const [newPassword, setNewPassword] = React.useState('');
-  const [confirmPassword, setConfirmPassword] = React.useState('');
+  const [currentPassword, setCurrentPassword] = React.useState("");
+  const [newPassword, setNewPassword] = React.useState("");
+  const [confirmPassword, setConfirmPassword] = React.useState("");
   const [passwordError, setPasswordError] = React.useState<string | null>(null);
-  const [currentPin, setCurrentPin] = React.useState('');
-  const [newPin, setNewPin] = React.useState('');
-  const [confirmPin, setConfirmPin] = React.useState('');
+  const [currentPin, setCurrentPin] = React.useState("");
+  const [newPin, setNewPin] = React.useState("");
+  const [confirmPin, setConfirmPin] = React.useState("");
   const [pinError, setPinError] = React.useState<string | null>(null);
 
   const handleLogout = async () => {
@@ -41,96 +42,96 @@ export const SettingsScreen: React.FC = () => {
 
   const settingsSections = [
     {
-      title: 'COMPTE',
+      title: "COMPTE",
       items: [
         {
-          icon: 'person-outline',
-          iconColor: '#0066CC',
-          title: 'Mon Profil',
-          onPress: () => navigation.navigate('Profile' as never),
+          icon: "person-outline",
+          iconColor: "#0066CC",
+          title: "Mon Profil",
+          onPress: () => (navigation as any).navigate("Profile"),
           showChevron: true,
         },
         {
-          icon: 'lock-closed-outline',
-          iconColor: '#0066CC',
-          title: 'Changer le code PIN',
+          icon: "lock-closed-outline",
+          iconColor: "#0066CC",
+          title: "Changer le code PIN",
           onPress: () => setShowChangePinModal(true),
           showChevron: true,
         },
         {
-          icon: 'key-outline',
-          iconColor: '#0066CC',
-          title: 'Changer le mot de passe',
+          icon: "key-outline",
+          iconColor: "#0066CC",
+          title: "Changer le mot de passe",
           onPress: () => setShowChangePasswordModal(true),
           showChevron: true,
         },
       ],
     },
     {
-      title: 'SERVICES FINANCIERS',
+      title: "SERVICES FINANCIERS",
       items: [
         {
-          icon: 'wallet-outline',
-          iconColor: '#0066CC',
-          title: 'Mon Wallet',
-          onPress: () => navigation.navigate("WalletScreens"),
+          icon: "wallet-outline",
+          iconColor: "#0066CC",
+          title: "Mon Wallet",
+          onPress: () => (navigation as any).navigate("WalletScreens"),
           showChevron: true,
         },
         {
-          icon: 'card-outline',
-          iconColor: '#0066CC',
-          title: 'Gérer mes comptes',
-          onPress: () => console.log('Comptes'),
+          icon: "card-outline",
+          iconColor: "#0066CC",
+          title: "Gérer mes comptes",
+          onPress: () => console.log("Comptes"),
           showChevron: true,
         },
         {
-          icon: 'people-outline',
-          iconColor: '#0066CC',
-          title: 'Mes bénéficiaires',
-          onPress: () => console.log('Bénéficiaires'),
+          icon: "people-outline",
+          iconColor: "#0066CC",
+          title: "Mes bénéficiaires",
+          onPress: () => console.log("Bénéficiaires"),
           showChevron: true,
         },
         {
-          icon: 'grid-outline',
-          iconColor: '#0066CC',
-          title: 'Mes produits',
-          onPress: () => console.log('Produits'),
+          icon: "grid-outline",
+          iconColor: "#0066CC",
+          title: "Mes produits",
+          onPress: () => console.log("Produits"),
           showChevron: true,
         },
       ],
     },
     {
-      title: 'PRÉFÉRENCES',
+      title: "PRÉFÉRENCES",
       items: [
         {
-          icon: 'notifications-outline',
-          iconColor: '#0066CC',
-          title: 'Notifications',
+          icon: "notifications-outline",
+          iconColor: "#0066CC",
+          title: "Notifications",
           rightElement: (
             <Switch
               value={notificationsEnabled}
               onValueChange={setNotificationsEnabled}
-              trackColor={{ false: '#E0E0E0', true: '#0066CC' }}
+              trackColor={{ false: "#E0E0E0", true: "#0066CC" }}
               thumbColor="#fff"
             />
           ),
         },
         {
-          icon: 'language-outline',
-          iconColor: '#0066CC',
-          title: t('settings.language'),
-          onPress: () => navigation.navigate('Language' as never),
+          icon: "language-outline",
+          iconColor: "#0066CC",
+          title: t("settings.language"),
+          onPress: () => (navigation as any).navigate("Language"),
           showChevron: true,
         },
         {
-          icon: 'moon-outline',
-          iconColor: '#0066CC',
-          title: 'Mode sombre',
+          icon: "moon-outline",
+          iconColor: "#0066CC",
+          title: "Mode sombre",
           rightElement: (
             <Switch
               value={darkModeEnabled}
               onValueChange={setDarkModeEnabled}
-              trackColor={{ false: '#E0E0E0', true: '#0066CC' }}
+              trackColor={{ false: "#E0E0E0", true: "#0066CC" }}
               thumbColor="#fff"
             />
           ),
@@ -138,106 +139,106 @@ export const SettingsScreen: React.FC = () => {
       ],
     },
     {
-      title: 'SÉCURITÉ',
+      title: "SÉCURITÉ",
       items: [
         {
-          icon: 'finger-print-outline',
-          iconColor: '#0066CC',
-          title: 'Authentification biométrique',
+          icon: "finger-print-outline",
+          iconColor: "#0066CC",
+          title: "Authentification biométrique",
           rightElement: (
             <Switch
               value={biometricEnabled}
               onValueChange={setBiometricEnabled}
-              trackColor={{ false: '#E0E0E0', true: '#0066CC' }}
+              trackColor={{ false: "#E0E0E0", true: "#0066CC" }}
               thumbColor="#fff"
             />
           ),
         },
         {
-          icon: 'shield-checkmark-outline',
-          iconColor: '#0066CC',
-          title: 'Confidentialité',
-          onPress: () => console.log('Confidentialité'),
+          icon: "shield-checkmark-outline",
+          iconColor: "#0066CC",
+          title: "Confidentialité",
+          onPress: () => console.log("Confidentialité"),
           showChevron: true,
         },
       ],
     },
     {
-      title: 'SUPPORT',
+      title: "SUPPORT",
       items: [
         {
-          icon: 'headset-outline',
-          iconColor: '#0066CC',
-          title: 'Service client',
-          onPress: () => console.log('Service client'),
+          icon: "headset-outline",
+          iconColor: "#0066CC",
+          title: "Service client",
+          onPress: () => console.log("Service client"),
           showChevron: true,
         },
         {
-          icon: 'chatbubble-outline',
-          iconColor: '#0066CC',
-          title: 'Chat en ligne',
-          onPress: () => console.log('Chat'),
+          icon: "chatbubble-outline",
+          iconColor: "#0066CC",
+          title: "Chat en ligne",
+          onPress: () => console.log("Chat"),
           showChevron: true,
         },
         {
-          icon: 'mail-outline',
-          iconColor: '#0066CC',
-          title: 'Envoyer un email',
-          onPress: () => console.log('Email'),
+          icon: "mail-outline",
+          iconColor: "#0066CC",
+          title: "Envoyer un email",
+          onPress: () => console.log("Email"),
           showChevron: true,
         },
         {
-          icon: 'help-circle-outline',
-          iconColor: '#0066CC',
+          icon: "help-circle-outline",
+          iconColor: "#0066CC",
           title: "Centre d'aide / FAQ",
-          onPress: () => console.log('FAQ'),
+          onPress: () => console.log("FAQ"),
           showChevron: true,
         },
         {
-          icon: 'warning-outline',
-          iconColor: '#0066CC',
-          title: 'Signaler un problème',
-          onPress: () => console.log('Signaler'),
+          icon: "warning-outline",
+          iconColor: "#0066CC",
+          title: "Signaler un problème",
+          onPress: () => console.log("Signaler"),
           showChevron: true,
         },
       ],
     },
     {
-      title: 'APPLICATION',
+      title: "APPLICATION",
       items: [
         {
-          icon: 'information-circle-outline',
-          iconColor: '#0066CC',
-          title: 'À propos',
-          onPress: () => console.log('À propos'),
+          icon: "information-circle-outline",
+          iconColor: "#0066CC",
+          title: "À propos",
+          onPress: () => console.log("À propos"),
           showChevron: true,
         },
         {
-          icon: 'document-text-outline',
-          iconColor: '#0066CC',
+          icon: "document-text-outline",
+          iconColor: "#0066CC",
           title: "Conditions d'utilisation",
-          onPress: () => console.log('Conditions'),
+          onPress: () => console.log("Conditions"),
           showChevron: true,
         },
         {
-          icon: 'shield-outline',
-          iconColor: '#0066CC',
-          title: 'Politique de confidentialité',
-          onPress: () => console.log('Politique'),
+          icon: "shield-outline",
+          iconColor: "#0066CC",
+          title: "Politique de confidentialité",
+          onPress: () => console.log("Politique"),
           showChevron: true,
         },
         {
-          icon: 'star-outline',
-          iconColor: '#0066CC',
+          icon: "star-outline",
+          iconColor: "#0066CC",
           title: "Évaluer l'application",
-          onPress: () => console.log('Évaluer'),
+          onPress: () => console.log("Évaluer"),
           showChevron: true,
         },
         {
-          icon: 'share-social-outline',
-          iconColor: '#0066CC',
+          icon: "share-social-outline",
+          iconColor: "#0066CC",
           title: "Partager l'application",
-          onPress: () => console.log('Partager'),
+          onPress: () => console.log("Partager"),
           showChevron: true,
         },
       ],
@@ -247,13 +248,10 @@ export const SettingsScreen: React.FC = () => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>{t('settings.header')}</Text>
+        <Text style={styles.title}>{t("settings.header")}</Text>
       </View>
 
-      <ScrollView
-        style={styles.content}
-        showsVerticalScrollIndicator={false}
-      >
+      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {/* Settings Sections */}
         {settingsSections.map((section, sectionIndex) => (
           <View key={sectionIndex} style={styles.section}>
@@ -264,7 +262,8 @@ export const SettingsScreen: React.FC = () => {
                   key={itemIndex}
                   style={[
                     styles.settingItem,
-                    itemIndex === section.items.length - 1 && styles.settingItemLast,
+                    itemIndex === section.items.length - 1 &&
+                      styles.settingItemLast,
                     // Couleur de séparateur statique
                   ]}
                   onPress={item.onPress}
@@ -279,15 +278,10 @@ export const SettingsScreen: React.FC = () => {
                     />
                     <Text style={styles.settingTitle}>{tText(item.title)}</Text>
                   </View>
-                  {item.rightElement || (
-                    item.showChevron && (
-                      <Ionicons
-                        name="chevron-forward"
-                        size={20}
-                        color="#999"
-                      />
-                    )
-                  )}
+                  {item.rightElement ||
+                    (item.showChevron && (
+                      <Ionicons name="chevron-forward" size={20} color="#999" />
+                    ))}
                 </TouchableOpacity>
               ))}
             </View>
@@ -296,7 +290,7 @@ export const SettingsScreen: React.FC = () => {
 
         {/* Déconnexion Section */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>{tText('DÉCONNEXION')}</Text>
+          <Text style={styles.sectionTitle}>{tText("DÉCONNEXION")}</Text>
           <View style={styles.sectionContent}>
             <TouchableOpacity
               style={[styles.settingItem, styles.settingItemLast]}
@@ -306,7 +300,7 @@ export const SettingsScreen: React.FC = () => {
               <View style={styles.settingLeft}>
                 <Ionicons name="log-out-outline" size={22} color="#FF3B30" />
                 <Text style={[styles.settingTitle, styles.logoutText]}>
-                  {tText('Se déconnecter')}
+                  {tText("Se déconnecter")}
                 </Text>
               </View>
               <Ionicons name="chevron-forward" size={20} color="#999" />
@@ -316,8 +310,8 @@ export const SettingsScreen: React.FC = () => {
 
         {/* Version Info */}
         <View style={styles.versionContainer}>
-          <Text style={styles.versionText}>{t('settings.version')} 1.0.0</Text>
-          <Text style={styles.copyrightText}>{t('settings.copyright')}</Text>
+          <Text style={styles.versionText}>{t("settings.version")} 1.0.0</Text>
+          <Text style={styles.copyrightText}>{t("settings.copyright")}</Text>
         </View>
       </ScrollView>
 
@@ -352,9 +346,14 @@ export const SettingsScreen: React.FC = () => {
               value={confirmPassword}
               onChangeText={setConfirmPassword}
             />
-            {passwordError && <Text style={styles.errorText}>{passwordError}</Text>}
+            {passwordError && (
+              <Text style={styles.errorText}>{passwordError}</Text>
+            )}
             <View style={styles.modalActions}>
-              <TouchableOpacity style={[styles.actionButton, styles.cancelButton]} onPress={() => setShowChangePasswordModal(false)}>
+              <TouchableOpacity
+                style={[styles.actionButton, styles.cancelButton]}
+                onPress={() => setShowChangePasswordModal(false)}
+              >
                 <Text style={styles.actionText}>Annuler</Text>
               </TouchableOpacity>
               <TouchableOpacity
@@ -362,22 +361,29 @@ export const SettingsScreen: React.FC = () => {
                 onPress={() => {
                   // Validation simple
                   if (newPassword.length < 6) {
-                    setPasswordError('Le mot de passe doit contenir au moins 6 caractères');
+                    setPasswordError(
+                      "Le mot de passe doit contenir au moins 6 caractères"
+                    );
                     return;
                   }
                   if (newPassword !== confirmPassword) {
-                    setPasswordError('Les mots de passe ne correspondent pas');
+                    setPasswordError("Les mots de passe ne correspondent pas");
                     return;
                   }
                   setPasswordError(null);
-                  console.log('Change password', { currentPassword, newPassword });
+                  console.log("Change password", {
+                    currentPassword,
+                    newPassword,
+                  });
                   setShowChangePasswordModal(false);
-                  setCurrentPassword('');
-                  setNewPassword('');
-                  setConfirmPassword('');
+                  setCurrentPassword("");
+                  setNewPassword("");
+                  setConfirmPassword("");
                 }}
               >
-                <Text style={[styles.actionText, { color: '#fff' }]}>Valider</Text>
+                <Text style={[styles.actionText, { color: "#fff" }]}>
+                  Valider
+                </Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -423,7 +429,10 @@ export const SettingsScreen: React.FC = () => {
             />
             {pinError && <Text style={styles.errorText}>{pinError}</Text>}
             <View style={styles.modalActions}>
-              <TouchableOpacity style={[styles.actionButton, styles.cancelButton]} onPress={() => setShowChangePinModal(false)}>
+              <TouchableOpacity
+                style={[styles.actionButton, styles.cancelButton]}
+                onPress={() => setShowChangePinModal(false)}
+              >
                 <Text style={styles.actionText}>Annuler</Text>
               </TouchableOpacity>
               <TouchableOpacity
@@ -432,22 +441,24 @@ export const SettingsScreen: React.FC = () => {
                   // Validation simple du PIN
                   const pinRegex = /^\d{4,6}$/;
                   if (!pinRegex.test(newPin)) {
-                    setPinError('Le PIN doit contenir 4 à 6 chiffres');
+                    setPinError("Le PIN doit contenir 4 à 6 chiffres");
                     return;
                   }
                   if (newPin !== confirmPin) {
-                    setPinError('Les PINs ne correspondent pas');
+                    setPinError("Les PINs ne correspondent pas");
                     return;
                   }
                   setPinError(null);
-                  console.log('Change PIN', { currentPin, newPin });
+                  console.log("Change PIN", { currentPin, newPin });
                   setShowChangePinModal(false);
-                  setCurrentPin('');
-                  setNewPin('');
-                  setConfirmPin('');
+                  setCurrentPin("");
+                  setNewPin("");
+                  setConfirmPin("");
                 }}
               >
-                <Text style={[styles.actionText, { color: '#fff' }]}>Valider</Text>
+                <Text style={[styles.actionText, { color: "#fff" }]}>
+                  Valider
+                </Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -460,16 +471,16 @@ export const SettingsScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: "#F5F5F5",
   },
   header: {
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     paddingHorizontal: 20,
     paddingTop: 16,
     paddingBottom: 16,
     borderBottomLeftRadius: 24,
     borderBottomRightRadius: 24,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.08,
     shadowRadius: 8,
@@ -477,8 +488,8 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 20,
-    fontWeight: '700',
-    color: '#000',
+    fontWeight: "700",
+    color: "#000",
   },
   content: {
     flex: 1,
@@ -488,71 +499,71 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 12,
-    fontWeight: '600',
-    color: '#999',
+    fontWeight: "600",
+    color: "#999",
     marginBottom: 8,
     marginLeft: 20,
     letterSpacing: 0.5,
   },
   sectionContent: {
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     marginHorizontal: 0,
   },
   settingItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingVertical: 16,
     paddingHorizontal: 20,
     borderBottomWidth: 1,
-    borderBottomColor: '#F0F0F0',
+    borderBottomColor: "#F0F0F0",
   },
   settingItemLast: {
     borderBottomWidth: 0,
   },
   settingLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     flex: 1,
   },
   settingTitle: {
     fontSize: 15,
-    fontWeight: '400',
-    color: '#000',
+    fontWeight: "400",
+    color: "#000",
     marginLeft: 16,
   },
   logoutText: {
-    color: '#FF3B30',
+    color: "#FF3B30",
   },
   versionContainer: {
-    alignItems: 'center',
+    alignItems: "center",
     paddingVertical: 32,
     paddingBottom: 40,
   },
   versionText: {
     fontSize: 13,
-    color: '#999',
+    color: "#999",
     marginBottom: 4,
   },
   copyrightText: {
     fontSize: 12,
-    color: '#CCC',
+    color: "#CCC",
   },
   // Modal styles
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.4)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "rgba(0,0,0,0.4)",
+    justifyContent: "center",
+    alignItems: "center",
     padding: 20,
   },
   modalContainer: {
-    width: '100%',
+    width: "100%",
     maxWidth: 380,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderRadius: 16,
     padding: 20,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOpacity: 0.1,
     shadowRadius: 10,
     shadowOffset: { width: 0, height: 4 },
@@ -560,27 +571,27 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     fontSize: 18,
-    fontWeight: '700',
-    color: '#1A1A1A',
+    fontWeight: "700",
+    color: "#1A1A1A",
     marginBottom: 12,
   },
   input: {
     height: 44,
     borderWidth: 1,
-    borderColor: '#E0E0E0',
+    borderColor: "#E0E0E0",
     borderRadius: 10,
     paddingHorizontal: 12,
     marginBottom: 10,
-    backgroundColor: '#FAFAFA',
+    backgroundColor: "#FAFAFA",
   },
   errorText: {
-    color: '#e74c3c',
+    color: "#e74c3c",
     fontSize: 13,
     marginBottom: 12,
   },
   modalActions: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
+    flexDirection: "row",
+    justifyContent: "flex-end",
     gap: 12,
   },
   actionButton: {
@@ -589,14 +600,14 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   cancelButton: {
-    backgroundColor: '#F5F5F5',
+    backgroundColor: "#F5F5F5",
   },
   confirmButton: {
-    backgroundColor: '#0066CC',
+    backgroundColor: "#0066CC",
   },
   actionText: {
     fontSize: 14,
-    color: '#1A1A1A',
-    fontWeight: '600',
+    color: "#1A1A1A",
+    fontWeight: "600",
   },
 });
