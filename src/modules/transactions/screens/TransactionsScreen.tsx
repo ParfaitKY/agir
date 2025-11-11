@@ -8,8 +8,10 @@ import {
   SafeAreaView
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useI18n } from '../../../app/providers/I18nProvider';
 
 export const TransactionsScreen: React.FC = () => {
+  const { t, tText } = useI18n();
   const [activeFilter, setActiveFilter] = useState<'toutes' | 'entrees' | 'sorties'>('toutes');
 
   const transactions = [
@@ -75,6 +77,17 @@ export const TransactionsScreen: React.FC = () => {
     return true;
   });
 
+  const translateTitle = (title: string) => {
+    let result = title;
+    result = result.replace('Virement reçu', t('transactions.title.receivedTransfer'));
+    result = result.replace('Retrait ATM', t('transactions.title.atmWithdrawal'));
+    result = result.replace('Paiement facture', t('transactions.title.billPayment'));
+    result = result.replace('Salaire mensuel', t('transactions.title.salary'));
+    result = result.replace('Achat supermarché', t('transactions.title.groceryPurchase'));
+    result = result.replace('Transfert vers épargne', t('transactions.title.transferToSavings'));
+    return result;
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       
@@ -84,7 +97,7 @@ export const TransactionsScreen: React.FC = () => {
         <View style={styles.summaryItem}>
             <View style={styles.summaryHeader}>
             <Ionicons name="trending-up" size={16} color="#27ae60" />
-            <Text style={styles.summaryLabel}>Entrées</Text>
+            <Text style={styles.summaryLabel}>{t('transactions.summary.in')}</Text>
             </View>
             <Text style={styles.entreeAmount}>{totalEntrees.toLocaleString()} XAF</Text>
         </View>
@@ -92,7 +105,7 @@ export const TransactionsScreen: React.FC = () => {
         <View style={styles.summaryItem}>
             <View style={styles.summaryHeader}>
             <Ionicons name="trending-down" size={16} color="#e74c3c" />
-            <Text style={styles.summaryLabel}>Sorties</Text>
+            <Text style={styles.summaryLabel}>{t('transactions.summary.out')}</Text>
             </View>
             <Text style={styles.sortieAmount}>{totalSorties.toLocaleString()} XAF</Text>
         </View>
@@ -112,7 +125,7 @@ export const TransactionsScreen: React.FC = () => {
               styles.filterButtonText,
               activeFilter === 'toutes' && styles.filterButtonTextActive
             ]}>
-              Toutes
+              {t('transactions.filter.all')}
             </Text>
           </TouchableOpacity>
           
@@ -129,7 +142,7 @@ export const TransactionsScreen: React.FC = () => {
                 styles.filterButtonText,
                 activeFilter === 'entrees' && styles.filterButtonTextActive
               ]}>
-                Entrées
+                {t('transactions.filter.in')}
               </Text>
             </View>
             <Ionicons name="chevron-down" size={14} color={activeFilter === 'entrees' ? 'white' : '#7f8c8d'} />
@@ -148,7 +161,7 @@ export const TransactionsScreen: React.FC = () => {
                 styles.filterButtonText,
                 activeFilter === 'sorties' && styles.filterButtonTextActive
               ]}>
-                Sorties
+                {t('transactions.filter.out')}
               </Text>
             </View>
             <Ionicons name="chevron-down" size={14} color={activeFilter === 'sorties' ? 'white' : '#7f8c8d'} />
@@ -161,7 +174,7 @@ export const TransactionsScreen: React.FC = () => {
         {filteredTransactions.map((transaction) => (
           <View key={transaction.id} style={styles.transactionCard}>
             <View style={styles.transactionInfo}>
-              <Text style={styles.transactionTitle}>{transaction.title}</Text>
+              <Text style={styles.transactionTitle}>{translateTitle(transaction.title)}</Text>
               <Text style={styles.transactionDate}>{transaction.date}</Text>
             </View>
             <Text style={[
@@ -176,7 +189,7 @@ export const TransactionsScreen: React.FC = () => {
         {filteredTransactions.length === 0 && (
           <View style={styles.emptyState}>
             <Text style={styles.emptyStateText}>
-              Aucune transaction {activeFilter === 'entrees' ? 'd\'entrée' : activeFilter === 'sorties' ? 'de sortie' : ''}
+              {t('transactions.empty.none')} {activeFilter === 'entrees' ? t('transactions.empty.inSuffix') : activeFilter === 'sorties' ? t('transactions.empty.outSuffix') : ''}
             </Text>
           </View>
         )}

@@ -6,18 +6,34 @@ import {
   ScrollView,
   TouchableOpacity,
   SafeAreaView,
-  Switch
+  Switch,
+  Modal,
+  TextInput
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../../app/hooks/useAuth';
 import { useNavigation } from '@react-navigation/native';
+import { useI18n } from '../../../app/providers/I18nProvider';
+// (Mode sombre retiré) Pas d'intégration ThemeProvider
 
 export const SettingsScreen: React.FC = () => {
   const { user, logout } = useAuth();
   const navigation = useNavigation();
+  const { t, tText } = useI18n();
+  // Styles statiques uniquement
   const [biometricEnabled, setBiometricEnabled] = React.useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = React.useState(true);
   const [darkModeEnabled, setDarkModeEnabled] = React.useState(false);
+  const [showChangePasswordModal, setShowChangePasswordModal] = React.useState(false);
+  const [showChangePinModal, setShowChangePinModal] = React.useState(false);
+  const [currentPassword, setCurrentPassword] = React.useState('');
+  const [newPassword, setNewPassword] = React.useState('');
+  const [confirmPassword, setConfirmPassword] = React.useState('');
+  const [passwordError, setPasswordError] = React.useState<string | null>(null);
+  const [currentPin, setCurrentPin] = React.useState('');
+  const [newPin, setNewPin] = React.useState('');
+  const [confirmPin, setConfirmPin] = React.useState('');
+  const [pinError, setPinError] = React.useState<string | null>(null);
 
   const handleLogout = async () => {
     await logout();
@@ -31,21 +47,21 @@ export const SettingsScreen: React.FC = () => {
           icon: 'person-outline',
           iconColor: '#0066CC',
           title: 'Mon Profil',
-          onPress: () => console.log('Profil'),
+          onPress: () => navigation.navigate('Profile' as never),
           showChevron: true,
         },
         {
           icon: 'lock-closed-outline',
           iconColor: '#0066CC',
           title: 'Changer le code PIN',
-          onPress: () => console.log('PIN'),
+          onPress: () => setShowChangePinModal(true),
           showChevron: true,
         },
         {
           icon: 'key-outline',
           iconColor: '#0066CC',
           title: 'Changer le mot de passe',
-          onPress: () => navigation.navigate('ChangePassword' as never),
+          onPress: () => setShowChangePasswordModal(true),
           showChevron: true,
         },
       ],
@@ -102,8 +118,8 @@ export const SettingsScreen: React.FC = () => {
         {
           icon: 'language-outline',
           iconColor: '#0066CC',
-          title: 'Langue',
-          onPress: () => console.log('Langue'),
+          title: t('settings.language'),
+          onPress: () => navigation.navigate('Language' as never),
           showChevron: true,
         },
         {
@@ -231,7 +247,7 @@ export const SettingsScreen: React.FC = () => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Paramètres</Text>
+        <Text style={styles.title}>{t('settings.header')}</Text>
       </View>
 
       <ScrollView
@@ -241,14 +257,15 @@ export const SettingsScreen: React.FC = () => {
         {/* Settings Sections */}
         {settingsSections.map((section, sectionIndex) => (
           <View key={sectionIndex} style={styles.section}>
-            <Text style={styles.sectionTitle}>{section.title}</Text>
+            <Text style={styles.sectionTitle}>{tText(section.title)}</Text>
             <View style={styles.sectionContent}>
               {section.items.map((item, itemIndex) => (
                 <TouchableOpacity
                   key={itemIndex}
                   style={[
                     styles.settingItem,
-                    itemIndex === section.items.length - 1 && styles.settingItemLast
+                    itemIndex === section.items.length - 1 && styles.settingItemLast,
+                    // Couleur de séparateur statique
                   ]}
                   onPress={item.onPress}
                   disabled={!item.onPress}
@@ -260,14 +277,14 @@ export const SettingsScreen: React.FC = () => {
                       size={22}
                       color={item.iconColor}
                     />
-                    <Text style={styles.settingTitle}>{item.title}</Text>
+                    <Text style={styles.settingTitle}>{tText(item.title)}</Text>
                   </View>
                   {item.rightElement || (
                     item.showChevron && (
                       <Ionicons
                         name="chevron-forward"
                         size={20}
-                        color="#C0C0C0"
+                        color="#999"
                       />
                     )
                   )}
@@ -279,7 +296,7 @@ export const SettingsScreen: React.FC = () => {
 
         {/* Déconnexion Section */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>DÉCONNEXION</Text>
+          <Text style={styles.sectionTitle}>{tText('DÉCONNEXION')}</Text>
           <View style={styles.sectionContent}>
             <TouchableOpacity
               style={[styles.settingItem, styles.settingItemLast]}
@@ -289,20 +306,153 @@ export const SettingsScreen: React.FC = () => {
               <View style={styles.settingLeft}>
                 <Ionicons name="log-out-outline" size={22} color="#FF3B30" />
                 <Text style={[styles.settingTitle, styles.logoutText]}>
-                  Se déconnecter
+                  {tText('Se déconnecter')}
                 </Text>
               </View>
-              <Ionicons name="chevron-forward" size={20} color="#C0C0C0" />
+              <Ionicons name="chevron-forward" size={20} color="#999" />
             </TouchableOpacity>
           </View>
         </View>
 
         {/* Version Info */}
         <View style={styles.versionContainer}>
-          <Text style={styles.versionText}>Version 1.0.0</Text>
-          <Text style={styles.copyrightText}>© 2025 La Pepite EMF</Text>
+          <Text style={styles.versionText}>{t('settings.version')} 1.0.0</Text>
+          <Text style={styles.copyrightText}>{t('settings.copyright')}</Text>
         </View>
       </ScrollView>
+
+      {/* Modal Changer le mot de passe */}
+      <Modal
+        visible={showChangePasswordModal}
+        animationType="slide"
+        transparent
+        onRequestClose={() => setShowChangePasswordModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <Text style={styles.modalTitle}>Changer le mot de passe</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Mot de passe actuel"
+              secureTextEntry
+              value={currentPassword}
+              onChangeText={setCurrentPassword}
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Nouveau mot de passe"
+              secureTextEntry
+              value={newPassword}
+              onChangeText={setNewPassword}
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Confirmer le nouveau mot de passe"
+              secureTextEntry
+              value={confirmPassword}
+              onChangeText={setConfirmPassword}
+            />
+            {passwordError && <Text style={styles.errorText}>{passwordError}</Text>}
+            <View style={styles.modalActions}>
+              <TouchableOpacity style={[styles.actionButton, styles.cancelButton]} onPress={() => setShowChangePasswordModal(false)}>
+                <Text style={styles.actionText}>Annuler</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.actionButton, styles.confirmButton]}
+                onPress={() => {
+                  // Validation simple
+                  if (newPassword.length < 6) {
+                    setPasswordError('Le mot de passe doit contenir au moins 6 caractères');
+                    return;
+                  }
+                  if (newPassword !== confirmPassword) {
+                    setPasswordError('Les mots de passe ne correspondent pas');
+                    return;
+                  }
+                  setPasswordError(null);
+                  console.log('Change password', { currentPassword, newPassword });
+                  setShowChangePasswordModal(false);
+                  setCurrentPassword('');
+                  setNewPassword('');
+                  setConfirmPassword('');
+                }}
+              >
+                <Text style={[styles.actionText, { color: '#fff' }]}>Valider</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Modal Changer le code PIN */}
+      <Modal
+        visible={showChangePinModal}
+        animationType="slide"
+        transparent
+        onRequestClose={() => setShowChangePinModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <Text style={styles.modalTitle}>Changer le code PIN</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="PIN actuel"
+              secureTextEntry
+              keyboardType="numeric"
+              value={currentPin}
+              onChangeText={setCurrentPin}
+              maxLength={6}
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Nouveau PIN (4-6 chiffres)"
+              secureTextEntry
+              keyboardType="numeric"
+              value={newPin}
+              onChangeText={setNewPin}
+              maxLength={6}
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Confirmer le nouveau PIN"
+              secureTextEntry
+              keyboardType="numeric"
+              value={confirmPin}
+              onChangeText={setConfirmPin}
+              maxLength={6}
+            />
+            {pinError && <Text style={styles.errorText}>{pinError}</Text>}
+            <View style={styles.modalActions}>
+              <TouchableOpacity style={[styles.actionButton, styles.cancelButton]} onPress={() => setShowChangePinModal(false)}>
+                <Text style={styles.actionText}>Annuler</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.actionButton, styles.confirmButton]}
+                onPress={() => {
+                  // Validation simple du PIN
+                  const pinRegex = /^\d{4,6}$/;
+                  if (!pinRegex.test(newPin)) {
+                    setPinError('Le PIN doit contenir 4 à 6 chiffres');
+                    return;
+                  }
+                  if (newPin !== confirmPin) {
+                    setPinError('Les PINs ne correspondent pas');
+                    return;
+                  }
+                  setPinError(null);
+                  console.log('Change PIN', { currentPin, newPin });
+                  setShowChangePinModal(false);
+                  setCurrentPin('');
+                  setNewPin('');
+                  setConfirmPin('');
+                }}
+              >
+                <Text style={[styles.actionText, { color: '#fff' }]}>Valider</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 };
@@ -387,5 +537,66 @@ const styles = StyleSheet.create({
   copyrightText: {
     fontSize: 12,
     color: '#CCC',
+  },
+  // Modal styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalContainer: {
+    width: '100%',
+    maxWidth: 380,
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 5,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#1A1A1A',
+    marginBottom: 12,
+  },
+  input: {
+    height: 44,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    marginBottom: 10,
+    backgroundColor: '#FAFAFA',
+  },
+  errorText: {
+    color: '#e74c3c',
+    fontSize: 13,
+    marginBottom: 12,
+  },
+  modalActions: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: 12,
+  },
+  actionButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 10,
+  },
+  cancelButton: {
+    backgroundColor: '#F5F5F5',
+  },
+  confirmButton: {
+    backgroundColor: '#0066CC',
+  },
+  actionText: {
+    fontSize: 14,
+    color: '#1A1A1A',
+    fontWeight: '600',
   },
 });

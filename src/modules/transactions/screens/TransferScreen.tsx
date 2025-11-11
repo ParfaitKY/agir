@@ -9,8 +9,10 @@ import {
   SafeAreaView
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useI18n } from '../../../app/providers/I18nProvider';
 
 export const TransferScreen: React.FC = () => {
+  const { t } = useI18n();
   const [type, setType] = useState<'interne' | 'externe'>('interne');
   const [sourceAccount, setSourceAccount] = useState('');
   const [destinationAccount, setDestinationAccount] = useState('');
@@ -29,13 +31,13 @@ export const TransferScreen: React.FC = () => {
             <Ionicons name="swap-horizontal" size={28} color="#007AFF" />
           </View>
         </View>
-        <Text style={styles.headerTitle}>Nouveau virement</Text>
+        <Text style={styles.headerTitle}>{t('transfer.header.title')}</Text>
         <Text style={styles.headerSubtitle}>
-          Transférez de l'argent rapidement et en toute sécurité
+          {t('transfer.header.subtitle')}
         </Text>
 
         {/* Type de virement */}
-        <Text style={styles.sectionLabel}>TYPE DE VIREMENT</Text>
+        <Text style={styles.sectionLabel}>{t('transfer.section.type')}</Text>
 
         <TouchableOpacity
           style={[styles.typeCard, type === 'interne' && styles.typeCardActive]}
@@ -47,8 +49,8 @@ export const TransferScreen: React.FC = () => {
               <Ionicons name="swap-horizontal" size={22} color={type === 'interne' ? '#fff' : '#007AFF'} />
             </View>
             <View>
-              <Text style={[styles.typeTitle, type === 'interne' && styles.typeTitleActive]}>Compte à compte interne</Text>
-              <Text style={[styles.typeSubtitle, type === 'interne' && styles.typeSubtitleActive]}>Entre vos comptes</Text>
+              <Text style={[styles.typeTitle, type === 'interne' && styles.typeTitleActive]}>{t('transfer.type.internal.title')}</Text>
+              <Text style={[styles.typeSubtitle, type === 'interne' && styles.typeSubtitleActive]}>{t('transfer.type.internal.subtitle')}</Text>
             </View>
           </View>
           <View style={[styles.checkCircle, type === 'interne' && styles.checkCircleActive]}>
@@ -70,8 +72,8 @@ export const TransferScreen: React.FC = () => {
               <Ionicons name="send-outline" size={20} color={type === 'externe' ? '#fff' : '#007AFF'} />
             </View>
             <View>
-              <Text style={[styles.typeTitle, type === 'externe' && styles.typeTitleActive]}>Compte à compte externe</Text>
-              <Text style={[styles.typeSubtitle, type === 'externe' && styles.typeSubtitleActive]}>Vers un autre bénéficiaire</Text>
+              <Text style={[styles.typeTitle, type === 'externe' && styles.typeTitleActive]}>{t('transfer.type.external.title')}</Text>
+              <Text style={[styles.typeSubtitle, type === 'externe' && styles.typeSubtitleActive]}>{t('transfer.type.external.subtitle')}</Text>
             </View>
           </View>
           <View style={[styles.checkCircle, type === 'externe' && styles.checkCircleActive]}>
@@ -82,30 +84,30 @@ export const TransferScreen: React.FC = () => {
         {/* Formulaire de virement interne */}
         {type === 'interne' && (
           <View style={styles.formSection}>
-            <Text style={styles.formTitle}>Virement interne</Text>
+            <Text style={styles.formTitle}>{t('transfer.form.internal.title')}</Text>
 
             <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Compte source</Text>
+              <Text style={styles.inputLabel}>{t('transfer.form.source.label')}</Text>
               <TextInput
                 style={styles.input}
-                placeholder="Numéro de compte source"
+                placeholder={t('transfer.form.source.placeholder')}
                 value={sourceAccount}
                 onChangeText={setSourceAccount}
               />
             </View>
 
             <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Compte bénéficiaire</Text>
+              <Text style={styles.inputLabel}>{t('transfer.form.beneficiary.label.internal')}</Text>
               <TextInput
                 style={styles.input}
-                placeholder="Numéro de compte destinataire"
+                placeholder={t('transfer.form.beneficiary.placeholder.internal')}
                 value={destinationAccount}
                 onChangeText={setDestinationAccount}
               />
             </View>
 
             <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Montant</Text>
+              <Text style={styles.inputLabel}>{t('transfer.form.amount.label')}</Text>
               <View style={styles.amountInputContainer}>
                 <TextInput
                   style={styles.amountInput}
@@ -123,30 +125,30 @@ export const TransferScreen: React.FC = () => {
         {/* Formulaire de virement externe (même structure) */}
         {type === 'externe' && (
           <View style={styles.formSection}>
-            <Text style={styles.formTitle}>Virement externe</Text>
+            <Text style={styles.formTitle}>{t('transfer.form.external.title')}</Text>
 
             <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Compte source</Text>
+              <Text style={styles.inputLabel}>{t('transfer.form.source.label')}</Text>
               <TextInput
                 style={styles.input}
-                placeholder="Numéro de compte source"
+                placeholder={t('transfer.form.source.placeholder')}
                 value={sourceAccount}
                 onChangeText={setSourceAccount}
               />
             </View>
 
             <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Compte destinataire</Text>
+              <Text style={styles.inputLabel}>{t('transfer.form.beneficiary.label.external')}</Text>
               <TextInput
                 style={styles.input}
-                placeholder="Code client ou IBAN"
+                placeholder={t('transfer.form.beneficiary.placeholder.external')}
                 value={destinationAccount}
                 onChangeText={setDestinationAccount}
               />
             </View>
 
             <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Montant</Text>
+              <Text style={styles.inputLabel}>{t('transfer.form.amount.label')}</Text>
               <View style={styles.amountInputContainer}>
                 <TextInput
                   style={styles.amountInput}
@@ -164,13 +166,13 @@ export const TransferScreen: React.FC = () => {
         {/* Bouton d'action */}
         <TouchableOpacity style={styles.primaryButton} activeOpacity={0.8}>
           <Ionicons name="checkmark-circle-outline" size={20} color="#fff" />
-          <Text style={styles.primaryButtonText}>Effectuer le virement</Text>
+          <Text style={styles.primaryButtonText}>{t('transfer.action.submit')}</Text>
         </TouchableOpacity>
 
         {/* Note de sécurité */}
         <View style={styles.secureNote}>
           <Ionicons name="shield-checkmark" size={16} color="#34C759" />
-          <Text style={styles.secureNoteText}>Vos transactions sont sécurisées et cryptées</Text>
+          <Text style={styles.secureNoteText}>{t('transfer.note.secure')}</Text>
         </View>
       </ScrollView>
       {/* Espace en bas pour la navigation (comme Dashboard) */}

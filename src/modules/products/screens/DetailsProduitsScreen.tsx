@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from "react-native";
 import { useRoute, useNavigation, RouteProp } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { useI18n } from "../../../app/providers/I18nProvider";
 
 // Définir les types pour les paramètres de navigation
 type RootStackParamList = {
@@ -14,17 +15,18 @@ type ProductDetailNavigationProp = NativeStackNavigationProp<RootStackParamList,
 const ProductDetailPage: React.FC = () => {
   const route = useRoute<ProductDetailRouteProp>();
   const navigation = useNavigation<ProductDetailNavigationProp>();
+  const { t } = useI18n();
 
   const { productId, categories } = route.params || {};
 
   const [activeTab, setActiveTab] = useState<"Avantages" | "Conditions">("Avantages");
 
   const advantages: string[] = [
-    "Carte bancaire gratuite incluse",
-    "Virements illimités sans frais",
-    "Relevés mensuels détaillés",
-    "Application mobile performante",
-    "Service client dédié 7j/7",
+    t('products.detail.adv.cardIncluded'),
+    t('products.detail.adv.freeTransfers'),
+    t('products.detail.adv.monthlyStatements'),
+    t('products.detail.adv.mobileApp'),
+    t('products.detail.adv.support'),
   ];
 
   return (
@@ -37,29 +39,29 @@ const ProductDetailPage: React.FC = () => {
         <View style={styles.iconCircle}>
           <Text style={styles.icon}>📘</Text>
         </View>
-        <Text style={styles.title}>Compte Courant</Text>
-        <Text style={styles.subtitle}>Gestion quotidienne</Text>
+        <Text style={styles.title}>{t('products.detail.title.currentAccount')}</Text>
+        <Text style={styles.subtitle}>{t('products.detail.subtitle.dailyManagement')}</Text>
         <Text style={styles.status}>
           <Text style={[styles.statusboule, { color: '#27ae60', transform: [{ translateY: 3 }] }]}>●</Text>
-          <Text style={styles.statusDisponible}>Disponible</Text>
+          <Text style={styles.statusDisponible}>{t('products.detail.status.available')}</Text>
         </Text>
       </View>
 
       <View style={styles.descriptionCard}>
-        <Text style={styles.sectionTitle}>Description</Text>
-        <Text>Gérez vos opérations quotidiennes en toute simplicité.</Text>
+        <Text style={styles.sectionTitle}>{t('products.detail.section.description')}</Text>
+        <Text>{t('products.detail.description.short')}</Text>
         <Text style={styles.enteteText}>
-          Le compte courant La Peyie vous offre une solution complète pour gérer vos finances au quotidien.
+          {t('products.detail.description.long')}
         </Text>
       </View>
 
       {/* Tabs */}
       <View style={styles.tabsRow}>
-        {["Avantages", "Conditions"].map((tab) => (
+        {[t('products.detail.tab.advantages'), t('products.detail.tab.conditions')].map((tab) => (
           <TouchableOpacity
             key={tab}
             style={[styles.tabBtn, activeTab === tab && styles.activeTab]}
-            onPress={() => setActiveTab(tab as "Avantages" | "Conditions")}
+            onPress={() => setActiveTab((tab === t('products.detail.tab.conditions') ? 'Conditions' : 'Avantages') as "Avantages" | "Conditions")}
           >
             <Text style={[styles.tabText, activeTab === tab ? styles.tabTextActive : styles.tabTextInactive]}>
               {tab}
@@ -89,9 +91,9 @@ const ProductDetailPage: React.FC = () => {
         activeTab === "Conditions" && (
           <View style={styles.floatingCard}>
             {[
-              "Avoir au minimum 18 ans",
-              "Justificatif d'identité",
-              "Justificatif de domicile"
+              t('products.detail.cond.age18'),
+              t('products.detail.cond.idProof'),
+              t('products.detail.cond.addressProof')
             ].map((cond, i) => (
               <View key={i} style={styles.itemRow}>
                 <View style={styles.outerCircle}>
@@ -108,7 +110,7 @@ const ProductDetailPage: React.FC = () => {
 
 
       <TouchableOpacity style={styles.subscribeBtn}>
-        <Text style={styles.subscribeText}>Souscrire maintenant</Text>
+        <Text style={styles.subscribeText}>{t('products.detail.cta.subscribe')}</Text>
       </TouchableOpacity>
 
       <View style={styles.helping}>
@@ -119,7 +121,7 @@ const ProductDetailPage: React.FC = () => {
             </View>
           </View>
           <Text style={styles.advItem}>
-            Pour toute question, contactez votre conseiller ou notre service client au +241 XX XX XX XX
+            {t('products.detail.help.contact')}
           </Text>
         </View>
       </View>

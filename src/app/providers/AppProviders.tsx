@@ -1,7 +1,7 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { AuthProvider } from '../providers/AuthProvider';
-import { ThemeProvider } from '../../shared/styles/ThemeProvider';
+import { I18nProvider } from './I18nProvider';
 
 interface AppProvidersProps {
   children: React.ReactNode;
@@ -9,12 +9,12 @@ interface AppProvidersProps {
 
 export const AppProviders: React.FC<AppProvidersProps> = ({ children }) => {
   return (
-    <ThemeProvider>
+    <I18nProvider>
       <AuthProvider>
         <NavigationContainer>
           {children}
         </NavigationContainer>
       </AuthProvider>
-    </ThemeProvider>
+    </I18nProvider>
   );
 };

@@ -9,6 +9,7 @@ import {
   SafeAreaView
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useI18n } from '../../../app/providers/I18nProvider';
 
 // Définir les types pour la navigation
 type RootStackParamList = {
@@ -36,36 +37,43 @@ interface Product {
 
 export const ProductsScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+  const { t, tText } = useI18n();
 
   const [activeCategory, setActiveCategory] = useState<CategoryType>('comptes');
 
   const categories: Category[] = [
-    { id: 'tous', label: 'Tous' },
-    { id: 'comptes', label: 'Comptes' },
-    { id: 'epargne', label: 'Épargne' },
-    { id: 'credit', label: 'Crédit' },
-    { id: 'services', label: 'Services' },
+    { id: 'tous', label: t('products.category.all') },
+    { id: 'comptes', label: t('products.category.accounts') },
+    { id: 'epargne', label: t('products.category.savings') },
+    { id: 'credit', label: t('products.category.credit') },
+    { id: 'services', label: t('products.category.services') },
   ];
 
   const products: Product[] = [
     {
       id: '1',
-      title: 'Compte Courant',
-      subtitle: 'Gestion quotidienne',
-      description: 'Gérez vos opérations quotidiennes en toute simplicité',
-      features: ['Carte bancaire gratuite', 'Virements illimités'],
+      title: t('products.list.currentAccount.title'),
+      subtitle: t('products.list.currentAccount.subtitle'),
+      description: t('products.list.currentAccount.description'),
+      features: [
+        t('products.list.currentAccount.feature.cardFree'),
+        t('products.list.currentAccount.feature.unlimitedTransfers'),
+      ],
       category: 'comptes',
-      status: 'Actif',
+      status: t('products.status.active'),
       icon: 'card-outline'
     },
     {
       id: '2',
-      title: 'Carte Visa Premium',
-      subtitle: 'Paiements sécurisés',
-      description: 'Payez partout dans le monde en toute sécurité',
-      features: ['Assurance voyage', 'Cashback 2%'],
+      title: t('products.list.visaPremium.title'),
+      subtitle: t('products.list.visaPremium.subtitle'),
+      description: t('products.list.visaPremium.description'),
+      features: [
+        t('products.list.visaPremium.feature.travelInsurance'),
+        t('products.list.visaPremium.feature.cashback2'),
+      ],
       category: 'comptes',
-      status: 'Actif',
+      status: t('products.status.active'),
       icon: 'card-outline'
     }
   ];
@@ -79,8 +87,8 @@ export const ProductsScreen: React.FC = () => {
       {/* Header */}
       <View style={styles.header}>
         <View>
-          <Text style={styles.headerTitle}>Mes produits</Text>
-          <Text style={styles.headerSubtitle}>{products.length} produits disponibles</Text>
+          <Text style={styles.headerTitle}>{t('products.header.title')}</Text>
+          <Text style={styles.headerSubtitle}>{products.length} {t('products.header.available')}</Text>
         </View>
       </View>
 
@@ -97,21 +105,21 @@ export const ProductsScreen: React.FC = () => {
                 <Ionicons name="checkmark-circle" size={24} color="#27ae60" />
               </View>
               <Text style={styles.statNumber}>3</Text>
-              <Text style={styles.statLabel}>Actifs</Text>
+              <Text style={styles.statLabel}>{t('products.stats.active')}</Text>
             </View>
             <View style={styles.statCard}>
               <View style={[styles.iconContainer, styles.iconPending]}>
                 <Ionicons name="time-outline" size={24} color="#f39c12" />
               </View>
               <Text style={styles.statNumber}>1</Text>
-              <Text style={styles.statLabel}>En attente</Text>
+              <Text style={styles.statLabel}>{t('products.stats.pending')}</Text>
             </View>
             <View style={styles.statCard}>
               <View style={[styles.iconContainer, styles.iconTotal]}>
                 <Ionicons name="grid-outline" size={24} color="#0066CC" />
               </View>
               <Text style={styles.statNumber}>{products.length}</Text>
-              <Text style={styles.statLabel}>Total</Text>
+              <Text style={styles.statLabel}>{t('products.stats.total')}</Text>
             </View>
           </View>
         </View>
@@ -156,15 +164,15 @@ export const ProductsScreen: React.FC = () => {
                 </View>
                 <View style={styles.productBadge}>
                   <View style={styles.badgeDot} />
-                  <Text style={styles.productBadgeText}>{product.status}</Text>
+                  <Text style={styles.productBadgeText}>{product.status === 'Actif' ? t('products.status.active') : tText(product.status)}</Text>
                 </View>
               </View>
 
               {/* Contenu du produit */}
               <View style={styles.productContent}>
-                <Text style={styles.productTitle}>{product.title}</Text>
-                <Text style={styles.productSubtitle}>{product.subtitle}</Text>
-                <Text style={styles.productDescription}>{product.description}</Text>
+                <Text style={styles.productTitle}>{tText(product.title)}</Text>
+                <Text style={styles.productSubtitle}>{tText(product.subtitle)}</Text>
+                <Text style={styles.productDescription}>{tText(product.description)}</Text>
 
                 <View style={styles.featuresList}>
                   {product.features.map((feature, index) => (
@@ -172,7 +180,7 @@ export const ProductsScreen: React.FC = () => {
                       <View style={styles.checkbox}>
                         <Ionicons name="checkmark" size={14} color="#fff" />
                       </View>
-                      <Text style={styles.featureText}>{feature}</Text>
+                      <Text style={styles.featureText}>{tText(feature)}</Text>
                     </View>
                   ))}
                 </View>
@@ -181,7 +189,7 @@ export const ProductsScreen: React.FC = () => {
                   style={styles.detailsButton}
                   onPress={() => navigation.navigate("DetailsProduits")}
                 >
-                  <Text style={styles.detailsButtonText}>Voir détails</Text>
+                  <Text style={styles.detailsButtonText}>{t('products.action.details')}</Text>
                   <Ionicons name="arrow-forward" size={18} color="#0066CC" />
                 </TouchableOpacity>
               </View>
