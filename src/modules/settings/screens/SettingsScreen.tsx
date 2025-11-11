@@ -31,7 +31,7 @@ export const SettingsScreen: React.FC = () => {
           icon: 'person-outline',
           iconColor: '#0066CC',
           title: 'Mon Profil',
-          onPress: () => console.log('Profil'),
+          onPress: () => navigation.navigate('Profile' as never),
           showChevron: true,
         },
         {

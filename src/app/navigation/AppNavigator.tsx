@@ -12,9 +12,11 @@ import { CardsScreen } from '../../modules/cards/screens/CardsScreen';
 import { TransactionsScreen } from '../../modules/transactions/screens/TransactionsScreen';
 import { ProductsScreen } from '../../modules/products/screens/ProductsScreen';
 import { SettingsScreen } from '../../modules/settings/screens/SettingsScreen';
+import { ProfileScreen } from '../../modules/settings/screens/ProfileScreen';
 import { TransferScreen } from '../../modules/transactions/screens/TransferScreen';
 import { AccountsScreen } from '../../modules/accounts/screens/AccountsScreen';
 import { AccountDetailsScreen } from '../../modules/accounts/screens/AccountDetailsScreen';
+import { StatementsScreen } from '../../modules/accounts/screens/StatementsScreen';
 
 // ✅ IMPORT CORRECT (default export)
 import ProductDetailPage from '../../modules/products/screens/DetailsProduitsScreen';
@@ -106,6 +108,18 @@ export const AppNavigator: React.FC = () => {
                 name="DetailsProduits"
                 component={ProductDetailPage}
                 options={{ headerShown: true, title: 'Détail du produit' }}
+              />
+
+              <Stack.Screen
+                name="Profile"
+                component={ProfileScreen}
+                options={{ headerShown: true, title: 'Mon Profil' }}
+              />
+
+              <Stack.Screen
+                name="Statements"
+                component={StatementsScreen}
+                options={{ headerShown: false }}
               />
             </>
           )}
