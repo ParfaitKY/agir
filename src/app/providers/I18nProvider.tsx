@@ -116,6 +116,70 @@ const TRANSLATIONS: Translations = {
   'language.fr': { fr: 'Français', en: 'French', zh: '法语' },
   'language.en': { fr: 'English', en: 'English', zh: '英语' },
   'language.zh': { fr: '中文', en: 'Chinese', zh: '中文' },
+  
+  // Products screen
+  'products.header.title': { fr: 'Mes produits', en: 'My products', zh: '我的产品' },
+  'products.header.available': { fr: 'produits disponibles', en: 'products available', zh: '可用产品' },
+  'products.stats.active': { fr: 'Actifs', en: 'Active', zh: '活跃' },
+  'products.stats.pending': { fr: 'En attente', en: 'Pending', zh: '待处理' },
+  'products.stats.total': { fr: 'Total', en: 'Total', zh: '总计' },
+  'products.category.all': { fr: 'Tous', en: 'All', zh: '全部' },
+  'products.category.accounts': { fr: 'Comptes', en: 'Accounts', zh: '账户' },
+  'products.category.savings': { fr: 'Épargne', en: 'Savings', zh: '储蓄' },
+  'products.category.credit': { fr: 'Crédit', en: 'Credit', zh: '信贷' },
+  'products.category.services': { fr: 'Services', en: 'Services', zh: '服务' },
+  'products.status.active': { fr: 'Actif', en: 'Active', zh: '启用' },
+  'products.action.details': { fr: 'Voir détails', en: 'See details', zh: '查看详情' },
+
+  // Transactions screen
+  'transactions.summary.in': { fr: 'Entrées', en: 'Incomes', zh: '收入' },
+  'transactions.summary.out': { fr: 'Sorties', en: 'Expenses', zh: '支出' },
+  'transactions.filter.all': { fr: 'Toutes', en: 'All', zh: '全部' },
+  'transactions.filter.in': { fr: 'Entrées', en: 'Incomes', zh: '收入' },
+  'transactions.filter.out': { fr: 'Sorties', en: 'Expenses', zh: '支出' },
+  'transactions.empty.none': { fr: 'Aucune transaction', en: 'No transactions', zh: '暂无交易' },
+  'transactions.empty.inSuffix': { fr: "d'entrée", en: 'incoming', zh: '收入' },
+  'transactions.empty.outSuffix': { fr: 'de sortie', en: 'outgoing', zh: '支出' },
+
+  // Product details page
+  'products.detail.title.currentAccount': { fr: 'Compte Courant', en: 'Current Account', zh: '活期账户' },
+  'products.detail.subtitle.dailyManagement': { fr: 'Gestion quotidienne', en: 'Daily management', zh: '日常管理' },
+  'products.detail.status.available': { fr: 'Disponible', en: 'Available', zh: '可用' },
+  'products.detail.section.description': { fr: 'Description', en: 'Description', zh: '描述' },
+  'products.detail.description.short': { fr: 'Gérez vos opérations quotidiennes en toute simplicité.', en: 'Manage your daily operations with ease.', zh: '轻松管理您的日常操作。' },
+  'products.detail.description.long': { fr: 'Le compte courant La Pepite vous offre une solution complète pour gérer vos finances au quotidien.', en: 'La Pepite current account offers a complete solution to manage your daily finances.', zh: 'La Pepite 活期账户为您提供全面的解决方案来管理日常财务。' },
+  'products.detail.tab.advantages': { fr: 'Avantages', en: 'Benefits', zh: '优势' },
+  'products.detail.tab.conditions': { fr: 'Conditions', en: 'Conditions', zh: '条件' },
+  'products.detail.adv.cardIncluded': { fr: 'Carte bancaire gratuite incluse', en: 'Free bank card included', zh: '包含免费银行卡' },
+  'products.detail.adv.freeTransfers': { fr: 'Virements illimités sans frais', en: 'Unlimited transfers with no fees', zh: '无限次免手续费转账' },
+  'products.detail.adv.monthlyStatements': { fr: 'Relevés mensuels détaillés', en: 'Detailed monthly statements', zh: '详细月度对账单' },
+  'products.detail.adv.mobileApp': { fr: 'Application mobile performante', en: 'High-performance mobile app', zh: '高性能移动应用' },
+  'products.detail.adv.support': { fr: 'Service client dédié 7j/7', en: 'Dedicated customer service 7/7', zh: '7天客服支持' },
+  'products.detail.cond.age18': { fr: 'Avoir au minimum 18 ans', en: 'Be at least 18 years old', zh: '至少 18 岁' },
+  'products.detail.cond.idProof': { fr: "Justificatif d'identité", en: 'Proof of identity', zh: '身份证明' },
+  'products.detail.cond.addressProof': { fr: 'Justificatif de domicile', en: 'Proof of address', zh: '住所证明' },
+  'products.detail.cta.subscribe': { fr: 'Souscrire maintenant', en: 'Subscribe now', zh: '立即办理' },
+  'products.detail.help.contact': { fr: 'Pour toute question, contactez votre conseiller ou notre service client au +241 XX XX XX XX', en: 'For any questions, contact your advisor or our customer service at +241 XX XX XX XX', zh: '如有疑问，请联系您的顾问或致电客户服务 +241 XX XX XX XX' },
+  
+  // Transactions titles
+  'transactions.title.receivedTransfer': { fr: 'Virement reçu', en: 'Transfer received', zh: '收到转账' },
+  'transactions.title.atmWithdrawal': { fr: 'Retrait ATM', en: 'ATM withdrawal', zh: 'ATM取款' },
+  'transactions.title.billPayment': { fr: 'Paiement facture', en: 'Bill payment', zh: '账单支付' },
+  'transactions.title.salary': { fr: 'Salaire mensuel', en: 'Monthly salary', zh: '月薪' },
+  'transactions.title.groceryPurchase': { fr: 'Achat supermarché', en: 'Grocery purchase', zh: '超市购物' },
+  'transactions.title.transferToSavings': { fr: 'Transfert vers épargne', en: 'Transfer to savings', zh: '转入储蓄' },
+
+  // Products list
+  'products.list.currentAccount.title': { fr: 'Compte Courant', en: 'Current Account', zh: '活期账户' },
+  'products.list.currentAccount.subtitle': { fr: 'Gestion quotidienne', en: 'Daily management', zh: '日常管理' },
+  'products.list.currentAccount.description': { fr: 'Gérez vos opérations quotidiennes en toute simplicité', en: 'Manage your daily operations with ease', zh: '轻松管理您的日常操作' },
+  'products.list.currentAccount.feature.cardFree': { fr: 'Carte bancaire gratuite', en: 'Free bank card', zh: '免费银行卡' },
+  'products.list.currentAccount.feature.unlimitedTransfers': { fr: 'Virements illimités', en: 'Unlimited transfers', zh: '无限次转账' },
+  'products.list.visaPremium.title': { fr: 'Carte Visa Premium', en: 'Visa Premium Card', zh: 'Visa 高级卡' },
+  'products.list.visaPremium.subtitle': { fr: 'Paiements sécurisés', en: 'Secure payments', zh: '安全支付' },
+  'products.list.visaPremium.description': { fr: 'Payez partout dans le monde en toute sécurité', en: 'Pay securely worldwide', zh: '在全球范围内安全支付' },
+  'products.list.visaPremium.feature.travelInsurance': { fr: 'Assurance voyage', en: 'Travel insurance', zh: '旅行保险' },
+  'products.list.visaPremium.feature.cashback2': { fr: 'Cashback 2%', en: '2% cashback', zh: '2% 返现' },
 };
 
 interface I18nContextValue {
