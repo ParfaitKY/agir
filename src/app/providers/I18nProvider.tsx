@@ -194,7 +194,6 @@ export const I18nProvider: React.FC<{ children: React.ReactNode }> = ({ children
       'Se déconnecter': 'settings.logout',
 
       // navigator titles
-      'Virement': 'transactions.transfer',
       'Mes Comptes': 'accounts.list',
       'Détails du compte': 'accounts.details',
       'Mes Cartes': 'cards.list',
@@ -214,7 +213,6 @@ export const I18nProvider: React.FC<{ children: React.ReactNode }> = ({ children
       'Compte Premium': 'dashboard.accountType.premium',
       'Solde total disponible': 'dashboard.balance.label',
       'Actions rapides': 'dashboard.actions.quick',
-      'Virement': 'dashboard.actions.transfer',
       'Comptes': 'dashboard.actions.accounts',
       'Cartes': 'dashboard.actions.cards',
       'Offres spéciales': 'dashboard.offers.title',

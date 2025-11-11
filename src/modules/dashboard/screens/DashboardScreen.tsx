@@ -689,7 +689,7 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 3,
     borderWidth: 1,
-    borderColor: '#f0f0f0',
+    borderColor: '#F0F0F0',
   },
   serviceIcon: {
     width: 50,
@@ -723,7 +723,7 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 3,
     borderWidth: 1,
-    borderColor: '#f0f0f0',
+    borderColor: '#F0F0F0',
   },
   transactionItem: {
     flexDirection: 'row',
@@ -765,18 +765,18 @@ const styles = StyleSheet.create({
   },
   separator: {
     height: 1,
-    backgroundColor: '#f0f0f0',
+    backgroundColor: '#F0F0F0',
     marginLeft: 52, // Aligné avec le contenu (40px icon + 12px margin)
   },
   bottomSpace: {
     height: 30,
   },
   qrOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.35)', justifyContent: 'center', alignItems: 'center' },
-  qrContainer: { width: '90%', backgroundColor: '#FFFFFF', borderRadius: 20, padding: 16 },
+  qrContainer: { width: '90%', backgroundColor: '#fff', borderRadius: 20, padding: 16 },
   qrHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
   qrHeaderTitle: { fontSize: 18, fontWeight: '800', color: '#1A1A1A' },
   qrCloseBtn: { width: 32, height: 32, justifyContent: 'center', alignItems: 'center' },
-  qrBox: { backgroundColor: '#FFFFFF', borderRadius: 16, padding: 12, alignItems: 'center', justifyContent: 'center', marginBottom: 16, borderWidth: 1, borderColor: '#E0E7FF', shadowColor: '#000', shadowOpacity: 0.06, shadowOffset: { width: 0, height: 2 }, shadowRadius: 6, elevation: 2 },
+  qrBox: { backgroundColor: '#fff', borderRadius: 16, padding: 12, alignItems: 'center', justifyContent: 'center', marginBottom: 16, borderWidth: 1, borderColor: '#F0F0F0', shadowColor: '#000', shadowOpacity: 0.06, shadowOffset: { width: 0, height: 2 }, shadowRadius: 6, elevation: 2 },
   qrInfoCard: { gap: 12 },
   qrInfoRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F8F9FB', borderRadius: 12, padding: 12 },
   qrInfoIconBg: { width: 32, height: 32, borderRadius: 16, justifyContent: 'center', alignItems: 'center', marginRight: 12 },
