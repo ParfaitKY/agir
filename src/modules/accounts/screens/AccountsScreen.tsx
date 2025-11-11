@@ -2,15 +2,17 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
+import { useI18n } from '../../../app/providers/I18nProvider';
 
 export const AccountsScreen: React.FC = () => {
   const navigation = useNavigation();
   const [filter, setFilter] = useState<'tous' | 'cheque' | 'epargne'>('tous');
+  const { t, tText } = useI18n();
 
   const stats = [
-    { id: 1, label: '+12.5%', sub: 'Ce mois', icon: 'trending-up-outline', bg: '#F4F8FF' },
-    { id: 2, label: '3', sub: 'Comptes', icon: 'refresh-circle-outline', bg: '#F7FAFF' },
-    { id: 3, label: '24', sub: 'Transactions', icon: 'flash-outline', bg: '#FFF9F2' },
+    { id: 1, label: '+12.5%', sub: t('accounts.stats.month'), icon: 'trending-up-outline', bg: '#F4F8FF' },
+    { id: 2, label: '3', sub: t('accounts.stats.accounts'), icon: 'refresh-circle-outline', bg: '#F7FAFF' },
+    { id: 3, label: '24', sub: t('accounts.stats.transactions'), icon: 'flash-outline', bg: '#FFF9F2' },
   ];
 
   const accounts = [
@@ -80,7 +82,7 @@ export const AccountsScreen: React.FC = () => {
       {/* Bande blanche avec Portfolio Total */}
       <View style={styles.whiteHeader}>
         <View>
-          <Text style={styles.portfolioLabel}>Portfolio Total</Text>
+          <Text style={styles.portfolioLabel}>{t('accounts.header.portfolioTotal')}</Text>
           <Text style={styles.portfolioValue}>5 850 000 XAF</Text>
         </View>
         <TouchableOpacity style={styles.notifyBtn}>
@@ -94,11 +96,11 @@ export const AccountsScreen: React.FC = () => {
 
       {/* Titre + Filtres */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Mes comptes</Text>
+        <Text style={styles.sectionTitle}>{t('accounts.list')}</Text>
         <View style={styles.filtersRow}>
-          {renderFilter('tous', 'Tous')}
-          {renderFilter('cheque', 'Chèque', 'card-outline')}
-          {renderFilter('epargne', 'Épargne', 'wallet-outline')}
+          {renderFilter('tous', t('accounts.filters.all'))}
+          {renderFilter('cheque', t('accounts.filters.checking'), 'card-outline')}
+          {renderFilter('epargne', t('accounts.filters.savings'), 'wallet-outline')}
         </View>
       </View>
 
@@ -119,18 +121,18 @@ export const AccountsScreen: React.FC = () => {
                 <Ionicons name={(a.type.includes('Courant') ? 'briefcase' : 'wallet') as any} size={22} color={a.color} />
               </View>
               <View style={styles.accountInfo}>
-                <Text style={styles.accountType}>{a.type}</Text>
+                <Text style={styles.accountType}>{tText(a.type)}</Text>
                 <Text style={styles.accountNumber}>{a.number}</Text>
               </View>
               <View style={styles.statusPill}>
                 <Ionicons name="checkmark-circle" size={14} color="#34C759" />
-                <Text style={styles.statusText}>Actif</Text>
+                <Text style={styles.statusText}>{t('accounts.status.active')}</Text>
               </View>
             </View>
 
             <View style={styles.accountBalanceRow}>
               <View>
-                <Text style={styles.balanceLabel}>Solde disponible</Text>
+                <Text style={styles.balanceLabel}>{t('accounts.balance.available')}</Text>
                 <Text style={styles.balanceValue}>{a.balance} <Text style={styles.balanceCurrency}>{a.currency}</Text></Text>
               </View>
               <TouchableOpacity style={[styles.roundActionBtn, { backgroundColor: a.color }]}>
