@@ -1,0 +1,288 @@
+import React, { useState } from "react";
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from "react-native";
+import { useRoute, useNavigation, RouteProp } from "@react-navigation/native";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import "./DetailsProduits.css";
+
+// Définir les types pour les paramètres de navigation
+type RootStackParamList = {
+  ProductDetailPage: { productId?: string; categories?: string[] };
+};
+
+type ProductDetailRouteProp = RouteProp<RootStackParamList, "ProductDetailPage">;
+type ProductDetailNavigationProp = NativeStackNavigationProp<RootStackParamList, "ProductDetailPage">;
+
+const ProductDetailPage: React.FC = () => {
+  const route = useRoute<ProductDetailRouteProp>();
+  const navigation = useNavigation<ProductDetailNavigationProp>();
+
+  const { productId, categories } = route.params || {};
+
+  const [activeTab, setActiveTab] = useState<"Avantages" | "Conditions">("Avantages");
+
+  const advantages: string[] = [
+    "Carte bancaire gratuite incluse",
+    "Virements illimités sans frais",
+    "Relevés mensuels détaillés",
+    "Application mobile performante",
+    "Service client dédié 7j/7",
+  ];
+
+  return (
+    <ScrollView style={styles.container}>
+      {/* <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+        <Text>← Retour</Text>
+      </TouchableOpacity> */}
+
+      <View style={styles.productCard}>
+        <View style={styles.iconCircle}>
+          <Text style={styles.icon}>📘</Text>
+        </View>
+        <Text style={styles.title}>Compte Courant</Text>
+        <Text style={styles.subtitle}>Gestion quotidienne</Text>
+        <Text style={styles.status}>
+          <Text style={[styles.statusboule, { color: '#27ae60', transform: [{ translateY: 3 }] }]}>●</Text>
+          <Text style={styles.statusDisponible}>Disponible</Text>
+        </Text>
+      </View>
+
+      <View style={styles.descriptionCard}>
+        <Text style={styles.sectionTitle}>Description</Text>
+        <Text>Gérez vos opérations quotidiennes en toute simplicité.</Text>
+        <Text style={styles.enteteText}>
+          Le compte courant La Peyie vous offre une solution complète pour gérer vos finances au quotidien.
+        </Text>
+      </View>
+
+      {/* Tabs */}
+      <View style={styles.tabsRow}>
+        {["Avantages", "Conditions"].map((tab) => (
+          <TouchableOpacity
+            key={tab}
+            style={[styles.tabBtn, activeTab === tab && styles.activeTab]}
+            onPress={() => setActiveTab(tab as "Avantages" | "Conditions")}
+          >
+            <Text style={[styles.tabText, activeTab === tab ? styles.tabTextActive : styles.tabTextInactive]}>
+              {tab}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+
+      {
+        activeTab === "Avantages" && (
+          <View style={styles.floatingCard}>
+            {advantages.map((adv, i) => (
+              <View key={i} style={styles.itemRow}>
+                <View style={styles.outerCircle}>
+                  <View style={styles.innerCircle}>
+                    <Text style={styles.checkMark}>✓</Text>
+                  </View>
+                </View>
+                <Text style={styles.advItem}>{adv}</Text>
+              </View>
+            ))}
+          </View>
+        )
+      }
+
+      {
+        activeTab === "Conditions" && (
+          <View style={styles.floatingCard}>
+            {[
+              "Avoir au minimum 18 ans",
+              "Justificatif d'identité",
+              "Justificatif de domicile"
+            ].map((cond, i) => (
+              <View key={i} style={styles.itemRow}>
+                <View style={styles.outerCircle}>
+                  <View style={styles.innerCircle}>
+                    <Text style={styles.checkMark}>✓</Text>
+                  </View>
+                </View>
+                <Text style={styles.advItem}>{cond}</Text>
+              </View>
+            ))}
+          </View>
+        )
+      }
+
+
+      <TouchableOpacity style={styles.subscribeBtn}>
+        <Text style={styles.subscribeText}>Souscrire maintenant</Text>
+      </TouchableOpacity>
+
+      <View style={styles.helping}>
+        <View style={styles.itemRow}>
+          <View style={styles.outerCircle}>
+            <View style={styles.innerCircle}>
+              <Text style={styles.exclamationMark}>!</Text>
+            </View>
+          </View>
+          <Text style={styles.advItem}>
+            Pour toute question, contactez votre conseiller ou notre service client au +241 XX XX XX XX
+          </Text>
+        </View>
+      </View>
+
+    </ScrollView >
+  );
+};
+
+// Tu peux garder ton style inchangé
+const styles = StyleSheet.create({
+  container: { flex: 1, padding: 16 },
+  backButton: { marginBottom: 16 },
+  productCard: {
+    marginBottom: 16, padding: 16, backgroundColor: "#fff", borderRadius: 20, alignItems: 'center',
+    paddingVertical: 30,
+    paddingHorizontal: 20,
+    marginVertical: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+    elevation: 6, // Android shadow
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+  },
+  iconCircle: {
+    width: 60,              // largeur du cercle
+    height: 60,
+    backgroundColor: "#e5f1ffff",           // hauteur du cercle (même que la largeur)
+    borderRadius: 30,       // moitié de la largeur/hauteur pour faire un cercle
+    borderWidth: 1,         // épaisseur du contour
+    borderColor: '#ccc',    // couleur du contour
+    justifyContent: 'center',
+    alignItems: 'center',   // pour centrer l'emoji
+    shadowColor: '#000',    // ombre légère
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 1,
+    marginBottom: 10,
+    elevation: 2,           // nécessaire sur Android
+  },
+
+  icon: { fontSize: 32, },
+  title: { fontSize: 20, fontWeight: "bold", marginTop: 10 },
+  titleespace: { padding: 10 },
+  subtitle: { fontSize: 14, color: "#0066CC", marginBottom: 10, marginTop: 4 },
+  status: { padding: 10, backgroundColor: "#d1ffd4ff", color: "#008809ff", borderRadius: 15 },
+  statusboule: { fontSize: 14, marginBottom: 8 },
+  statusDisponible: { fontSize: 14, marginLeft: 4 },
+  descriptionCard: {
+    marginBottom: 16, padding: 16, backgroundColor: "#fff", borderRadius: 20,
+    marginVertical: 15,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    elevation: 5, // pour Android
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+  },
+  sectionTitle: { fontSize: 18, fontWeight: "bold", marginBottom: 8 },
+  enteteText: { color: "#747474ff", marginTop: 10 },
+  tabsRow: {
+    flexDirection: "row", marginBottom: 16,
+    justifyContent: 'space-around',
+    backgroundColor: '#fff',
+    color: "#000",
+    borderRadius: 20,
+    padding: 8,
+    marginVertical: 15,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    elevation: 4,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+  },
+  tabBtn: { flex: 1, padding: 12, alignItems: "center", borderBottomWidth: 2, borderBottomColor: "transparent" },
+  activeTab: { borderBottomColor: "#0066CC", backgroundColor: "#0066CC", borderRadius: 15 },
+  tabText: { fontSize: 16, },
+  tabTextInactive: {
+    color: '#000', // texte noir par défaut
+    fontSize: 16,
+  },
+
+  tabTextActive: {
+    color: '#fff', // texte blanc quand actif
+    fontSize: 16,
+    fontWeight: '600',
+  },
+
+  helping: {
+    marginTop: 15,
+    backgroundColor: '#d3e9ffff',
+    paddingTop: 15,
+    paddingHorizontal: 10
+
+
+  },
+
+  floatingCard: {
+    backgroundColor: '#fff',
+    padding: 16,
+    borderRadius: 20,
+    marginVertical: 2,
+    marginBottom: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    elevation: 5,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+  },
+
+  itemRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+
+  outerCircle: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: '#cce5ff', // bleu ciel
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 8,
+  },
+
+  innerCircle: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: '#0066CC', // bleu foncé
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
+  exclamationMark: {
+    color: '#fff',
+    fontSize: 10,
+    fontWeight: 'bold',
+  },
+
+  checkMark: {
+    color: '#fff',
+    fontSize: 10,
+    fontWeight: 'bold',
+  },
+
+  advItem: {
+    marginBottom: 8,
+    fontSize: 14,
+    color: '#000',
+    flexShrink: 1,
+  },
+
+  subscribeBtn: { backgroundColor: "#0066CC", padding: 16, alignItems: "center", borderRadius: 8 },
+  subscribeText: { color: "#fff", fontWeight: "bold" },
+});
+
+export default ProductDetailPage;

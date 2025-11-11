@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigation } from '@react-navigation/native';
-
+import { useNavigation, NavigationProp } from '@react-navigation/native';
 import {
   View,
   Text,
@@ -10,13 +9,37 @@ import {
   SafeAreaView
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-const navigation = useNavigation();
 
+// Définir les types pour la navigation
+type RootStackParamList = {
+  ProductsScreen: undefined;
+  DetailsProduits: undefined;
+};
+
+type CategoryType = 'tous' | 'comptes' | 'epargne' | 'credit' | 'services';
+
+interface Category {
+  id: CategoryType;
+  label: string;
+}
+
+interface Product {
+  id: string;
+  title: string;
+  subtitle: string;
+  description: string;
+  features: string[];
+  category: CategoryType;
+  status: string;
+  icon: string;
+}
 
 export const ProductsScreen: React.FC = () => {
-  const [activeCategory, setActiveCategory] = useState<'tous' | 'comptes' | 'epargne' | 'credit' | 'services'>('comptes');
+  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
 
-  const categories = [
+  const [activeCategory, setActiveCategory] = useState<CategoryType>('comptes');
+
+  const categories: Category[] = [
     { id: 'tous', label: 'Tous' },
     { id: 'comptes', label: 'Comptes' },
     { id: 'epargne', label: 'Épargne' },
@@ -24,7 +47,7 @@ export const ProductsScreen: React.FC = () => {
     { id: 'services', label: 'Services' },
   ];
 
-  const products = [
+  const products: Product[] = [
     {
       id: '1',
       title: 'Compte Courant',
@@ -57,7 +80,7 @@ export const ProductsScreen: React.FC = () => {
       <View style={styles.header}>
         <View>
           <Text style={styles.headerTitle}>Mes produits</Text>
-          <Text style={styles.headerSubtitle}>6 produits disponibles</Text>
+          <Text style={styles.headerSubtitle}>{products.length} produits disponibles</Text>
         </View>
       </View>
 
@@ -87,7 +110,7 @@ export const ProductsScreen: React.FC = () => {
               <View style={[styles.iconContainer, styles.iconTotal]}>
                 <Ionicons name="grid-outline" size={24} color="#0066CC" />
               </View>
-              <Text style={styles.statNumber}>6</Text>
+              <Text style={styles.statNumber}>{products.length}</Text>
               <Text style={styles.statLabel}>Total</Text>
             </View>
           </View>
@@ -107,7 +130,7 @@ export const ProductsScreen: React.FC = () => {
                 styles.categoryButton,
                 activeCategory === category.id && styles.categoryButtonActive
               ]}
-              onPress={() => setActiveCategory(category.id as any)}
+              onPress={() => setActiveCategory(category.id)}
             >
               {activeCategory === category.id && (
                 <Ionicons name="checkmark" size={16} color="#fff" style={styles.categoryIcon} />
@@ -154,12 +177,13 @@ export const ProductsScreen: React.FC = () => {
                   ))}
                 </View>
 
-                <TouchableOpacity style={styles.detailsButton} onPress={() => navigation.navigate("DetailsProduits", { productId: item.id, categories: item.categories, })}>
+                <TouchableOpacity
+                  style={styles.detailsButton}
+                  onPress={() => navigation.navigate("DetailsProduits")}
+                >
                   <Text style={styles.detailsButtonText}>Voir détails</Text>
                   <Ionicons name="arrow-forward" size={18} color="#0066CC" />
                 </TouchableOpacity>
-
-
               </View>
             </View>
           ))}
@@ -170,10 +194,7 @@ export const ProductsScreen: React.FC = () => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F5F5F5',
-  },
+  container: { flex: 1, backgroundColor: '#F5F5F5' },
   header: {
     backgroundColor: '#fff',
     paddingHorizontal: 20,
@@ -188,206 +209,41 @@ const styles = StyleSheet.create({
     elevation: 4,
     zIndex: 1,
   },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#000',
-    marginBottom: 2,
-  },
-  headerSubtitle: {
-    fontSize: 13,
-    color: '#999',
-    fontWeight: '400',
-  },
-  content: {
-    flex: 1,
-  },
-  scrollContent: {
-    paddingBottom: 20,
-  },
-  statsSection: {
-    backgroundColor: '#fff',
-    paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 20,
-  },
-  statsCardsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    gap: 12,
-  },
-  statCard: {
-    flex: 1,
-    backgroundColor: '#FAFAFA',
-    borderRadius: 12,
-    padding: 16,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#E8E8E8',
-  },
-  iconContainer: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  iconActive: {
-    backgroundColor: '#E8F5E8',
-  },
-  iconPending: {
-    backgroundColor: '#FFF3E0',
-  },
-  iconTotal: {
-    backgroundColor: '#E6F2FF',
-  },
-  statNumber: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#000',
-    marginBottom: 4,
-  },
-  statLabel: {
-    fontSize: 13,
-    color: '#666',
-    fontWeight: '500',
-  },
-  categoriesContainer: {
-    paddingLeft: 20,
-    marginVertical: 20,
-  },
-  categoriesContent: {
-    paddingRight: 20,
-  },
-  categoryButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 20,
-    backgroundColor: '#fff',
-    marginRight: 10,
-    borderWidth: 1,
-    borderColor: '#E0E0E0',
-  },
-  categoryButtonActive: {
-    backgroundColor: '#0066CC',
-    borderColor: '#0066CC',
-  },
-  categoryIcon: {
-    marginRight: 6,
-  },
-  categoryText: {
-    fontSize: 14,
-    color: '#666',
-    fontWeight: '500',
-  },
-  categoryTextActive: {
-    color: '#fff',
-    fontWeight: '600',
-  },
-  productsList: {
-    paddingHorizontal: 20,
-    paddingBottom: 20,
-    gap: 16,
-  },
-  productCard: {
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    padding: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  productHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 16,
-  },
-  productIconWrapper: {
-    width: 56,
-    height: 56,
-    borderRadius: 12,
-    backgroundColor: '#E6F2FF',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  productBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 12,
-    backgroundColor: '#E8F5E8',
-  },
-  badgeDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: '#27ae60',
-    marginRight: 6,
-  },
-  productBadgeText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#27ae60',
-  },
-  productContent: {
-    gap: 8,
-  },
-  productTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#000',
-  },
-  productSubtitle: {
-    fontSize: 14,
-    color: '#0066CC',
-    fontWeight: '500',
-  },
-  productDescription: {
-    fontSize: 14,
-    color: '#666',
-    lineHeight: 20,
-    marginBottom: 8,
-  },
-  featuresList: {
-    marginBottom: 12,
-    gap: 10,
-  },
-  featureItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  checkbox: {
-    width: 20,
-    height: 20,
-    borderRadius: 4,
-    backgroundColor: '#0066CC',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 10,
-  },
-  featureText: {
-    fontSize: 14,
-    color: '#333',
-    fontWeight: '400',
-  },
-  detailsButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingTop: 16,
-    borderTopWidth: 1,
-    borderTopColor: '#F0F0F0',
-  },
-  detailsButtonText: {
-    fontSize: 14,
-    color: '#0066CC',
-    fontWeight: '600',
-  },
+  headerTitle: { fontSize: 20, fontWeight: '700', color: '#000', marginBottom: 2 },
+  headerSubtitle: { fontSize: 13, color: '#999', fontWeight: '400' },
+  content: { flex: 1 },
+  scrollContent: { paddingBottom: 20 },
+  statsSection: { backgroundColor: '#fff', paddingHorizontal: 20, paddingVertical: 20 },
+  statsCardsContainer: { flexDirection: 'row', justifyContent: 'space-between', gap: 12 },
+  statCard: { flex: 1, backgroundColor: '#FAFAFA', borderRadius: 12, padding: 16, alignItems: 'center', borderWidth: 1, borderColor: '#E8E8E8' },
+  iconContainer: { width: 44, height: 44, borderRadius: 22, justifyContent: 'center', alignItems: 'center', marginBottom: 12 },
+  iconActive: { backgroundColor: '#E8F5E8' },
+  iconPending: { backgroundColor: '#FFF3E0' },
+  iconTotal: { backgroundColor: '#E6F2FF' },
+  statNumber: { fontSize: 28, fontWeight: 'bold', color: '#000', marginBottom: 4 },
+  statLabel: { fontSize: 13, color: '#666', fontWeight: '500' },
+  categoriesContainer: { paddingLeft: 20, marginVertical: 20 },
+  categoriesContent: { paddingRight: 20 },
+  categoryButton: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 10, borderRadius: 20, backgroundColor: '#fff', marginRight: 10, borderWidth: 1, borderColor: '#E0E0E0' },
+  categoryButtonActive: { backgroundColor: '#0066CC', borderColor: '#0066CC' },
+  categoryIcon: { marginRight: 6 },
+  categoryText: { fontSize: 14, color: '#666', fontWeight: '500' },
+  categoryTextActive: { color: '#fff', fontWeight: '600' },
+  productsList: { paddingHorizontal: 20, paddingBottom: 20, gap: 16 },
+  productCard: { backgroundColor: '#fff', borderRadius: 16, padding: 20, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 4, elevation: 3 },
+  productHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 },
+  productIconWrapper: { width: 56, height: 56, borderRadius: 12, backgroundColor: '#E6F2FF', justifyContent: 'center', alignItems: 'center' },
+  productBadge: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 12, backgroundColor: '#E8F5E8' },
+  badgeDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#27ae60', marginRight: 6 },
+  productBadgeText: { fontSize: 12, fontWeight: '600', color: '#27ae60' },
+  productContent: { gap: 8 },
+  productTitle: { fontSize: 18, fontWeight: 'bold', color: '#000' },
+  productSubtitle: { fontSize: 14, color: '#0066CC', fontWeight: '500' },
+  productDescription: { fontSize: 14, color: '#666', lineHeight: 20, marginBottom: 8 },
+  featuresList: { marginBottom: 12, gap: 10 },
+  featureItem: { flexDirection: 'row', alignItems: 'center' },
+  checkbox: { width: 20, height: 20, borderRadius: 4, backgroundColor: '#0066CC', justifyContent: 'center', alignItems: 'center', marginRight: 10 },
+  featureText: { fontSize: 14, color: '#333', fontWeight: '400' },
+  detailsButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingTop: 16, borderTopWidth: 1, borderTopColor: '#F0F0F0' },
+  detailsButtonText: { fontSize: 14, color: '#0066CC', fontWeight: '600' },
 });

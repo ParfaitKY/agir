@@ -5,13 +5,17 @@ import {
   StyleSheet, 
   TouchableOpacity, 
   ScrollView,
-  FlatList 
+  FlatList,
+  Modal 
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 
 export const DashboardScreen: React.FC = () => {
   const [currentOffer, setCurrentOffer] = useState(0);
   const servicesScrollRef = useRef<FlatList>(null);
+  const navigation = useNavigation();
+  const [showQrModal, setShowQrModal] = useState(false);
 
   const offers = [
     // ... (offres existantes restent identiques)
@@ -123,6 +127,63 @@ export const DashboardScreen: React.FC = () => {
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
 
+      {/* Modal QR Code */}
+      <Modal transparent visible={showQrModal} animationType="fade" onRequestClose={() => setShowQrModal(false)}>
+        <View style={styles.qrOverlay}>
+          <View style={styles.qrContainer}>
+            <View style={styles.qrHeaderRow}>
+              <Text style={styles.qrHeaderTitle}>Mon QR Code</Text>
+              <TouchableOpacity onPress={() => setShowQrModal(false)} style={styles.qrCloseBtn}>
+                <Ionicons name="close" size={20} color="#1A1A1A" />
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.qrBox}>
+              <Ionicons name="qr-code-outline" size={220} color="#007AFF" />
+            </View>
+
+            <View style={styles.qrInfoCard}>
+              <View style={styles.qrInfoRow}>
+                <View style={[styles.qrInfoIconBg, { backgroundColor: '#E3F2FD' }]}> 
+                  <Ionicons name="person-outline" size={18} color="#007AFF" />
+                </View>
+                <View style={styles.qrInfoTexts}>
+                  <Text style={styles.qrInfoLabel}>Nom</Text>
+                  <Text style={styles.qrInfoValue}>Derly MOUPEPIDI</Text>
+                </View>
+              </View>
+
+              <View style={styles.qrInfoRow}>
+                <View style={[styles.qrInfoIconBg, { backgroundColor: '#E8F5E8' }]}> 
+                  <Ionicons name="barcode-outline" size={18} color="#34C759" />
+                </View>
+                <View style={styles.qrInfoTexts}>
+                  <Text style={styles.qrInfoLabel}>Code client</Text>
+                  <Text style={styles.qrInfoValue}>LP001234</Text>
+                </View>
+              </View>
+
+              <View style={styles.qrInfoRow}>
+                <View style={[styles.qrInfoIconBg, { backgroundColor: '#FFF3E0' }]}> 
+                  <Ionicons name="call-outline" size={18} color="#FF9500" />
+                </View>
+                <View style={styles.qrInfoTexts}>
+                  <Text style={styles.qrInfoLabel}>Téléphone</Text>
+                  <Text style={styles.qrInfoValue}>+241 77 68 38 55</Text>
+                </View>
+              </View>
+
+              <View style={styles.qrTipBox}>
+                <View style={[styles.qrTipIconBg, { backgroundColor: '#E3F2FD' }]}> 
+                  <Ionicons name="information-circle-outline" size={18} color="#007AFF" />
+                </View>
+                <Text style={styles.qrTipText}>Présentez ce QR code à un agent pour effectuer un versement rapide sur votre compte</Text>
+              </View>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
       {/* ... (TOUTES LES SECTIONS EXISTANTES RESTENT IDENTIQUES) ... */}
 
       {/* Bande bleue de bienvenue - EXISTANT */}
@@ -132,7 +193,7 @@ export const DashboardScreen: React.FC = () => {
           <Text style={styles.hello}>Bonjour 👋</Text>
         </View>
         <View style={styles.headerIcons}>
-          <TouchableOpacity style={styles.iconBtn}>
+          <TouchableOpacity style={styles.iconBtn} onPress={() => setShowQrModal(true)}>
             <Ionicons name="qr-code-outline" size={22} color="#fff" />
           </TouchableOpacity>
           <TouchableOpacity style={styles.iconBtn}>
@@ -167,15 +228,24 @@ export const DashboardScreen: React.FC = () => {
           </View>
         </View>
         <View style={styles.actions}>
-          <TouchableOpacity style={styles.actionBtn}>
+          <TouchableOpacity 
+            style={styles.actionBtn}
+            onPress={() => navigation.navigate('Transfer' as never)}
+          >
             <Ionicons name="arrow-forward-circle-outline" size={18} color="#007AFF" />
             <Text style={styles.actionText}>Virement</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.actionBtn}>
+          <TouchableOpacity 
+            style={styles.actionBtn}
+            onPress={() => navigation.navigate('Accounts' as never)}
+          >
             <Ionicons name="list-outline" size={18} color="#007AFF" />
             <Text style={styles.actionText}>Comptes</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.actionBtn}>
+          <TouchableOpacity 
+            style={styles.actionBtn}
+            onPress={() => navigation.navigate('Cards' as never)}
+          >
             <Ionicons name="card-outline" size={18} color="#007AFF" />
             <Text style={styles.actionText}>Cartes</Text>
           </TouchableOpacity>
@@ -185,8 +255,11 @@ export const DashboardScreen: React.FC = () => {
       {/* Actions rapides - EXISTANT */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Actions rapides</Text>
-        <View style={styles.quickActions}>
-          <TouchableOpacity style={styles.quickActionCard}>
+          <View style={styles.quickActions}>
+          <TouchableOpacity 
+            style={styles.quickActionCard}
+            onPress={() => navigation.navigate('Transfer' as never)}
+          >
             <View style={[styles.quickActionIcon, { backgroundColor: '#E3F2FD' }]}>
               <Ionicons name="swap-horizontal" size={24} color="#007AFF" />
             </View>
@@ -207,7 +280,7 @@ export const DashboardScreen: React.FC = () => {
             <Text style={styles.quickActionTitle}>Mes produits</Text>
             <Text style={styles.quickActionSubtitle}>Découvrir</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.quickActionCard}>
+          <TouchableOpacity style={styles.quickActionCard} onPress={() => navigation.navigate('Cards' as never)}>
             <View style={[styles.quickActionIcon, { backgroundColor: '#F3E5F5' }]}>
               <Ionicons name="card-outline" size={24} color="#AF52DE" />
             </View>
@@ -696,4 +769,19 @@ const styles = StyleSheet.create({
   bottomSpace: {
     height: 30,
   },
+  qrOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.35)', justifyContent: 'center', alignItems: 'center' },
+  qrContainer: { width: '90%', backgroundColor: '#FFFFFF', borderRadius: 20, padding: 16 },
+  qrHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
+  qrHeaderTitle: { fontSize: 18, fontWeight: '800', color: '#1A1A1A' },
+  qrCloseBtn: { width: 32, height: 32, justifyContent: 'center', alignItems: 'center' },
+  qrBox: { backgroundColor: '#FFFFFF', borderRadius: 16, padding: 12, alignItems: 'center', justifyContent: 'center', marginBottom: 16, borderWidth: 1, borderColor: '#E0E7FF', shadowColor: '#000', shadowOpacity: 0.06, shadowOffset: { width: 0, height: 2 }, shadowRadius: 6, elevation: 2 },
+  qrInfoCard: { gap: 12 },
+  qrInfoRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F8F9FB', borderRadius: 12, padding: 12 },
+  qrInfoIconBg: { width: 32, height: 32, borderRadius: 16, justifyContent: 'center', alignItems: 'center', marginRight: 12 },
+  qrInfoTexts: { flex: 1 },
+  qrInfoLabel: { fontSize: 12, color: '#7F8C8D' },
+  qrInfoValue: { fontSize: 14, fontWeight: '700', color: '#1A1A1A' },
+  qrTipBox: { flexDirection: 'row', alignItems: 'flex-start', backgroundColor: '#F1F6FF', borderRadius: 12, padding: 12 },
+  qrTipIconBg: { width: 24, height: 24, borderRadius: 12, justifyContent: 'center', alignItems: 'center', marginRight: 8 },
+  qrTipText: { flex: 1, fontSize: 12, color: '#344054', lineHeight: 18 },
 });

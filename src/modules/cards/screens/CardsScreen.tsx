@@ -1,0 +1,498 @@
+import React, { useRef, useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, FlatList, Dimensions, Alert, Modal } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+
+export const CardsScreen: React.FC = () => {
+  const stats = [
+    { id: 1, value: '2', label: 'Cartes', icon: 'card-outline', iconBg: '#EAF2FF', iconColor: '#007AFF' },
+    { id: 2, value: '228k', label: 'Solde total', icon: 'wallet-outline', iconBg: '#EAF7EA', iconColor: '#34C759' },
+    { id: 3, value: '8', label: 'Transactions', icon: 'flash-outline', iconBg: '#FFF5E5', iconColor: '#FFCC00' },
+  ];
+
+  const cards = [
+    { id: 1, bank: 'ORABANK', number: '6011 **** **** 1234', fullNumber: '6011 9823 7441 1234', cvv: '418', holder: 'DERLY MOUPEPIDI', expiry: '12/25', bg: '#242424', statusBg: '#2E2E2E' },
+    { id: 2, bank: 'UBA', number: '5020 **** **** 5678', fullNumber: '5020 1034 8640 5678', cvv: '952', holder: 'DERLY MOUPEPIDI', expiry: '08/26', bg: '#D7261D', statusBg: '#7F1D1D' },
+  ];
+
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [showCVV, setShowCVV] = useState(false);
+  const [showNewCardModal, setShowNewCardModal] = useState(false);
+  const [showActionsModal, setShowActionsModal] = useState(false);
+  const [showInfoModal, setShowInfoModal] = useState(false);
+  const [detailsY, setDetailsY] = useState(0);
+  const [limitsY, setLimitsY] = useState(0);
+  const scrollRef = useRef<ScrollView>(null);
+  const cardWidth = Dimensions.get('window').width - 32; // largeur page = écran - padding
+  const transactions = [
+    { id: 1, name: 'Amazon', time: 'Aujourd\'hui', amount: -15000, icon: 'bag-handle-outline', iconBg: '#FDF3F3' },
+    { id: 2, name: 'Restaurant', time: 'Hier', amount: -8500, icon: 'close-circle-outline', iconBg: '#FFF4F4' },
+    { id: 3, name: 'Station service', time: 'Il y a 3 jours', amount: -12000, icon: 'car-sport-outline', iconBg: '#FDF7F0' },
+  ];
+
+  const handleCopyNumber = async () => {
+    const full = cards[activeIndex]?.fullNumber ?? cards[activeIndex].number;
+    try {
+      if (typeof navigator !== 'undefined' && (navigator as any).clipboard?.writeText) {
+        await (navigator as any).clipboard.writeText(full);
+      }
+      Alert.alert('Copié', 'Copié dans le presse papier');
+    } catch (e) {
+      Alert.alert('Erreur', 'Impossible de copier le numéro');
+    }
+  };
+
+  const handleConfirmNewCard = () => {
+    setShowNewCardModal(false);
+    Alert.alert('Confirmation', 'Votre demande de nouvelle carte a été enregistrée');
+  };
+
+  return (
+    <ScrollView ref={scrollRef} style={styles.container} showsVerticalScrollIndicator={false}>
+      {/* Action sheet (Bloquer / PIN / Renouveler) */}
+      <Modal transparent visible={showActionsModal} animationType="fade" onRequestClose={() => setShowActionsModal(false)}>
+        <View style={styles.sheetOverlay}>
+          <View style={styles.sheetContainer}>
+            <View style={styles.sheetHandle} />
+            <Text style={styles.sheetTitle}>Actions sur la carte</Text>
+
+            {/* Bloquer */}
+            <TouchableOpacity style={styles.sheetItem} activeOpacity={0.85} onPress={() => { setShowActionsModal(false); Alert.alert('Blocage', 'Temporairement ou définitivement'); }}>
+              <View style={[styles.sheetIconBg, { backgroundColor: '#F7F7F7' }]}>
+                <Ionicons name="lock-closed-outline" size={22} color="#FF3B30" />
+              </View>
+              <View style={styles.sheetTexts}>
+                <Text style={styles.sheetItemTitle}>Bloquer la carte</Text>
+                <Text style={styles.sheetItemSub}>Temporairement ou définitivement</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color="#9AA0A6" />
+            </TouchableOpacity>
+
+            {/* Modifier PIN */}
+            <TouchableOpacity style={[styles.sheetItem, styles.sheetItemDivider]} activeOpacity={0.85} onPress={() => { setShowActionsModal(false); Alert.alert('Code PIN', 'Changer votre code de sécurité'); }}>
+              <View style={[styles.sheetIconBg, { backgroundColor: '#F7F7F7' }]}>
+                <Ionicons name="card-outline" size={22} color="#0A84FF" />
+              </View>
+              <View style={styles.sheetTexts}>
+                <Text style={styles.sheetItemTitle}>Modifier le code PIN</Text>
+                <Text style={styles.sheetItemSub}>Changez votre code de sécurité</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color="#9AA0A6" />
+            </TouchableOpacity>
+
+            {/* Renouveler */}
+            <TouchableOpacity style={[styles.sheetItem, styles.sheetItemDivider]} activeOpacity={0.85} onPress={() => { setShowActionsModal(false); setShowNewCardModal(true); }}>
+              <View style={[styles.sheetIconBg, { backgroundColor: '#F7F7F7' }]}>
+                <Ionicons name="refresh-outline" size={22} color="#0A84FF" />
+              </View>
+              <View style={styles.sheetTexts}>
+                <Text style={styles.sheetItemTitle}>Renouveler</Text>
+                <Text style={styles.sheetItemSub}>Commander une nouvelle carte</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color="#9AA0A6" />
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.sheetCancelBtn} activeOpacity={0.85} onPress={() => setShowActionsModal(false)}>
+              <Text style={styles.sheetCancelText}>Annuler</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+      {/* Modal d'information pour "Gérer" */}
+      <Modal transparent visible={showInfoModal} animationType="fade" onRequestClose={() => setShowInfoModal(false)}>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View>
+              <Text style={styles.modalTitle}>INFO</Text>
+              <Text style={styles.modalText}>FONCTIONNALITE A VENIR</Text>
+            </View>
+            <View style={styles.modalActions}>
+              <TouchableOpacity onPress={() => setShowInfoModal(false)} activeOpacity={0.8}>
+                <Text style={styles.modalActionText}>OK</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+      <Modal transparent visible={showNewCardModal} animationType="fade" onRequestClose={() => setShowNewCardModal(false)}>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View>
+              <Text style={styles.modalTitle}>Nouvelle carte</Text>
+              <Text style={styles.modalText}>Souhaitez-vous demander une nouvelle{"\n"}carte ?</Text>
+            </View>
+            <View style={styles.modalActions}>
+              <TouchableOpacity onPress={() => setShowNewCardModal(false)} activeOpacity={0.8}>
+                <Text style={styles.modalActionText}>ANNULER</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={handleConfirmNewCard} activeOpacity={0.8}>
+                <Text style={styles.modalActionText}>CONFIRMER</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+      {/* En-tête section */}
+      <View style={styles.headerCard}>
+        <View>
+          <Text style={styles.headerTitle}>Mes cartes</Text>
+          <Text style={styles.headerSub}>2 cartes actives</Text>
+        </View>
+        <TouchableOpacity style={styles.addBtn} activeOpacity={0.85} onPress={() => setShowNewCardModal(true)}>
+          <Ionicons name="add" size={24} color="#fff" />
+        </TouchableOpacity>
+      </View>
+
+      {/* Statistiques */}
+      <View style={styles.statsRow}>
+        {stats.map(s => (
+          <View key={s.id} style={styles.statCard}>
+            <View style={[styles.statIconBg, { backgroundColor: s.iconBg }]}
+            >
+              <Ionicons name={s.icon as any} size={22} color={s.iconColor} />
+            </View>
+            <Text style={styles.statValue}>{s.value}</Text>
+            <Text style={styles.statLabel}>{s.label}</Text>
+          </View>
+        ))}
+      </View>
+
+      {/* Cartes - Carrousel horizontal */}
+      <FlatList
+        horizontal
+        pagingEnabled
+        data={cards}
+        keyExtractor={(item) => String(item.id)}
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={{ paddingHorizontal: 16 }}
+        renderItem={({ item }) => (
+          <View style={[styles.paymentCard, { width: cardWidth, backgroundColor: item.bg, marginRight: 16 }]}>
+            <View style={styles.paymentCardTopRow}>
+              <View style={styles.bankChip}><Text style={styles.bankChipText}>{item.bank}</Text></View>
+              <View style={[styles.statusPill, { backgroundColor: item.statusBg }]}>
+                <View style={styles.statusDot} />
+                <Text style={styles.statusText}>Active</Text>
+              </View>
+            </View>
+
+            <View style={styles.cardBody}>
+              <View style={styles.cardIconCircle}>
+                <Ionicons name="hardware-chip-outline" size={26} color="#EDEDED" />
+              </View>
+              <Text style={styles.cardNumber}>{item.number}</Text>
+
+              <View style={styles.cardMetaRow}>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.metaLabel}>TITULAIRE</Text>
+                  <Text style={styles.metaValue}>{item.holder}</Text>
+                </View>
+                <View style={{ width: 140 }}>
+                  <Text style={styles.metaLabel}>EXPIRE LE</Text>
+                  <Text style={styles.metaValue}>{item.expiry}</Text>
+                </View>
+              </View>
+            </View>
+          </View>
+        )}
+        onMomentumScrollEnd={(e) => {
+          const x = e.nativeEvent.contentOffset.x;
+          const index = Math.round(x / cardWidth);
+          setActiveIndex(index);
+        }}
+        getItemLayout={(data, index) => ({ length: cardWidth, offset: cardWidth * index, index })}
+      />
+
+      {/* Indicateur pagination */}
+      <View style={styles.paginationRow}>
+        {cards.map((c, i) => (
+          <View key={c.id} style={[styles.pageDot, i === activeIndex ? styles.pageDotBlue : styles.pageDotGray]} />
+        ))}
+      </View>
+
+      {/* Actions rapides (placées avant détails) */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Actions rapides</Text>
+
+        <TouchableOpacity style={styles.quickItem} activeOpacity={0.85} onPress={() => setShowActionsModal(true)}>
+          <View style={[styles.quickIconBg, { backgroundColor: '#EAF2FF' }]}> 
+            <Ionicons name="lock-closed-outline" size={22} color="#007AFF" />
+          </View>
+          <View style={styles.quickTexts}>
+            <Text style={styles.quickTitle}>Bloquer</Text>
+            <Text style={styles.quickSub}>Carte temporairement</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={18} color="#9AA0A6" />
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.quickItem} activeOpacity={0.85} onPress={() => setShowInfoModal(true)}>
+          <View style={[styles.quickIconBg, { backgroundColor: '#EAF7EA' }]}> 
+            <Ionicons name="settings-outline" size={22} color="#34C759" />
+          </View>
+          <View style={styles.quickTexts}>
+            <Text style={styles.quickTitle}>Gérer</Text>
+            <Text style={styles.quickSub}>Limites et paramètres</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={18} color="#9AA0A6" />
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.quickItem} activeOpacity={0.85} onPress={() => setShowNewCardModal(true)}>
+          <View style={[styles.quickIconBg, { backgroundColor: '#EAF2FF' }]}> 
+            <Ionicons name="add-circle-outline" size={22} color="#0A84FF" />
+          </View>
+          <View style={styles.quickTexts}>
+            <Text style={styles.quickTitle}>Commander</Text>
+            <Text style={styles.quickSub}>Nouvelle carte</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={18} color="#9AA0A6" />
+        </TouchableOpacity>
+      </View>
+
+      {/* Détails de la carte */}
+      <View style={styles.sectionHeaderRow}>
+        <Text style={styles.sectionHeader}>Détails de la carte</Text>
+      </View>
+      <View style={styles.detailBox} onLayout={(e) => setDetailsY(e.nativeEvent.layout.y)}>
+        <View style={styles.detailRowFirst}>
+          <Text style={styles.detailLabel}>Numéro complet</Text>
+          <View style={styles.detailRightRow}>
+            <Text style={styles.detailValue}>{cards[activeIndex].number}</Text>
+            <TouchableOpacity onPress={handleCopyNumber} activeOpacity={0.7}>
+              <Ionicons name="copy-outline" size={18} color="#4A4A4A" style={{ marginLeft: 8 }} />
+            </TouchableOpacity>
+          </View>
+        </View>
+        <View style={styles.detailRow}>
+          <Text style={styles.detailLabel}>CVV</Text>
+          <View style={styles.detailRightRow}>
+            <Text style={styles.detailValue}>{showCVV ? cards[activeIndex].cvv : '•••'}</Text>
+            <TouchableOpacity onPress={() => setShowCVV(v => !v)} activeOpacity={0.7}>
+              <Ionicons name={showCVV ? 'eye-off-outline' : 'eye-outline'} size={18} color="#4A4A4A" style={{ marginLeft: 8 }} />
+            </TouchableOpacity>
+          </View>
+        </View>
+        <View style={styles.detailRow}>
+          <Text style={styles.detailLabel}>Date d'expiration</Text>
+          <Text style={styles.detailValue}>{cards[activeIndex].expiry}</Text>
+        </View>
+        <View style={styles.detailRow}>
+          <Text style={styles.detailLabel}>Type</Text>
+          <Text style={styles.detailValue}>{cards[activeIndex].bank}</Text>
+        </View>
+      </View>
+
+      {/* Limites de dépenses */}
+      <View style={styles.sectionHeaderRow}>
+        <Text style={styles.sectionHeader}>Limites de dépenses</Text>
+        <TouchableOpacity activeOpacity={0.85}><Text style={styles.sectionLink}>Modifier</Text></TouchableOpacity>
+      </View>
+
+      {/* Paiements quotidiens */}
+      <View style={styles.limitCard} onLayout={(e) => setLimitsY(e.nativeEvent.layout.y)}>
+        <View style={styles.limitTopRow}>
+          <View style={[styles.limitIconBg, { backgroundColor: '#EAF2FF' }]}> 
+            <Ionicons name="card-outline" size={20} color="#0A84FF" />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.limitTitle}>Paiements quotidiens</Text>
+            <Text style={styles.limitSub}>Aujourd'hui</Text>
+          </View>
+        </View>
+        <View style={styles.progressTrack}>
+          <View style={[styles.progressFill, { width: `${Math.round((35500/100000)*100)}%`, backgroundColor: '#0A84FF' }]} />
+        </View>
+        <View style={styles.limitBottomRow}>
+          <Text style={styles.limitAmount}>35 500 / 100 000 XAF</Text>
+          <Text style={styles.limitUsed}>36% utilisé</Text>
+        </View>
+      </View>
+
+      {/* Retraits mensuels */
+      }
+      <View style={styles.limitCard}>
+        <View style={styles.limitTopRow}>
+          <View style={[styles.limitIconBg, { backgroundColor: '#EAF2FF' }]}> 
+            <Ionicons name="cash-outline" size={20} color="#0A84FF" />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.limitTitle}>Retraits mensuels</Text>
+            <Text style={styles.limitSub}>Ce mois</Text>
+          </View>
+        </View>
+        <View style={styles.progressTrack}>
+          <View style={[styles.progressFill, { width: `${Math.round((125000/500000)*100)}%`, backgroundColor: '#0A84FF' }]} />
+        </View>
+        <View style={styles.limitBottomRow}>
+          <Text style={styles.limitAmount}>125 000 / 500 000 XAF</Text>
+          <Text style={styles.limitUsed}>25% utilisé</Text>
+        </View>
+      </View>
+
+      {/* Transactions récentes */}
+      <View style={styles.sectionHeaderRow}>
+        <Text style={styles.sectionHeader}>Transactions récentes</Text>
+        <TouchableOpacity activeOpacity={0.85}><Text style={styles.sectionLink}>Tout voir</Text></TouchableOpacity>
+      </View>
+      {transactions.map(t => (
+        <View key={t.id} style={styles.txCard}>
+          <View style={[styles.txIconBg, { backgroundColor: t.iconBg }]}> 
+            <Ionicons name={t.icon as any} size={20} color="#FF3B30" />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.txTitle}>{t.name}</Text>
+            <Text style={styles.txSub}>{t.time}</Text>
+          </View>
+          <View style={{ alignItems: 'flex-end' }}>
+            <Text style={styles.txAmount}>{t.amount.toLocaleString('fr-FR')} </Text>
+            <Text style={styles.txCurrency}>XAF</Text>
+          </View>
+        </View>
+      ))}
+
+      {/* Bandeau sécurité */}
+      <View style={styles.securityBanner}>
+        <View style={styles.securityIconBg}>
+          <View style={styles.securityIconInner}>
+            <Ionicons name="checkmark" size={16} color="#fff" />
+          </View>
+        </View>
+        <Text style={styles.securityMessage}>
+          Vos cartes sont protégées par la technologie 3D Secure
+          
+          et des alertes en temps réel
+        </Text>
+      </View>
+
+     
+    </ScrollView>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: '#F8F9FB' },
+  headerCard: {
+    backgroundColor: '#fff',
+    marginHorizontal: 16,
+    marginTop: 12,
+    borderRadius: 16,
+    padding: 16,
+    shadowColor: '#000',
+    shadowOpacity: 0.08,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 8,
+    elevation: 3,
+    borderWidth: 1,
+    borderColor: '#f0f0f0',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between'
+  },
+  headerTitle: { fontSize: 20, fontWeight: '800', color: '#1A1A1A' },
+  headerSub: { marginTop: 6, fontSize: 13, color: '#7F8C8D' },
+  addBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: '#0A84FF', justifyContent: 'center', alignItems: 'center' },
+
+  statsRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 18, paddingHorizontal: 16 },
+  statCard: { backgroundColor: '#fff', width: '31%', borderRadius: 16, paddingVertical: 16, alignItems: 'center', borderWidth: 1, borderColor: '#f0f0f0', shadowColor: '#000', shadowOpacity: 0.05, shadowOffset: { width: 0, height: 2 }, shadowRadius: 6, elevation: 2 },
+  statIconBg: { width: 44, height: 44, borderRadius: 22, justifyContent: 'center', alignItems: 'center', marginBottom: 8 },
+  statValue: { fontSize: 18, fontWeight: '800', color: '#1A1A1A' },
+  statLabel: { marginTop: 4, fontSize: 12, color: '#7F8C8D' },
+
+  paymentCard: { backgroundColor: '#242424', marginTop: 18, borderRadius: 18, padding: 16 },
+  paymentCardTopRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  bankChip: { backgroundColor: '#fff', paddingHorizontal: 14, paddingVertical: 8, borderRadius: 14 },
+  bankChipText: { color: '#1A1A1A', fontWeight: '700' },
+  statusPill: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#18281D', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16 },
+  statusDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#34C759', marginRight: 8 },
+  statusText: { color: '#fff', fontWeight: '700' },
+  cardBody: { marginTop: 24 },
+  cardIconCircle: { width: 56, height: 56, borderRadius: 28, backgroundColor: '#2E2E2E', justifyContent: 'center', alignItems: 'center', marginBottom: 24 },
+  cardNumber: { color: '#fff', fontSize: 24, fontWeight: '800', letterSpacing: 1, marginBottom: 18 },
+  cardMetaRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
+  metaLabel: { color: '#CFCFCF', fontSize: 12 },
+  metaValue: { color: '#fff', fontSize: 14, fontWeight: '700', marginTop: 4 },
+
+  paginationRow: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginTop: 14 },
+  pageDot: { width: 8, height: 8, borderRadius: 4, marginHorizontal: 6 },
+  pageDotBlue: { backgroundColor: '#0A84FF' },
+  pageDotGray: { backgroundColor: '#CFCFCF' },
+
+  ctaCard: {
+    backgroundColor: '#fff',
+    marginHorizontal: 16,
+    marginTop: 18,
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: '#f0f0f0',
+    shadowColor: '#000',
+    shadowOpacity: 0.06,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 6,
+    elevation: 2,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between'
+  },
+  ctaLeft: { flexDirection: 'row', alignItems: 'center' },
+  ctaIconBg: { width: 48, height: 48, borderRadius: 24, justifyContent: 'center', alignItems: 'center', marginRight: 12 },
+  ctaTitle: { fontSize: 16, fontWeight: '700', color: '#1A1A1A' },
+  ctaSub: { marginTop: 4, fontSize: 12, color: '#7F8C8D' },
+
+  sectionHeaderRow: { paddingHorizontal: 16, marginTop: 22, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  sectionHeader: { fontSize: 18, fontWeight: '800', color: '#1A1A1A' },
+  sectionLink: { fontSize: 14, color: '#0A84FF', fontWeight: '700' },
+
+  detailBox: { backgroundColor: '#fff', marginHorizontal: 16, marginTop: 12, borderRadius: 16, borderWidth: 1, borderColor: '#f0f0f0', paddingHorizontal: 16, paddingVertical: 6, shadowColor: '#000', shadowOpacity: 0.06, shadowOffset: { width: 0, height: 2 }, shadowRadius: 6, elevation: 2 },
+  detailRowFirst: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 16 },
+  detailRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 16, borderTopWidth: 1, borderTopColor: '#EDEDED' },
+  detailLabel: { color: '#7F8C8D', fontSize: 13 },
+  detailValue: { color: '#1A1A1A', fontSize: 13, fontWeight: '700' },
+  detailRightRow: { flexDirection: 'row', alignItems: 'center' },
+
+  limitCard: { backgroundColor: '#fff', marginHorizontal: 16, marginTop: 14, borderRadius: 16, borderWidth: 1, borderColor: '#f0f0f0', padding: 16, shadowColor: '#000', shadowOpacity: 0.06, shadowOffset: { width: 0, height: 2 }, shadowRadius: 6, elevation: 2 },
+  limitTopRow: { flexDirection: 'row', alignItems: 'center' },
+  limitIconBg: { width: 44, height: 44, borderRadius: 22, justifyContent: 'center', alignItems: 'center', marginRight: 12 },
+  limitTitle: { fontSize: 16, fontWeight: '700', color: '#1A1A1A' },
+  limitSub: { marginTop: 4, fontSize: 12, color: '#7F8C8D' },
+  progressTrack: { marginTop: 14, height: 10, borderRadius: 6, backgroundColor: '#E5E7EB', overflow: 'hidden' },
+  progressFill: { height: 10, borderRadius: 6 },
+  limitBottomRow: { marginTop: 10, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  limitAmount: { fontSize: 12, color: '#7F8C8D' },
+  limitUsed: { fontSize: 12, color: '#0A84FF' },
+  section: { paddingHorizontal: 16, marginTop: 12 },
+  sectionTitle: { fontSize: 18, fontWeight: '800', color: '#1A1A1A', marginBottom: 12 },
+  quickItem: { backgroundColor: '#fff', borderRadius: 16, padding: 16, flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: '#f0f0f0', shadowColor: '#000', shadowOpacity: 0.06, shadowOffset: { width: 0, height: 2 }, shadowRadius: 6, elevation: 2, marginBottom: 12 },
+  quickIconBg: { width: 44, height: 44, borderRadius: 22, justifyContent: 'center', alignItems: 'center', marginRight: 12 },
+  quickTexts: { flex: 1 },
+  quickTitle: { fontSize: 16, fontWeight: '700', color: '#1A1A1A' },
+  quickSub: { marginTop: 4, fontSize: 12, color: '#7F8C8D' },
+  txCard: { backgroundColor: '#fff', marginHorizontal: 16, marginTop: 12, borderRadius: 16, borderWidth: 1, borderColor: '#f0f0f0', padding: 14, flexDirection: 'row', alignItems: 'center', shadowColor: '#000', shadowOpacity: 0.05, shadowOffset: { width: 0, height: 2 }, shadowRadius: 6, elevation: 2 },
+  txIconBg: { width: 40, height: 40, borderRadius: 20, justifyContent: 'center', alignItems: 'center', marginRight: 12 },
+  txTitle: { fontSize: 15, fontWeight: '700', color: '#1A1A1A' },
+  txSub: { marginTop: 4, fontSize: 12, color: '#7F8C8D' },
+  txAmount: { fontSize: 15, fontWeight: '700', color: '#FF3B30' },
+  txCurrency: { marginTop: 2, fontSize: 10, color: '#7F8C8D' },
+  securityBanner: { backgroundColor: '#EAF7EA', marginHorizontal: 16, marginTop: 14, marginBottom: 16, borderRadius: 28, paddingVertical: 18, paddingHorizontal: 18, flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: '#DFF4E5' },
+  securityIconBg: { width: 48, height: 48, borderRadius: 24, justifyContent: 'center', alignItems: 'center', marginRight: 14, backgroundColor: '#DFF4E5' },
+  securityIconInner: { width: 30, height: 28, borderRadius: 14, backgroundColor: '#34C759', justifyContent: 'center', alignItems: 'center' },
+  securityMessage: { flex: 1, fontSize: 16, lineHeight: 24, color: '#3A3A3C', flexWrap: 'wrap', flexShrink: 1, paddingRight: 6, letterSpacing: 0.5 },
+  // Action sheet styles
+  sheetOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.25)', justifyContent: 'flex-end' },
+  sheetContainer: { backgroundColor: '#FFFFFF', borderTopLeftRadius: 24, borderTopRightRadius: 24, paddingHorizontal: 16, paddingTop: 20, paddingBottom: 24 },
+  sheetHandle: { alignSelf: 'center', width: 72, height: 6, borderRadius: 3, backgroundColor: '#E5E5E5', marginBottom: 12 },
+  sheetTitle: { fontSize: 18, color: '#1A1A1A', fontWeight: '800', fontFamily: 'monospace', marginBottom: 8 },
+  sheetItem: { flexDirection: 'row', alignItems: 'center', paddingVertical: 16 },
+  sheetItemDivider: { borderTopWidth: 1, borderTopColor: '#EFEFEF' },
+  sheetIconBg: { width: 48, height: 48, borderRadius: 24, justifyContent: 'center', alignItems: 'center', marginRight: 12 },
+  sheetTexts: { flex: 1 },
+  sheetItemTitle: { fontSize: 16, fontWeight: '800', color: '#1A1A1A'},
+  sheetItemSub: { marginTop: 4, fontSize: 12, color: '#7F8C8D' },
+  sheetCancelBtn: { marginTop: 12, backgroundColor: '#E5E5E5', borderRadius: 18, paddingVertical: 14, alignItems: 'center' },
+  sheetCancelText: { fontSize: 18, color: '#1A1A1A', fontWeight: '700', fontFamily: 'monospace' },
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.35)', justifyContent: 'center', alignItems: 'center' },
+  modalContent: { width: '88%', backgroundColor: '#3F3F3F', borderRadius: 14, paddingHorizontal: 20, paddingVertical: 24 },
+  modalTitle: { color: '#FFFFFF', fontSize: 24, fontWeight: '800' },
+  modalText: { marginTop: 16, color: '#FFFFFF', fontSize: 18, lineHeight: 28 },
+  modalActions: { marginTop: 28, flexDirection: 'row', justifyContent: 'space-between' },
+  modalActionText: { color: '#74C9C4', fontSize: 18, fontWeight: '700', letterSpacing: 1  },
+});
+
+export default CardsScreen;

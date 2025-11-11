@@ -1,28 +1,51 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { createNativeStackNavigator, NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 
-// Import avec les bons chemins relatifs
+// Import des écrans
 import { LoginScreen } from '../../modules/auth/screens/LoginScreen';
 import { ForgotPasswordScreen } from '../../modules/auth/screens/ForgotPasswordScreen';
 import { ChangePasswordScreen } from '../../modules/auth/screens/ChangePasswordScreen';
 import { DashboardScreen } from '../../modules/dashboard/screens/DashboardScreen';
+import { CardsScreen } from '../../modules/cards/screens/CardsScreen';
 import { TransactionsScreen } from '../../modules/transactions/screens/TransactionsScreen';
 import { ProductsScreen } from '../../modules/products/screens/ProductsScreen';
 import { SettingsScreen } from '../../modules/settings/screens/SettingsScreen';
+import { TransferScreen } from '../../modules/transactions/screens/TransferScreen';
+import { AccountsScreen } from '../../modules/accounts/screens/AccountsScreen';
+import { AccountDetailsScreen } from '../../modules/accounts/screens/AccountDetailsScreen';
+import ProductDetailPage from '../../modules/products/screens/DetailsProduitsScreen';
+
 import { useAuth } from '../hooks/useAuth';
-import { ProductDetailPage } from '../../modules/products/screens/DetailsProduitsScreen';
 
-const Tab = createBottomTabNavigator();
-const Stack = createNativeStackNavigator();
+// Définition des types pour la stack principale
+export type RootStackParamList = {
+  Auth: undefined;
+  Main: undefined;
+  Transfer: undefined;
+  Accounts: undefined;
+  AccountDetails: undefined;
+  Cards: undefined;
+  DetailsProduits: undefined;
+};
 
-const MainTabs = () => (
+// Définition des types pour le bottom tab
+export type MainTabParamList = {
+  Dashboard: undefined;
+  Transactions: undefined;
+  Products: undefined;
+  Settings: undefined;
+};
+
+const Tab = createBottomTabNavigator<MainTabParamList>();
+const Stack = createNativeStackNavigator<RootStackParamList>();
+
+const MainTabs: React.FC = () => (
   <Tab.Navigator
     screenOptions={({ route }) => ({
       tabBarIcon: ({ focused, color, size }) => {
-        let iconName: any;
-
+        let iconName: keyof typeof Ionicons.glyphMap = 'help-outline';
         switch (route.name) {
           case 'Dashboard':
             iconName = focused ? 'home' : 'home-outline';
@@ -36,14 +59,12 @@ const MainTabs = () => (
           case 'Settings':
             iconName = focused ? 'settings' : 'settings-outline';
             break;
-          default:
-            iconName = 'help-outline';
         }
-
         return <Ionicons name={iconName} size={size} color={color} />;
       },
       tabBarActiveTintColor: '#007AFF',
       tabBarInactiveTintColor: 'gray',
+      headerShown: false,
     })}
   >
     <Tab.Screen name="Dashboard" component={DashboardScreen} />
@@ -58,14 +79,48 @@ export const AppNavigator: React.FC = () => {
 
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
-      {/* {isAuthenticated ? (
+      {/*
+      !isAuthenticated ? (
+        <>
+          <Stack.Screen name="Auth" component={LoginScreen} />
+          <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
+          <Stack.Screen name="ChangePassword" component={ChangePasswordScreen} />
+        </>
+      ) :
+      */}
+      <>
         <Stack.Screen name="Main" component={MainTabs} />
-      ) : (
-        <Stack.Screen name="Auth" component={LoginScreen} />
-      )} */}
-      <Stack.Screen name="Main" component={MainTabs} />
-      <Stack.Screen name="DetailsProduits" component={ProductDetailPage} />
 
+        <Stack.Screen
+          name="Transfer"
+          component={TransferScreen}
+          options={{ headerShown: true, title: 'Virement' }}
+        />
+
+        <Stack.Screen
+          name="Accounts"
+          component={AccountsScreen}
+          options={{ headerShown: true, title: 'Mes Comptes' }}
+        />
+
+        <Stack.Screen
+          name="AccountDetails"
+          component={AccountDetailsScreen}
+          options={{ headerShown: true, title: 'Détails du compte' }}
+        />
+
+        <Stack.Screen
+          name="Cards"
+          component={CardsScreen}
+          options={{ headerShown: true, title: 'Mes Cartes' }}
+        />
+
+        <Stack.Screen
+          name="DetailsProduits"
+          component={ProductDetailPage}
+          options={{ headerShown: true, title: 'Détail du produit' }}
+        />
+      </>
     </Stack.Navigator>
   );
 };
