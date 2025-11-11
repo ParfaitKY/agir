@@ -10,12 +10,14 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
+import { useI18n } from '../../../app/providers/I18nProvider';
 
 export const DashboardScreen: React.FC = () => {
   const [currentOffer, setCurrentOffer] = useState(0);
   const servicesScrollRef = useRef<FlatList>(null);
   const navigation = useNavigation();
   const [showQrModal, setShowQrModal] = useState(false);
+  const { t, tText } = useI18n();
 
   const offers = [
     // ... (offres existantes restent identiques)
@@ -116,11 +118,11 @@ export const DashboardScreen: React.FC = () => {
 
   const renderServiceItem = ({ item }: { item: any }) => (
     <TouchableOpacity style={styles.serviceCard}>
-      <View style={[styles.serviceIcon, { backgroundColor: item.backgroundColor }]}>
+      <View style={[styles.serviceIcon, { backgroundColor: item.backgroundColor }]}> 
         <Ionicons name={item.icon as any} size={24} color={item.iconColor} />
       </View>
-      <Text style={styles.serviceTitle}>{item.title}</Text>
-      <Text style={styles.serviceSubtitle}>{item.subtitle}</Text>
+      <Text style={styles.serviceTitle}>{tText(item.title)}</Text>
+      <Text style={styles.serviceSubtitle}>{tText(item.subtitle)}</Text>
     </TouchableOpacity>
   );
 
@@ -132,7 +134,7 @@ export const DashboardScreen: React.FC = () => {
         <View style={styles.qrOverlay}>
           <View style={styles.qrContainer}>
             <View style={styles.qrHeaderRow}>
-              <Text style={styles.qrHeaderTitle}>Mon QR Code</Text>
+              <Text style={styles.qrHeaderTitle}>{t('dashboard.qr.title')}</Text>
               <TouchableOpacity onPress={() => setShowQrModal(false)} style={styles.qrCloseBtn}>
                 <Ionicons name="close" size={20} color="#1A1A1A" />
               </TouchableOpacity>
@@ -148,7 +150,7 @@ export const DashboardScreen: React.FC = () => {
                   <Ionicons name="person-outline" size={18} color="#007AFF" />
                 </View>
                 <View style={styles.qrInfoTexts}>
-                  <Text style={styles.qrInfoLabel}>Nom</Text>
+                  <Text style={styles.qrInfoLabel}>{t('dashboard.qr.name')}</Text>
                   <Text style={styles.qrInfoValue}>Derly MOUPEPIDI</Text>
                 </View>
               </View>
@@ -158,7 +160,7 @@ export const DashboardScreen: React.FC = () => {
                   <Ionicons name="barcode-outline" size={18} color="#34C759" />
                 </View>
                 <View style={styles.qrInfoTexts}>
-                  <Text style={styles.qrInfoLabel}>Code client</Text>
+                  <Text style={styles.qrInfoLabel}>{t('dashboard.qr.clientCode')}</Text>
                   <Text style={styles.qrInfoValue}>LP001234</Text>
                 </View>
               </View>
@@ -168,7 +170,7 @@ export const DashboardScreen: React.FC = () => {
                   <Ionicons name="call-outline" size={18} color="#FF9500" />
                 </View>
                 <View style={styles.qrInfoTexts}>
-                  <Text style={styles.qrInfoLabel}>Téléphone</Text>
+                  <Text style={styles.qrInfoLabel}>{t('dashboard.qr.phone')}</Text>
                   <Text style={styles.qrInfoValue}>+241 77 68 38 55</Text>
                 </View>
               </View>
@@ -177,7 +179,7 @@ export const DashboardScreen: React.FC = () => {
                 <View style={[styles.qrTipIconBg, { backgroundColor: '#E3F2FD' }]}> 
                   <Ionicons name="information-circle-outline" size={18} color="#007AFF" />
                 </View>
-                <Text style={styles.qrTipText}>Présentez ce QR code à un agent pour effectuer un versement rapide sur votre compte</Text>
+                <Text style={styles.qrTipText}>{t('dashboard.qr.tip')}</Text>
               </View>
             </View>
           </View>
@@ -190,7 +192,7 @@ export const DashboardScreen: React.FC = () => {
       <View style={styles.header}>
         <View>
           <Text style={styles.time}>17:36</Text>
-          <Text style={styles.hello}>Bonjour 👋</Text>
+          <Text style={styles.hello}>{t('dashboard.greeting')}</Text>
         </View>
         <View style={styles.headerIcons}>
           <TouchableOpacity style={styles.iconBtn} onPress={() => setShowQrModal(true)}>
@@ -213,14 +215,14 @@ export const DashboardScreen: React.FC = () => {
           </View>
           <View>
             <Text style={styles.name}>Derly MOUPEPIDI</Text>
-            <Text style={styles.accountType}>Compte Premium</Text>
+            <Text style={styles.accountType}>{t('dashboard.accountType.premium')}</Text>
           </View>
           <TouchableOpacity style={styles.eyeBtn}>
             <Ionicons name="eye-outline" size={20} color="#555" />
           </TouchableOpacity>
         </View>
         <View style={styles.balanceSection}>
-          <Text style={styles.balanceLabel}>Solde total disponible</Text>
+          <Text style={styles.balanceLabel}>{t('dashboard.balance.label')}</Text>
           <Text style={styles.balance}>5 850 000 XAF</Text>
           <View style={styles.subInfo}>
             <Text style={styles.subText}>💼 3 comptes actifs</Text>
@@ -233,28 +235,28 @@ export const DashboardScreen: React.FC = () => {
             onPress={() => navigation.navigate('Transfer' as never)}
           >
             <Ionicons name="arrow-forward-circle-outline" size={18} color="#007AFF" />
-            <Text style={styles.actionText}>Virement</Text>
+            <Text style={styles.actionText}>{t('dashboard.actions.transfer')}</Text>
           </TouchableOpacity>
           <TouchableOpacity 
             style={styles.actionBtn}
             onPress={() => navigation.navigate('Accounts' as never)}
           >
             <Ionicons name="list-outline" size={18} color="#007AFF" />
-            <Text style={styles.actionText}>Comptes</Text>
+            <Text style={styles.actionText}>{t('dashboard.actions.accounts')}</Text>
           </TouchableOpacity>
           <TouchableOpacity 
             style={styles.actionBtn}
             onPress={() => navigation.navigate('Cards' as never)}
           >
             <Ionicons name="card-outline" size={18} color="#007AFF" />
-            <Text style={styles.actionText}>Cartes</Text>
+            <Text style={styles.actionText}>{t('dashboard.actions.cards')}</Text>
           </TouchableOpacity>
         </View>
       </View>
 
       {/* Actions rapides - EXISTANT */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Actions rapides</Text>
+        <Text style={styles.sectionTitle}>{t('dashboard.actions.quick')}</Text>
           <View style={styles.quickActions}>
           <TouchableOpacity 
             style={styles.quickActionCard}
@@ -263,29 +265,29 @@ export const DashboardScreen: React.FC = () => {
             <View style={[styles.quickActionIcon, { backgroundColor: '#E3F2FD' }]}>
               <Ionicons name="swap-horizontal" size={24} color="#007AFF" />
             </View>
-            <Text style={styles.quickActionTitle}>Virement</Text>
-            <Text style={styles.quickActionSubtitle}>Transférer</Text>
+            <Text style={styles.quickActionTitle}>{t('dashboard.quick.transfer')}</Text>
+            <Text style={styles.quickActionSubtitle}>{t('dashboard.quick.transfer.subtitle')}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.quickActionCard}>
             <View style={[styles.quickActionIcon, { backgroundColor: '#E8F5E8' }]}>
               <Ionicons name="people-outline" size={24} color="#34C759" />
             </View>
-            <Text style={styles.quickActionTitle}>Bénéficiaires</Text>
-            <Text style={styles.quickActionSubtitle}>Gérer</Text>
+            <Text style={styles.quickActionTitle}>{t('dashboard.quick.beneficiaries')}</Text>
+            <Text style={styles.quickActionSubtitle}>{t('dashboard.quick.beneficiaries.subtitle')}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.quickActionCard}>
             <View style={[styles.quickActionIcon, { backgroundColor: '#FFF3E0' }]}>
               <Ionicons name="briefcase-outline" size={24} color="#FF9500" />
             </View>
-            <Text style={styles.quickActionTitle}>Mes produits</Text>
-            <Text style={styles.quickActionSubtitle}>Découvrir</Text>
+            <Text style={styles.quickActionTitle}>{t('dashboard.quick.products')}</Text>
+            <Text style={styles.quickActionSubtitle}>{t('dashboard.quick.products.subtitle')}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.quickActionCard} onPress={() => navigation.navigate('Cards' as never)}>
             <View style={[styles.quickActionIcon, { backgroundColor: '#F3E5F5' }]}>
               <Ionicons name="card-outline" size={24} color="#AF52DE" />
             </View>
-            <Text style={styles.quickActionTitle}>Mes cartes</Text>
-            <Text style={styles.quickActionSubtitle}>Consulter</Text>
+            <Text style={styles.quickActionTitle}>{t('dashboard.quick.cards')}</Text>
+            <Text style={styles.quickActionSubtitle}>{t('dashboard.quick.cards.subtitle')}</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -293,7 +295,7 @@ export const DashboardScreen: React.FC = () => {
       {/* Offres spéciales - EXISTANT */}
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Offres spéciales</Text>
+          <Text style={styles.sectionTitle}>{t('dashboard.offers.title')}</Text>
           <View style={styles.paginationControls}>
             <TouchableOpacity onPress={prevOffer} style={styles.paginationButton}>
               <Ionicons name="chevron-back" size={16} color="#007AFF" />
@@ -317,12 +319,12 @@ export const DashboardScreen: React.FC = () => {
         <View style={styles.offersContainer}>
           <View style={styles.offerCard}>
             <View style={[styles.offerBadge, { backgroundColor: offers[currentOffer].badgeColor }]}>
-              <Text style={styles.offerBadgeText}>{offers[currentOffer].badge}</Text>
+              <Text style={styles.offerBadgeText}>{tText(offers[currentOffer].badge)}</Text>
             </View>
             <View style={styles.offerContent}>
-              <Text style={styles.offerTitle}>{offers[currentOffer].title}</Text>
-              <Text style={styles.offerSubtitle}>{offers[currentOffer].subtitle}</Text>
-              <Text style={styles.offerDescription}>{offers[currentOffer].description}</Text>
+              <Text style={styles.offerTitle}>{tText(offers[currentOffer].title)}</Text>
+              <Text style={styles.offerSubtitle}>{tText(offers[currentOffer].subtitle)}</Text>
+              <Text style={styles.offerDescription}>{tText(offers[currentOffer].description)}</Text>
             </View>
             <View style={styles.offerIcon}>
               <Ionicons 
@@ -337,7 +339,7 @@ export const DashboardScreen: React.FC = () => {
 
       {/* NOUVELLE SECTION : Nos services avec défilement horizontal */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Nos services</Text>
+        <Text style={styles.sectionTitle}>{t('dashboard.services.title')}</Text>
         <FlatList
           ref={servicesScrollRef}
           data={services}
@@ -354,9 +356,9 @@ export const DashboardScreen: React.FC = () => {
       {/* NOUVELLE SECTION : Activité récente CORRIGÉE */}
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Activité récente</Text>
+          <Text style={styles.sectionTitle}>{t('dashboard.recent.title')}</Text>
           <TouchableOpacity>
-            <Text style={styles.seeAllText}>Tout voir</Text>
+            <Text style={styles.seeAllText}>{t('dashboard.recent.seeAll')}</Text>
           </TouchableOpacity>
         </View>
         
@@ -369,8 +371,8 @@ export const DashboardScreen: React.FC = () => {
                     <Ionicons name={transaction.icon as any} size={20} color={transaction.iconColor} />
                   </View>
                   <View style={styles.transactionInfo}>
-                    <Text style={styles.transactionType}>{transaction.type}</Text>
-                    <Text style={styles.transactionDate}>{transaction.date}</Text>
+                    <Text style={styles.transactionType}>{tText(transaction.type)}</Text>
+                    <Text style={styles.transactionDate}>{tText(transaction.date)}</Text>
                   </View>
                 </View>
                 <Text style={[styles.transactionAmount, { color: transaction.amountColor }]}>

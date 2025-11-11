@@ -23,11 +23,14 @@ import { StatementsScreen } from '../../modules/accounts/screens/StatementsScree
 import ProductDetailPage from '../../modules/products/screens/DetailsProduitsScreen';
 
 import { useAuth } from '../hooks/useAuth';
+import { useI18n } from '../providers/I18nProvider';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 
-const MainTabs = () => (
+const MainTabs = () => {
+  const { t } = useI18n();
+  return (
   <Tab.Navigator
     screenOptions={({ route }) => ({
       tabBarIcon: ({ focused, color, size }) => {
@@ -55,15 +58,17 @@ const MainTabs = () => (
       headerShown: false,
     })}
   >
-    <Tab.Screen name="Dashboard" component={DashboardScreen} />
-    <Tab.Screen name="Transactions" component={TransactionsScreen} />
-    <Tab.Screen name="Products" component={ProductsScreen} />
-    <Tab.Screen name="Settings" component={SettingsScreen} />
+    <Tab.Screen name="Dashboard" component={DashboardScreen} options={{ tabBarLabel: t('tabs.dashboard') }} />
+    <Tab.Screen name="Transactions" component={TransactionsScreen} options={{ tabBarLabel: t('tabs.transactions') }} />
+    <Tab.Screen name="Products" component={ProductsScreen} options={{ tabBarLabel: t('tabs.products') }} />
+    <Tab.Screen name="Settings" component={SettingsScreen} options={{ tabBarLabel: t('tabs.settings') }} />
   </Tab.Navigator>
-);
+  );
+};
 
 export const AppNavigator: React.FC = () => {
   const { isAuthenticated } = useAuth();
+  const { tText } = useI18n();
 
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
@@ -83,38 +88,38 @@ export const AppNavigator: React.FC = () => {
               <Stack.Screen
                 name="Transfer"
                 component={TransferScreen}
-                options={{ headerShown: true, title: 'Virement' }}
+                options={{ headerShown: true, title: tText('Virement') }}
               />
 
               <Stack.Screen
                 name="Accounts"
                 component={AccountsScreen}
-                options={{ headerShown: true, title: 'Mes Comptes' }}
+                options={{ headerShown: true, title: tText('Mes Comptes') }}
               />
 
               <Stack.Screen
                 name="AccountDetails"
                 component={AccountDetailsScreen}
-                options={{ headerShown: true, title: 'Détails du compte' }}
+                options={{ headerShown: true, title: tText('Détails du compte') }}
               />
 
               <Stack.Screen
                 name="Cards"
                 component={CardsScreen}
-                options={{ headerShown: true, title: 'Mes Cartes' }}
+                options={{ headerShown: true, title: tText('Mes Cartes') }}
               />
 
               {/* ✅ Détails Produit — accessible uniquement connecté */}
               <Stack.Screen
                 name="DetailsProduits"
                 component={ProductDetailPage}
-                options={{ headerShown: true, title: 'Détail du produit' }}
+                options={{ headerShown: true, title: tText('Détail du produit') }}
               />
 
               <Stack.Screen
                 name="Profile"
                 component={ProfileScreen}
-                options={{ headerShown: true, title: 'Mon Profil' }}
+                options={{ headerShown: true, title: tText('Mon Profil') }}
               />
 
               <Stack.Screen

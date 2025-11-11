@@ -16,7 +16,7 @@ import { useI18n } from '../../../app/providers/I18nProvider';
 export const SettingsScreen: React.FC = () => {
   const { user, logout } = useAuth();
   const navigation = useNavigation();
-  const { t } = useI18n();
+  const { t, tText } = useI18n();
   const [biometricEnabled, setBiometricEnabled] = React.useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = React.useState(true);
   const [darkModeEnabled, setDarkModeEnabled] = React.useState(false);
@@ -243,7 +243,7 @@ export const SettingsScreen: React.FC = () => {
         {/* Settings Sections */}
         {settingsSections.map((section, sectionIndex) => (
           <View key={sectionIndex} style={styles.section}>
-            <Text style={styles.sectionTitle}>{section.title}</Text>
+            <Text style={styles.sectionTitle}>{tText(section.title)}</Text>
             <View style={styles.sectionContent}>
               {section.items.map((item, itemIndex) => (
                 <TouchableOpacity
@@ -262,7 +262,7 @@ export const SettingsScreen: React.FC = () => {
                       size={22} 
                       color={item.iconColor} 
                     />
-                    <Text style={styles.settingTitle}>{item.title}</Text>
+                    <Text style={styles.settingTitle}>{tText(item.title)}</Text>
                   </View>
                   {item.rightElement || (
                     item.showChevron && (
@@ -281,7 +281,7 @@ export const SettingsScreen: React.FC = () => {
 
         {/* Déconnexion Section */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>DÉCONNEXION</Text>
+          <Text style={styles.sectionTitle}>{tText('DÉCONNEXION')}</Text>
           <View style={styles.sectionContent}>
             <TouchableOpacity 
               style={[styles.settingItem, styles.settingItemLast]} 
@@ -291,7 +291,7 @@ export const SettingsScreen: React.FC = () => {
               <View style={styles.settingLeft}>
                 <Ionicons name="log-out-outline" size={22} color="#FF3B30" />
                 <Text style={[styles.settingTitle, styles.logoutText]}>
-                  Se déconnecter
+                  {tText('Se déconnecter')}
                 </Text>
               </View>
               <Ionicons name="chevron-forward" size={20} color="#C0C0C0" />
@@ -301,8 +301,8 @@ export const SettingsScreen: React.FC = () => {
 
         {/* Version Info */}
         <View style={styles.versionContainer}>
-          <Text style={styles.versionText}>Version 1.0.0</Text>
-          <Text style={styles.copyrightText}>© 2025 La Pepite EMF</Text>
+          <Text style={styles.versionText}>{t('settings.version')} 1.0.0</Text>
+          <Text style={styles.copyrightText}>{t('settings.copyright')}</Text>
         </View>
       </ScrollView>
     </SafeAreaView>
