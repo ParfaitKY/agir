@@ -1,16 +1,24 @@
-export const formatCurrency = (amount: number, currency: string = 'FCFA'): string => {
-  return new Intl.NumberFormat('fr-FR', {
-    style: 'currency',
+import { getLocale } from "../../app/providers/I18nProvider";
+
+export const formatCurrency = (
+  amount: number,
+  currency: string = "FCFA",
+  locale?: string
+): string => {
+  const loc = locale || getLocale();
+  return new Intl.NumberFormat(loc, {
+    style: "currency",
     currency: currency,
     minimumFractionDigits: 0,
   }).format(amount);
 };
 
-export const formatDate = (date: Date): string => {
-  return new Intl.DateTimeFormat('fr-FR', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
+export const formatDate = (date: Date, locale?: string): string => {
+  const loc = locale || getLocale();
+  return new Intl.DateTimeFormat(loc, {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
   }).format(date);
 };
 

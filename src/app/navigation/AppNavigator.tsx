@@ -13,6 +13,7 @@ import { TransactionsScreen } from '../../modules/transactions/screens/Transacti
 import { ProductsScreen } from '../../modules/products/screens/ProductsScreen';
 import { SettingsScreen } from '../../modules/settings/screens/SettingsScreen';
 import { ProfileScreen } from '../../modules/settings/screens/ProfileScreen';
+import LanguageScreen from '../../modules/settings/screens/LanguageScreen';
 import { TransferScreen } from '../../modules/transactions/screens/TransferScreen';
 import { AccountsScreen } from '../../modules/accounts/screens/AccountsScreen';
 import { AccountDetailsScreen } from '../../modules/accounts/screens/AccountDetailsScreen';
@@ -114,6 +115,12 @@ export const AppNavigator: React.FC = () => {
                 name="Profile"
                 component={ProfileScreen}
                 options={{ headerShown: true, title: 'Mon Profil' }}
+              />
+
+              <Stack.Screen
+                name="Language"
+                component={LanguageScreen}
+                options={{ headerShown: true, title: 'Langue / Language / 语言' }}
               />
 
               <Stack.Screen

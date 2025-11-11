@@ -11,10 +11,12 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../../app/hooks/useAuth';
 import { useNavigation } from '@react-navigation/native';
+import { useI18n } from '../../../app/providers/I18nProvider';
 
 export const SettingsScreen: React.FC = () => {
   const { user, logout } = useAuth();
   const navigation = useNavigation();
+  const { t } = useI18n();
   const [biometricEnabled, setBiometricEnabled] = React.useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = React.useState(true);
   const [darkModeEnabled, setDarkModeEnabled] = React.useState(false);
@@ -102,8 +104,8 @@ export const SettingsScreen: React.FC = () => {
         {
           icon: 'language-outline',
           iconColor: '#0066CC',
-          title: 'Langue',
-          onPress: () => console.log('Langue'),
+          title: t('settings.language'),
+          onPress: () => navigation.navigate('Language' as never),
           showChevron: true,
         },
         {
@@ -231,7 +233,7 @@ export const SettingsScreen: React.FC = () => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Paramètres</Text>
+        <Text style={styles.title}>{t('settings.header')}</Text>
       </View>
 
       <ScrollView 
