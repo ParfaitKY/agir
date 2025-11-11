@@ -57,7 +57,7 @@ export const SettingsScreen: React.FC = () => {
           icon: 'wallet-outline',
           iconColor: '#0066CC',
           title: 'Mon Wallet',
-          onPress: () => console.log('Wallet'),
+          onPress: () => navigation.navigate("WalletScreens"),
           showChevron: true,
         },
         {
@@ -234,7 +234,7 @@ export const SettingsScreen: React.FC = () => {
         <Text style={styles.title}>Paramètres</Text>
       </View>
 
-      <ScrollView 
+      <ScrollView
         style={styles.content}
         showsVerticalScrollIndicator={false}
       >
@@ -255,19 +255,19 @@ export const SettingsScreen: React.FC = () => {
                   activeOpacity={0.7}
                 >
                   <View style={styles.settingLeft}>
-                    <Ionicons 
-                      name={item.icon as any} 
-                      size={22} 
-                      color={item.iconColor} 
+                    <Ionicons
+                      name={item.icon as any}
+                      size={22}
+                      color={item.iconColor}
                     />
                     <Text style={styles.settingTitle}>{item.title}</Text>
                   </View>
                   {item.rightElement || (
                     item.showChevron && (
-                      <Ionicons 
-                        name="chevron-forward" 
-                        size={20} 
-                        color="#C0C0C0" 
+                      <Ionicons
+                        name="chevron-forward"
+                        size={20}
+                        color="#C0C0C0"
                       />
                     )
                   )}
@@ -281,8 +281,8 @@ export const SettingsScreen: React.FC = () => {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>DÉCONNEXION</Text>
           <View style={styles.sectionContent}>
-            <TouchableOpacity 
-              style={[styles.settingItem, styles.settingItemLast]} 
+            <TouchableOpacity
+              style={[styles.settingItem, styles.settingItemLast]}
               onPress={handleLogout}
               activeOpacity={0.7}
             >

@@ -1,15 +1,16 @@
 import React, { useState, useRef } from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  TouchableOpacity, 
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
   ScrollView,
   FlatList,
-  Modal 
+  Modal
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
+
 
 export const DashboardScreen: React.FC = () => {
   const [currentOffer, setCurrentOffer] = useState(0);
@@ -144,7 +145,7 @@ export const DashboardScreen: React.FC = () => {
 
             <View style={styles.qrInfoCard}>
               <View style={styles.qrInfoRow}>
-                <View style={[styles.qrInfoIconBg, { backgroundColor: '#E3F2FD' }]}> 
+                <View style={[styles.qrInfoIconBg, { backgroundColor: '#E3F2FD' }]}>
                   <Ionicons name="person-outline" size={18} color="#007AFF" />
                 </View>
                 <View style={styles.qrInfoTexts}>
@@ -154,7 +155,7 @@ export const DashboardScreen: React.FC = () => {
               </View>
 
               <View style={styles.qrInfoRow}>
-                <View style={[styles.qrInfoIconBg, { backgroundColor: '#E8F5E8' }]}> 
+                <View style={[styles.qrInfoIconBg, { backgroundColor: '#E8F5E8' }]}>
                   <Ionicons name="barcode-outline" size={18} color="#34C759" />
                 </View>
                 <View style={styles.qrInfoTexts}>
@@ -164,7 +165,7 @@ export const DashboardScreen: React.FC = () => {
               </View>
 
               <View style={styles.qrInfoRow}>
-                <View style={[styles.qrInfoIconBg, { backgroundColor: '#FFF3E0' }]}> 
+                <View style={[styles.qrInfoIconBg, { backgroundColor: '#FFF3E0' }]}>
                   <Ionicons name="call-outline" size={18} color="#FF9500" />
                 </View>
                 <View style={styles.qrInfoTexts}>
@@ -174,7 +175,7 @@ export const DashboardScreen: React.FC = () => {
               </View>
 
               <View style={styles.qrTipBox}>
-                <View style={[styles.qrTipIconBg, { backgroundColor: '#E3F2FD' }]}> 
+                <View style={[styles.qrTipIconBg, { backgroundColor: '#E3F2FD' }]}>
                   <Ionicons name="information-circle-outline" size={18} color="#007AFF" />
                 </View>
                 <Text style={styles.qrTipText}>Présentez ce QR code à un agent pour effectuer un versement rapide sur votre compte</Text>
@@ -228,21 +229,21 @@ export const DashboardScreen: React.FC = () => {
           </View>
         </View>
         <View style={styles.actions}>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.actionBtn}
             onPress={() => navigation.navigate('Transfer' as never)}
           >
             <Ionicons name="arrow-forward-circle-outline" size={18} color="#007AFF" />
             <Text style={styles.actionText}>Virement</Text>
           </TouchableOpacity>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.actionBtn}
             onPress={() => navigation.navigate('Accounts' as never)}
           >
             <Ionicons name="list-outline" size={18} color="#007AFF" />
             <Text style={styles.actionText}>Comptes</Text>
           </TouchableOpacity>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.actionBtn}
             onPress={() => navigation.navigate('Cards' as never)}
           >
@@ -255,8 +256,8 @@ export const DashboardScreen: React.FC = () => {
       {/* Actions rapides - EXISTANT */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Actions rapides</Text>
-          <View style={styles.quickActions}>
-          <TouchableOpacity 
+        <View style={styles.quickActions}>
+          <TouchableOpacity
             style={styles.quickActionCard}
             onPress={() => navigation.navigate('Transfer' as never)}
           >
@@ -266,14 +267,18 @@ export const DashboardScreen: React.FC = () => {
             <Text style={styles.quickActionTitle}>Virement</Text>
             <Text style={styles.quickActionSubtitle}>Transférer</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.quickActionCard}>
+          <TouchableOpacity
+            style={styles.quickActionCard}
+            onPress={() => navigation.navigate("BeneficiairesPage")}
+          >
             <View style={[styles.quickActionIcon, { backgroundColor: '#E8F5E8' }]}>
               <Ionicons name="people-outline" size={24} color="#34C759" />
             </View>
             <Text style={styles.quickActionTitle}>Bénéficiaires</Text>
             <Text style={styles.quickActionSubtitle}>Gérer</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.quickActionCard}>
+
+          <TouchableOpacity style={styles.quickActionCard} onPress={() => navigation.navigate("DetailsProduits")}>
             <View style={[styles.quickActionIcon, { backgroundColor: '#FFF3E0' }]}>
               <Ionicons name="briefcase-outline" size={24} color="#FF9500" />
             </View>
@@ -325,10 +330,10 @@ export const DashboardScreen: React.FC = () => {
               <Text style={styles.offerDescription}>{offers[currentOffer].description}</Text>
             </View>
             <View style={styles.offerIcon}>
-              <Ionicons 
-                name={offers[currentOffer].icon as any} 
-                size={24} 
-                color={offers[currentOffer].iconColor} 
+              <Ionicons
+                name={offers[currentOffer].icon as any}
+                size={24}
+                color={offers[currentOffer].iconColor}
               />
             </View>
           </View>
@@ -359,7 +364,7 @@ export const DashboardScreen: React.FC = () => {
             <Text style={styles.seeAllText}>Tout voir</Text>
           </TouchableOpacity>
         </View>
-        
+
         <View style={styles.transactionsList}>
           {transactions.map((transaction, index) => (
             <View key={transaction.id}>
@@ -377,7 +382,7 @@ export const DashboardScreen: React.FC = () => {
                   {transaction.amount}
                 </Text>
               </View>
-              
+
               {/* Séparateur sauf pour le dernier élément */}
               {index < transactions.length - 1 && (
                 <View style={styles.separator} />

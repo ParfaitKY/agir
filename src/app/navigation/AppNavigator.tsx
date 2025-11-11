@@ -18,8 +18,10 @@ import { AccountDetailsScreen } from '../../modules/accounts/screens/AccountDeta
 
 // ✅ IMPORT CORRECT (default export)
 import ProductDetailPage from '../../modules/products/screens/DetailsProduitsScreen';
+import BeneficiairesPage from '../../modules/dashboard/screens/BeneficiairesPage';
 
 import { useAuth } from '../hooks/useAuth';
+import WalletScreens from '../../modules/settings/screens/WalletScreens';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -66,49 +68,61 @@ export const AppNavigator: React.FC = () => {
     <Stack.Navigator screenOptions={{ headerShown: false }}>
 
       {
-        !isAuthenticated ? (
+        // !isAuthenticated ? (
+        //   <>
+        //     <Stack.Screen name="Auth" component={LoginScreen} />
+        //     {/* éventuellement Forget et ChangePassword */}
+        //   </>
+        // ) :
+        (
           <>
-            <Stack.Screen name="Auth" component={LoginScreen} />
-            {/* éventuellement Forget et ChangePassword */}
+            {/* ✅ Un seul Main */}
+            <Stack.Screen name="Main" component={MainTabs} />
+
+            <Stack.Screen
+              name="Transfer"
+              component={TransferScreen}
+              options={{ headerShown: true, title: 'Virement' }}
+            />
+
+            <Stack.Screen
+              name="Accounts"
+              component={AccountsScreen}
+              options={{ headerShown: true, title: 'Mes Comptes' }}
+            />
+
+            <Stack.Screen
+              name="AccountDetails"
+              component={AccountDetailsScreen}
+              options={{ headerShown: true, title: 'Détails du compte' }}
+            />
+
+            <Stack.Screen
+              name="Cards"
+              component={CardsScreen}
+              options={{ headerShown: true, title: 'Mes Cartes' }}
+            />
+
+            {/* ✅ Détails Produit — accessible uniquement connecté */}
+            <Stack.Screen
+              name="DetailsProduits"
+              component={ProductDetailPage}
+              options={{ headerShown: true, title: 'Détail du produit' }}
+            />
+
+            <Stack.Screen
+              name="BeneficiairesPage"
+              component={BeneficiairesPage}
+              options={{ headerShown: true, title: 'Beneficiaires' }}
+            />
+
+            <Stack.Screen
+              name="WalletScreens"
+              component={WalletScreens}
+              options={{ headerShown: true, title: 'Mon Wallet' }}
+            />
           </>
-        ) :
-          (
-            <>
-              {/* ✅ Un seul Main */}
-              <Stack.Screen name="Main" component={MainTabs} />
-
-              <Stack.Screen
-                name="Transfer"
-                component={TransferScreen}
-                options={{ headerShown: true, title: 'Virement' }}
-              />
-
-              <Stack.Screen
-                name="Accounts"
-                component={AccountsScreen}
-                options={{ headerShown: true, title: 'Mes Comptes' }}
-              />
-
-              <Stack.Screen
-                name="AccountDetails"
-                component={AccountDetailsScreen}
-                options={{ headerShown: true, title: 'Détails du compte' }}
-              />
-
-              <Stack.Screen
-                name="Cards"
-                component={CardsScreen}
-                options={{ headerShown: true, title: 'Mes Cartes' }}
-              />
-
-              {/* ✅ Détails Produit — accessible uniquement connecté */}
-              <Stack.Screen
-                name="DetailsProduits"
-                component={ProductDetailPage}
-                options={{ headerShown: true, title: 'Détail du produit' }}
-              />
-            </>
-          )}
+        )}
 
     </Stack.Navigator>
   );
