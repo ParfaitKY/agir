@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { useNavigation } from '@react-navigation/native';
+
 import {
   View,
   Text,
@@ -8,6 +10,8 @@ import {
   SafeAreaView
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+const navigation = useNavigation();
+
 
 export const ProductsScreen: React.FC = () => {
   const [activeCategory, setActiveCategory] = useState<'tous' | 'comptes' | 'epargne' | 'credit' | 'services'>('comptes');
@@ -43,7 +47,7 @@ export const ProductsScreen: React.FC = () => {
     }
   ];
 
-  const filteredProducts = products.filter(product => 
+  const filteredProducts = products.filter(product =>
     activeCategory === 'tous' || product.category === activeCategory
   );
 
@@ -57,8 +61,8 @@ export const ProductsScreen: React.FC = () => {
         </View>
       </View>
 
-      <ScrollView 
-        style={styles.content} 
+      <ScrollView
+        style={styles.content}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
@@ -90,8 +94,8 @@ export const ProductsScreen: React.FC = () => {
         </View>
 
         {/* Catégories */}
-        <ScrollView 
-          horizontal 
+        <ScrollView
+          horizontal
           showsHorizontalScrollIndicator={false}
           style={styles.categoriesContainer}
           contentContainerStyle={styles.categoriesContent}
@@ -138,7 +142,7 @@ export const ProductsScreen: React.FC = () => {
                 <Text style={styles.productTitle}>{product.title}</Text>
                 <Text style={styles.productSubtitle}>{product.subtitle}</Text>
                 <Text style={styles.productDescription}>{product.description}</Text>
-                
+
                 <View style={styles.featuresList}>
                   {product.features.map((feature, index) => (
                     <View key={index} style={styles.featureItem}>
@@ -149,11 +153,13 @@ export const ProductsScreen: React.FC = () => {
                     </View>
                   ))}
                 </View>
-                
-                <TouchableOpacity style={styles.detailsButton}>
+
+                <TouchableOpacity style={styles.detailsButton} onPress={() => navigation.navigate("DetailsProduits", { productId: item.id, categories: item.categories, })}>
                   <Text style={styles.detailsButtonText}>Voir détails</Text>
                   <Ionicons name="arrow-forward" size={18} color="#0066CC" />
                 </TouchableOpacity>
+
+
               </View>
             </View>
           ))}

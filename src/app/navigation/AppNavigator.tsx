@@ -12,6 +12,7 @@ import { TransactionsScreen } from '../../modules/transactions/screens/Transacti
 import { ProductsScreen } from '../../modules/products/screens/ProductsScreen';
 import { SettingsScreen } from '../../modules/settings/screens/SettingsScreen';
 import { useAuth } from '../hooks/useAuth';
+import { ProductDetailPage } from '../../modules/products/screens/DetailsProduitsScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -57,11 +58,14 @@ export const AppNavigator: React.FC = () => {
 
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
-      {isAuthenticated ? (
+      {/* {isAuthenticated ? (
         <Stack.Screen name="Main" component={MainTabs} />
       ) : (
         <Stack.Screen name="Auth" component={LoginScreen} />
-      )}
+      )} */}
+      <Stack.Screen name="Main" component={MainTabs} />
+      <Stack.Screen name="DetailsProduits" component={ProductDetailPage} />
+
     </Stack.Navigator>
   );
 };
