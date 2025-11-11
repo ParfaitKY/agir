@@ -36,8 +36,8 @@ export const StatementsScreen: React.FC = () => {
       { date: '19/10/2025', desc: 'Achat supermarché', debit: 35000, credit: '', balance: 1825000 },
       { date: '18/10/2025', desc: 'Transfert épargne', debit: 75000, credit: '', balance: 1750000 },
     ];
-    const totalCredit = rows.reduce((s, r) => s + (r.credit || 0), 0);
-    const totalDebit = rows.reduce((s, r) => s + (r.debit || 0), 0);
+    const totalCredit = rows.reduce((s, r) => s + Number(r.credit || 0), 0);
+    const totalDebit = rows.reduce((s, r) => s + Number(r.debit || 0), 0);
     const variation = totalCredit - totalDebit;
 
     const currency = (n: number) => `${n.toLocaleString('fr-FR')} XAF`;
@@ -97,8 +97,8 @@ export const StatementsScreen: React.FC = () => {
               <tr>
                 <td>${r.date}</td>
                 <td>${r.desc}</td>
-                <td style="color:${r.debit? '#EB5757':'#777'}">${r.debit? currency(r.debit): '-'}</td>
-                <td style="color:${r.credit? '#27AE60':'#777'}">${r.credit? currency(r.credit): '-'}</td>
+                <td style="color:${Number(r.debit) > 0 ? '#EB5757' : '#777'}">${Number(r.debit) > 0 ? currency(Number(r.debit)) : '-'}</td>
+                <td style="color:${Number(r.credit) > 0 ? '#27AE60' : '#777'}">${Number(r.credit) > 0 ? currency(Number(r.credit)) : '-'}</td>
                 <td>${currency(r.balance)}</td>
               </tr>
             `).join('')}

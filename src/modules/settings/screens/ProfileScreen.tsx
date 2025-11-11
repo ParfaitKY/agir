@@ -1,5 +1,7 @@
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView, SafeAreaView, TouchableOpacity } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, SafeAreaView, TouchableOpacity, Modal, Linking } from 'react-native';
+import * as Print from 'expo-print';
+import * as Sharing from 'expo-sharing';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../../../app/hooks/useAuth';
@@ -7,9 +9,89 @@ import { useAuth } from '../../../app/hooks/useAuth';
 export const ProfileScreen: React.FC = () => {
   const navigation = useNavigation();
   const { logout } = useAuth();
+  const [editVisible, setEditVisible] = useState(false);
+  const [txVisible, setTxVisible] = useState(false);
+  const [dateInfoVisible, setDateInfoVisible] = useState(false);
+
+  // Données d'exemple pour le modal des transactions (mêmes éléments que l'écran Transactions)
+  const txData = [
+    { id: '1', title: 'Virement reçu - MOUPEPIDI', amount: '+50 000 XAF', date: '23/10/2025', type: 'entree' },
+    { id: '2', title: 'Retrait ATM - Agence 2', amount: '-25 000 XAF', date: '22/10/2025', type: 'sortie' },
+    { id: '3', title: 'Paiement facture ENEO', amount: '-15 000 XAF', date: '21/10/2025', type: 'sortie' },
+    { id: '4', title: 'Salaire mensuel', amount: '+350 000 XAF', date: '20/10/2025', type: 'entree' },
+  ];
 
   const handleLogout = async () => {
     await logout();
+  };
+
+  const handleCall = () => {
+    const phone = '+24177683855';
+    Linking.openURL(`tel:${phone}`);
+  };
+
+  const handleEmail = () => {
+    const email = 'support@lapeyrie-emf.com';
+    const subject = encodeURIComponent('Demande de modification de profil');
+    const body = encodeURIComponent("Bonjour,\n\nJe souhaite mettre à jour mes informations personnelles. Pourriez-vous m'indiquer la procédure ?\n\nMerci.");
+    Linking.openURL(`mailto:${email}?subject=${subject}&body=${body}`);
+  };
+
+  // Génération HTML du reçu des transactions
+  const generateTransactionsHtml = () => {
+    const itemsHtml = txData.map(t => {
+      const isEntree = t.type === 'entree';
+      const color = isEntree ? '#27AE60' : '#EB5757';
+      const iconBg = isEntree ? '#E9FFF3' : '#FFECEC';
+      const arrow = isEntree ? '↓' : '↑';
+      return `
+        <div style="display:flex;align-items:center;justify-content:space-between;background:#F9FAFB;padding:12px;border-radius:12px;margin-bottom:10px;">
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div style="width:28px;height:28px;border-radius:14px;display:flex;align-items:center;justify-content:center;background:${iconBg};color:${color};font-weight:700;">${arrow}</div>
+            <div>
+              <div style="font-size:15px;color:#000;margin-bottom:2px;">${t.title}</div>
+              <div style="font-size:12px;color:#777;">${t.date}</div>
+            </div>
+          </div>
+          <div style="font-size:15px;font-weight:600;color:${color};">${t.amount}</div>
+        </div>
+      `;
+    }).join('');
+
+    return `
+      <html>
+        <head>
+          <meta charset="utf-8" />
+        </head>
+        <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif; padding:20px;">
+          <div style="text-align:center;margin-bottom:12px;">
+            <div style="width:56px;height:6px;border-radius:3px;background:#EAEAEA;margin:0 auto 8px;"></div>
+            <h1 style="margin:0;font-size:26px;color:#000;">Historique des transactions</h1>
+          </div>
+          <div style="margin-top:10px;">
+            ${itemsHtml}
+          </div>
+        </body>
+      </html>
+    `;
+  };
+
+  const handleExportTransactionsPdf = async () => {
+    try {
+      const html = generateTransactionsHtml();
+      const { uri } = await Print.printToFileAsync({ html });
+      const fileName = `Transactions_${new Date().toISOString().slice(0,10)}.pdf`;
+      // Partage natif si disponible
+      if (await Sharing.isAvailableAsync()) {
+        await Sharing.shareAsync(uri, { UTI: 'com.adobe.pdf', mimeType: 'application/pdf' });
+      } else {
+        // Fallback web: ouvrir le fichier
+        // @ts-ignore
+        if (typeof window !== 'undefined') window.open(uri, '_blank');
+      }
+    } catch (e) {
+      console.log('Export PDF transactions error', e);
+    }
   };
 
   return (
@@ -70,7 +152,7 @@ export const ProfileScreen: React.FC = () => {
         {/* Personal section with edit button */}
         <View style={styles.sectionBlock}>
           <Text style={styles.sectionTitle}>Informations personnelles</Text>
-          <TouchableOpacity style={styles.editRow} activeOpacity={0.8}>
+          <TouchableOpacity style={styles.editRow} activeOpacity={0.8} onPress={() => setEditVisible(true)}>
             <View style={styles.editRowLeft}>
               <View style={[styles.infoIconBg, { backgroundColor: '#E7F1FF' }]}> 
                 <Ionicons name="person" size={18} color="#0066CC" />
@@ -97,7 +179,7 @@ export const ProfileScreen: React.FC = () => {
 
             <View style={styles.divider} />
 
-            <TouchableOpacity style={styles.docItem} activeOpacity={0.7} onPress={() => navigation.navigate('Transactions' as never)}>
+            <TouchableOpacity style={styles.docItem} activeOpacity={0.7} onPress={() => setTxVisible(true)}>
               <View style={styles.docLeft}>
                 <View style={[styles.infoIconBg, { backgroundColor: '#E7F1FF' }]}> 
                   <Ionicons name="list-outline" size={18} color="#0066CC" />
@@ -139,6 +221,95 @@ export const ProfileScreen: React.FC = () => {
           <Text style={styles.copyrightText}>© 2025 La Pepite EMF</Text>
         </View>
       </ScrollView>
+
+      {/* Modal Modifier le profil */}
+      <Modal visible={editVisible} transparent animationType="fade" onRequestClose={() => setEditVisible(false)}>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalBox}>
+            <TouchableOpacity style={styles.modalClose} onPress={() => setEditVisible(false)}>
+              <Ionicons name="close" size={24} color="#000" />
+            </TouchableOpacity>
+            <View style={styles.modalHandle} />
+            <Text style={styles.modalTitle}>Modifier le profil</Text>
+            <Text style={styles.modalText}>
+              Pour modifier vos informations personnelles, veuillez contacter votre agence ou le service client.
+            </Text>
+            <View style={styles.actionsRow}>
+              <TouchableOpacity style={[styles.actionBtn, styles.callBtn]} activeOpacity={0.8} onPress={handleCall}>
+                <Ionicons name="call" size={20} color="#fff" />
+                <Text style={styles.actionTextLight}>Appeler</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.actionBtn, styles.emailBtn]} activeOpacity={0.8} onPress={handleEmail}>
+                <Ionicons name="mail" size={20} color="#fff" />
+                <Text style={styles.actionTextLight}>Email</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Modal Historique des transactions */}
+      <Modal visible={txVisible} transparent animationType="fade" onRequestClose={() => setTxVisible(false)}>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalBox}>
+            <TouchableOpacity style={styles.modalClose} onPress={() => setTxVisible(false)}>
+              <Ionicons name="close" size={24} color="#000" />
+            </TouchableOpacity>
+            <View style={styles.modalHandle} />
+            <Text style={styles.modalTitle}>Historique des transactions</Text>
+
+            {/* Boutons d'action */}
+            <View style={styles.txActionsRow}>
+              <TouchableOpacity style={[styles.actionBtnOutline]} activeOpacity={0.8} onPress={() => setDateInfoVisible(true)}>
+                <Ionicons name="calendar" size={18} color="#0066CC" />
+                <Text style={styles.actionTextPrimary}>Filtrer par date</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.txActionBtn, styles.exportBtn]} activeOpacity={0.8} onPress={handleExportTransactionsPdf}>
+                <Ionicons name="download" size={18} color="#fff" />
+                <Text style={styles.actionTextLight}>Exporter PDF</Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* Liste des transactions */}
+            <View style={styles.txList}>
+              {txData.map((t) => (
+                <View key={t.id} style={styles.txItem}>
+                  <View style={styles.txLeft}>
+                    <View style={[styles.txIconBg, { backgroundColor: t.type === 'entree' ? '#E9FFF3' : '#FFECEC' }]}> 
+                      <Ionicons name={t.type === 'entree' ? 'arrow-down' : 'arrow-up'} size={18} color={t.type === 'entree' ? '#2BBE6A' : '#EB5757'} />
+                    </View>
+                    <View>
+                      <Text style={styles.txTitle}>{t.title}</Text>
+                      <Text style={styles.txDate}>{t.date}</Text>
+                    </View>
+                  </View>
+                  <Text style={[styles.txAmount, t.type === 'entree' ? styles.txAmountPositive : styles.txAmountNegative]}>{t.amount}</Text>
+                </View>
+              ))}
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Modal Info filtre par date */}
+      <Modal visible={dateInfoVisible} transparent animationType="fade" onRequestClose={() => setDateInfoVisible(false)}>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalBox}>
+            <TouchableOpacity style={styles.modalClose} onPress={() => setDateInfoVisible(false)}>
+              <Ionicons name="close" size={24} color="#000" />
+            </TouchableOpacity>
+            <View style={styles.modalHandle} />
+            <Text style={styles.modalTitle}>Informations</Text>
+            <Text style={styles.modalText}>La sélection de date sera disponible prochainement.</Text>
+            <View style={styles.actionsRow}>
+              <TouchableOpacity style={[styles.actionBtn, styles.callBtn]} activeOpacity={0.8} onPress={() => setDateInfoVisible(false)}>
+                <Ionicons name="checkmark" size={20} color="#fff" />
+                <Text style={styles.actionTextLight}>Compris</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 };
@@ -348,6 +519,190 @@ const styles = StyleSheet.create({
   copyrightText: {
     fontSize: 12,
     color: '#CCC',
+  },
+  // Modal styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.35)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 16,
+  },
+  modalBox: {
+    width: '92%',
+    maxWidth: 640,
+    backgroundColor: '#fff',
+    borderRadius: 24,
+    paddingHorizontal: 16,
+    paddingTop: 24,
+    paddingBottom: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.12,
+    shadowRadius: 16,
+    elevation: 8,
+  },
+  modalClose: {
+    position: 'absolute',
+    right: 16,
+    top: 12,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#F7F7F7',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalHandle: {
+    width: 56,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#EAEAEA',
+    alignSelf: 'center',
+    marginBottom: 8,
+  },
+  modalTitle: {
+    fontSize: 26,
+    fontWeight: '800',
+    color: '#000',
+    marginBottom: 12,
+  },
+  modalText: {
+    fontSize: 16,
+    color: '#777',
+    textAlign: 'center',
+    lineHeight: 22,
+    marginBottom: 20,
+  },
+  actionsRow: {
+    flexDirection: 'row',
+    gap: 16,
+    justifyContent: 'center',
+  },
+  actionBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingHorizontal: 22,
+    paddingVertical: 14,
+    borderRadius: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.08,
+    shadowRadius: 10,
+    elevation: 3,
+  },
+  callBtn: {
+    backgroundColor: '#2F80ED',
+  },
+  emailBtn: {
+    backgroundColor: '#2BBE6A',
+  },
+  actionTextLight: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: '700',
+  },
+  // Transactions modal styles
+  txActionsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    width: '100%',
+    justifyContent: 'space-between',
+    gap: 12,
+    marginBottom: 16,
+  },
+  actionBtnOutline: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#D6E6FF',
+    backgroundColor: '#fff',
+    flexBasis: '48%',
+    flexGrow: 1,
+    minHeight: 48,
+  },
+  actionTextPrimary: {
+    color: '#0066CC',
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  exportBtn: {
+    backgroundColor: '#2F80ED',
+  },
+  txActionBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 14,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.08,
+    shadowRadius: 10,
+    elevation: 3,
+    flexBasis: '48%',
+    flexGrow: 1,
+    minHeight: 48,
+  },
+  txList: {
+    marginTop: 4,
+    gap: 10,
+    paddingBottom: 8,
+  },
+  txItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#F9FAFB',
+    paddingVertical: 12,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+  },
+  txLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    flex: 1,
+    flexShrink: 1,
+  },
+  txIconBg: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  txTitle: {
+    fontSize: 15,
+    color: '#000',
+    marginBottom: 2,
+    flexShrink: 1,
+    maxWidth: '72%',
+  },
+  txDate: {
+    fontSize: 12,
+    color: '#777',
+  },
+  txAmount: {
+    fontSize: 15,
+    fontWeight: '600',
+    marginLeft: 8,
+    flexShrink: 0,
+    textAlign: 'right',
+  },
+  txAmountPositive: {
+    color: '#2BBE6A',
+  },
+  txAmountNegative: {
+    color: '#EB5757',
   },
 });
 
