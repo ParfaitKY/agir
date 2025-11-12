@@ -44,7 +44,7 @@ const SplashScreen: React.FC = () => {
     Animated.loop(
       Animated.timing(spinAnim, {
         toValue: 1,
-        duration: 1200,
+        duration: 1500,
         easing: Easing.linear,
         useNativeDriver: true,
       })

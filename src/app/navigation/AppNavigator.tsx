@@ -127,7 +127,12 @@ export const AppNavigator: React.FC = () => {
   const { t, tText } = useI18n();
 
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Navigator
+      screenOptions={{ headerShown: false }}
+      initialRouteName="Splash"
+    >
+      {/* Écran Splash affiché au démarrage, redirige vers Main ou Login */}
+      <Stack.Screen name="Splash" component={SplashScreen} />
       {isAuthenticated ? (
         <>
           <Stack.Screen name="Main" component={MainTabs} />
