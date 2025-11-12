@@ -7,18 +7,22 @@ import {
   ScrollView,
   FlatList,
   Modal,
+  Dimensions,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { useI18n } from "../../../app/providers/I18nProvider";
 
-
 export const DashboardScreen: React.FC = () => {
-  const [currentOffer, setCurrentOffer] = useState(0);
   const servicesScrollRef = useRef<FlatList>(null);
   const navigation = useNavigation();
   const [showQrModal, setShowQrModal] = useState(false);
   const { t, tText } = useI18n();
+
+  const screenWidth = Dimensions.get("window").width;
+  const horizontalPadding = 40; // 20 left + 20 right (section padding)
+  const itemSpacing = 12; // space between items
+  const offerCardWidth = screenWidth - horizontalPadding - itemSpacing; // account for spacing to avoid overflow
 
   const offers = [
     // ... (offres existantes restent identiques)
@@ -109,13 +113,30 @@ export const DashboardScreen: React.FC = () => {
     },
   ];
 
-  const nextOffer = () => {
-    setCurrentOffer((prev) => (prev + 1) % offers.length);
-  };
-
-  const prevOffer = () => {
-    setCurrentOffer((prev) => (prev - 1 + offers.length) % offers.length);
-  };
+  // Rendu d'une offre pour la pagination horizontale
+  const renderOfferItem = ({ item, index }: { item: any; index: number }) => (
+    <View
+      style={[
+        styles.offerCard,
+        {
+          width: offerCardWidth,
+          marginRight: index === offers.length - 1 ? 0 : itemSpacing,
+        },
+      ]}
+    >
+      <View style={[styles.offerBadge, { backgroundColor: item.badgeColor }]}>
+        <Text style={styles.offerBadgeText}>{tText(item.badge)}</Text>
+      </View>
+      <View style={styles.offerContent}>
+        <Text style={styles.offerTitle}>{tText(item.title)}</Text>
+        <Text style={styles.offerSubtitle}>{tText(item.subtitle)}</Text>
+        <Text style={styles.offerDescription}>{tText(item.description)}</Text>
+      </View>
+      <View style={styles.offerIcon}>
+        <Ionicons name={item.icon as any} size={24} color={item.iconColor} />
+      </View>
+    </View>
+  );
 
   // (redirection supprimée)
 
@@ -328,7 +349,10 @@ export const DashboardScreen: React.FC = () => {
               {t("dashboard.quick.transfer.subtitle")}
             </Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.quickActionCard} onPress={() => navigation.navigate("BeneficiairesPage" as never)}>
+          <TouchableOpacity
+            style={styles.quickActionCard}
+            onPress={() => navigation.navigate("BeneficiairesPage" as never)}
+          >
             <View
               style={[styles.quickActionIcon, { backgroundColor: "#E8F5E8" }]}
             >
@@ -341,7 +365,10 @@ export const DashboardScreen: React.FC = () => {
               {t("dashboard.quick.beneficiaries.subtitle")}
             </Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.quickActionCard} onPress={() => navigation.navigate("DetailsProduits" as never)}>
+          <TouchableOpacity
+            style={styles.quickActionCard}
+            onPress={() => navigation.navigate("DetailsProduits" as never)}
+          >
             <View
               style={[styles.quickActionIcon, { backgroundColor: "#FFF3E0" }]}
             >
@@ -373,68 +400,23 @@ export const DashboardScreen: React.FC = () => {
         </View>
       </View>
 
-      {/* Offres spéciales - EXISTANT */}
+      {/* Offres spéciales - pagination horizontale */}
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>{t("dashboard.offers.title")}</Text>
-          <View style={styles.paginationControls}>
-            <TouchableOpacity
-              onPress={prevOffer}
-              style={styles.paginationButton}
-            >
-              <Ionicons name="chevron-back" size={16} color="#007AFF" />
-            </TouchableOpacity>
-            <View style={styles.paginationDots}>
-              {offers.map((_, index) => (
-                <View
-                  key={index}
-                  style={[
-                    styles.paginationDot,
-                    index === currentOffer && styles.paginationDotActive,
-                  ]}
-                />
-              ))}
-            </View>
-            <TouchableOpacity
-              onPress={nextOffer}
-              style={styles.paginationButton}
-            >
-              <Ionicons name="chevron-forward" size={16} color="#007AFF" />
-            </TouchableOpacity>
-          </View>
         </View>
-        <View style={styles.offersContainer}>
-          <View style={styles.offerCard}>
-            <View
-              style={[
-                styles.offerBadge,
-                { backgroundColor: offers[currentOffer].badgeColor },
-              ]}
-            >
-              <Text style={styles.offerBadgeText}>
-                {tText(offers[currentOffer].badge)}
-              </Text>
-            </View>
-            <View style={styles.offerContent}>
-              <Text style={styles.offerTitle}>
-                {tText(offers[currentOffer].title)}
-              </Text>
-              <Text style={styles.offerSubtitle}>
-                {tText(offers[currentOffer].subtitle)}
-              </Text>
-              <Text style={styles.offerDescription}>
-                {tText(offers[currentOffer].description)}
-              </Text>
-            </View>
-            <View style={styles.offerIcon}>
-              <Ionicons
-                name={offers[currentOffer].icon as any}
-                size={24}
-                color={offers[currentOffer].iconColor}
-              />
-            </View>
-          </View>
-        </View>
+        <FlatList
+          data={offers}
+          renderItem={renderOfferItem}
+          keyExtractor={(item) => item.id.toString()}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.offersContainer}
+          snapToAlignment="center"
+          decelerationRate="fast"
+          snapToInterval={offerCardWidth + itemSpacing}
+          pagingEnabled
+        />
       </View>
 
       {/* NOUVELLE SECTION : Nos services avec défilement horizontal */}
@@ -511,7 +493,7 @@ export const DashboardScreen: React.FC = () => {
 
       {/* Espace en bas pour la navigation */}
       <View style={styles.bottomSpace} />
-    </ScrollView >
+    </ScrollView>
   );
 };
 
@@ -739,7 +721,8 @@ const styles = StyleSheet.create({
   },
   // Styles pour Offres spéciales - EXISTANT
   offersContainer: {
-    gap: 12,
+    paddingLeft: 0,
+    paddingRight: 0,
   },
   offerCard: {
     backgroundColor: "#fff",
@@ -755,6 +738,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#f0f0f0",
     position: "relative",
+    marginRight: 12,
   },
   offerBadge: {
     position: "absolute",

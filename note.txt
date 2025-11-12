@@ -51,6 +51,7 @@ typescript
 // 📁 transactions/ - Fenêtre transaction
 //   📁 screens/ - TransactionsScreen
 //   📁 components/ - TransactionList, TransactionItem
+//   🧭 AppBar: en-tête activé via navigation (headerShown, title)
 
 // 📁 products/ - Fenêtre mes produits  
 //   📁 screens/ - ProductsScreen

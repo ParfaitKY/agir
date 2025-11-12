@@ -126,6 +126,634 @@ const TRANSLATIONS: Translations = {
     en: "Share the app",
     zh: "分享应用",
   },
+  // Rate screen
+  "rate.hero.title": {
+    fr: "Évaluer l’application",
+    en: "Rate the app",
+    zh: "评价应用",
+  },
+  "rate.hero.subtitle": {
+    fr: "Que pensez-vous de l’application ?",
+    en: "What do you think of the app?",
+    zh: "您觉得这款应用如何？",
+  },
+  "rate.input.placeholder": {
+    fr: "Laissez votre avis ici…",
+    en: "Leave your feedback here…",
+    zh: "在此留下您的评价…",
+  },
+  "rate.actions.submit": {
+    fr: "Envoyer l’avis",
+    en: "Send feedback",
+    zh: "提交评价",
+  },
+  "rate.alert.info.title": { fr: "Info", en: "Info", zh: "信息" },
+  "rate.alert.info.body": {
+    fr: "Veuillez sélectionner une note.",
+    en: "Please select a rating.",
+    zh: "请先选择评分。",
+  },
+  "rate.alert.success.title": {
+    fr: "Avis envoyé",
+    en: "Feedback sent",
+    zh: "评价已发送",
+  },
+  "rate.alert.success.body": {
+    fr: "Merci pour votre retour !",
+    en: "Thank you for your feedback!",
+    zh: "感谢您的反馈！",
+  },
+  // About screen
+  "about.hero.title": {
+    fr: "À Propos de LA PEYRIE EMF",
+    en: "About LA PEYRIE EMF",
+    zh: "关于 LA PEYRIE EMF",
+  },
+  "about.hero.subtitle": {
+    fr: "Établissement de microfinance agréé au Gabon",
+    en: "Licensed microfinance institution in Gabon",
+    zh: "加蓬认证的微型金融机构",
+  },
+  "about.presentation.title": {
+    fr: "Présentation",
+    en: "Overview",
+    zh: "介绍",
+  },
+  "about.presentation.p1": {
+    fr: "La microfinance LA PEYRIE EMF est un établissement de microfinance agréé au Gabon, opérant dans le secteur de l'inclusion financière. Elle fait partie des institutions légales reconnues par le Ministère de l'Économie, engagée à offrir des services financiers adaptés aux petites et moyennes entreprises, aux porteurs de projets, aux ménages et aux populations souvent exclues du système bancaire traditionnel.",
+    en: "LA PEYRIE EMF is a licensed microfinance institution in Gabon, operating in the financial inclusion sector. It is a legally recognized institution by the Ministry of Economy, committed to offering tailored financial services to SMEs, project owners, households, and populations often excluded from traditional banking.",
+    zh: "LA PEYRIE EMF 是加蓬获准的微型金融机构，致力于金融普惠领域。它是经济部认可的合法机构，为中小企业、项目发起人、家庭以及常被传统银行忽视的人群提供适配的金融服务。",
+  },
+  "about.presentation.p2": {
+    fr: "LA PEYRIE EMF s'engage à jouer un rôle important dans la facilitation de l'accès au crédit, à l'épargne, et à d'autres services financiers, contribuant ainsi au développement économique local et à la réduction de la pauvreté.",
+    en: "LA PEYRIE EMF is committed to facilitating access to credit, savings, and other financial services, contributing to local economic development and poverty reduction.",
+    zh: "LA PEYRIE EMF 致力于促进获得信贷、储蓄及其他金融服务，从而推动当地经济发展并减少贫困。",
+  },
+  "about.governance.title": {
+    fr: "Nouvelle Gouvernance 2025",
+    en: "New Governance 2025",
+    zh: "2025 新治理",
+  },
+  "about.governance.p1": {
+    fr: "En 2025, LA PEYRIE EMF bénéficie d'une gouvernance renouvelée, avec une direction locale gabonaise conforme aux réformes gouvernementales visant à renforcer la souveraineté économique et la transparence dans le secteur. Cette nouvelle gestion vise à améliorer la rigueur dans la gestion des risques et à accroître la sécurité des opérations financières, tout en élargissant les offres dans une dynamique positive de croissance et de modernisation du secteur de la microfinance au Gabon, avec un accent particulier sur l'inclusion économique et sociale.",
+    en: "In 2025, LA PEYRIE EMF adopts renewed governance with local Gabonese leadership in line with government reforms to strengthen economic sovereignty and transparency. This new management aims to improve risk control, enhance the security of financial operations, and expand offerings to drive growth and modernization in Gabon's microfinance sector, focusing on economic and social inclusion.",
+    zh: "2025 年，LA PEYRIE EMF 采用焕新的治理结构，符合政府改革并由加蓬本地团队领导，以加强经济主权和行业透明度。新的管理将提升风险管控与金融业务安全，同时扩展服务以推动加蓬微型金融行业的增长与现代化，重视经济与社会包容。",
+  },
+  "about.commitments.title": {
+    fr: "Nos Engagements",
+    en: "Our Commitments",
+    zh: "我们的承诺",
+  },
+  "about.commitments.item1": {
+    fr: "Inclusion financière des populations non bancarisées.",
+    en: "Financial inclusion for unbanked populations.",
+    zh: "为未被银行覆盖人群提供金融包容。",
+  },
+  "about.commitments.item2": {
+    fr: "Soutien aux petites entreprises, entrepreneurs et ménages.",
+    en: "Support for small businesses, entrepreneurs, and households.",
+    zh: "支持小型企业、创业者与家庭。",
+  },
+  "about.commitments.item3": {
+    fr: "Conformité aux nouvelles réglementations pour une meilleure gouvernance.",
+    en: "Compliance with new regulations for improved governance.",
+    zh: "遵循新法规以提升治理水平。",
+  },
+  "about.commitments.item4": {
+    fr: "Diversification des services financiers pour répondre aux besoins locaux.",
+    en: "Diversified financial services to address local needs.",
+    zh: "多样化金融服务以满足本地需求。",
+  },
+  "about.commitments.item5": {
+    fr: "LA PEYRIE EMF se positionne comme un levier clé du développement économique inclusif au Gabon.",
+    en: "LA PEYRIE EMF positions itself as a key driver of inclusive economic development in Gabon.",
+    zh: "LA PEYRIE EMF 致力成为加蓬包容性经济发展的关键力量。",
+  },
+  "about.info.title": {
+    fr: "Informations Clés",
+    en: "Key Information",
+    zh: "关键信息",
+  },
+  "about.info.foundation.label": {
+    fr: "Année de fondation",
+    en: "Year of foundation",
+    zh: "成立年份",
+  },
+  "about.info.foundation.hint": {
+    fr: "Créée pour promouvoir l’inclusion financière",
+    en: "Founded to promote financial inclusion",
+    zh: "成立旨在促进金融普惠",
+  },
+  "about.info.years.label": {
+    fr: "Années d’expérience",
+    en: "Years of experience",
+    zh: "从业年限",
+  },
+  "about.info.years.hint": {
+    fr: "Expertise croissante au service des clients",
+    en: "Growing expertise serving clients",
+    zh: "不断提升的专业能力服务客户",
+  },
+  "about.info.services.label": {
+    fr: "Services proposés",
+    en: "Services offered",
+    zh: "提供的服务",
+  },
+  "about.info.services.hint": {
+    fr: "Offres diversifiées adaptées aux besoins locaux",
+    en: "Diversified offerings for local needs",
+    zh: "多样化服务符合本地需求",
+  },
+  "about.info.availability.label": {
+    fr: "Service disponible",
+    en: "Service availability",
+    zh: "服务可用性",
+  },
+  "about.info.availability.hint": {
+    fr: "Disponibilité continue pour vous accompagner",
+    en: "Continuous availability to support you",
+    zh: "持续可用以支持您",
+  },
+  "about.social.title": {
+    fr: "Notre Engagement Social",
+    en: "Our Social Commitment",
+    zh: "我们的社会责任承诺",
+  },
+  "about.social.p1": {
+    fr: "LA PEYRIE EMF place l'humain au cœur de ses priorités. Nous accompagnons chaque client avec bienveillance et professionnalisme, en étant à l'écoute de ses besoins spécifiques.",
+    en: "LA PEYRIE EMF places people at the heart of its priorities. We support each client with care and professionalism, listening to their specific needs.",
+    zh: "LA PEYRIE EMF 将人置于核心位置。我们以关怀与专业为每位客户提供支持，倾听其特定需求。",
+  },
+  "about.mission.title": {
+    fr: "Notre Mission",
+    en: "Our Mission",
+    zh: "我们的使命",
+  },
+  "about.mission.p1": {
+    fr: "Promouvoir des solutions dans les métiers de la Microfinance pour soutenir et accompagner les populations et organisations dans la réalisation de leurs projets.",
+    en: "Promote microfinance solutions to support populations and organizations in achieving their projects.",
+    zh: "推广微型金融解决方案，支持个人与组织实现其项目。",
+  },
+  "about.vision.title": {
+    fr: "Notre Vision",
+    en: "Our Vision",
+    zh: "我们的愿景",
+  },
+  "about.vision.p1": {
+    fr: "Contribuer à l’amélioration des conditions de vie et à la construction d’un monde meilleur.",
+    en: "Contribute to improving living conditions and building a better world.",
+    zh: "致力于改善生活条件并建设更美好的世界。",
+  },
+  "about.values.title": {
+    fr: "Nos Valeurs",
+    en: "Our Values",
+    zh: "我们的价值观",
+  },
+  "about.values.p1": {
+    fr: "Proximité, Disponibilité, Simplicité, Rapidité, Innovation, Confiance et Responsabilité sociétale.",
+    en: "Proximity, Availability, Simplicity, Speed, Innovation, Trust, and Social Responsibility.",
+    zh: "亲近、可用、简洁、快速、创新、信任与社会责任。",
+  },
+  "about.contact.title": {
+    fr: "Nous contacter",
+    en: "Contact us",
+    zh: "联系我们",
+  },
+  "about.contact.phone.title": { fr: "Téléphone", en: "Phone", zh: "电话" },
+  "about.contact.phone.text": {
+    fr: "+241 074 50 38 70 / +241 066 24 11 57 / +241 074 10 10 10",
+    en: "+241 074 50 38 70 / +241 066 24 11 57 / +241 074 10 10 10",
+    zh: "+241 074 50 38 70 / +241 066 24 11 57 / +241 074 10 10 10",
+  },
+  "about.contact.email.title": { fr: "Email", en: "Email", zh: "邮箱" },
+  "about.contact.email.text": {
+    fr: "info@lapeyrie-emf.ga",
+    en: "info@lapeyrie-emf.ga",
+    zh: "info@lapeyrie-emf.ga",
+  },
+  "about.contact.address.title": { fr: "Adresse", en: "Address", zh: "地址" },
+  "about.contact.address.text": {
+    fr: "BP 5657, Avenue de Cointét, Immeuble Orchidia, Libreville, Gabon",
+    en: "BP 5657, Avenue de Cointét, Orchidia Building, Libreville, Gabon",
+    zh: "BP 5657，Cointét 大道，Orchidia 大楼，加蓬利伯维尔",
+  },
+  "about.contact.website.title": { fr: "Site web", en: "Website", zh: "网站" },
+  "about.contact.website.text": {
+    fr: "www.lapeyrie-emf.ga",
+    en: "www.lapeyrie-emf.ga",
+    zh: "www.lapeyrie-emf.ga",
+  },
+
+  // Privacy screen
+  "privacy.hero.title": {
+    fr: "Politique de Confidentialité",
+    en: "Privacy Policy",
+    zh: "隐私政策",
+  },
+  "privacy.hero.subtitle": {
+    fr: "Protection de vos données personnelles – Votre vie privée est notre priorité",
+    en: "Protecting your personal data — Your privacy is our priority",
+    zh: "保护您的个人数据——您的隐私是我们的首要任务",
+  },
+  "privacy.data.title": {
+    fr: "Données collectées",
+    en: "Data collected",
+    zh: "收集的数据",
+  },
+  "privacy.data.intro": {
+    fr: "Nous pouvons collecter les catégories de données suivantes :",
+    en: "We may collect the following categories of data:",
+    zh: "我们可能会收集以下类别的数据：",
+  },
+  "privacy.data.item1": {
+    fr: "Identité (nom, prénom, date de naissance)",
+    en: "Identity (name, surname, date of birth)",
+    zh: "身份信息（姓名、出生日期）",
+  },
+  "privacy.data.item2": {
+    fr: "Coordonnées (téléphone, email, adresse)",
+    en: "Contact details (phone, email, address)",
+    zh: "联系方式（电话、邮箱、地址）",
+  },
+  "privacy.data.item3": {
+    fr: "Données professionnelles (poste, entreprise)",
+    en: "Professional data (position, company)",
+    zh: "职业数据（职位、公司）",
+  },
+  "privacy.data.item4": {
+    fr: "Données bancaires (IBAN, transactions, historique)",
+    en: "Bank data (IBAN, transactions, history)",
+    zh: "银行数据（IBAN、交易、历史）",
+  },
+  "privacy.data.item5": {
+    fr: "Données de navigation (logs, usage de l’app, cookies)",
+    en: "Browsing data (logs, app usage, cookies)",
+    zh: "浏览数据（日志、应用使用、Cookies）",
+  },
+  "privacy.use.title": {
+    fr: "Utilisation des données",
+    en: "Use of data",
+    zh: "数据使用",
+  },
+  "privacy.use.intro": {
+    fr: "Vos données sont utilisées pour les finalités suivantes et sur la base de la légalité applicable :",
+    en: "Your data is used for the following purposes based on applicable legal grounds:",
+    zh: "您的数据将用于以下目的，并依据适用的法律依据：",
+  },
+  "privacy.use.item1": {
+    fr: "Gestion des comptes et services de microfinance",
+    en: "Management of accounts and microfinance services",
+    zh: "账户管理与微型金融服务",
+  },
+  "privacy.use.item2": {
+    fr: "Sécurisation des accès et prévention de la fraude",
+    en: "Securing access and fraud prevention",
+    zh: "访问安全与防欺诈",
+  },
+  "privacy.use.item3": {
+    fr: "Conformité réglementaire et obligations légales",
+    en: "Regulatory compliance and legal obligations",
+    zh: "监管合规与法律义务",
+  },
+  "privacy.use.item4": {
+    fr: "Amélioration de l’app et support client",
+    en: "App improvement and customer support",
+    zh: "应用改进与客户支持",
+  },
+  "privacy.use.item5": {
+    fr: "Communication d’informations essentielles (non commerciales)",
+    en: "Communication of essential (non-commercial) information",
+    zh: "传达重要（非商业）信息",
+  },
+  "privacy.share.title": {
+    fr: "Partage des données",
+    en: "Data sharing",
+    zh: "数据共享",
+  },
+  "privacy.share.p1": {
+    fr: "Les données peuvent être partagées avec des destinataires autorisés (partenaires, autorités) et, le cas échéant, faire l’objet de transferts internationaux conformes aux exigences légales.",
+    en: "Data may be shared with authorized recipients (partners, authorities) and, where applicable, be subject to international transfers in compliance with legal requirements.",
+    zh: "数据可能会与授权接收方（合作伙伴、监管机构）共享，并在适用情况下进行符合法律要求的跨境传输。",
+  },
+  "privacy.security.title": {
+    fr: "Sécurité des données",
+    en: "Data security",
+    zh: "数据安全",
+  },
+  "privacy.security.p1": {
+    fr: "Nous appliquons des mesures de sécurité techniques et organisationnelles (chiffrement, contrôle d’accès). En cas de violation, nous suivons les procédures de notification prévues par la loi.",
+    en: "We apply technical and organizational security measures (encryption, access control). In case of a breach, we follow legal notification procedures.",
+    zh: "我们采用技术与组织安全措施（加密、访问控制）。若发生安全事件，我们将遵循法律规定的通知流程。",
+  },
+  "privacy.rights.title": {
+    fr: "Vos droits",
+    en: "Your rights",
+    zh: "您的权利",
+  },
+  "privacy.rights.item1": { fr: "Accès", en: "Access", zh: "访问权" },
+  "privacy.rights.item2": {
+    fr: "Rectification",
+    en: "Rectification",
+    zh: "更正权",
+  },
+  "privacy.rights.item3": { fr: "Effacement", en: "Erasure", zh: "删除权" },
+  "privacy.rights.item4": { fr: "Opposition", en: "Objection", zh: "反对权" },
+  "privacy.rights.item5": {
+    fr: "Portabilité",
+    en: "Portability",
+    zh: "可携权",
+  },
+  "privacy.rights.item6": { fr: "Limitation", en: "Restriction", zh: "限制权" },
+  "privacy.rights.p1": {
+    fr: "Pour exercer vos droits, contactez-nous via les coordonnées ci-dessous.",
+    en: "To exercise your rights, contact us using the details below.",
+    zh: "如需行使您的权利，请通过以下联系方式与我们联系。",
+  },
+  "privacy.retention.title": {
+    fr: "Conservation des données",
+    en: "Data retention",
+    zh: "数据保留",
+  },
+  "privacy.retention.p1": {
+    fr: "Les données sont conservées pendant la durée nécessaire aux finalités poursuivies et conformément aux obligations légales et réglementaires.",
+    en: "Data is retained for the duration necessary to meet the intended purposes and in accordance with legal and regulatory obligations.",
+    zh: "数据将根据实现既定目的所需的时长进行保留，并遵循法律与监管要求。",
+  },
+  "privacy.cookies.title": { fr: "Cookies", en: "Cookies", zh: "Cookies" },
+  "privacy.cookies.p1": {
+    fr: "Des cookies peuvent être utilisés pour améliorer votre expérience et mesurer l’audience. Vous pouvez gérer vos préférences depuis les réglages de votre appareil ou navigateur.",
+    en: "Cookies may be used to improve your experience and measure audience. You can manage preferences from your device or browser settings.",
+    zh: "我们可能使用 Cookies 以改善体验并进行统计。您可在设备或浏览器设置中管理偏好。",
+  },
+  "privacy.changes.title": {
+    fr: "Modifications de la politique",
+    en: "Policy changes",
+    zh: "政策变更",
+  },
+  "privacy.changes.p1": {
+    fr: "Cette politique peut être mise à jour. La date de dernière mise à jour sera indiquée et, en cas de changement important, une notification pourra vous être adressée.",
+    en: "This policy may be updated. The last update date will be indicated and, in case of significant changes, you may be notified.",
+    zh: "本政策可能会更新。我们会标注最新更新日期，并在重大变更时通知您。",
+  },
+  "privacy.contact.title": {
+    fr: "Contact et réclamations",
+    en: "Contact and complaints",
+    zh: "联系与投诉",
+  },
+  "privacy.contact.email": {
+    fr: "Email : info@lapeyrie-emf.ga",
+    en: "Email: info@lapeyrie-emf.ga",
+    zh: "邮箱：info@lapeyrie-emf.ga",
+  },
+  "privacy.contact.phone": {
+    fr: "Téléphone : +241 074 50 38 70",
+    en: "Phone: +241 074 50 38 70",
+    zh: "电话：+241 074 50 38 70",
+  },
+  "privacy.contact.address": {
+    fr: "Adresse : BP 5657, Avenue de Cointét, Immeuble Orchidia, Libreville, Gabon",
+    en: "Address: BP 5657, Avenue de Cointét, Orchidia Building, Libreville, Gabon",
+    zh: "地址：BP 5657，Cointét 大道，Orchidia 大楼，加蓬利伯维尔",
+  },
+
+  // Terms screen
+  "terms.hero.title": {
+    fr: "Conditions d’utilisation",
+    en: "Terms of Use",
+    zh: "使用条款",
+  },
+  "terms.intro.title": { fr: "Introduction", en: "Introduction", zh: "简介" },
+  "terms.intro.p1": {
+    fr: "Cette application appartient à LA PEYRIE EMF, établissement de microfinance agréé au Gabon. En l’utilisant, vous acceptez ces conditions d’utilisation.",
+    en: "This application belongs to LA PEYRIE EMF, a licensed microfinance institution in Gabon. By using it, you accept these terms of use.",
+    zh: "本应用由 LA PEYRIE EMF（加蓬认证微型金融机构）所有。使用本应用即表示您接受本使用条款。",
+  },
+  "terms.use.title": {
+    fr: "1. Utilisation de l’application",
+    en: "1. Use of the application",
+    zh: "1. 应用使用",
+  },
+  "terms.use.p1": {
+    fr: "Vous vous engagez à utiliser l’application de manière légale et responsable. Fournissez des informations exactes et n’utilisez pas l’application à des fins frauduleuses.",
+    en: "You agree to use the app legally and responsibly. Provide accurate information and do not use the app for fraudulent purposes.",
+    zh: "您承诺以合法、负责的方式使用本应用。请提供准确的信息，且不得将应用用于欺诈目的。",
+  },
+  "terms.account.title": {
+    fr: "2. Compte utilisateur",
+    en: "2. User account",
+    zh: "2. 用户账户",
+  },
+  "terms.account.p1": {
+    fr: "Vous êtes responsable de la confidentialité de vos identifiants et de toute activité effectuée depuis votre compte.",
+    en: "You are responsible for the confidentiality of your credentials and any activity carried out from your account.",
+    zh: "您需对您的凭据保密，并对使用您的账户进行的所有活动负责。",
+  },
+  "terms.personalData.title": {
+    fr: "3. Données personnelles",
+    en: "3. Personal data",
+    zh: "3. 个人数据",
+  },
+  "terms.personalData.p1": {
+    fr: "Vos informations sont utilisées uniquement pour le bon fonctionnement des services. Elles sont protégées conformément aux lois gabonaises sur la protection des données.",
+    en: "Your information is used solely to operate the services properly. It is protected in accordance with Gabonese data protection laws.",
+    zh: "您的信息仅用于确保服务正常运行，并按照加蓬数据保护法律进行保护。",
+  },
+  "terms.userResponsibilities.title": {
+    fr: "4. Responsabilités de l’utilisateur",
+    en: "4. User responsibilities",
+    zh: "4. 用户责任",
+  },
+  "terms.userResponsibilities.p1": {
+    fr: "Vous êtes responsable de toute action effectuée sur votre compte. Toute utilisation abusive peut entraîner la suspension de votre accès.",
+    en: "You are responsible for any action performed on your account. Any misuse may result in suspension of your access.",
+    zh: "您对在您的账户下进行的任何操作负责。任何滥用行为可能导致您的访问被暂停。",
+  },
+  "terms.modifications.title": {
+    fr: "5. Modification des conditions",
+    en: "5. Changes to the terms",
+    zh: "5. 条款变更",
+  },
+  "terms.modifications.p1": {
+    fr: "LA PEYRIE EMF peut mettre à jour ces conditions à tout moment. Les mises à jour prennent effet dès leur publication.",
+    en: "LA PEYRIE EMF may update these terms at any time. Updates take effect upon publication.",
+    zh: "LA PEYRIE EMF 可随时更新这些条款；更新自发布之时起生效。",
+  },
+  "terms.contact.title": {
+    fr: "6. Contact",
+    en: "6. Contact",
+    zh: "6. 联系方式",
+  },
+  "terms.contact.phone": {
+    fr: "Téléphone : +241 074 50 38 70 / +241 066 24 11 57 / +241 074 10 10 10",
+    en: "Phone: +241 074 50 38 70 / +241 066 24 11 57 / +241 074 10 10 10",
+    zh: "电话：+241 074 50 38 70 / +241 066 24 11 57 / +241 074 10 10 10",
+  },
+  "terms.contact.email": {
+    fr: "Email : info@lapeyrie-emf.ga",
+    en: "Email: info@lapeyrie-emf.ga",
+    zh: "邮箱：info@lapeyrie-emf.ga",
+  },
+  "terms.contact.address": {
+    fr: "Adresse : BP 5657, Avenue de Cointét, Immeuble Orchidia, Libreville, Gabon",
+    en: "Address: BP 5657, Avenue de Cointét, Orchidia Building, Libreville, Gabon",
+    zh: "地址：BP 5657，Cointét 大道，Orchidia 大楼，加蓬利伯维尔",
+  },
+  "terms.contact.website": {
+    fr: "Site web : www.lapeyrie-emf.ga",
+    en: "Website: www.lapeyrie-emf.ga",
+    zh: "网站：www.lapeyrie-emf.ga",
+  },
+  "terms.consent.title": { fr: "Consentement", en: "Consent", zh: "同意" },
+  "terms.consent.p1": {
+    fr: "En utilisant cette application, vous acceptez sans réserve ces conditions d’utilisation.",
+    en: "By using this application, you unreservedly accept these terms of use.",
+    zh: "使用本应用即表示您无保留地接受这些使用条款。",
+  },
+  // Share screen
+  "share.title": {
+    fr: "Partager l’application",
+    en: "Share the application",
+    zh: "分享应用",
+  },
+  "share.subtitle": {
+    fr: "Invitez vos amis et partagez LA PEYRIE EMF pour gérer vos finances facilement !",
+    en: "Invite friends and share LA PEYRIE EMF to manage finances easily!",
+    zh: "邀请朋友一起分享 LA PEYRIE EMF，轻松管理财务！",
+  },
+  "share.message": {
+    fr: "Invitez vos amis et partagez LA PEYRIE EMF pour gérer vos finances facilement !",
+    en: "Invite friends and share LA PEYRIE EMF to manage finances easily!",
+    zh: "邀请朋友一起分享 LA PEYRIE EMF，轻松管理财务！",
+  },
+  "share.download": {
+    fr: "Téléchargez l’application",
+    en: "Download the app",
+    zh: "下载应用",
+  },
+  "share.action.whatsapp": { fr: "WhatsApp", en: "WhatsApp", zh: "WhatsApp" },
+  "share.action.messenger": {
+    fr: "Messenger",
+    en: "Messenger",
+    zh: "Messenger",
+  },
+  "share.action.email": { fr: "Email", en: "Email", zh: "邮箱" },
+  "share.action.sms": { fr: "SMS", en: "SMS", zh: "短信" },
+  "share.action.copy": {
+    fr: "Copier le lien",
+    en: "Copy link",
+    zh: "复制链接",
+  },
+  "share.alert.init": {
+    fr: "Partage initialisé.",
+    en: "Share initialized.",
+    zh: "分享已启动。",
+  },
+  "share.alert.copied.title": { fr: "Copié", en: "Copied", zh: "已复制" },
+  "share.alert.copied.body": {
+    fr: "Lien copié dans le presse-papiers.",
+    en: "Link copied to clipboard.",
+    zh: "链接已复制到剪贴板。",
+  },
+  "share.alert.copyError.title": { fr: "Erreur", en: "Error", zh: "错误" },
+  "share.alert.copyError.body": {
+    fr: "Impossible de copier le lien.",
+    en: "Unable to copy the link.",
+    zh: "无法复制链接。",
+  },
+  "share.alert.emailOpenError.title": { fr: "Email", en: "Email", zh: "邮箱" },
+  "share.alert.emailOpenError.body": {
+    fr: "Impossible d’ouvrir le client email.",
+    en: "Unable to open the email client.",
+    zh: "无法打开邮箱客户端。",
+  },
+  "share.alert.emailDraft.title": { fr: "Email", en: "Email", zh: "邮箱" },
+  "share.alert.emailDraft.body": {
+    fr: "Brouillon créé dans votre client email.",
+    en: "Draft created in your email client.",
+    zh: "已在邮箱客户端创建草稿。",
+  },
+
+  // Support email screen
+  "support.email.address.label": {
+    fr: "Adresse email",
+    en: "Email address",
+    zh: "电子邮箱",
+  },
+  "support.email.address.placeholder": {
+    fr: "Votre adresse email",
+    en: "Your email address",
+    zh: "您的电子邮箱",
+  },
+  "support.email.motif.label": { fr: "Motif", en: "Reason", zh: "类别" },
+  "support.email.motif.support": { fr: "Support", en: "Support", zh: "支持" },
+  "support.email.motif.claim": {
+    fr: "Réclamation",
+    en: "Complaint",
+    zh: "投诉",
+  },
+  "support.email.motif.suggestion": {
+    fr: "Suggestion",
+    en: "Suggestion",
+    zh: "建议",
+  },
+  "support.email.subject.label": { fr: "Sujet", en: "Subject", zh: "主题" },
+  "support.email.subject.placeholder": {
+    fr: "Sujet de votre email",
+    en: "Email subject",
+    zh: "邮件主题",
+  },
+  "support.email.body.label": { fr: "Message", en: "Message", zh: "内容" },
+  "support.email.body.placeholder": {
+    fr: "Décrivez votre problème ou question…",
+    en: "Describe your issue or question…",
+    zh: "描述您的问题或疑问…",
+  },
+  "support.email.body.default": {
+    fr: "Décrivez votre demande",
+    en: "Describe your request",
+    zh: "请描述您的请求",
+  },
+  "support.email.alert.required.title": {
+    fr: "Champs requis",
+    en: "Required fields",
+    zh: "必填项",
+  },
+  "support.email.alert.required.body": {
+    fr: "Veuillez remplir tous les champs.",
+    en: "Please fill in all fields.",
+    zh: "请填写所有字段。",
+  },
+  "support.email.alert.invalidEmail.title": {
+    fr: "Email invalide",
+    en: "Invalid email",
+    zh: "邮箱无效",
+  },
+  "support.email.alert.invalidEmail.body": {
+    fr: "Veuillez saisir une adresse valide.",
+    en: "Please enter a valid address.",
+    zh: "请输入有效地址。",
+  },
+  "support.email.alert.info.title": { fr: "Info", en: "Info", zh: "信息" },
+  "support.email.alert.info.bodyPrefix": {
+    fr: "Impossible d’ouvrir le client email. Copiez l’adresse : ",
+    en: "Unable to open the email client. Copy the address: ",
+    zh: "无法打开邮箱客户端。请复制地址：",
+  },
+  "support.email.alert.success.title": {
+    fr: "Succès",
+    en: "Success",
+    zh: "成功",
+  },
+  "support.email.alert.success.body": {
+    fr: "Message envoyé avec succès !",
+    en: "Message sent successfully!",
+    zh: "消息发送成功！",
+  },
+  "support.email.action.send": {
+    fr: "Envoyer le message",
+    en: "Send message",
+    zh: "发送信息",
+  },
   "settings.logout": { fr: "Se déconnecter", en: "Log out", zh: "退出登录" },
   "settings.version": { fr: "Version", en: "Version", zh: "版本" },
   "settings.copyright": {

@@ -81,21 +81,21 @@ export const SettingsScreen: React.FC = () => {
           icon: "card-outline",
           iconColor: "#0066CC",
           title: "Gérer mes comptes",
-          onPress: () => console.log("Comptes"),
+          onPress: () => (navigation as any).navigate("Accounts"),
           showChevron: true,
         },
         {
           icon: "people-outline",
           iconColor: "#0066CC",
           title: "Mes bénéficiaires",
-          onPress: () => console.log("Bénéficiaires"),
+          onPress: () => (navigation as any).navigate("BeneficiairesPage"),
           showChevron: true,
         },
         {
           icon: "grid-outline",
           iconColor: "#0066CC",
           title: "Mes produits",
-          onPress: () => console.log("Produits"),
+          onPress: () => (navigation as any).navigate("Products"),
           showChevron: true,
         },
       ],
@@ -184,7 +184,7 @@ export const SettingsScreen: React.FC = () => {
           icon: "mail-outline",
           iconColor: "#0066CC",
           title: "Envoyer un email",
-          onPress: () => console.log("Email"),
+          onPress: () => (navigation as any).navigate("EmailSupport"),
           showChevron: true,
         },
         {
@@ -210,35 +210,35 @@ export const SettingsScreen: React.FC = () => {
           icon: "information-circle-outline",
           iconColor: "#0066CC",
           title: "À propos",
-          onPress: () => console.log("À propos"),
+          onPress: () => (navigation as any).navigate("AboutApp"),
           showChevron: true,
         },
         {
           icon: "document-text-outline",
           iconColor: "#0066CC",
           title: "Conditions d'utilisation",
-          onPress: () => console.log("Conditions"),
+          onPress: () => (navigation as any).navigate("TermsOfUse"),
           showChevron: true,
         },
         {
           icon: "shield-outline",
           iconColor: "#0066CC",
           title: "Politique de confidentialité",
-          onPress: () => console.log("Politique"),
+          onPress: () => (navigation as any).navigate("PrivacyPolicy"),
           showChevron: true,
         },
         {
           icon: "star-outline",
           iconColor: "#0066CC",
           title: "Évaluer l'application",
-          onPress: () => console.log("Évaluer"),
+          onPress: () => (navigation as any).navigate("RateApp"),
           showChevron: true,
         },
         {
           icon: "share-social-outline",
           iconColor: "#0066CC",
           title: "Partager l'application",
-          onPress: () => console.log("Partager"),
+          onPress: () => (navigation as any).navigate("ShareApp"),
           showChevron: true,
         },
       ],
@@ -247,10 +247,6 @@ export const SettingsScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>{t("settings.header")}</Text>
-      </View>
-
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {/* Settings Sections */}
         {settingsSections.map((section, sectionIndex) => (
