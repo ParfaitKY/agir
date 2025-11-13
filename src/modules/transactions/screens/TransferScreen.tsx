@@ -10,13 +10,17 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useI18n } from '../../../app/providers/I18nProvider';
+import { useTheme } from '../../../shared/styles/ThemeProvider';
 
 export const TransferScreen: React.FC = () => {
   const { t } = useI18n();
+  const { colors } = useTheme();
   const [type, setType] = useState<'interne' | 'externe'>('interne');
   const [sourceAccount, setSourceAccount] = useState('');
   const [destinationAccount, setDestinationAccount] = useState('');
   const [amount, setAmount] = useState('');
+
+  const styles = getStyles(colors);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -28,7 +32,7 @@ export const TransferScreen: React.FC = () => {
         {/* Header visuel */}
         <View style={styles.headerIconWrapper}>
           <View style={styles.headerIconCircle}>
-            <Ionicons name="swap-horizontal" size={28} color="#007AFF" />
+            <Ionicons name="swap-horizontal" size={28} color={colors.primary} />
           </View>
         </View>
         <Text style={styles.headerTitle}>{t('transfer.header.title')}</Text>
@@ -46,7 +50,7 @@ export const TransferScreen: React.FC = () => {
         >
           <View style={styles.typeLeft}>
             <View style={[styles.typeIconCircle, type === 'interne' && styles.typeIconCircleActive]}>
-              <Ionicons name="swap-horizontal" size={22} color={type === 'interne' ? '#fff' : '#007AFF'} />
+              <Ionicons name="swap-horizontal" size={22} color={type === 'interne' ? '#fff' : colors.primary} />
             </View>
             <View>
               <Text style={[styles.typeTitle, type === 'interne' && styles.typeTitleActive]}>{t('transfer.type.internal.title')}</Text>
@@ -69,7 +73,7 @@ export const TransferScreen: React.FC = () => {
               styles.typeIconCircleAlt,
               type === 'externe' && styles.typeIconCircleActive
             ]}>
-              <Ionicons name="send-outline" size={20} color={type === 'externe' ? '#fff' : '#007AFF'} />
+              <Ionicons name="send-outline" size={20} color={type === 'externe' ? '#fff' : colors.primary} />
             </View>
             <View>
               <Text style={[styles.typeTitle, type === 'externe' && styles.typeTitleActive]}>{t('transfer.type.external.title')}</Text>
@@ -171,7 +175,7 @@ export const TransferScreen: React.FC = () => {
 
         {/* Note de sécurité */}
         <View style={styles.secureNote}>
-          <Ionicons name="shield-checkmark" size={16} color="#34C759" />
+          <Ionicons name="shield-checkmark" size={16} color={colors.success} />
           <Text style={styles.secureNoteText}>{t('transfer.note.secure')}</Text>
         </View>
       </ScrollView>
@@ -181,10 +185,11 @@ export const TransferScreen: React.FC = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const getStyles = (colors: any) =>
+  StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8F9FB',
+    backgroundColor: colors.background,
   },
   content: {
     flex: 1,
@@ -202,20 +207,21 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: '#E8F0FE',
+    backgroundColor: colors.card,
     justifyContent: 'center',
     alignItems: 'center',
   },
   headerTitle: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#1A1A1A',
+    color: colors.text,
     textAlign: 'center',
     marginTop: 14,
   },
   headerSubtitle: {
     fontSize: 14,
-    color: '#7F8C8D',
+    color: colors.text,
+    opacity: 0.7,
     textAlign: 'center',
     marginTop: 6,
     marginBottom: 20,
@@ -223,23 +229,24 @@ const styles = StyleSheet.create({
   sectionLabel: {
     fontSize: 12,
     fontWeight: '700',
-    color: '#7F8C8D',
+    color: colors.text,
+    opacity: 0.7,
     marginBottom: 10,
   },
   typeCard: {
-    backgroundColor: '#fff',
+    backgroundColor: colors.card,
     borderRadius: 16,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#E0E0E0',
+    borderColor: colors.border,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: 12,
   },
   typeCardActive: {
-    backgroundColor: '#007AFF',
-    borderColor: '#007AFF',
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
   },
   typeLeft: {
     flexDirection: 'row',
@@ -250,7 +257,7 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: '#E8F0FE',
+    backgroundColor: colors.card,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -260,16 +267,17 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255,255,255,0.35)',
   },
   typeIconCircleAlt: {
-    backgroundColor: '#EEF6FF',
+    backgroundColor: colors.card,
   },
   typeTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#1A1A1A',
+    color: colors.text,
   },
   typeSubtitle: {
     fontSize: 12,
-    color: '#7F8C8D',
+    color: colors.text,
+    opacity: 0.7,
     marginTop: 2,
   },
   typeTitleActive: {
@@ -283,14 +291,14 @@ const styles = StyleSheet.create({
     height: 24,
     borderRadius: 12,
     borderWidth: 2,
-    borderColor: '#D0D6DB',
+    borderColor: colors.border,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: colors.card,
   },
   checkCircleActive: {
-    backgroundColor: '#0A84FF',
-    borderColor: '#0A84FF',
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
   },
   formSection: {
     marginTop: 20,
@@ -298,7 +306,7 @@ const styles = StyleSheet.create({
   formTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#1A1A1A',
+    color: colors.text,
     marginBottom: 12,
   },
   inputGroup: {
@@ -306,31 +314,32 @@ const styles = StyleSheet.create({
   },
   inputLabel: {
     fontSize: 13,
-    color: '#7F8C8D',
+    color: colors.text,
+    opacity: 0.7,
     marginBottom: 6,
   },
   input: {
-    backgroundColor: '#fff',
+    backgroundColor: colors.card,
     borderWidth: 1,
-    borderColor: '#E0E0E0',
+    borderColor: colors.border,
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 14,
     fontSize: 15,
-    color: '#1A1A1A',
+    color: colors.text,
   },
   // Champ Montant stylé (comme le mockup)
   amountInputContainer: {
-    backgroundColor: '#fff',
+    backgroundColor: colors.card,
     borderRadius: 20,
     borderWidth: 2,
-    borderColor: '#BBD7FF',
+    borderColor: colors.primary,
     paddingHorizontal: 16,
     paddingVertical: 14,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    shadowColor: '#007AFF',
+    shadowColor: colors.primary,
     shadowOpacity: 0.12,
     shadowOffset: { width: 0, height: 4 },
     shadowRadius: 10,
@@ -340,18 +349,19 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 36,
     fontWeight: '700',
-    color: '#5A5A5A',
+    color: colors.text,
     paddingVertical: 0,
   },
   amountCurrency: {
     marginLeft: 12,
     fontSize: 22,
     fontWeight: '700',
-    color: '#6D6D6D',
+    color: colors.text,
+    opacity: 0.7,
   },
   primaryButton: {
     marginTop: 24,
-    backgroundColor: '#8E8E93',
+    backgroundColor: colors.primary,
     borderRadius: 24,
     paddingVertical: 16,
     paddingHorizontal: 18,
@@ -359,7 +369,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 10,
-    shadowColor: '#000',
+    shadowColor: colors.border,
     shadowOpacity: 0.12,
     shadowOffset: { width: 0, height: 4 },
     shadowRadius: 10,
@@ -380,7 +390,8 @@ const styles = StyleSheet.create({
   },
   secureNoteText: {
     fontSize: 13,
-    color: '#6B7280',
+    color: colors.text,
+    opacity: 0.7,
   },
   // Espace en bas pour éviter le chevauchement avec la barre de navigation
   bottomSpace: {

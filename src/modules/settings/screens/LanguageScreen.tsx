@@ -2,9 +2,11 @@ import React from 'react';
 import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useI18n } from '../../../app/providers/I18nProvider';
+import { useTheme } from '../../../shared/styles/ThemeProvider';
 
 export const LanguageScreen: React.FC = () => {
   const { language, setLanguage, t } = useI18n();
+  const { colors } = useTheme();
 
   const languages = [
     { code: 'fr' as const, label: t('language.fr'), subtitle: 'French', flag: '🇫🇷' },
@@ -13,45 +15,54 @@ export const LanguageScreen: React.FC = () => {
   ];
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        <View style={styles.headerCard}>
-          <Text style={styles.headerTitle}>{t('language.title')}</Text>
-          <Text style={styles.headerSubtitle}>Select Language | 选择语言</Text>
+        <View style={[styles.headerCard, { backgroundColor: colors.card, shadowColor: colors.text + '20' }]}>
+          <Text style={[styles.headerTitle, { color: colors.text }]}>{t('language.title')}</Text>
+          <Text style={[styles.headerSubtitle, { color: colors.text + '80' }]}>Select Language | 选择语言</Text>
         </View>
 
         <View style={styles.list}>
           {languages.map(({ code, label, subtitle, flag }) => {
             const selected = language === code;
             return (
-              <TouchableOpacity key={code} style={[styles.langItem, selected && styles.langItemActive]} activeOpacity={0.8} onPress={() => setLanguage(code)}>
+              <TouchableOpacity 
+                key={code} 
+                style={[
+                  styles.langItem, 
+                  { backgroundColor: colors.card, shadowColor: colors.text + '20' },
+                  selected && { borderColor: colors.primary, backgroundColor: colors.primary + '20' }
+                ]} 
+                activeOpacity={0.8} 
+                onPress={() => setLanguage(code)}
+              >
                 <View style={styles.langLeft}>
                   <Text style={styles.flag}>{flag}</Text>
                   <View>
-                    <Text style={styles.langLabel}>{label}</Text>
-                    <Text style={styles.langSub}>{subtitle}</Text>
+                    <Text style={[styles.langLabel, { color: colors.text }]}>{label}</Text>
+                    <Text style={[styles.langSub, { color: colors.text + '80' }]}>{subtitle}</Text>
                   </View>
                 </View>
                 {selected ? (
                   <View style={styles.checkWrap}>
-                    <Ionicons name="checkmark-circle" size={22} color="#2F80ED" />
+                    <Ionicons name="checkmark-circle" size={22} color={colors.primary} />
                   </View>
                 ) : (
-                  <Ionicons name="chevron-forward" size={20} color="#C0C0C0" />
+                  <Ionicons name="chevron-forward" size={20} color={colors.text + '80'} />
                 )}
               </TouchableOpacity>
             );
           })}
         </View>
 
-        <View style={styles.noteBox}>
+        <View style={[styles.noteBox, { backgroundColor: colors.primary + '20', borderColor: colors.primary + '40' }]}>
           <View style={styles.noteHeader}>
-            <Ionicons name="information" size={16} color="#2F80ED" />
-            <Text style={styles.noteHeaderText}>{t('language.note.title')}</Text>
+            <Ionicons name="information" size={16} color={colors.primary} />
+            <Text style={[styles.noteHeaderText, { color: colors.primary }]}>{t('language.note.title')}</Text>
           </View>
-          <Text style={styles.noteText}>{t('language.note.title')}</Text>
-          <Text style={styles.noteText}>The language will be applied to the entire app.</Text>
-          <Text style={styles.noteText}>语言将应用于整个应用程序。</Text>
+          <Text style={[styles.noteText, { color: colors.primary }]}>{t('language.note.title')}</Text>
+          <Text style={[styles.noteText, { color: colors.primary }]}>The language will be applied to the entire app.</Text>
+          <Text style={[styles.noteText, { color: colors.primary }]}>语言将应用于整个应用程序。</Text>
         </View>
       </ScrollView>
     </SafeAreaView>

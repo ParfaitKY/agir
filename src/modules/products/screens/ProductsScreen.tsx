@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useI18n } from "../../../app/providers/I18nProvider";
+import { useTheme } from "../../../shared/styles/ThemeProvider";
 
 // Définir les types pour la navigation
 type RootStackParamList = {
@@ -38,6 +39,7 @@ interface Product {
 export const ProductsScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const { t, tText } = useI18n();
+  const { colors } = useTheme();
 
   const [activeCategory, setActiveCategory] = useState<CategoryType>("comptes");
 
@@ -84,39 +86,39 @@ export const ProductsScreen: React.FC = () => {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Header supprimé: on utilise maintenant l’AppBar native du navigateur */}
 
       <ScrollView
-        style={styles.content}
+        style={[styles.content]}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
         {/* Section Statistiques avec Cartes et Icônes */}
-        <View style={styles.statsSection}>
+        <View style={[styles.statsSection, { backgroundColor: colors.card }] }>
           <View style={styles.statsCardsContainer}>
-            <View style={styles.statCard}>
-              <View style={[styles.iconContainer, styles.iconActive]}>
-                <Ionicons name="checkmark-circle" size={24} color="#27ae60" />
+            <View style={[styles.statCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+              <View style={[styles.iconContainer, { backgroundColor: colors.card }]}>
+                <Ionicons name="checkmark-circle" size={24} color={colors.success} />
               </View>
-              <Text style={styles.statNumber}>3</Text>
-              <Text style={styles.statLabel}>{t("products.stats.active")}</Text>
+              <Text style={[styles.statNumber, { color: colors.text }]}>3</Text>
+              <Text style={[styles.statLabel, { color: colors.text }]}>{t("products.stats.active")}</Text>
             </View>
-            <View style={styles.statCard}>
-              <View style={[styles.iconContainer, styles.iconPending]}>
-                <Ionicons name="time-outline" size={24} color="#f39c12" />
+            <View style={[styles.statCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+              <View style={[styles.iconContainer, { backgroundColor: colors.card }]}>
+                <Ionicons name="time-outline" size={24} color={colors.warning} />
               </View>
-              <Text style={styles.statNumber}>1</Text>
-              <Text style={styles.statLabel}>
+              <Text style={[styles.statNumber, { color: colors.text }]}>1</Text>
+              <Text style={[styles.statLabel, { color: colors.text }]}>
                 {t("products.stats.pending")}
               </Text>
             </View>
-            <View style={styles.statCard}>
-              <View style={[styles.iconContainer, styles.iconTotal]}>
-                <Ionicons name="grid-outline" size={24} color="#0066CC" />
+            <View style={[styles.statCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+              <View style={[styles.iconContainer, { backgroundColor: colors.card }]}>
+                <Ionicons name="grid-outline" size={24} color={colors.primary} />
               </View>
-              <Text style={styles.statNumber}>{products.length}</Text>
-              <Text style={styles.statLabel}>{t("products.stats.total")}</Text>
+              <Text style={[styles.statNumber, { color: colors.text }]}>{products.length}</Text>
+              <Text style={[styles.statLabel, { color: colors.text }]}>{t("products.stats.total")}</Text>
             </View>
           </View>
         </View>
@@ -133,7 +135,8 @@ export const ProductsScreen: React.FC = () => {
               key={category.id}
               style={[
                 styles.categoryButton,
-                activeCategory === category.id && styles.categoryButtonActive,
+                { backgroundColor: colors.card, borderColor: colors.border },
+                activeCategory === category.id && { backgroundColor: colors.primary, borderColor: colors.primary },
               ]}
               onPress={() => setActiveCategory(category.id)}
             >
@@ -148,7 +151,8 @@ export const ProductsScreen: React.FC = () => {
               <Text
                 style={[
                   styles.categoryText,
-                  activeCategory === category.id && styles.categoryTextActive,
+                  { color: colors.text },
+                  activeCategory === category.id && { color: '#fff', fontWeight: '600' },
                 ]}
               >
                 {category.label}
@@ -160,19 +164,19 @@ export const ProductsScreen: React.FC = () => {
         {/* Liste des produits */}
         <View style={styles.productsList}>
           {filteredProducts.map((product) => (
-            <View key={product.id} style={styles.productCard}>
+            <View key={product.id} style={[styles.productCard, { backgroundColor: colors.card }]}>
               {/* Header avec icône et badge */}
               <View style={styles.productHeader}>
-                <View style={styles.productIconWrapper}>
+                <View style={[styles.productIconWrapper, { backgroundColor: colors.card }]}>
                   <Ionicons
                     name={product.icon as any}
                     size={28}
-                    color="#0066CC"
+                    color={colors.primary}
                   />
                 </View>
-                <View style={styles.productBadge}>
-                  <View style={styles.badgeDot} />
-                  <Text style={styles.productBadgeText}>
+                <View style={[styles.productBadge, { backgroundColor: colors.card }] }>
+                  <View style={[styles.badgeDot, { backgroundColor: colors.success }]} />
+                  <Text style={[styles.productBadgeText, { color: colors.success }]}>
                     {product.status === "Actif"
                       ? t("products.status.active")
                       : tText(product.status)}
@@ -182,33 +186,33 @@ export const ProductsScreen: React.FC = () => {
 
               {/* Contenu du produit */}
               <View style={styles.productContent}>
-                <Text style={styles.productTitle}>{tText(product.title)}</Text>
-                <Text style={styles.productSubtitle}>
+                <Text style={[styles.productTitle, { color: colors.text }]}>{tText(product.title)}</Text>
+                <Text style={[styles.productSubtitle, { color: colors.primary }]}>
                   {tText(product.subtitle)}
                 </Text>
-                <Text style={styles.productDescription}>
+                <Text style={[styles.productDescription, { color: colors.text }]}>
                   {tText(product.description)}
                 </Text>
 
                 <View style={styles.featuresList}>
                   {product.features.map((feature, index) => (
                     <View key={index} style={styles.featureItem}>
-                      <View style={styles.checkbox}>
+                      <View style={[styles.checkbox, { backgroundColor: colors.primary }]}>
                         <Ionicons name="checkmark" size={14} color="#fff" />
                       </View>
-                      <Text style={styles.featureText}>{tText(feature)}</Text>
+                      <Text style={[styles.featureText, { color: colors.text }]}>{tText(feature)}</Text>
                     </View>
                   ))}
                 </View>
 
                 <TouchableOpacity
-                  style={styles.detailsButton}
+                  style={[styles.detailsButton, { borderTopColor: colors.border }]}
                   onPress={() => navigation.navigate("DetailsProduits")}
                 >
-                  <Text style={styles.detailsButtonText}>
+                  <Text style={[styles.detailsButtonText, { color: colors.primary }]}>
                     {t("products.action.details")}
                   </Text>
-                  <Ionicons name="arrow-forward" size={18} color="#0066CC" />
+                  <Ionicons name="arrow-forward" size={18} color={colors.primary} />
                 </TouchableOpacity>
               </View>
             </View>
@@ -220,12 +224,11 @@ export const ProductsScreen: React.FC = () => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#F5F5F5" },
+  container: { flex: 1 },
 
   content: { flex: 1 },
   scrollContent: { paddingBottom: 20 },
   statsSection: {
-    backgroundColor: "#fff",
     paddingHorizontal: 20,
     paddingVertical: 20,
   },
@@ -236,12 +239,10 @@ const styles = StyleSheet.create({
   },
   statCard: {
     flex: 1,
-    backgroundColor: "#FAFAFA",
     borderRadius: 12,
     padding: 16,
     alignItems: "center",
     borderWidth: 1,
-    borderColor: "#E8E8E8",
   },
   iconContainer: {
     width: 44,
@@ -251,16 +252,15 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 12,
   },
-  iconActive: { backgroundColor: "#E8F5E8" },
-  iconPending: { backgroundColor: "#FFF3E0" },
-  iconTotal: { backgroundColor: "#E6F2FF" },
+  iconActive: {},
+  iconPending: {},
+  iconTotal: {},
   statNumber: {
     fontSize: 28,
     fontWeight: "bold",
-    color: "#000",
     marginBottom: 4,
   },
-  statLabel: { fontSize: 13, color: "#666", fontWeight: "500" },
+  statLabel: { fontSize: 13, fontWeight: "500" },
   categoriesContainer: { paddingLeft: 20, marginVertical: 20 },
   categoriesContent: { paddingRight: 20 },
   categoryButton: {
@@ -269,18 +269,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: 20,
-    backgroundColor: "#fff",
     marginRight: 10,
     borderWidth: 1,
-    borderColor: "#E0E0E0",
   },
-  categoryButtonActive: { backgroundColor: "#0066CC", borderColor: "#0066CC" },
+  categoryButtonActive: {},
   categoryIcon: { marginRight: 6 },
-  categoryText: { fontSize: 14, color: "#666", fontWeight: "500" },
-  categoryTextActive: { color: "#fff", fontWeight: "600" },
+  categoryText: { fontSize: 14, fontWeight: "500" },
+  categoryTextActive: { fontWeight: "600" },
   productsList: { paddingHorizontal: 20, paddingBottom: 20, gap: 16 },
   productCard: {
-    backgroundColor: "#fff",
     borderRadius: 16,
     padding: 20,
     shadowColor: "#000",
@@ -299,7 +296,6 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 12,
-    backgroundColor: "#E6F2FF",
     justifyContent: "center",
     alignItems: "center",
   },
@@ -309,22 +305,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 12,
-    backgroundColor: "#E8F5E8",
   },
   badgeDot: {
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: "#27ae60",
     marginRight: 6,
   },
-  productBadgeText: { fontSize: 12, fontWeight: "600", color: "#27ae60" },
+  productBadgeText: { fontSize: 12, fontWeight: "600" },
   productContent: { gap: 8 },
-  productTitle: { fontSize: 18, fontWeight: "bold", color: "#000" },
-  productSubtitle: { fontSize: 14, color: "#0066CC", fontWeight: "500" },
+  productTitle: { fontSize: 18, fontWeight: "bold" },
+  productSubtitle: { fontSize: 14, fontWeight: "500" },
   productDescription: {
     fontSize: 14,
-    color: "#666",
     lineHeight: 20,
     marginBottom: 8,
   },
@@ -334,19 +327,17 @@ const styles = StyleSheet.create({
     width: 20,
     height: 20,
     borderRadius: 4,
-    backgroundColor: "#0066CC",
     justifyContent: "center",
     alignItems: "center",
     marginRight: 10,
   },
-  featureText: { fontSize: 14, color: "#333", fontWeight: "400" },
+  featureText: { fontSize: 14, fontWeight: "400" },
   detailsButton: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     paddingTop: 16,
     borderTopWidth: 1,
-    borderTopColor: "#F0F0F0",
   },
-  detailsButtonText: { fontSize: 14, color: "#0066CC", fontWeight: "600" },
+  detailsButtonText: { fontSize: 14, fontWeight: "600" },
 });

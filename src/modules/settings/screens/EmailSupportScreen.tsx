@@ -13,9 +13,11 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useI18n } from "../../../app/providers/I18nProvider";
+import { useTheme } from "../../../shared/styles/ThemeProvider";
 
 const EmailSupportScreen: React.FC = () => {
   const { t } = useI18n();
+  const { colors } = useTheme();
   const [email, setEmail] = useState("");
   const [motif, setMotif] = useState<"support" | "claim" | "suggestion">(
     "support"
@@ -99,7 +101,7 @@ const EmailSupportScreen: React.FC = () => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
@@ -108,8 +110,8 @@ const EmailSupportScreen: React.FC = () => {
           <Animated.View
             style={{ opacity: fadeAnim, transform: [{ scale: scaleAnim }] }}
           >
-            <View style={styles.logoCircle}>
-              <Ionicons name="mail-outline" size={36} color="#0066CC" />
+            <View style={[styles.logoCircle, { backgroundColor: colors.card, borderColor: colors.border }]}>
+              <Ionicons name="mail-outline" size={36} color={colors.primary} />
             </View>
           </Animated.View>
         </View>
@@ -118,19 +120,21 @@ const EmailSupportScreen: React.FC = () => {
           style={[
             styles.card,
             { opacity: fadeAnim, transform: [{ scale: scaleAnim }] },
+            { backgroundColor: colors.card, borderColor: colors.border }
           ]}
         >
-          <Text style={styles.label}>{t("support.email.address.label")}</Text>
-          <View style={styles.inputRow}>
+          <Text style={[styles.label, { color: colors.text }]}>{t("support.email.address.label")}</Text>
+          <View style={[styles.inputRow, { backgroundColor: colors.background, borderColor: colors.border }]}>
             <Ionicons
               name="mail-outline"
               size={18}
-              color="#6B7280"
+              color={colors.text}
               style={styles.inputIcon}
             />
             <TextInput
-              style={[styles.input, styles.inputFlex]}
+              style={[styles.input, styles.inputFlex, { color: colors.text }]}
               placeholder={t("support.email.address.placeholder")}
+              placeholderTextColor={colors.text + "80"}
               keyboardType="email-address"
               autoCapitalize="none"
               value={email}
@@ -138,7 +142,7 @@ const EmailSupportScreen: React.FC = () => {
             />
           </View>
 
-          <Text style={styles.label}>{t("support.email.motif.label")}</Text>
+          <Text style={[styles.label, { color: colors.text }]}>{t("support.email.motif.label")}</Text>
           <View style={styles.segmentRow}>
             {motifs.map((m) => (
               <TouchableOpacity
@@ -146,14 +150,16 @@ const EmailSupportScreen: React.FC = () => {
                 onPress={() => setMotif(m.key)}
                 style={[
                   styles.segment,
-                  motif === m.key && styles.segmentActive,
+                  motif === m.key && [styles.segmentActive, { backgroundColor: colors.primary, borderColor: colors.primary }],
+                  motif !== m.key && { backgroundColor: colors.background, borderColor: colors.border }
                 ]}
                 activeOpacity={0.8}
               >
                 <Text
                   style={[
                     styles.segmentText,
-                    motif === m.key && styles.segmentTextActive,
+                    motif === m.key && [styles.segmentTextActive, { color: "#fff" }],
+                    motif !== m.key && { color: colors.text }
                   ]}
                 >
                   {m.label}
@@ -162,33 +168,35 @@ const EmailSupportScreen: React.FC = () => {
             ))}
           </View>
 
-          <Text style={styles.label}>{t("support.email.subject.label")}</Text>
-          <View style={styles.inputRow}>
+          <Text style={[styles.label, { color: colors.text }]}>{t("support.email.subject.label")}</Text>
+          <View style={[styles.inputRow, { backgroundColor: colors.background, borderColor: colors.border }]}>
             <Ionicons
               name="pencil-outline"
               size={18}
-              color="#6B7280"
+              color={colors.text}
               style={styles.inputIcon}
             />
             <TextInput
-              style={[styles.input, styles.inputFlex]}
+              style={[styles.input, styles.inputFlex, { color: colors.text }]}
               placeholder={t("support.email.subject.placeholder")}
+              placeholderTextColor={colors.text + "80"}
               value={subject}
               onChangeText={setSubject}
             />
           </View>
 
-          <Text style={styles.label}>{t("support.email.body.label")}</Text>
-          <View style={[styles.inputRow, styles.textareaRow]}>
+          <Text style={[styles.label, { color: colors.text }]}>{t("support.email.body.label")}</Text>
+          <View style={[styles.inputRow, styles.textareaRow, { backgroundColor: colors.background, borderColor: colors.border }]}>
             <Ionicons
               name="create-outline"
               size={18}
-              color="#6B7280"
+              color={colors.text}
               style={styles.inputIcon}
             />
             <TextInput
-              style={[styles.input, styles.textarea, styles.inputFlex]}
+              style={[styles.input, styles.textarea, styles.inputFlex, { color: colors.text }]}
               placeholder={t("support.email.body.placeholder")}
+              placeholderTextColor={colors.text + "80"}
               multiline
               value={body}
               onChangeText={setBody}
@@ -197,23 +205,23 @@ const EmailSupportScreen: React.FC = () => {
 
           <View style={styles.actions}>
             <TouchableOpacity
-              style={[styles.button, styles.ghost]}
+              style={[styles.button, styles.ghost, { backgroundColor: colors.card, borderColor: colors.border }]}
               onPress={() => {
                 setEmail("");
                 setSubject("");
                 setBody("");
               }}
             >
-              <Text style={[styles.buttonText, styles.ghostText]}>
+              <Text style={[styles.buttonText, styles.ghostText, { color: colors.text }]}>
                 {t("common.cancel")}
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[styles.button, styles.primary]}
+              style={[styles.button, styles.primary, { backgroundColor: colors.primary }]}
               onPress={sendMail}
               activeOpacity={0.85}
             >
-              <Text style={[styles.buttonText, styles.primaryText]}>
+              <Text style={[styles.buttonText, styles.primaryText, { color: "#fff" }]}>
                 {t("support.email.action.send")}
               </Text>
             </TouchableOpacity>

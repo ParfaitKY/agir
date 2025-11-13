@@ -10,6 +10,7 @@ import {
 import { useNavigation } from "@react-navigation/native";
 import AddBeneficiaireModal from "./AddBeneficiaireModal";
 import { useI18n } from "../../../app/providers/I18nProvider";
+import { useTheme } from "../../../shared/styles/ThemeProvider";
 
 interface Contact {
   initial: string;
@@ -25,6 +26,7 @@ interface Contact {
 const BeneficiairesPage: React.FC = () => {
   const navigation = useNavigation();
   const { t } = useI18n();
+  const { colors } = useTheme();
   const [showAddModal, setShowAddModal] = useState(false);
 
   const tabs = [t("beneficiaries.tabs.all"), t("beneficiaries.tabs.favorites")];
@@ -76,23 +78,23 @@ const BeneficiairesPage: React.FC = () => {
   ];
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
       {/* HEADER */}
-      <View style={styles.headerCard}>
+      <View style={[styles.headerCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
         <View>
-          <Text style={styles.headerTitle}>
+          <Text style={[styles.headerTitle, { color: colors.text }]}>
             {t("beneficiaries.header.title")}
           </Text>
-          <Text style={styles.headerSubtitle}>
+          <Text style={[styles.headerSubtitle, { color: colors.text + "80" }]}>
             {contacts.length} {t("beneficiaries.header.countSuffix")}
           </Text>
         </View>
 
         <TouchableOpacity
-          style={styles.addBtn}
+          style={[styles.addBtn, { backgroundColor: colors.primary }]}
           onPress={() => setShowAddModal(true)}
         >
-          <Text style={styles.addBtnText}>+</Text>
+          <Text style={[styles.addBtnText, { color: colors.card }]}>+</Text>
         </TouchableOpacity>
         <AddBeneficiaireModal
           visible={showAddModal}
@@ -120,7 +122,7 @@ const BeneficiairesPage: React.FC = () => {
       </View>
 
       {/* ACCÈS RAPIDE */}
-      <Text style={styles.sectionTitle}>{t("beneficiaries.quick.title")}</Text>
+      <Text style={[styles.sectionTitle, { color: colors.text }]}>{t("beneficiaries.quick.title")}</Text>
 
       <View style={styles.quickRow}>
         <QuickUser initial="M" name="MOUPEPIDI" color="#F44336" />
@@ -130,25 +132,26 @@ const BeneficiairesPage: React.FC = () => {
 
       {/* SEARCH */}
       <TextInput
-        style={styles.searchInput}
+        style={[styles.searchInput, { backgroundColor: colors.card, color: colors.text }]}
         placeholder={t("beneficiaries.search.placeholder")}
-        placeholderTextColor="#777"
+        placeholderTextColor={colors.text + "80"}
       />
 
       {/* TABS */}
-      <View style={styles.tabsRow}>
+      <View style={[styles.tabsRow, { backgroundColor: colors.card }]}>
         {tabs.map((tab) => (
           <TouchableOpacity
             key={tab}
-            style={[styles.tabBtn, activeTab === tab && styles.tabActive]}
+            style={[styles.tabBtn, activeTab === tab && styles.tabActive, activeTab === tab && { backgroundColor: colors.primary }]}
             onPress={() => setActiveTab(tab)}
           >
             <Text
               style={[
                 styles.tabText,
-                activeTab === tab
-                  ? styles.tabTextActive
-                  : styles.tabTextInactive,
+                activeTab === tab && styles.tabTextActive,
+                activeTab === tab && { color: colors.card },
+                activeTab !== tab && styles.tabTextInactive,
+                activeTab !== tab && { color: colors.text + "80" },
               ]}
             >
               {tab} (
@@ -171,15 +174,15 @@ const BeneficiairesPage: React.FC = () => {
         ))}
 
       {/* HELP */}
-      <View style={styles.helpCard}>
+      <View style={[styles.helpCard, { backgroundColor: colors.primary + "20", borderColor: colors.primary + "40" }]}>
         <View style={styles.itemRow}>
-          <View style={styles.outerCircle}>
-            <View style={styles.innerCircle}>
-              <Text style={styles.exclamation}>!</Text>
+          <View style={[styles.outerCircle, { backgroundColor: colors.primary + "30" }]}>
+            <View style={[styles.innerCircle, { backgroundColor: colors.primary }]}>
+              <Text style={[styles.exclamation, { color: colors.card }]}>!</Text>
             </View>
           </View>
 
-          <Text style={styles.helpText}>{t("beneficiaries.help.contact")}</Text>
+          <Text style={[styles.helpText, { color: colors.text }]}>{t("beneficiaries.help.contact")}</Text>
         </View>
       </View>
     </ScrollView>
@@ -197,11 +200,12 @@ function StatCard({
   value: string;
   label: string;
 }) {
+  const { colors } = useTheme();
   return (
-    <View style={styles.statCard}>
+    <View style={[styles.statCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
       <Text style={styles.statIcon}>{icon}</Text>
-      <Text style={styles.statValue}>{value}</Text>
-      <Text style={styles.statLabel}>{label}</Text>
+      <Text style={[styles.statValue, { color: colors.text }]}>{value}</Text>
+      <Text style={[styles.statLabel, { color: colors.text + "80" }]}>{label}</Text>
     </View>
   );
 }
@@ -215,39 +219,41 @@ function QuickUser({
   name: string;
   color: string;
 }) {
+  const { colors } = useTheme();
   return (
     <View style={styles.quickUser}>
       <View style={[styles.circle, { backgroundColor: color }]}>
         <Text style={styles.circleText}>{initial}</Text>
       </View>
-      <Text style={styles.quickName}>{name}</Text>
+      <Text style={[styles.quickName, { color: colors.text }]}>{name}</Text>
     </View>
   );
 }
 
 function ContactCard({ contact }: { contact: Contact }) {
+  const { colors } = useTheme();
   return (
-    <View style={styles.contactCard}>
+    <View style={[styles.contactCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
       <View style={styles.contactLeft}>
         <View style={[styles.circleLarge, { backgroundColor: contact.color }]}>
           <Text style={styles.circleText}>{contact.initial}</Text>
         </View>
 
         <View>
-          <Text style={styles.contactName}>{contact.name}</Text>
-          <Text style={styles.contactId}>{contact.id}</Text>
-          <Text style={styles.bank}>🏦 {contact.bank}</Text>
-          <Text style={styles.amount}>💰 {contact.amount}</Text>
+          <Text style={[styles.contactName, { color: colors.text }]}>{contact.name}</Text>
+          <Text style={[styles.contactId, { color: colors.text + "80" }]}>{contact.id}</Text>
+          <Text style={[styles.bank, { color: colors.text }]}>🏦 {contact.bank}</Text>
+          <Text style={[styles.amount, { color: colors.text }]}>💰 {contact.amount}</Text>
         </View>
       </View>
 
       <View style={styles.contactRight}>
-        <Text style={styles.time}>{contact.time}</Text>
-        <TouchableOpacity style={styles.arrowBtn}>
-          <Text style={styles.arrow}>➜</Text>
+        <Text style={[styles.time, { color: colors.text + "80" }]}>{contact.time}</Text>
+        <TouchableOpacity style={[styles.arrowBtn, { backgroundColor: colors.primary + "20" }]}>
+          <Text style={[styles.arrow, { color: colors.primary }]}>➜</Text>
         </TouchableOpacity>
 
-        {contact.favorite && <Text style={styles.favorite}>⭐</Text>}
+        {contact.favorite && <Text style={[styles.favorite, { color: colors.warning }]}>⭐</Text>}
       </View>
     </View>
   );

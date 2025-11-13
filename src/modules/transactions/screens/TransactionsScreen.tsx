@@ -9,9 +9,11 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useI18n } from '../../../app/providers/I18nProvider';
+import { useTheme } from '../../../shared/styles/ThemeProvider';
 
 export const TransactionsScreen: React.FC = () => {
   const { t, tText } = useI18n();
+  const { colors } = useTheme();
   const [activeFilter, setActiveFilter] = useState<'toutes' | 'entrees' | 'sorties'>('toutes');
 
   const transactions = [
@@ -88,6 +90,7 @@ export const TransactionsScreen: React.FC = () => {
     return result;
   };
 
+  const styles = getStyles(colors);
   return (
     <SafeAreaView style={styles.container}>
       
@@ -96,7 +99,7 @@ export const TransactionsScreen: React.FC = () => {
       <View style={styles.summaryContainer}>
         <View style={styles.summaryItem}>
             <View style={styles.summaryHeader}>
-            <Ionicons name="trending-up" size={16} color="#27ae60" />
+            <Ionicons name="trending-up" size={16} color={colors.success} />
             <Text style={styles.summaryLabel}>{t('transactions.summary.in')}</Text>
             </View>
             <Text style={styles.entreeAmount}>{totalEntrees.toLocaleString()} XAF</Text>
@@ -104,7 +107,7 @@ export const TransactionsScreen: React.FC = () => {
         <View style={styles.summarySeparator} />
         <View style={styles.summaryItem}>
             <View style={styles.summaryHeader}>
-            <Ionicons name="trending-down" size={16} color="#e74c3c" />
+            <Ionicons name="trending-down" size={16} color={colors.error} />
             <Text style={styles.summaryLabel}>{t('transactions.summary.out')}</Text>
             </View>
             <Text style={styles.sortieAmount}>{totalSorties.toLocaleString()} XAF</Text>
@@ -137,7 +140,7 @@ export const TransactionsScreen: React.FC = () => {
             onPress={() => setActiveFilter('entrees')}
           >
             <View style={styles.filterButtonContent}>
-              <Ionicons name="trending-up" size={14} color={activeFilter === 'entrees' ? 'white' : '#27ae60'} />
+              <Ionicons name="trending-up" size={14} color={activeFilter === 'entrees' ? 'white' : colors.success} />
               <Text style={[
                 styles.filterButtonText,
                 activeFilter === 'entrees' && styles.filterButtonTextActive
@@ -145,7 +148,7 @@ export const TransactionsScreen: React.FC = () => {
                 {t('transactions.filter.in')}
               </Text>
             </View>
-            <Ionicons name="chevron-down" size={14} color={activeFilter === 'entrees' ? 'white' : '#7f8c8d'} />
+            <Ionicons name="chevron-down" size={14} color={activeFilter === 'entrees' ? 'white' : colors.text} />
           </TouchableOpacity>
           
           <TouchableOpacity 
@@ -156,7 +159,7 @@ export const TransactionsScreen: React.FC = () => {
             onPress={() => setActiveFilter('sorties')}
           >
             <View style={styles.filterButtonContent}>
-              <Ionicons name="trending-down" size={14} color={activeFilter === 'sorties' ? 'white' : '#e74c3c'} />
+              <Ionicons name="trending-down" size={14} color={activeFilter === 'sorties' ? 'white' : colors.error} />
               <Text style={[
                 styles.filterButtonText,
                 activeFilter === 'sorties' && styles.filterButtonTextActive
@@ -164,7 +167,7 @@ export const TransactionsScreen: React.FC = () => {
                 {t('transactions.filter.out')}
               </Text>
             </View>
-            <Ionicons name="chevron-down" size={14} color={activeFilter === 'sorties' ? 'white' : '#7f8c8d'} />
+            <Ionicons name="chevron-down" size={14} color={activeFilter === 'sorties' ? 'white' : colors.text} />
           </TouchableOpacity>
         </View>
       </View>
@@ -200,32 +203,33 @@ export const TransactionsScreen: React.FC = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const getStyles = (colors: any) =>
+  StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: colors.background,
   },
   navHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: 20,
-    backgroundColor: 'white',
+    backgroundColor: colors.card,
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
+    borderBottomColor: colors.border,
   },
   navTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#2c3e50',
+    color: colors.text,
   },
   summaryContainer: {
     flexDirection: 'row',
-    backgroundColor: 'white',
+    backgroundColor: colors.card,
     margin: 16,
     borderRadius: 12,
     padding: 20,
-    shadowColor: '#000',
+    shadowColor: colors.border,
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -235,12 +239,12 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
   },
- 
+  
   
   
  summarySeparator: {
     width: 1,
-    backgroundColor: '#e0e0e0',
+    backgroundColor: colors.border,
     marginHorizontal: 10,
   },
 
@@ -263,30 +267,31 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 16,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: colors.background,
     borderWidth: 1,
-    borderColor: '#e0e0e0',
+    borderColor: colors.border,
     gap: 4,
   },
   // Les autres styles restent les mêmes...
   summaryLabel: {
     fontSize: 14,
-    color: '#7f8c8d',
+    color: colors.text,
+    opacity: 0.7,
   },
   entreeAmount: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#27ae60',
+    color: colors.success,
   },
   sortieAmount: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#e74c3c',
+    color: colors.error,
   },
   
   // Nouveaux styles pour la disposition correcte des filtres
   filterMainContainer: {
-    backgroundColor: 'white',
+    backgroundColor: colors.card,
     marginHorizontal: 16,
     marginBottom: 8,
     paddingHorizontal: 16,
@@ -300,12 +305,13 @@ const styles = StyleSheet.create({
   },
   
   filterButtonActive: {
-    backgroundColor: '#3498db',
-    borderColor: '#3498db',
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
   },
   filterButtonText: {
     fontSize: 14,
-    color: '#7f8c8d',
+    color: colors.text,
+    opacity: 0.7,
     fontWeight: '500',
   },
   filterButtonTextActive: {
@@ -320,7 +326,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: 'white',
+    backgroundColor: colors.card,
     padding: 16,
     marginVertical: 4,
     borderRadius: 8,
@@ -331,22 +337,23 @@ const styles = StyleSheet.create({
   transactionTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#2c3e50',
+    color: colors.text,
     marginBottom: 4,
   },
   transactionDate: {
     fontSize: 14,
-    color: '#7f8c8d',
+    color: colors.text,
+    opacity: 0.7,
   },
   amountText: {
     fontSize: 16,
     fontWeight: 'bold',
   },
   positive: {
-    color: '#27ae60',
+    color: colors.success,
   },
   negative: {
-    color: '#e74c3c',
+    color: colors.error,
   },
   emptyState: {
     alignItems: 'center',
@@ -355,14 +362,15 @@ const styles = StyleSheet.create({
   },
   emptyStateText: {
     fontSize: 16,
-    color: '#7f8c8d',
+    color: colors.text,
+    opacity: 0.7,
     textAlign: 'center',
   },
   bottomNav: {
     flexDirection: 'row',
-    backgroundColor: 'white',
+    backgroundColor: colors.card,
     borderTopWidth: 1,
-    borderTopColor: '#e0e0e0',
+    borderTopColor: colors.border,
     paddingVertical: 12,
   },
   navItem: {
@@ -372,11 +380,12 @@ const styles = StyleSheet.create({
   },
   navText: {
     fontSize: 12,
-    color: '#7f8c8d',
+    color: colors.text,
+    opacity: 0.7,
     marginTop: 4,
   },
   navTextActive: {
-    color: '#3498db',
+    color: colors.primary,
     fontWeight: '600',
   },
 });

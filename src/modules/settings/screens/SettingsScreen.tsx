@@ -14,16 +14,19 @@ import { Ionicons } from "@expo/vector-icons";
 import { useAuth } from "../../../app/hooks/useAuth";
 import { useNavigation } from "@react-navigation/native";
 import { useI18n } from "../../../app/providers/I18nProvider";
-// (Mode sombre retiré) Pas d'intégration ThemeProvider
+import { useTheme, useThemeMode } from "../../../shared/styles/ThemeProvider";
+// Intégration ThemeProvider pour le mode sombre/système
 
 export const SettingsScreen: React.FC = () => {
   const { user, logout } = useAuth();
   const navigation = useNavigation();
   const { t, tText } = useI18n();
+  const { colors } = useTheme();
+  const { preference, isDark, setPreference } = useThemeMode();
   // Styles statiques uniquement
   const [biometricEnabled, setBiometricEnabled] = React.useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = React.useState(true);
-  const [darkModeEnabled, setDarkModeEnabled] = React.useState(false);
+  const [showThemeModal, setShowThemeModal] = React.useState(false);
   const [showChangePasswordModal, setShowChangePasswordModal] =
     React.useState(false);
   const [showChangePinModal, setShowChangePinModal] = React.useState(false);
@@ -46,21 +49,21 @@ export const SettingsScreen: React.FC = () => {
       items: [
         {
           icon: "person-outline",
-          iconColor: "#0066CC",
+          iconColor: colors.primary,
           title: "Mon Profil",
           onPress: () => (navigation as any).navigate("Profile"),
           showChevron: true,
         },
         {
           icon: "lock-closed-outline",
-          iconColor: "#0066CC",
+          iconColor: colors.primary,
           title: "Changer le code PIN",
           onPress: () => setShowChangePinModal(true),
           showChevron: true,
         },
         {
           icon: "key-outline",
-          iconColor: "#0066CC",
+          iconColor: colors.primary,
           title: "Changer le mot de passe",
           onPress: () => setShowChangePasswordModal(true),
           showChevron: true,
@@ -72,28 +75,28 @@ export const SettingsScreen: React.FC = () => {
       items: [
         {
           icon: "wallet-outline",
-          iconColor: "#0066CC",
+          iconColor: colors.primary,
           title: "Mon Wallet",
           onPress: () => (navigation as any).navigate("WalletScreens"),
           showChevron: true,
         },
         {
           icon: "card-outline",
-          iconColor: "#0066CC",
+          iconColor: colors.primary,
           title: "Gérer mes comptes",
           onPress: () => (navigation as any).navigate("Accounts"),
           showChevron: true,
         },
         {
           icon: "people-outline",
-          iconColor: "#0066CC",
+          iconColor: colors.primary,
           title: "Mes bénéficiaires",
           onPress: () => (navigation as any).navigate("BeneficiairesPage"),
           showChevron: true,
         },
         {
           icon: "grid-outline",
-          iconColor: "#0066CC",
+          iconColor: colors.primary,
           title: "Mes produits",
           onPress: () => (navigation as any).navigate("Products"),
           showChevron: true,
@@ -105,36 +108,48 @@ export const SettingsScreen: React.FC = () => {
       items: [
         {
           icon: "notifications-outline",
-          iconColor: "#0066CC",
+          iconColor: colors.primary,
           title: "Notifications",
           rightElement: (
             <Switch
               value={notificationsEnabled}
               onValueChange={setNotificationsEnabled}
-              trackColor={{ false: "#E0E0E0", true: "#0066CC" }}
+              trackColor={{ false: colors.border, true: colors.primary }}
               thumbColor="#fff"
             />
           ),
         },
         {
           icon: "language-outline",
-          iconColor: "#0066CC",
+          iconColor: colors.primary,
           title: t("settings.language"),
           onPress: () => (navigation as any).navigate("Language"),
           showChevron: true,
         },
         {
           icon: "moon-outline",
-          iconColor: "#0066CC",
+          iconColor: colors.primary,
           title: "Mode sombre",
+          onPress: () => setShowThemeModal(true),
           rightElement: (
-            <Switch
-              value={darkModeEnabled}
-              onValueChange={setDarkModeEnabled}
-              trackColor={{ false: "#E0E0E0", true: "#0066CC" }}
-              thumbColor="#fff"
-            />
+            <View
+              style={{
+                paddingHorizontal: 8,
+                paddingVertical: 4,
+                borderRadius: 8,
+                backgroundColor: colors.card,
+              }}
+            >
+              <Text style={{ color: colors.text, fontSize: 12 }}>
+                {preference === "system"
+                  ? "Système"
+                  : preference === "dark"
+                  ? "Sombre"
+                  : "Clair"}
+              </Text>
+            </View>
           ),
+          showChevron: true,
         },
       ],
     },
@@ -143,20 +158,20 @@ export const SettingsScreen: React.FC = () => {
       items: [
         {
           icon: "finger-print-outline",
-          iconColor: "#0066CC",
+          iconColor: colors.primary,
           title: "Authentification biométrique",
           rightElement: (
             <Switch
               value={biometricEnabled}
               onValueChange={setBiometricEnabled}
-              trackColor={{ false: "#E0E0E0", true: "#0066CC" }}
+              trackColor={{ false: colors.border, true: colors.primary }}
               thumbColor="#fff"
             />
           ),
         },
         {
           icon: "shield-checkmark-outline",
-          iconColor: "#0066CC",
+          iconColor: colors.primary,
           title: "Confidentialité",
           onPress: () => console.log("Confidentialité"),
           showChevron: true,
@@ -168,35 +183,35 @@ export const SettingsScreen: React.FC = () => {
       items: [
         {
           icon: "headset-outline",
-          iconColor: "#0066CC",
+          iconColor: colors.primary,
           title: "Service client",
           onPress: () => console.log("Service client"),
           showChevron: true,
         },
         {
           icon: "chatbubble-outline",
-          iconColor: "#0066CC",
+          iconColor: colors.primary,
           title: "Chat en ligne",
           onPress: () => console.log("Chat"),
           showChevron: true,
         },
         {
           icon: "mail-outline",
-          iconColor: "#0066CC",
+          iconColor: colors.primary,
           title: "Envoyer un email",
           onPress: () => (navigation as any).navigate("EmailSupport"),
           showChevron: true,
         },
         {
           icon: "help-circle-outline",
-          iconColor: "#0066CC",
+          iconColor: colors.primary,
           title: "Centre d'aide / FAQ",
           onPress: () => console.log("FAQ"),
           showChevron: true,
         },
         {
           icon: "warning-outline",
-          iconColor: "#0066CC",
+          iconColor: colors.primary,
           title: "Signaler un problème",
           onPress: () => console.log("Signaler"),
           showChevron: true,
@@ -208,35 +223,35 @@ export const SettingsScreen: React.FC = () => {
       items: [
         {
           icon: "information-circle-outline",
-          iconColor: "#0066CC",
+          iconColor: colors.primary,
           title: "À propos",
           onPress: () => (navigation as any).navigate("AboutApp"),
           showChevron: true,
         },
         {
           icon: "document-text-outline",
-          iconColor: "#0066CC",
+          iconColor: colors.primary,
           title: "Conditions d'utilisation",
           onPress: () => (navigation as any).navigate("TermsOfUse"),
           showChevron: true,
         },
         {
           icon: "shield-outline",
-          iconColor: "#0066CC",
+          iconColor: colors.primary,
           title: "Politique de confidentialité",
           onPress: () => (navigation as any).navigate("PrivacyPolicy"),
           showChevron: true,
         },
         {
           icon: "star-outline",
-          iconColor: "#0066CC",
+          iconColor: colors.primary,
           title: "Évaluer l'application",
           onPress: () => (navigation as any).navigate("RateApp"),
           showChevron: true,
         },
         {
           icon: "share-social-outline",
-          iconColor: "#0066CC",
+          iconColor: colors.primary,
           title: "Partager l'application",
           onPress: () => (navigation as any).navigate("ShareApp"),
           showChevron: true,
@@ -246,13 +261,22 @@ export const SettingsScreen: React.FC = () => {
   ];
 
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+    <SafeAreaView
+      style={[styles.container, { backgroundColor: colors.background }]}
+    >
+      <ScrollView
+        style={[styles.content, { backgroundColor: colors.background }]}
+        showsVerticalScrollIndicator={false}
+      >
         {/* Settings Sections */}
         {settingsSections.map((section, sectionIndex) => (
           <View key={sectionIndex} style={styles.section}>
-            <Text style={styles.sectionTitle}>{tText(section.title)}</Text>
-            <View style={styles.sectionContent}>
+            <Text style={[styles.sectionTitle, { color: colors.text + '90' }]}>
+              {tText(section.title)}
+            </Text>
+            <View
+              style={[styles.sectionContent, { backgroundColor: colors.card }]}
+            >
               {section.items.map((item, itemIndex) => (
                 <TouchableOpacity
                   key={itemIndex}
@@ -260,7 +284,7 @@ export const SettingsScreen: React.FC = () => {
                     styles.settingItem,
                     itemIndex === section.items.length - 1 &&
                       styles.settingItemLast,
-                    // Couleur de séparateur statique
+                    { borderBottomColor: colors.border },
                   ]}
                   onPress={item.onPress}
                   disabled={!item.onPress}
@@ -270,13 +294,19 @@ export const SettingsScreen: React.FC = () => {
                     <Ionicons
                       name={item.icon as any}
                       size={22}
-                      color={item.iconColor}
+                      color={item.iconColor || colors.primary}
                     />
-                    <Text style={styles.settingTitle}>{tText(item.title)}</Text>
+                    <Text style={[styles.settingTitle, { color: colors.text }]}>
+                      {tText(item.title)}
+                    </Text>
                   </View>
                   {item.rightElement ||
                     (item.showChevron && (
-                      <Ionicons name="chevron-forward" size={20} color="#999" />
+                      <Ionicons
+                        name="chevron-forward"
+                        size={20}
+                        color={colors.border}
+                      />
                     ))}
                 </TouchableOpacity>
               ))}
@@ -286,28 +316,50 @@ export const SettingsScreen: React.FC = () => {
 
         {/* Déconnexion Section */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>{tText("DÉCONNEXION")}</Text>
-          <View style={styles.sectionContent}>
+          <Text style={[styles.sectionTitle, { color: colors.text + '90' }]}>
+            {tText("DÉCONNEXION")}
+          </Text>
+          <View
+            style={[styles.sectionContent, { backgroundColor: colors.card }]}
+          >
             <TouchableOpacity
               style={[styles.settingItem, styles.settingItemLast]}
               onPress={handleLogout}
               activeOpacity={0.7}
             >
               <View style={styles.settingLeft}>
-                <Ionicons name="log-out-outline" size={22} color="#FF3B30" />
-                <Text style={[styles.settingTitle, styles.logoutText]}>
+                <Ionicons
+                  name="log-out-outline"
+                  size={22}
+                  color={colors.error}
+                />
+                <Text
+                  style={[
+                    styles.settingTitle,
+                    styles.logoutText,
+                    { color: colors.text },
+                  ]}
+                >
                   {tText("Se déconnecter")}
                 </Text>
               </View>
-              <Ionicons name="chevron-forward" size={20} color="#999" />
+              <Ionicons
+                name="chevron-forward"
+                size={20}
+                color={colors.border}
+              />
             </TouchableOpacity>
           </View>
         </View>
 
         {/* Version Info */}
         <View style={styles.versionContainer}>
-          <Text style={styles.versionText}>{t("settings.version")} 1.0.0</Text>
-          <Text style={styles.copyrightText}>{t("settings.copyright")}</Text>
+          <Text style={[styles.versionText, { color: colors.text }]}>
+            {t("settings.version")} 1.0.0
+          </Text>
+          <Text style={[styles.copyrightText, { color: colors.text }]}>
+            {t("settings.copyright")}
+          </Text>
         </View>
       </ScrollView>
 
@@ -318,42 +370,79 @@ export const SettingsScreen: React.FC = () => {
         transparent
         onRequestClose={() => setShowChangePasswordModal(false)}
       >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContainer}>
-            <Text style={styles.modalTitle}>Changer le mot de passe</Text>
+        <View
+          style={[
+            styles.modalOverlay,
+            { backgroundColor: isDark ? "rgba(0,0,0,0.6)" : "rgba(0,0,0,0.4)" },
+          ]}
+        >
+          <View
+            style={[styles.modalContainer, { backgroundColor: colors.card }]}
+          >
+            <Text style={[styles.modalTitle, { color: colors.text }]}>
+              Changer le mot de passe
+            </Text>
             <TextInput
-              style={styles.input}
+              style={[
+                styles.input,
+                {
+                  borderColor: colors.border,
+                  backgroundColor: colors.background,
+                  color: colors.text,
+                },
+              ]}
               placeholder="Mot de passe actuel"
               secureTextEntry
               value={currentPassword}
               onChangeText={setCurrentPassword}
             />
             <TextInput
-              style={styles.input}
+              style={[
+                styles.input,
+                {
+                  borderColor: colors.border,
+                  backgroundColor: colors.background,
+                  color: colors.text,
+                },
+              ]}
               placeholder="Nouveau mot de passe"
               secureTextEntry
               value={newPassword}
               onChangeText={setNewPassword}
             />
             <TextInput
-              style={styles.input}
+              style={[
+                styles.input,
+                {
+                  borderColor: colors.border,
+                  backgroundColor: colors.background,
+                  color: colors.text,
+                },
+              ]}
               placeholder="Confirmer le nouveau mot de passe"
               secureTextEntry
               value={confirmPassword}
               onChangeText={setConfirmPassword}
             />
             {passwordError && (
-              <Text style={styles.errorText}>{passwordError}</Text>
+              <Text style={[styles.errorText, { color: colors.error }]}>
+                {passwordError}
+              </Text>
             )}
             <View style={styles.modalActions}>
               <TouchableOpacity
-                style={[styles.actionButton, styles.cancelButton]}
+                style={[styles.actionButton, { backgroundColor: colors.card }]}
                 onPress={() => setShowChangePasswordModal(false)}
               >
-                <Text style={styles.actionText}>Annuler</Text>
+                <Text style={[styles.actionText, { color: colors.text }]}>
+                  Annuler
+                </Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.actionButton, styles.confirmButton]}
+                style={[
+                  styles.actionButton,
+                  { backgroundColor: colors.primary },
+                ]}
                 onPress={() => {
                   // Validation simple
                   if (newPassword.length < 6) {
@@ -393,11 +482,27 @@ export const SettingsScreen: React.FC = () => {
         transparent
         onRequestClose={() => setShowChangePinModal(false)}
       >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContainer}>
-            <Text style={styles.modalTitle}>Changer le code PIN</Text>
+        <View
+          style={[
+            styles.modalOverlay,
+            { backgroundColor: isDark ? "rgba(0,0,0,0.6)" : "rgba(0,0,0,0.4)" },
+          ]}
+        >
+          <View
+            style={[styles.modalContainer, { backgroundColor: colors.card }]}
+          >
+            <Text style={[styles.modalTitle, { color: colors.text }]}>
+              Changer le code PIN
+            </Text>
             <TextInput
-              style={styles.input}
+              style={[
+                styles.input,
+                {
+                  borderColor: colors.border,
+                  backgroundColor: colors.background,
+                  color: colors.text,
+                },
+              ]}
               placeholder="PIN actuel"
               secureTextEntry
               keyboardType="numeric"
@@ -406,7 +511,14 @@ export const SettingsScreen: React.FC = () => {
               maxLength={6}
             />
             <TextInput
-              style={styles.input}
+              style={[
+                styles.input,
+                {
+                  borderColor: colors.border,
+                  backgroundColor: colors.background,
+                  color: colors.text,
+                },
+              ]}
               placeholder="Nouveau PIN (4-6 chiffres)"
               secureTextEntry
               keyboardType="numeric"
@@ -415,7 +527,14 @@ export const SettingsScreen: React.FC = () => {
               maxLength={6}
             />
             <TextInput
-              style={styles.input}
+              style={[
+                styles.input,
+                {
+                  borderColor: colors.border,
+                  backgroundColor: colors.background,
+                  color: colors.text,
+                },
+              ]}
               placeholder="Confirmer le nouveau PIN"
               secureTextEntry
               keyboardType="numeric"
@@ -423,16 +542,25 @@ export const SettingsScreen: React.FC = () => {
               onChangeText={setConfirmPin}
               maxLength={6}
             />
-            {pinError && <Text style={styles.errorText}>{pinError}</Text>}
+            {pinError && (
+              <Text style={[styles.errorText, { color: colors.error }]}>
+                {pinError}
+              </Text>
+            )}
             <View style={styles.modalActions}>
               <TouchableOpacity
-                style={[styles.actionButton, styles.cancelButton]}
+                style={[styles.actionButton, { backgroundColor: colors.card }]}
                 onPress={() => setShowChangePinModal(false)}
               >
-                <Text style={styles.actionText}>Annuler</Text>
+                <Text style={[styles.actionText, { color: colors.text }]}>
+                  Annuler
+                </Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.actionButton, styles.confirmButton]}
+                style={[
+                  styles.actionButton,
+                  { backgroundColor: colors.primary },
+                ]}
                 onPress={() => {
                   // Validation simple du PIN
                   const pinRegex = /^\d{4,6}$/;
@@ -454,6 +582,85 @@ export const SettingsScreen: React.FC = () => {
               >
                 <Text style={[styles.actionText, { color: "#fff" }]}>
                   Valider
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+      {/* Modal Choisir le thème */}
+      <Modal
+        visible={showThemeModal}
+        animationType="fade"
+        transparent
+        onRequestClose={() => setShowThemeModal(false)}
+      >
+        <View
+          style={[
+            styles.modalOverlay,
+            { backgroundColor: isDark ? "rgba(0,0,0,0.6)" : "rgba(0,0,0,0.4)" },
+          ]}
+        >
+          <View
+            style={[styles.modalContainer, { backgroundColor: colors.card }]}
+          >
+            <Text style={[styles.modalTitle, { color: colors.text }]}>
+              Choisir le thème
+            </Text>
+            {[
+              { key: "light", label: "Clair" },
+              { key: "dark", label: "Sombre" },
+              { key: "system", label: "Suivre le système" },
+            ].map((opt) => (
+              <TouchableOpacity
+                key={opt.key}
+                style={[
+                  styles.settingItem,
+                  { borderBottomColor: colors.border },
+                ]}
+                onPress={async () => {
+                  await setPreference(opt.key as any);
+                  setShowThemeModal(false);
+                }}
+              >
+                <View style={styles.settingLeft}>
+                  <Ionicons
+                    name={
+                      opt.key === "dark"
+                        ? "moon"
+                        : opt.key === "light"
+                        ? "sunny"
+                        : "contrast-outline"
+                    }
+                    size={22}
+                    color={colors.primary}
+                  />
+                  <Text style={[styles.settingTitle, { color: colors.text }]}>
+                    {opt.label}
+                  </Text>
+                </View>
+                {preference === opt.key ? (
+                  <Ionicons
+                    name="checkmark-circle"
+                    size={20}
+                    color={colors.primary}
+                  />
+                ) : (
+                  <Ionicons
+                    name="chevron-forward"
+                    size={20}
+                    color={colors.border}
+                  />
+                )}
+              </TouchableOpacity>
+            ))}
+            <View style={styles.modalActions}>
+              <TouchableOpacity
+                style={[styles.actionButton, { backgroundColor: colors.card }]}
+                onPress={() => setShowThemeModal(false)}
+              >
+                <Text style={[styles.actionText, { color: colors.text }]}>
+                  Fermer
                 </Text>
               </TouchableOpacity>
             </View>

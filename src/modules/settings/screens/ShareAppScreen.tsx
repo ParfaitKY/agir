@@ -13,9 +13,11 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useI18n } from "../../../app/providers/I18nProvider";
+import { useTheme } from "../../../shared/styles/ThemeProvider";
 
 const ShareAppScreen: React.FC = () => {
   const { t } = useI18n();
+  const { colors } = useTheme();
 
   const appUrl = "https://lapeyrie-emf.ga/app";
   const shareMessage = `${t("share.message")}\n${t(
@@ -123,7 +125,7 @@ const ShareAppScreen: React.FC = () => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
@@ -134,67 +136,68 @@ const ShareAppScreen: React.FC = () => {
             { opacity: fadeAnim, transform: [{ scale: scaleAnim }] },
           ]}
         >
-          <View style={styles.logoCircle}>
+          <View style={[styles.logoCircle, { backgroundColor: colors.primary + "20", borderColor: colors.primary + "40" }]}>
             <Image
               source={{ uri: "https://lapeyrie-emf.ga/logo.png" }}
               style={styles.logo}
               resizeMode="contain"
             />
           </View>
-          <Text style={styles.title}>{t("share.title")}</Text>
-          <Text style={styles.subtitle}>{t("share.subtitle")}</Text>
+          <Text style={[styles.title, { color: colors.text }]}>{t("share.title")}</Text>
+          <Text style={[styles.subtitle, { color: colors.text + "80" }]}>{t("share.subtitle")}</Text>
         </Animated.View>
 
         <Animated.View
           style={[
             styles.card,
             { opacity: fadeButtons, transform: [{ scale: scaleButtons }] },
+            { backgroundColor: colors.card, borderColor: colors.border }
           ]}
         >
           <View style={styles.buttonsGrid}>
             <TouchableOpacity
-              style={[styles.shareBtn, styles.whatsapp]}
+              style={[styles.shareBtn, { backgroundColor: "#25D366" }]}
               onPress={shareWhatsApp}
               activeOpacity={0.85}
             >
-              <Ionicons name="logo-whatsapp" size={20} color="#fff" />
-              <Text style={styles.shareBtnText}>
+              <Ionicons name="logo-whatsapp" size={20} color={colors.card} />
+              <Text style={[styles.shareBtnText, { color: colors.card }]}>
                 {t("share.action.whatsapp")}
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[styles.shareBtn, styles.messenger]}
+              style={[styles.shareBtn, { backgroundColor: "#1877F2" }]}
               onPress={shareMessenger}
               activeOpacity={0.85}
             >
-              <Ionicons name="chatbubbles-outline" size={20} color="#fff" />
-              <Text style={styles.shareBtnText}>
+              <Ionicons name="chatbubbles-outline" size={20} color={colors.card} />
+              <Text style={[styles.shareBtnText, { color: colors.card }]}>
                 {t("share.action.messenger")}
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[styles.shareBtn, styles.email]}
+              style={[styles.shareBtn, { backgroundColor: "#0066CC" }]}
               onPress={shareEmail}
               activeOpacity={0.85}
             >
-              <Ionicons name="mail-outline" size={20} color="#fff" />
-              <Text style={styles.shareBtnText}>{t("share.action.email")}</Text>
+              <Ionicons name="mail-outline" size={20} color={colors.card} />
+              <Text style={[styles.shareBtnText, { color: colors.card }]}>{t("share.action.email")}</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[styles.shareBtn, styles.sms]}
+              style={[styles.shareBtn, { backgroundColor: "#10B981" }]}
               onPress={shareSMS}
               activeOpacity={0.85}
             >
-              <Ionicons name="chatbox-outline" size={20} color="#fff" />
-              <Text style={styles.shareBtnText}>{t("share.action.sms")}</Text>
+              <Ionicons name="chatbox-outline" size={20} color={colors.card} />
+              <Text style={[styles.shareBtnText, { color: colors.card }]}>{t("share.action.sms")}</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[styles.shareBtn, styles.copy]}
+              style={[styles.shareBtn, { backgroundColor: colors.text + "80" }]}
               onPress={copyLink}
               activeOpacity={0.85}
             >
-              <Ionicons name="link-outline" size={20} color="#fff" />
-              <Text style={styles.shareBtnText}>{t("share.action.copy")}</Text>
+              <Ionicons name="link-outline" size={20} color={colors.card} />
+              <Text style={[styles.shareBtnText, { color: colors.card }]}>{t("share.action.copy")}</Text>
             </TouchableOpacity>
           </View>
         </Animated.View>

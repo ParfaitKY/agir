@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useI18n } from "../../../app/providers/I18nProvider";
+import { useTheme } from "../../../shared/styles/ThemeProvider";
 
 export interface NewBeneficiaire {
   name: string;
@@ -32,6 +33,7 @@ export default function AddBeneficiaireModal({
   onAdd,
 }: AddBeneficiaireModalProps) {
   const { t } = useI18n();
+  const { colors } = useTheme();
   const [name, setName] = useState("");
   const [accountNumber, setAccountNumber] = useState("");
   const [bank, setBank] = useState("");
@@ -67,57 +69,59 @@ export default function AddBeneficiaireModal({
       transparent
       onRequestClose={resetForm}
     >
-      <View style={styles.modalOverlay}>
-        <View style={styles.modalContainer}>
-          <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>
+      <View style={[styles.modalOverlay, { backgroundColor: "rgba(0,0,0,0.5)" }]}>
+        <View style={[styles.modalContainer, { backgroundColor: colors.card }]}>
+          <View style={[styles.modalHeader, { borderBottomColor: colors.border }]}>
+            <Text style={[styles.modalTitle, { color: colors.text }]}>
               {t("beneficiaries.modal.title")}
             </Text>
             <TouchableOpacity onPress={resetForm}>
-              <Ionicons name="close" size={24} color="#000" />
+              <Ionicons name="close" size={24} color={colors.text} />
             </TouchableOpacity>
           </View>
 
           <ScrollView style={styles.modalContent}>
             <View style={styles.fieldGroup}>
-              <Text style={styles.label}>
+              <Text style={[styles.label, { color: colors.text }]}>
                 {t("beneficiaries.modal.fullName")}{" "}
-                <Text style={styles.required}>*</Text>
+                <Text style={[styles.required, { color: colors.error }]}>*</Text>
               </Text>
               <TextInput
-                style={styles.input}
+                style={[styles.input, { backgroundColor: colors.background, borderColor: colors.border, color: colors.text }]}
                 placeholder="Ex: Jean Dupont"
+                placeholderTextColor={colors.text + "80"}
                 value={name}
                 onChangeText={setName}
               />
             </View>
 
             <View style={styles.fieldGroup}>
-              <Text style={styles.label}>
+              <Text style={[styles.label, { color: colors.text }]}>
                 {t("beneficiaries.modal.accountNumber")}{" "}
-                <Text style={styles.required}>*</Text>
+                <Text style={[styles.required, { color: colors.error }]}>*</Text>
               </Text>
               <TextInput
-                style={styles.input}
+                style={[styles.input, { backgroundColor: colors.background, borderColor: colors.border, color: colors.text }]}
                 placeholder="Ex: 1000CCHQ00000031001"
+                placeholderTextColor={colors.text + "80"}
                 value={accountNumber}
                 onChangeText={setAccountNumber}
               />
             </View>
 
             <View style={styles.fieldGroup}>
-              <Text style={styles.label}>
+              <Text style={[styles.label, { color: colors.text }]}>
                 {t("beneficiaries.modal.bank")}{" "}
-                <Text style={styles.required}>*</Text>
+                <Text style={[styles.required, { color: colors.error }]}>*</Text>
               </Text>
               <TouchableOpacity
-                style={styles.pickerButton}
+                style={[styles.pickerButton, { backgroundColor: colors.background, borderColor: colors.border }]}
                 onPress={() => setShowBankPicker(!showBankPicker)}
               >
-                <Text style={!bank ? styles.placeholder : undefined}>
+                <Text style={!bank ? [styles.placeholder, { color: colors.text + "80" }] : { color: colors.text }}>
                   {bank || t("beneficiaries.modal.selectBank")}
                 </Text>
-                <Text>{showBankPicker ? "▲" : "▼"}</Text>
+                <Text style={{ color: colors.text }}>{showBankPicker ? "▲" : "▼"}</Text>
               </TouchableOpacity>
               {showBankPicker && (
                 <View style={styles.pickerList}>

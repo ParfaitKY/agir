@@ -10,9 +10,11 @@ import {
 import { Ionicons } from "@expo/vector-icons"; // ou "react-native-vector-icons/Ionicons"
 import { MaterialCommunityIcons } from "@expo/vector-icons"; // ou Ionicons
 import { useI18n } from "../../../app/providers/I18nProvider";
+import { useTheme } from "../../../shared/styles/ThemeProvider";
 
 const WalletScreens: React.FC = () => {
   const { t } = useI18n();
+  const { colors } = useTheme();
   const [transferType, setTransferType] = useState<
     "walletToBank" | "bankToWallet"
   >("walletToBank");
@@ -31,12 +33,12 @@ const WalletScreens: React.FC = () => {
   };
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
       {/* HEADER */}
-      <View style={styles.headerCard}>
+      <View style={[styles.headerCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
         <View
           style={{
-            backgroundColor: "#0066CC", // fond bleu
+            backgroundColor: colors.primary, // fond bleu du thème
             borderRadius: 25, // rond si largeur = hauteur
             width: 50,
             height: 50,
@@ -44,11 +46,11 @@ const WalletScreens: React.FC = () => {
             alignItems: "center",
           }}
         >
-          <Ionicons name="wallet-outline" size={28} color="#fff" />
+          <Ionicons name="wallet-outline" size={28} color={colors.background} />
         </View>
         <View style={{ alignItems: "center" }}>
-          <Text style={styles.headerTitle}>{t("wallet.header.title")}</Text>
-          <Text style={styles.headerSubtitle}>
+          <Text style={[styles.headerTitle, { color: colors.text }]}>{t("wallet.header.title")}</Text>
+          <Text style={[styles.headerSubtitle, { color: colors.text + '80' }]}>
             {t("wallet.header.subtitle")}
           </Text>
         </View>
@@ -59,12 +61,13 @@ const WalletScreens: React.FC = () => {
         <TouchableOpacity
           style={[
             styles.typeBtn,
-            transferType === "walletToBank" && styles.typeBtnActive,
+            transferType === "walletToBank" && [styles.typeBtnActive, { backgroundColor: colors.primary }],
+            { backgroundColor: transferType === "walletToBank" ? colors.primary : colors.card }
           ]}
           onPress={() => setTransferType("walletToBank")}
         >
-          <Text>{t("wallet.type.walletToBank.title")}</Text>
-          <Text style={styles.typeBtnText}>
+          <Text style={{ color: transferType === "walletToBank" ? colors.background : colors.text }}>{t("wallet.type.walletToBank.title")}</Text>
+          <Text style={[styles.typeBtnText, { color: transferType === "walletToBank" ? colors.background : colors.text + '80' }]}>
             {t("wallet.type.walletToBank.subtitle")}
           </Text>
         </TouchableOpacity>
@@ -72,44 +75,48 @@ const WalletScreens: React.FC = () => {
         <TouchableOpacity
           style={[
             styles.typeBtn,
-            transferType === "bankToWallet" && styles.typeBtnActive,
+            transferType === "bankToWallet" && [styles.typeBtnActive, { backgroundColor: colors.primary }],
+            { backgroundColor: transferType === "bankToWallet" ? colors.primary : colors.card }
           ]}
           onPress={() => setTransferType("bankToWallet")}
         >
-          <Text>{t("wallet.type.bankToWallet.title")}</Text>
-          <Text style={styles.typeBtnText}>
+          <Text style={{ color: transferType === "bankToWallet" ? colors.background : colors.text }}>{t("wallet.type.bankToWallet.title")}</Text>
+          <Text style={[styles.typeBtnText, { color: transferType === "bankToWallet" ? colors.background : colors.text + '80' }]}>
             {t("wallet.type.bankToWallet.subtitle")}
           </Text>
         </TouchableOpacity>
       </View>
 
       {/* FORM */}
-      <View style={styles.formCard}>
-        <Text style={styles.label}>{t("wallet.form.walletSource.label")}</Text>
+      <View style={[styles.formCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+        <Text style={[styles.label, { color: colors.text }]}>{t("wallet.form.walletSource.label")}</Text>
         <TextInput
-          style={styles.input}
+          style={[styles.input, { backgroundColor: colors.background, color: colors.text, borderColor: colors.border }]}
           placeholder={t("wallet.form.walletSource.placeholder")}
+          placeholderTextColor={colors.text + '60'}
           value={walletNumber}
           onChangeText={setWalletNumber}
         />
 
-        <Text style={styles.label}>{t("wallet.form.bankDest.label")}</Text>
+        <Text style={[styles.label, { color: colors.text }]}>{t("wallet.form.bankDest.label")}</Text>
         <TextInput
-          style={styles.input}
+          style={[styles.input, { backgroundColor: colors.background, color: colors.text, borderColor: colors.border }]}
           placeholder={t("wallet.form.bankDest.placeholder")}
+          placeholderTextColor={colors.text + '60'}
           value={bankAccount}
           onChangeText={setBankAccount}
         />
 
-        <Text style={styles.label}>{t("wallet.form.amount.label")}</Text>
+        <Text style={[styles.label, { color: colors.text }]}>{t("wallet.form.amount.label")}</Text>
         <View style={styles.amountRow}>
           <TextInput
-            style={[styles.input, { flex: 1 }]}
+            style={[styles.input, { flex: 1, backgroundColor: colors.background, color: colors.text, borderColor: colors.border }]}
             keyboardType="numeric"
+            placeholderTextColor={colors.text + '60'}
             value={amount.toString()}
             onChangeText={(text) => setAmount(Number(text))}
           />
-          <Text style={styles.currency}>{t("common.currency.xaf")}</Text>
+          <Text style={[styles.currency, { color: colors.text }]}>{t("common.currency.xaf")}</Text>
         </View>
 
         {/* QUICK AMOUNTS */}
@@ -117,25 +124,25 @@ const WalletScreens: React.FC = () => {
           {[10000, 25000, 50000, 100000].map((val) => (
             <TouchableOpacity
               key={val}
-              style={styles.quickBtn}
+              style={[styles.quickBtn, { backgroundColor: colors.success + '20', borderColor: colors.success }]}
               onPress={() => handleQuickAmount(val)}
             >
-              <Text style={{ color: "#00960cff", fontWeight: "bold" }}>
+              <Text style={{ color: colors.success, fontWeight: "bold" }}>
                 {val / 1000}k
               </Text>
             </TouchableOpacity>
           ))}
         </View>
 
-        <TouchableOpacity style={styles.submitBtn} onPress={handleSubmit}>
+        <TouchableOpacity style={[styles.submitBtn, { backgroundColor: colors.primary }]} onPress={handleSubmit}>
           <View style={{ flexDirection: "row", alignItems: "center" }}>
             <Ionicons
               name="checkmark-circle-outline"
               size={20}
-              color="#fff"
+              color={colors.background}
               style={{ marginRight: 8 }}
             />
-            <Text style={styles.submitText}>{t("wallet.action.submit")}</Text>
+            <Text style={[styles.submitText, { color: colors.background }]}>{t("wallet.action.submit")}</Text>
           </View>
         </TouchableOpacity>
       </View>
@@ -153,7 +160,7 @@ const WalletScreens: React.FC = () => {
               width: 20,
               height: 20,
               borderRadius: 10,
-              backgroundColor: "#34ff45",
+              backgroundColor: colors.success,
               justifyContent: "center",
               alignItems: "center",
               marginRight: 8,
@@ -162,10 +169,10 @@ const WalletScreens: React.FC = () => {
             <MaterialCommunityIcons
               name="shield-check"
               size={14}
-              color="#fff"
+              color={colors.background}
             />
           </View>
-          <Text style={styles.secure}>{t("wallet.note.secure")}</Text>
+          <Text style={[styles.secure, { color: colors.text + "80" }]}>{t("wallet.note.secure")}</Text>
         </View>
       </View>
     </ScrollView>

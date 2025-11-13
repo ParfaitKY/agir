@@ -9,11 +9,13 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { useI18n } from "../../../app/providers/I18nProvider";
+import { useTheme } from "../../../shared/styles/ThemeProvider";
 
 export const AccountDetailsScreen: React.FC = () => {
   const navigation = useNavigation();
   const route = useRoute() as any;
   const { t, tText } = useI18n();
+  const { colors } = useTheme();
   const account = route?.params?.account ?? {
     type: "Compte Chèque",
     number: "****31001",
@@ -22,10 +24,11 @@ export const AccountDetailsScreen: React.FC = () => {
     color: "#0A84FF",
   };
 
+  const styles = getStyles(colors);
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       {/* Blue account card */}
-      <View style={[styles.blueCard, { backgroundColor: "#0A84FF" }]}>
+      <View style={[styles.blueCard, { backgroundColor: colors.primary }]}>
         <View style={styles.blueCardHeader}>
           <View>
             <Text style={styles.blueCardType}>{tText(account.type)}</Text>
@@ -82,7 +85,7 @@ export const AccountDetailsScreen: React.FC = () => {
           },
         ].map((item) => (
           <View key={item.label} style={styles.quickItem}>
-            <View style={[styles.quickIcon, { backgroundColor: "#F4F8FF" }]}>
+            <View style={[styles.quickIcon, { backgroundColor: colors.card }]}>
               <Ionicons name={item.icon as any} size={18} color={item.color} />
             </View>
             <Text style={styles.quickText}>{item.label}</Text>
@@ -93,17 +96,17 @@ export const AccountDetailsScreen: React.FC = () => {
       {/* Stats of the month */}
       <View style={styles.statsRow}>
         <View style={styles.statBox}>
-          <Ionicons name="arrow-down" size={16} color="#34C759" />
-          <Text style={[styles.statValue, { color: "#34C759" }]}>+125 000</Text>
+          <Ionicons name="arrow-down" size={16} color={colors.success} />
+          <Text style={[styles.statValue, { color: colors.success }]}>+125 000</Text>
           <Text style={styles.statLabel}>{t("transactions.summary.in")}</Text>
         </View>
         <View style={styles.statBox}>
-          <Ionicons name="arrow-up" size={16} color="#FF3B30" />
-          <Text style={[styles.statValue, { color: "#FF3B30" }]}>-87 500</Text>
+          <Ionicons name="arrow-up" size={16} color={colors.error} />
+          <Text style={[styles.statValue, { color: colors.error }]}>-87 500</Text>
           <Text style={styles.statLabel}>{t("transactions.summary.out")}</Text>
         </View>
         <View style={styles.statBox}>
-          <Ionicons name="swap-horizontal" size={16} color="#0A84FF" />
+          <Ionicons name="swap-horizontal" size={16} color={colors.primary} />
           <Text style={styles.statValue}>23</Text>
           <Text style={styles.statLabel}>
             {t("accounts.stats.transactions")}
@@ -177,7 +180,7 @@ export const AccountDetailsScreen: React.FC = () => {
             <View
               style={[
                 styles.progressFill,
-                { width: "50%", backgroundColor: "#0A84FF" },
+                { width: "50%", backgroundColor: colors.primary },
               ]}
             />
           </View>
@@ -193,7 +196,7 @@ export const AccountDetailsScreen: React.FC = () => {
             <View
               style={[
                 styles.progressFill,
-                { width: "44%", backgroundColor: "#34C759" },
+                { width: "44%", backgroundColor: colors.success },
               ]}
             />
           </View>
@@ -236,8 +239,8 @@ export const AccountDetailsScreen: React.FC = () => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#F8F9FB" },
+const getStyles = (colors: any) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: colors.background },
   headerRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -256,7 +259,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontSize: 16,
     fontWeight: "700",
-    color: "#1A1A1A",
+    color: colors.text,
   },
 
   blueCard: {
@@ -264,7 +267,7 @@ const styles = StyleSheet.create({
     marginTop: 14,
     borderRadius: 16,
     padding: 16,
-    shadowColor: "#000",
+    shadowColor: colors.border,
     shadowOpacity: 0.08,
     shadowOffset: { width: 0, height: 2 },
     shadowRadius: 8,
@@ -319,7 +322,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 6,
   },
-  quickText: { fontSize: 12, color: "#7F8C8D" },
+  quickText: { fontSize: 12, color: colors.text, opacity: 0.7 },
 
   statsRow: {
     flexDirection: "row",
@@ -328,21 +331,21 @@ const styles = StyleSheet.create({
     marginTop: 18,
   },
   statBox: {
-    backgroundColor: "#fff",
+    backgroundColor: colors.card,
     borderRadius: 14,
     padding: 14,
     width: "32%",
     alignItems: "center",
-    shadowColor: "#000",
+    shadowColor: colors.border,
     shadowOpacity: 0.06,
     shadowOffset: { width: 0, height: 2 },
     shadowRadius: 6,
     elevation: 2,
     borderWidth: 1,
-    borderColor: "#f0f0f0",
+    borderColor: colors.border,
   },
   statValue: { fontSize: 16, fontWeight: "700" },
-  statLabel: { fontSize: 12, color: "#7F8C8D", marginTop: 6 },
+  statLabel: { fontSize: 12, color: colors.text, opacity: 0.7, marginTop: 6 },
 
   section: { paddingHorizontal: 16, marginTop: 18 },
   sectionHeaderRow: {
@@ -351,21 +354,21 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 10,
   },
-  sectionTitle: { fontSize: 16, fontWeight: "700", color: "#1A1A1A" },
-  link: { fontSize: 12, color: "#0A84FF" },
+  sectionTitle: { fontSize: 16, fontWeight: "700", color: colors.text },
+  link: { fontSize: 12, color: colors.primary },
 
   categoryCard: {
-    backgroundColor: "#fff",
+    backgroundColor: colors.card,
     borderRadius: 14,
     paddingVertical: 8,
     paddingHorizontal: 14,
-    shadowColor: "#000",
+    shadowColor: colors.border,
     shadowOpacity: 0.06,
     shadowOffset: { width: 0, height: 2 },
     shadowRadius: 6,
     elevation: 2,
     borderWidth: 1,
-    borderColor: "#f0f0f0",
+    borderColor: colors.border,
   },
   categoryRow: {
     flexDirection: "row",
@@ -373,53 +376,53 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   dot: { width: 8, height: 8, borderRadius: 4, marginRight: 10 },
-  categoryLabel: { flex: 1, color: "#1A1A1A", fontSize: 13 },
+  categoryLabel: { flex: 1, color: colors.text, fontSize: 13 },
   categoryRight: { alignItems: "flex-end" },
-  categoryAmount: { color: "#1A1A1A", fontWeight: "700", fontSize: 13 },
-  categoryPercent: { color: "#7F8C8D", fontSize: 12, marginTop: 2 },
-  categoryDivider: { height: 1, backgroundColor: "#EDEDED", marginLeft: 24 },
+  categoryAmount: { color: colors.text, fontWeight: "700", fontSize: 13 },
+  categoryPercent: { color: colors.text, opacity: 0.7, fontSize: 12, marginTop: 2 },
+  categoryDivider: { height: 1, backgroundColor: colors.border, marginLeft: 24 },
 
   limitBox: {
-    backgroundColor: "#fff",
+    backgroundColor: colors.card,
     borderRadius: 22,
     padding: 16,
     marginBottom: 16,
-    shadowColor: "#000",
+    shadowColor: colors.border,
     shadowOpacity: 0.06,
     shadowOffset: { width: 0, height: 2 },
     shadowRadius: 6,
     elevation: 2,
     borderWidth: 1,
-    borderColor: "#f0f0f0",
+    borderColor: colors.border,
   },
   limitHeaderRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
   },
-  limitLabel: { fontSize: 13, color: "#1A1A1A", fontWeight: "700" },
-  limitAmount: { fontSize: 12, color: "#7F8C8D" },
+  limitLabel: { fontSize: 13, color: colors.text, fontWeight: "700" },
+  limitAmount: { fontSize: 12, color: colors.text, opacity: 0.7 },
   progressTrack: {
     position: "relative",
     height: 8,
     borderRadius: 4,
-    backgroundColor: "#E0E0E0",
+    backgroundColor: colors.border,
     marginTop: 10,
     overflow: "hidden",
   },
   progressFill: { height: "100%", borderRadius: 4 },
 
   infoBox: {
-    backgroundColor: "#fff",
+    backgroundColor: colors.card,
     borderRadius: 22,
     paddingHorizontal: 16,
-    shadowColor: "#000",
+    shadowColor: colors.border,
     shadowOpacity: 0.06,
     shadowOffset: { width: 0, height: 2 },
     shadowRadius: 6,
     elevation: 2,
     borderWidth: 1,
-    borderColor: "#f0f0f0",
+    borderColor: colors.border,
   },
   infoRowFirst: {
     flexDirection: "row",
@@ -431,17 +434,17 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingVertical: 16,
     borderTopWidth: 1,
-    borderTopColor: "#EDEDED",
+    borderTopColor: colors.border,
   },
-  infoLabel: { color: "#7F8C8D", fontSize: 13 },
-  infoValue: { color: "#1A1A1A", fontSize: 13, fontWeight: "700" },
+  infoLabel: { color: colors.text, opacity: 0.7, fontSize: 13 },
+  infoValue: { color: colors.text, fontSize: 13, fontWeight: "700" },
   statusPill: {
-    backgroundColor: "#E8F7EC",
+    backgroundColor: 'rgba(39,174,96,0.15)',
     borderRadius: 16,
     paddingHorizontal: 12,
     paddingVertical: 6,
   },
-  statusPillText: { color: "#34C759", fontSize: 13, fontWeight: "700" },
+  statusPillText: { color: colors.success, fontSize: 13, fontWeight: "700" },
 });
 
 export default AccountDetailsScreen;

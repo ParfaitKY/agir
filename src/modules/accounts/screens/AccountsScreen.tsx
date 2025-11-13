@@ -9,11 +9,13 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { useI18n } from "../../../app/providers/I18nProvider";
+import { useTheme } from "../../../shared/styles/ThemeProvider";
 
 export const AccountsScreen: React.FC = () => {
   const navigation = useNavigation();
   const [filter, setFilter] = useState<"tous" | "cheque" | "epargne">("tous");
   const { t, tText } = useI18n();
+  const { colors } = useTheme();
 
   const stats = [
     {
@@ -169,7 +171,7 @@ export const AccountsScreen: React.FC = () => {
           >
             <View style={styles.accountTop}>
               <View
-                style={[styles.accountIcon, { backgroundColor: "#E8F0FE" }]}
+                style={[styles.accountIcon, { backgroundColor: colors.card }]}
               >
                 <Ionicons
                   name={
@@ -184,7 +186,7 @@ export const AccountsScreen: React.FC = () => {
                 <Text style={styles.accountNumber}>{a.number}</Text>
               </View>
               <View style={styles.statusPill}>
-                <Ionicons name="checkmark-circle" size={14} color="#34C759" />
+                <Ionicons name="checkmark-circle" size={14} color={colors.success} />
                 <Text style={styles.statusText}>
                   {t("accounts.status.active")}
                 </Text>

@@ -34,12 +34,16 @@ import RateAppScreen from "../../modules/settings/screens/RateAppScreen";
 import ShareAppScreen from "../../modules/settings/screens/ShareAppScreen";
 import TermsOfUseScreen from "../../modules/settings/screens/TermsOfUseScreen";
 import SplashScreen from "../../modules/auth/screens/SplashScreen";
+import InitialSetupScreen from "../../modules/auth/screens/InitialSetupScreen";
+import PinLoginScreen from "../../modules/auth/screens/PinLoginScreen";
+import { useTheme } from "../../shared/styles/ThemeProvider";
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 
 const MainTabs = () => {
   const { t } = useI18n();
+  const { colors } = useTheme();
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
@@ -66,6 +70,12 @@ const MainTabs = () => {
           return <Ionicons name={iconName} size={size} color={color} />;
         },
         headerShown: false,
+        tabBarActiveTintColor: colors.primary,
+        tabBarInactiveTintColor: colors.text,
+        tabBarStyle: {
+          backgroundColor: colors.card,
+          borderTopColor: colors.border,
+        },
       })}
     >
       <Tab.Screen
@@ -92,9 +102,9 @@ const MainTabs = () => {
           headerTitleStyle: {
             fontSize: 18,
             fontWeight: "700",
-            color: "#1A1A1A",
+            color: colors.text,
           },
-          headerStyle: { backgroundColor: "#fff" },
+          headerStyle: { backgroundColor: colors.card },
           headerLeft: () => (
             <TouchableOpacity
               onPress={() =>
@@ -104,7 +114,7 @@ const MainTabs = () => {
               }
               style={{ paddingHorizontal: 12 }}
             >
-              <Ionicons name="arrow-back" size={24} color="#0066CC" />
+              <Ionicons name="arrow-back" size={24} color={colors.primary} />
             </TouchableOpacity>
           ),
         })}
@@ -116,6 +126,9 @@ const MainTabs = () => {
           tabBarLabel: t("tabs.settings"),
           headerShown: true,
           title: t("tabs.settings"),
+          headerStyle: { backgroundColor: colors.card },
+          headerTitleStyle: { color: colors.text },
+          headerTintColor: colors.primary,
         }}
       />
     </Tab.Navigator>
@@ -125,6 +138,7 @@ const MainTabs = () => {
 export const AppNavigator: React.FC = () => {
   const { isAuthenticated } = useAuth();
   const { t, tText } = useI18n();
+  const { colors } = useTheme();
 
   return (
     <Stack.Navigator
@@ -133,53 +147,109 @@ export const AppNavigator: React.FC = () => {
     >
       {/* Écran Splash affiché au démarrage, redirige vers Main ou Login */}
       <Stack.Screen name="Splash" component={SplashScreen} />
+      <Stack.Screen name="InitialSetup" component={InitialSetupScreen} />
+      <Stack.Screen name="PinLogin" component={PinLoginScreen} />
       {isAuthenticated ? (
         <>
           <Stack.Screen name="Main" component={MainTabs} />
           <Stack.Screen
             name="Transfer"
             component={TransferScreen}
-            options={{ headerShown: true, title: tText("Virement") }}
+            options={{
+              headerShown: true,
+              title: tText("Virement"),
+              headerStyle: { backgroundColor: colors.card },
+              headerTitleStyle: { color: colors.text },
+              headerTintColor: colors.primary,
+            }}
           />
           <Stack.Screen
             name="Accounts"
             component={AccountsScreen}
-            options={{ headerShown: true, title: tText("Mes Comptes") }}
+            options={{
+              headerShown: true,
+              title: tText("Mes Comptes"),
+              headerStyle: { backgroundColor: colors.card },
+              headerTitleStyle: { color: colors.text },
+              headerTintColor: colors.primary,
+            }}
           />
           <Stack.Screen
             name="AccountDetails"
             component={AccountDetailsScreen}
-            options={{ headerShown: true, title: tText("Détails du compte") }}
+            options={{
+              headerShown: true,
+              title: tText("Détails du compte"),
+              headerStyle: { backgroundColor: colors.card },
+              headerTitleStyle: { color: colors.text },
+              headerTintColor: colors.primary,
+            }}
           />
           <Stack.Screen
             name="Cards"
             component={CardsScreen}
-            options={{ headerShown: true, title: tText("Mes Cartes") }}
+            options={{
+              headerShown: true,
+              title: tText("Mes Cartes"),
+              headerStyle: { backgroundColor: colors.card },
+              headerTitleStyle: { color: colors.text },
+              headerTintColor: colors.primary,
+            }}
           />
           <Stack.Screen
             name="DetailsProduits"
             component={ProductDetailPage}
-            options={{ headerShown: true, title: tText("Détail du produit") }}
+            options={{
+              headerShown: true,
+              title: tText("Détail du produit"),
+              headerStyle: { backgroundColor: colors.card },
+              headerTitleStyle: { color: colors.text },
+              headerTintColor: colors.primary,
+            }}
           />
           <Stack.Screen
             name="BeneficiairesPage"
             component={BeneficiairesPage}
-            options={{ headerShown: true, title: "Beneficiaires" }}
+            options={{
+              headerShown: true,
+              title: "Beneficiaires",
+              headerStyle: { backgroundColor: colors.card },
+              headerTitleStyle: { color: colors.text },
+              headerTintColor: colors.primary,
+            }}
           />
           <Stack.Screen
             name="WalletScreens"
             component={WalletScreens}
-            options={{ headerShown: true, title: "Mon Wallet" }}
+            options={{
+              headerShown: true,
+              title: "Mon Wallet",
+              headerStyle: { backgroundColor: colors.card },
+              headerTitleStyle: { color: colors.text },
+              headerTintColor: colors.primary,
+            }}
           />
           <Stack.Screen
             name="Profile"
             component={ProfileScreen}
-            options={{ headerShown: true, title: tText("Mon Profil") }}
+            options={{
+              headerShown: true,
+              title: tText("Mon Profil"),
+              headerStyle: { backgroundColor: colors.card },
+              headerTitleStyle: { color: colors.text },
+              headerTintColor: colors.primary,
+            }}
           />
           <Stack.Screen
             name="Language"
             component={LanguageScreen}
-            options={{ headerShown: true, title: "Langue / Language / 语言" }}
+            options={{
+              headerShown: true,
+              title: "Langue / Language / 语言",
+              headerStyle: { backgroundColor: colors.card },
+              headerTitleStyle: { color: colors.text },
+              headerTintColor: colors.primary,
+            }}
           />
           <Stack.Screen
             name="Statements"
@@ -189,32 +259,66 @@ export const AppNavigator: React.FC = () => {
           <Stack.Screen
             name="PrivacyPolicy"
             component={PrivacyPolicyScreen}
-            options={{ headerShown: true }}
+            options={{
+              headerShown: true,
+              headerStyle: { backgroundColor: colors.card },
+              headerTitleStyle: { color: colors.text },
+              headerTintColor: colors.primary,
+            }}
           />
           <Stack.Screen
             name="TermsOfUse"
             component={TermsOfUseScreen}
-            options={{ headerShown: true }}
+            options={{
+              headerShown: true,
+              headerStyle: { backgroundColor: colors.card },
+              headerTitleStyle: { color: colors.text },
+              headerTintColor: colors.primary,
+            }}
           />
           <Stack.Screen
             name="EmailSupport"
             component={EmailSupportScreen}
-            options={{ headerShown: true, title: tText("Envoyer un email") }}
+            options={{
+              headerShown: true,
+              title: tText("Envoyer un email"),
+              headerStyle: { backgroundColor: colors.card },
+              headerTitleStyle: { color: colors.text },
+              headerTintColor: colors.primary,
+            }}
           />
           <Stack.Screen
             name="AboutApp"
             component={AboutAppScreen}
-            options={{ headerShown: true, title: tText("settings.app.about") }}
+            options={{
+              headerShown: true,
+              title: tText("settings.app.about"),
+              headerStyle: { backgroundColor: colors.card },
+              headerTitleStyle: { color: colors.text },
+              headerTintColor: colors.primary,
+            }}
           />
           <Stack.Screen
             name="RateApp"
             component={RateAppScreen}
-            options={{ headerShown: true, title: tText("settings.app.rate") }}
+            options={{
+              headerShown: true,
+              title: tText("settings.app.rate"),
+              headerStyle: { backgroundColor: colors.card },
+              headerTitleStyle: { color: colors.text },
+              headerTintColor: colors.primary,
+            }}
           />
           <Stack.Screen
             name="ShareApp"
             component={ShareAppScreen}
-            options={{ headerShown: true, title: t("settings.app.share") }}
+            options={{
+              headerShown: true,
+              title: t("settings.app.share"),
+              headerStyle: { backgroundColor: colors.card },
+              headerTitleStyle: { color: colors.text },
+              headerTintColor: colors.primary,
+            }}
           />
         </>
       ) : (

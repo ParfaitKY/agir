@@ -14,10 +14,12 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useI18n } from "../../../app/providers/I18nProvider";
 import { useNavigation } from "@react-navigation/native";
+import { useTheme } from "../../../shared/styles/ThemeProvider";
 
 const RateAppScreen: React.FC = () => {
   const navigation = useNavigation();
   const { t, language } = useI18n();
+  const { colors } = useTheme();
   const [rating, setRating] = useState<number>(0);
   const [comment, setComment] = useState<string>("");
 
@@ -74,7 +76,7 @@ const RateAppScreen: React.FC = () => {
   }, [language, navigation, t]);
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
@@ -85,21 +87,22 @@ const RateAppScreen: React.FC = () => {
             { opacity: fadeAnim, transform: [{ scale: scaleAnim }] },
           ]}
         >
-          <View style={styles.logoCircle}>
+          <View style={[styles.logoCircle, { backgroundColor: colors.card, borderColor: colors.border }]}>
             <Image
               source={{ uri: "https://lapeyrie-emf.ga/logo.png" }}
               style={styles.logo}
               resizeMode="contain"
             />
           </View>
-          <Text style={styles.title}>{t("rate.hero.title")}</Text>
-          <Text style={styles.subtitle}>{t("rate.hero.subtitle")}</Text>
+          <Text style={[styles.title, { color: colors.text }]}>{t("rate.hero.title")}</Text>
+          <Text style={[styles.subtitle, { color: colors.text + "80" }]}>{t("rate.hero.subtitle")}</Text>
         </Animated.View>
 
         <Animated.View
           style={[
             styles.card,
             { opacity: fadeAnim, transform: [{ scale: scaleAnim }] },
+            { backgroundColor: colors.card, borderColor: colors.border }
           ]}
         >
           <Animated.View
@@ -112,28 +115,29 @@ const RateAppScreen: React.FC = () => {
               <TouchableOpacity
                 key={s}
                 onPress={() => setRating(s)}
-                style={[styles.star, rating >= s && styles.starSelected]}
+                style={[styles.star, rating >= s && { backgroundColor: colors.warning + "20" }, { backgroundColor: colors.background }]}
                 activeOpacity={0.85}
               >
                 <Ionicons
                   name={rating >= s ? "star" : "star-outline"}
                   size={32}
-                  color={rating >= s ? "#FFC107" : "#9CA3AF"}
+                  color={rating >= s ? colors.warning : colors.text + "60"}
                 />
               </TouchableOpacity>
             ))}
           </Animated.View>
 
-          <View style={styles.inputWrap}>
+          <View style={[styles.inputWrap, { backgroundColor: colors.background, borderColor: colors.border }]}>
             <Ionicons
               name="chatbox-ellipses-outline"
               size={18}
-              color="#6B7280"
+              color={colors.text}
               style={styles.inputIcon}
             />
             <TextInput
-              style={[styles.input, styles.inputFlex]}
+              style={[styles.input, styles.inputFlex, { color: colors.text }]}
               placeholder={t("rate.input.placeholder")}
+              placeholderTextColor={colors.text + "80"}
               multiline
               value={comment}
               onChangeText={setComment}
@@ -142,22 +146,22 @@ const RateAppScreen: React.FC = () => {
 
           <View style={styles.actions}>
             <TouchableOpacity
-              style={[styles.button, styles.ghost]}
+              style={[styles.button, styles.ghost, { backgroundColor: colors.card, borderColor: colors.border }]}
               onPress={() => {
                 setRating(0);
                 setComment("");
               }}
             >
-              <Text style={[styles.buttonText, styles.ghostText]}>
+              <Text style={[styles.buttonText, styles.ghostText, { color: colors.text }]}>
                 {t("common.cancel")}
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[styles.button, styles.primary]}
+              style={[styles.button, styles.primary, { backgroundColor: colors.primary }]}
               onPress={submit}
               activeOpacity={0.85}
             >
-              <Text style={[styles.buttonText, styles.primaryText]}>
+              <Text style={[styles.buttonText, styles.primaryText, { color: "#fff" }]}>
                 {t("rate.actions.submit")}
               </Text>
             </TouchableOpacity>

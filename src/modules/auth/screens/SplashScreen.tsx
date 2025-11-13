@@ -12,7 +12,7 @@ import { useAuth } from "../../../app/hooks/useAuth";
 
 const SplashScreen: React.FC = () => {
   const navigation = useNavigation();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isConfigured } = useAuth() as any;
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(0.94)).current;
@@ -52,15 +52,28 @@ const SplashScreen: React.FC = () => {
 
     const timeout = setTimeout(() => {
       // Redirection automatique après ~2.4s
+      const target = isAuthenticated
+        ? "Main"
+        : isConfigured
+        ? "PinLogin"
+        : "InitialSetup";
       if ((navigation as any).replace) {
-        (navigation as any).replace(isAuthenticated ? "Main" : "Login");
+        (navigation as any).replace(target);
       } else {
-        (navigation as any).navigate(isAuthenticated ? "Main" : "Login");
+        (navigation as any).navigate(target);
       }
     }, 2400);
 
     return () => clearTimeout(timeout);
-  }, [fadeAnim, scaleAnim, translateY, spinAnim, isAuthenticated, navigation]);
+  }, [
+    fadeAnim,
+    scaleAnim,
+    translateY,
+    spinAnim,
+    isAuthenticated,
+    isConfigured,
+    navigation,
+  ]);
 
   const spinRotate = spinAnim.interpolate({
     inputRange: [0, 1],
