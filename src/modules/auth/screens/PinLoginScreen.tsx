@@ -415,3 +415,5 @@ const pinStyles = StyleSheet.create({
     marginTop: 16,
   },
 });
+
+export default PinLoginScreen;
