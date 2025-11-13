@@ -662,6 +662,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: "bold",
+    paddingBottom:20,
     color: "#1A1A1A",
   },
   seeAllText: {
@@ -675,6 +676,7 @@ const styles = StyleSheet.create({
     flexWrap: "wrap",
     justifyContent: "space-between",
     gap: 12,
+    
   },
   quickActionCard: {
     backgroundColor: "#fff",
