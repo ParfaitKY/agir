@@ -207,14 +207,14 @@ export const DashboardScreen: React.FC = () => {
               </TouchableOpacity>
             </View>
 
-            <View style={[styles.qrBox, { backgroundColor: colors.card, borderColor: colors.border }]}>
-              <Ionicons name="qr-code-outline" size={220} color={colors.primary} />
+            <View style={[styles.qrBox, { backgroundColor: colors.background, borderColor: colors.border }]}>
+              <Ionicons name="qr-code-outline" size={220} color={colors.text} />
             </View>
 
             <View style={[styles.qrInfoCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
-              <View style={styles.qrInfoRow}>
+              <View style={[styles.qrInfoRow, { backgroundColor: colors.card }]}>
                 <View
-                  style={[styles.qrInfoIconBg, { backgroundColor: colors.card }]}
+                  style={[styles.qrInfoIconBg, { backgroundColor: colors.primary + '20' }]}
                 >
                   <Ionicons name="person-outline" size={18} color={colors.primary} />
                 </View>
@@ -226,7 +226,7 @@ export const DashboardScreen: React.FC = () => {
                 </View>
               </View>
 
-              <View style={styles.qrInfoRow}>
+              <View style={[styles.qrInfoRow, { backgroundColor: colors.card }]}>
                 <View
                   style={[styles.qrInfoIconBg, { backgroundColor: colors.card }]}
                 >
@@ -240,7 +240,7 @@ export const DashboardScreen: React.FC = () => {
                 </View>
               </View>
 
-              <View style={styles.qrInfoRow}>
+              <View style={[styles.qrInfoRow, { backgroundColor: colors.card }]}>
                 <View
                   style={[styles.qrInfoIconBg, { backgroundColor: colors.card }]}
                 >
@@ -254,7 +254,7 @@ export const DashboardScreen: React.FC = () => {
                 </View>
               </View>
 
-              <View style={styles.qrTipBox}>
+              <View style={[styles.qrTipBox, { backgroundColor: colors.primary + '10' }]}>
                 <View
                   style={[styles.qrTipIconBg, { backgroundColor: colors.primary + "20" }]}
                 >
@@ -903,7 +903,7 @@ const styles = StyleSheet.create({
   },
   qrContainer: {
     width: "90%",
-    backgroundColor: "#fff",
+    backgroundColor: "#fff", // Will be overridden by inline style
     borderRadius: 20,
     padding: 16,
   },
@@ -913,7 +913,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 12,
   },
-  qrHeaderTitle: { fontSize: 18, fontWeight: "800", color: "#1A1A1A" },
+  qrHeaderTitle: { fontSize: 18, fontWeight: "800", color: "#1A1A1A" }, // Will be overridden by inline style
   qrCloseBtn: {
     width: 32,
     height: 32,
@@ -921,14 +921,14 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   qrBox: {
-    backgroundColor: "#fff",
+    backgroundColor: "#fff", // Will be overridden by inline style
     borderRadius: 16,
     padding: 12,
     alignItems: "center",
     justifyContent: "center",
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: "#F0F0F0",
+    borderColor: "#F0F0F0", // Will be overridden by inline style
     shadowColor: "#000",
     shadowOpacity: 0.06,
     shadowOffset: { width: 0, height: 2 },
@@ -939,7 +939,7 @@ const styles = StyleSheet.create({
   qrInfoRow: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#F8F9FB",
+    backgroundColor: "#F8F9FB", // Will be overridden by inline style
     borderRadius: 12,
     padding: 12,
   },
@@ -952,12 +952,12 @@ const styles = StyleSheet.create({
     marginRight: 12,
   },
   qrInfoTexts: { flex: 1 },
-  qrInfoLabel: { fontSize: 12, color: "#7F8C8D" },
-  qrInfoValue: { fontSize: 14, fontWeight: "700", color: "#1A1A1A" },
+  qrInfoLabel: { fontSize: 12, color: "#7F8C8D" }, // Will be overridden by inline style
+  qrInfoValue: { fontSize: 14, fontWeight: "700", color: "#1A1A1A" }, // Will be overridden by inline style
   qrTipBox: {
     flexDirection: "row",
     alignItems: "flex-start",
-    backgroundColor: "#F1F6FF",
+    backgroundColor: "#F1F6FF", // Will be overridden by inline style
     borderRadius: 12,
     padding: 12,
   },
@@ -969,5 +969,5 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginRight: 8,
   },
-  qrTipText: { flex: 1, fontSize: 12, color: "#344054", lineHeight: 18 },
+  qrTipText: { flex: 1, fontSize: 12, color: "#344054", lineHeight: 18 }, // Will be overridden by inline style
 });
