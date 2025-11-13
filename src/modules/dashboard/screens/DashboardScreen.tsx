@@ -8,6 +8,7 @@ import {
   FlatList,
   Modal,
   Dimensions,
+  SafeAreaView,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
@@ -160,7 +161,31 @@ export const DashboardScreen: React.FC = () => {
   );
 
   return (
-    <ScrollView style={[styles.container, { backgroundColor: colors.background }]} showsVerticalScrollIndicator={false}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      {/* Header fixe */}
+      <View style={[styles.header, { backgroundColor: colors.primary }]}>
+        <View>
+          <Text style={[styles.time, { color: colors.background }]}>17:36</Text>
+          <Text style={[styles.hello, { color: colors.background }]}>{t("dashboard.greeting")}</Text>
+        </View>
+        <View style={styles.headerIcons}>
+          <TouchableOpacity
+            style={styles.iconBtn}
+            onPress={() => setShowQrModal(true)}
+          >
+            <Ionicons name="qr-code-outline" size={22} color={colors.background} />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.iconBtn}>
+            <Ionicons name="notifications-outline" size={22} color={colors.background} />
+            <View style={[styles.badge, { backgroundColor: colors.error }]}>
+              <Text style={[styles.badgeText, { color: colors.background }]}>5</Text>
+            </View>
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      {/* Contenu défilable */}
+      <ScrollView style={styles.scrollContent} showsVerticalScrollIndicator={false}>
       {/* Modal QR Code */}
       <Modal
         transparent
@@ -245,30 +270,6 @@ export const DashboardScreen: React.FC = () => {
           </View>
         </View>
       </Modal>
-
-      {/* ... (TOUTES LES SECTIONS EXISTANTES RESTENT IDENTIQUES) ... */}
-
-      {/* Bande bleue de bienvenue - EXISTANT */}
-      <View style={[styles.header, { backgroundColor: colors.primary }]}>
-        <View>
-          <Text style={[styles.time, { color: colors.background }]}>17:36</Text>
-          <Text style={[styles.hello, { color: colors.background }]}>{t("dashboard.greeting")}</Text>
-        </View>
-        <View style={styles.headerIcons}>
-          <TouchableOpacity
-            style={styles.iconBtn}
-            onPress={() => setShowQrModal(true)}
-          >
-            <Ionicons name="qr-code-outline" size={22} color={colors.background} />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.iconBtn}>
-            <Ionicons name="notifications-outline" size={22} color={colors.background} />
-            <View style={[styles.badge, { backgroundColor: colors.error }]}>
-              <Text style={[styles.badgeText, { color: colors.background }]}>5</Text>
-            </View>
-          </TouchableOpacity>
-        </View>
-      </View>
 
       {/* Carte principale - EXISTANT */}
       <View style={[styles.card, { backgroundColor: colors.card }]}>
@@ -500,8 +501,9 @@ export const DashboardScreen: React.FC = () => {
       </View>
 
       {/* Espace en bas pour la navigation */}
-      <View style={styles.bottomSpace} />
-    </ScrollView>
+        <View style={styles.bottomSpace} />
+      </ScrollView>
+    </SafeAreaView>
   );
 };
 
@@ -515,10 +517,20 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     paddingHorizontal: 20,
-    paddingTop: 60,
+    paddingTop: 20,
     paddingBottom: 25,
     borderBottomLeftRadius: 20,
     borderBottomRightRadius: 20,
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 1000,
+    elevation: 5,
+  },
+  scrollContent: {
+    flex: 1,
+    paddingTop: 120, // Espace pour le header fixe
   },
   time: {
     color: "#fff",
