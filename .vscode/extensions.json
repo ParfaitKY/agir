@@ -1,8 +1,0 @@
-{
-  "recommendations": [
-    "expo.vscode-expo-tools",
-    "ms-vscode.vscode-react-native",
-    "bradlc.vscode-tailwindcss",
-    "esbenp.prettier-vscode"
-  ]
-}
