@@ -23,21 +23,21 @@ export const AccountsScreen: React.FC = () => {
       label: "+12.5%",
       sub: t("accounts.stats.month"),
       icon: "trending-up-outline",
-      bg: "#F4F8FF",
+      bg: colors.primary + "15",
     },
     {
       id: 2,
       label: "3",
       sub: t("accounts.stats.accounts"),
       icon: "refresh-circle-outline",
-      bg: "#F7FAFF",
+      bg: colors.success + "15",
     },
     {
       id: 3,
       label: "24",
       sub: t("accounts.stats.transactions"),
       icon: "flash-outline",
-      bg: "#FFF9F2",
+      bg: colors.warning + "15",
     },
   ];
 
@@ -50,7 +50,7 @@ export const AccountsScreen: React.FC = () => {
       currency: "XAF",
       progress: 0.63,
       active: true,
-      color: "#007AFF",
+      color: colors.primary,
     },
     {
       id: 2,
@@ -60,7 +60,7 @@ export const AccountsScreen: React.FC = () => {
       currency: "XAF",
       progress: 0.45,
       active: true,
-      color: "#34C759",
+      color: colors.success,
     },
     {
       id: 3,
@@ -70,17 +70,17 @@ export const AccountsScreen: React.FC = () => {
       currency: "XAF",
       progress: 0.43,
       active: true,
-      color: "#2F6F6B",
+      color: colors.primary,
     },
   ];
 
   const renderStat = (s: any) => (
-    <View key={s.id} style={[styles.statCard]}>
+    <View key={s.id} style={[styles.statCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
       <View style={[styles.statIcon, { backgroundColor: s.bg }]}>
-        <Ionicons name={s.icon as any} size={20} color="#7F8C8D" />
+        <Ionicons name={s.icon as any} size={20} color={colors.text} />
       </View>
-      <Text style={styles.statValue}>{s.label}</Text>
-      <Text style={styles.statSub}>{s.sub}</Text>
+      <Text style={[styles.statValue, { color: colors.text }]}>{s.label}</Text>
+      <Text style={[styles.statSub, { color: colors.text + "70" }]}>{s.sub}</Text>
     </View>
   );
 
@@ -91,7 +91,11 @@ export const AccountsScreen: React.FC = () => {
   ) => (
     <TouchableOpacity
       key={key}
-      style={[styles.chip, filter === key && styles.chipActive]}
+      style={[
+        styles.chip,
+        { backgroundColor: colors.card, borderColor: colors.border },
+        filter === key && { backgroundColor: colors.primary, borderColor: colors.primary }
+      ]}
       onPress={() => setFilter(key)}
       activeOpacity={0.8}
     >
@@ -99,11 +103,11 @@ export const AccountsScreen: React.FC = () => {
         <Ionicons
           name={icon}
           size={16}
-          color={filter === key ? "#fff" : "#7F8C8D"}
+          color={filter === key ? "#fff" : colors.primary}
           style={{ marginRight: 6 }}
         />
       )}
-      <Text style={[styles.chipText, filter === key && styles.chipTextActive]}>
+      <Text style={[styles.chipText, { color: colors.text }, filter === key && styles.chipTextActive]}>
         {label}
       </Text>
     </TouchableOpacity>
@@ -111,21 +115,21 @@ export const AccountsScreen: React.FC = () => {
 
   return (
     <ScrollView
-      style={styles.container}
+      style={[styles.container, { backgroundColor: colors.background }]}
       contentContainerStyle={styles.scrollContent}
       showsVerticalScrollIndicator={true}
     >
       {/* Bande blanche avec Portfolio Total */}
-      <View style={styles.whiteHeader}>
+      <View style={[styles.whiteHeader, { backgroundColor: colors.card, borderColor: colors.border }]}>
         <View>
-          <Text style={styles.portfolioLabel}>
+          <Text style={[styles.portfolioLabel, { color: colors.text + "70" }]}>
             {t("accounts.header.portfolioTotal")}
           </Text>
-          <Text style={styles.portfolioValue}>5 850 000 XAF</Text>
+          <Text style={[styles.portfolioValue, { color: colors.primary }]}>5 850 000 XAF</Text>
         </View>
-        <TouchableOpacity style={styles.notifyBtn}>
-          <Ionicons name="notifications-outline" size={20} color="#007AFF" />
-          <View style={styles.notifyDot} />
+        <TouchableOpacity style={[styles.notifyBtn, { backgroundColor: colors.card, borderColor: colors.border }]}>
+          <Ionicons name="notifications-outline" size={20} color={colors.primary} />
+          <View style={[styles.notifyDot, { backgroundColor: colors.error }]} />
         </TouchableOpacity>
       </View>
 
@@ -134,7 +138,7 @@ export const AccountsScreen: React.FC = () => {
 
       {/* Titre + Filtres */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>{t("accounts.list")}</Text>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>{t("accounts.list")}</Text>
         <View style={styles.filtersRow}>
           {renderFilter("tous", t("accounts.filters.all"))}
           {renderFilter(
@@ -162,16 +166,16 @@ export const AccountsScreen: React.FC = () => {
         .map((a) => (
           <TouchableOpacity
             key={a.id}
-            style={styles.accountCard}
+            style={[styles.accountCard, { backgroundColor: colors.card, borderColor: colors.border }]}
             activeOpacity={0.85}
             onPress={() => {
-              // Ouvrir l’écran de détails pour tout type de compte
+              // Ouvrir l'écran de détails pour tout type de compte
               (navigation as any).navigate("AccountDetails", { account: a });
             }}
           >
             <View style={styles.accountTop}>
               <View
-                style={[styles.accountIcon, { backgroundColor: colors.card }]}
+                style={[styles.accountIcon, { backgroundColor: colors.background }]}
               >
                 <Ionicons
                   name={
@@ -182,12 +186,12 @@ export const AccountsScreen: React.FC = () => {
                 />
               </View>
               <View style={styles.accountInfo}>
-                <Text style={styles.accountType}>{tText(a.type)}</Text>
-                <Text style={styles.accountNumber}>{a.number}</Text>
+                <Text style={[styles.accountType, { color: colors.text }]}>{tText(a.type)}</Text>
+                <Text style={[styles.accountNumber, { color: colors.text + "70" }]}>{a.number}</Text>
               </View>
-              <View style={styles.statusPill}>
+              <View style={[styles.statusPill, { backgroundColor: colors.success + "15" }]}>
                 <Ionicons name="checkmark-circle" size={14} color={colors.success} />
-                <Text style={styles.statusText}>
+                <Text style={[styles.statusText, { color: colors.success }]}>
                   {t("accounts.status.active")}
                 </Text>
               </View>
@@ -195,12 +199,12 @@ export const AccountsScreen: React.FC = () => {
 
             <View style={styles.accountBalanceRow}>
               <View>
-                <Text style={styles.balanceLabel}>
+                <Text style={[styles.balanceLabel, { color: colors.text + "70" }]}>
                   {t("accounts.balance.available")}
                 </Text>
-                <Text style={styles.balanceValue}>
+                <Text style={[styles.balanceValue, { color: colors.text }]}>
                   {a.balance}{" "}
-                  <Text style={styles.balanceCurrency}>{a.currency}</Text>
+                  <Text style={[styles.balanceCurrency, { color: colors.primary }]}>{a.currency}</Text>
                 </Text>
               </View>
               <TouchableOpacity
@@ -211,7 +215,7 @@ export const AccountsScreen: React.FC = () => {
             </View>
 
             <View style={styles.progressBarWrapper}>
-              <View style={styles.progressTrack} />
+              <View style={[styles.progressTrack, { backgroundColor: colors.border }]} />
               <View
                 style={[
                   styles.progressFill,
@@ -222,7 +226,7 @@ export const AccountsScreen: React.FC = () => {
                 ]}
               />
             </View>
-            <Text style={styles.progressText}>
+            <Text style={[styles.progressText, { color: colors.text + "70" }]}>
               {Math.round(a.progress * 100)}% de 2M XAF
             </Text>
           </TouchableOpacity>
@@ -230,7 +234,7 @@ export const AccountsScreen: React.FC = () => {
 
       {/* Floating add button */}
       <View style={styles.bottomSpacer} />
-      <TouchableOpacity style={styles.fab} activeOpacity={0.85}>
+      <TouchableOpacity style={[styles.fab, { backgroundColor: colors.primary }]} activeOpacity={0.85}>
         <Ionicons name="add" size={24} color="#fff" />
       </TouchableOpacity>
     </ScrollView>
@@ -240,13 +244,13 @@ export const AccountsScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F8F9FB",
+    backgroundColor: "#F8F9FB", // Sera remplacé par le thème
   },
   scrollContent: {
     paddingBottom: 120,
   },
   whiteHeader: {
-    backgroundColor: "#fff",
+    backgroundColor: "#fff", // Sera remplacé par le thème
     marginHorizontal: 16,
     marginTop: 12,
     borderRadius: 16,
@@ -260,23 +264,25 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 3,
     borderWidth: 1,
-    borderColor: "#f0f0f0",
+    borderColor: "#f0f0f0", // Sera remplacé par le thème
   },
   portfolioLabel: {
     fontSize: 13,
-    color: "#7F8C8D",
+    color: "#7F8C8D", // Sera remplacé par le thème
     marginBottom: 6,
   },
   portfolioValue: {
     fontSize: 24,
     fontWeight: "800",
-    color: "#007AFF",
+    color: "#007AFF", // Sera remplacé par le thème
   },
   notifyBtn: {
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: "#F4F8FF",
+    backgroundColor: "#F4F8FF", // Sera remplacé par le thème
+    borderColor: "#E0E0E0", // Sera remplacé par le thème
+    borderWidth: 1,
     justifyContent: "center",
     alignItems: "center",
     position: "relative",
@@ -288,7 +294,7 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: "#FF3B30",
+    backgroundColor: "#FF3B30", // Sera remplacé par le thème
   },
   statsRow: {
     flexDirection: "row",
@@ -297,7 +303,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   statCard: {
-    backgroundColor: "#fff",
+    backgroundColor: "#fff", // Sera remplacé par le thème
     borderRadius: 16,
     padding: 16,
     width: "31%",
@@ -308,7 +314,7 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 3,
     borderWidth: 1,
-    borderColor: "#f0f0f0",
+    borderColor: "#f0f0f0", // Sera remplacé par le thème
   },
   statIcon: {
     width: 44,
@@ -321,11 +327,11 @@ const styles = StyleSheet.create({
   statValue: {
     fontSize: 16,
     fontWeight: "700",
-    color: "#1A1A1A",
+    color: "#1A1A1A", // Sera remplacé par le thème
   },
   statSub: {
     fontSize: 12,
-    color: "#7F8C8D",
+    color: "#7F8C8D", // Sera remplacé par le thème
   },
   section: {
     paddingHorizontal: 16,
@@ -334,7 +340,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: "800",
-    color: "#1A1A1A",
+    color: "#1A1A1A", // Sera remplacé par le thème
     marginBottom: 12,
   },
   filtersRow: {
@@ -342,29 +348,25 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   chip: {
-    backgroundColor: "#fff",
+    backgroundColor: "#fff", // Sera remplacé par le thème
     borderRadius: 20,
     paddingVertical: 8,
     paddingHorizontal: 14,
     borderWidth: 1,
-    borderColor: "#E0E0E0",
+    borderColor: "#E0E0E0", // Sera remplacé par le thème
     flexDirection: "row",
     alignItems: "center",
   },
-  chipActive: {
-    backgroundColor: "#007AFF",
-    borderColor: "#007AFF",
-  },
   chipText: {
     fontSize: 13,
-    color: "#7F8C8D",
+    color: "#7F8C8D", // Sera remplacé par le thème
     fontWeight: "600",
   },
   chipTextActive: {
     color: "#fff",
   },
   accountCard: {
-    backgroundColor: "#fff",
+    backgroundColor: "#fff", // Sera remplacé par le thème
     marginHorizontal: 16,
     marginTop: 16,
     borderRadius: 16,
@@ -375,7 +377,7 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 3,
     borderWidth: 1,
-    borderColor: "#f0f0f0",
+    borderColor: "#f0f0f0", // Sera remplacé par le thème
   },
   accountTop: {
     flexDirection: "row",
@@ -395,25 +397,25 @@ const styles = StyleSheet.create({
   accountType: {
     fontSize: 16,
     fontWeight: "800",
-    color: "#1A1A1A",
+    color: "#1A1A1A", // Sera remplacé par le thème
   },
   accountNumber: {
     fontSize: 12,
-    color: "#7F8C8D",
+    color: "#7F8C8D", // Sera remplacé par le thème
     marginTop: 2,
   },
   statusPill: {
     flexDirection: "row",
     alignItems: "center",
     borderRadius: 12,
-    backgroundColor: "#F0FFF5",
+    backgroundColor: "#F0FFF5", // Sera remplacé par le thème
     paddingHorizontal: 10,
     paddingVertical: 6,
     gap: 6,
   },
   statusText: {
     fontSize: 12,
-    color: "#34C759",
+    color: "#34C759", // Sera remplacé par le thème
     fontWeight: "700",
   },
   accountBalanceRow: {
@@ -424,16 +426,16 @@ const styles = StyleSheet.create({
   },
   balanceLabel: {
     fontSize: 13,
-    color: "#7F8C8D",
+    color: "#7F8C8D", // Sera remplacé par le thème
   },
   balanceValue: {
     fontSize: 22,
     fontWeight: "800",
-    color: "#1A1A1A",
+    color: "#1A1A1A", // Sera remplacé par le thème
     marginTop: 6,
   },
   balanceCurrency: {
-    color: "#007AFF",
+    color: "#007AFF", // Sera remplacé par le thème
     fontWeight: "800",
   },
   roundActionBtn: {
@@ -460,7 +462,7 @@ const styles = StyleSheet.create({
     top: 0,
     height: 6,
     borderRadius: 3,
-    backgroundColor: "#F0F0F0",
+    backgroundColor: "#F0F0F0", // Sera remplacé par le thème
   },
   progressFill: {
     position: "absolute",
@@ -468,12 +470,11 @@ const styles = StyleSheet.create({
     top: 0,
     height: 6,
     borderRadius: 3,
-    backgroundColor: "#007AFF",
   },
   progressText: {
     marginTop: 6,
     fontSize: 12,
-    color: "#7F8C8D",
+    color: "#7F8C8D", // Sera remplacé par le thème
     textAlign: "right",
   },
   fab: {
@@ -483,7 +484,7 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: "#0A84FF",
+    backgroundColor: "#0A84FF", // Sera remplacé par le thème
     justifyContent: "center",
     alignItems: "center",
     shadowColor: "#000",
@@ -496,5 +497,3 @@ const styles = StyleSheet.create({
     height: 0,
   },
 });
-
-export default AccountsScreen;

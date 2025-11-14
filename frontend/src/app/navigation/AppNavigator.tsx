@@ -149,9 +149,9 @@ export const AppNavigator: React.FC = () => {
       <Stack.Screen name="Splash" component={SplashScreen} />
       <Stack.Screen name="InitialSetup" component={InitialSetupScreen} />
       <Stack.Screen name="PinLogin" component={PinLoginScreen} />
-      <Stack.Screen name="Main" component={MainTabs} />
       {isAuthenticated ? (
         <>
+          <Stack.Screen name="Main" component={MainTabs} />
           <Stack.Screen
             name="Transfer"
             component={TransferScreen}

@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, Image, ViewProps, TextProps, ImageProps } from "react-native";
+import { View, Text, Image, ViewProps, TextProps, ImageProps, TextStyle } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../styles/ThemeProvider";
 
@@ -20,10 +20,10 @@ export const ThemedView: React.FC<ViewProps & { elevated?: boolean; card?: boole
 
 export const ThemedText: React.FC<TextProps & { variant?: "title" | "subtitle" | "muted" }> = ({ style, variant, ...props }) => {
   const { colors } = useTheme();
-  const base = { color: colors.text } as const;
-  const variantStyle =
+  const base: TextStyle = { color: colors.text };
+  const variantStyle: TextStyle | undefined =
     variant === "title"
-      ? { fontWeight: "700" }
+      ? { fontWeight: "700" as TextStyle["fontWeight"] }
       : variant === "subtitle"
       ? { opacity: 0.85 }
       : variant === "muted"
