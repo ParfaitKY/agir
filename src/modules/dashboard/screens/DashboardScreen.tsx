@@ -14,13 +14,19 @@ import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { useI18n } from "../../../app/providers/I18nProvider";
 import { useTheme } from "../../../shared/styles/ThemeProvider";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export const DashboardScreen: React.FC = () => {
   const servicesScrollRef = useRef<FlatList>(null);
   const navigation = useNavigation();
   const [showQrModal, setShowQrModal] = useState(false);
+  const [showAllTransactions, setShowAllTransactions] = useState(false);
   const { t, tText } = useI18n();
   const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
+  
+  // Calculer la hauteur totale du header (incluant l'encoche)
+  const headerHeight = 140 + insets.top; // Réduit à 140
 
   const screenWidth = Dimensions.get("window").width;
   const horizontalPadding = 40; // 20 left + 20 right (section padding)
@@ -86,7 +92,7 @@ export const DashboardScreen: React.FC = () => {
     },
   ];
 
-  const transactions = [
+  const allTransactions = [
     {
       id: 1,
       type: "Virement reçu",
@@ -114,7 +120,82 @@ export const DashboardScreen: React.FC = () => {
       icon: "document-text-outline",
       iconColor: colors.error,
     },
+    {
+      id: 4,
+      type: "Achat en ligne",
+      amount: "-8 500",
+      date: "Il y a 3 jours",
+      amountColor: colors.error,
+      icon: "cart-outline",
+      iconColor: colors.error,
+    },
+    {
+      id: 5,
+      type: "Remboursement",
+      amount: "+12 000",
+      date: "Il y a 4 jours",
+      amountColor: colors.success,
+      icon: "return-up-back-outline",
+      iconColor: colors.success,
+    },
+    {
+      id: 6,
+      type: "Frais bancaires",
+      amount: "-1 200",
+      date: "Il y a 5 jours",
+      amountColor: colors.error,
+      icon: "card-outline",
+      iconColor: colors.error,
+    },
+    {
+      id: 7,
+      type: "Virement sortant",
+      amount: "-75 000",
+      date: "Il y a 6 jours",
+      amountColor: colors.error,
+      icon: "arrow-up-circle",
+      iconColor: colors.error,
+    },
+    {
+      id: 8,
+      type: "Intérêts épargne",
+      amount: "+3 500",
+      date: "Il y a 7 jours",
+      amountColor: colors.success,
+      icon: "trending-up-outline",
+      iconColor: colors.success,
+    },
+    {
+      id: 9,
+      type: "Paiement mobile",
+      amount: "-5 000",
+      date: "Il y a 8 jours",
+      amountColor: colors.error,
+      icon: "phone-portrait-outline",
+      iconColor: colors.error,
+    },
+    {
+      id: 10,
+      type: "Commission",
+      amount: "-500",
+      date: "Il y a 9 jours",
+      amountColor: colors.error,
+      icon: "receipt-outline",
+      iconColor: colors.error,
+    },
+    {
+      id: 11,
+      type: "Bonus fidélité",
+      amount: "+2 000",
+      date: "Il y a 10 jours",
+      amountColor: colors.success,
+      icon: "gift-outline",
+      iconColor: colors.success,
+    },
   ];
+
+  // Afficher seulement 3 transactions par défaut, ou toutes si "Voir tout" est activé
+  const transactions = showAllTransactions ? allTransactions : allTransactions.slice(0, 3);
 
   // Rendu d'une offre pour la pagination horizontale
   const renderOfferItem = ({ item, index }: { item: any; index: number }) => (
@@ -137,9 +218,6 @@ export const DashboardScreen: React.FC = () => {
         <Text style={[styles.offerSubtitle, { color: colors.primary }]}>{tText(item.subtitle)}</Text>
         <Text style={[styles.offerDescription, { color: colors.text + "80" }]}>{tText(item.description)}</Text>
       </View>
-      <View style={styles.offerIcon}>
-        <Ionicons name={item.icon as any} size={24} color={item.iconColor} />
-      </View>
     </View>
   );
 
@@ -161,9 +239,9 @@ export const DashboardScreen: React.FC = () => {
   );
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-      {/* Header fixe */}
-      <View style={[styles.header, { backgroundColor: colors.primary }]}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      {/* Header fixe avec View normale - HAUTEUR AUGMENTÉE */}
+      <View style={[styles.header, { backgroundColor: colors.primary, paddingTop: insets.top + 20 }]}>
         <View>
           <Text style={[styles.time, { color: colors.background }]}>17:36</Text>
           <Text style={[styles.hello, { color: colors.background }]}>{t("dashboard.greeting")}</Text>
@@ -184,8 +262,12 @@ export const DashboardScreen: React.FC = () => {
         </View>
       </View>
 
-      {/* Contenu défilable */}
-      <ScrollView style={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      {/* Contenu scrollable - ESPACEMENT RÉDUIT */}
+      <ScrollView 
+        style={[styles.scrollContent, { paddingTop: 0 }]} 
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={[styles.scrollContainer, { paddingTop: headerHeight - 10 }]} // Réduit de +3 à -10
+      >
       {/* Modal QR Code */}
       <Modal
         transparent
@@ -271,8 +353,8 @@ export const DashboardScreen: React.FC = () => {
         </View>
       </Modal>
 
-      {/* Carte principale - EXISTANT */}
-      <View style={[styles.card, { backgroundColor: colors.card }]}>
+      {/* Carte principale - espacement encore réduit */}
+      <View style={[styles.card, { backgroundColor: colors.card, marginTop: -15 }]}> // Réduit de 5 à -15
         <View style={styles.userSection}>
           <View style={styles.avatar}>
             <Text style={[styles.avatarText, { color: colors.background }]}>DM</Text>
@@ -335,7 +417,7 @@ export const DashboardScreen: React.FC = () => {
       </View>
 
       {/* Actions rapides - EXISTANT */}
-      <View style={styles.section}>
+      <View style={[styles.section, { marginTop: 15, marginBottom: 2 }]}>
         <Text style={[styles.sectionTitle, { color: colors.text }]}>{t("dashboard.actions.quick")}</Text>
         <View style={styles.quickActions}>
           <TouchableOpacity
@@ -406,7 +488,7 @@ export const DashboardScreen: React.FC = () => {
       </View>
 
       {/* Offres spéciales - pagination horizontale */}
-      <View style={styles.section}>
+      <View style={[styles.section, { marginTop: 18, marginBottom: 8 }]}>
         <View style={styles.sectionHeader}>
           <Text style={[styles.sectionTitle, { color: colors.text }]}>{t("dashboard.offers.title")}</Text>
         </View>
@@ -416,7 +498,7 @@ export const DashboardScreen: React.FC = () => {
           keyExtractor={(item) => item.id.toString()}
           horizontal
           showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.offersContainer}
+          contentContainerStyle={[styles.offersContainer, { paddingBottom: 10 }]}
           snapToAlignment="center"
           decelerationRate="fast"
           snapToInterval={offerCardWidth + itemSpacing}
@@ -425,7 +507,7 @@ export const DashboardScreen: React.FC = () => {
       </View>
 
       {/* NOUVELLE SECTION : Nos services avec défilement horizontal */}
-      <View style={styles.section}>
+      <View style={[styles.section, { marginTop: 18, marginBottom: 8 }]}>
         <Text style={[styles.sectionTitle, { color: colors.text }]}>{t("dashboard.services.title")}</Text>
         <FlatList
           ref={servicesScrollRef}
@@ -434,24 +516,33 @@ export const DashboardScreen: React.FC = () => {
           keyExtractor={(item) => item.id.toString()}
           horizontal
           showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.servicesContainer}
+          contentContainerStyle={[styles.servicesContainer, { paddingBottom: 10 }]}
           snapToAlignment="center"
           decelerationRate="fast"
         />
       </View>
 
       {/* NOUVELLE SECTION : Activité récente CORRIGÉE */}
-      <View style={styles.section}>
+      <View style={[styles.section, { marginTop: 18, marginBottom: 15 }]}>
         <View style={styles.sectionHeader}>
           <Text style={[styles.sectionTitle, { color: colors.text }]}>{t("dashboard.recent.title")}</Text>
-          <TouchableOpacity>
+          <TouchableOpacity onPress={() => setShowAllTransactions(!showAllTransactions)}>
             <Text style={[styles.seeAllText, { color: colors.primary }]}>
-              {t("dashboard.recent.seeAll")}
+              {showAllTransactions ? "Voir moins" : t("dashboard.recent.seeAll")}
             </Text>
           </TouchableOpacity>
         </View>
 
-        <View style={[styles.transactionsList, { backgroundColor: colors.card, borderColor: colors.border }]}>
+        <View 
+          style={[
+            styles.transactionsList, 
+            { 
+              backgroundColor: colors.card, 
+              borderColor: colors.border,
+              minHeight: transactions.length * 75 // Hauteur minimale basée sur le nombre de transactions
+            }
+          ]} 
+        >
           {transactions.map((transaction, index) => (
             <View key={transaction.id}>
               <View style={styles.transactionItem}>
@@ -500,10 +591,8 @@ export const DashboardScreen: React.FC = () => {
         </View>
       </View>
 
-      {/* Espace en bas pour la navigation */}
-        <View style={styles.bottomSpace} />
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 };
 
@@ -511,17 +600,17 @@ const styles = StyleSheet.create({
   container: {
     backgroundColor: "#F8F9FB",
     flex: 1,
+    position: 'relative',
   },
   header: {
     backgroundColor: "#007AFF",
     flexDirection: "row",
     justifyContent: "space-between",
     paddingHorizontal: 20,
-    paddingTop: 20,
     paddingBottom: 25,
     borderBottomLeftRadius: 20,
     borderBottomRightRadius: 20,
-    position: "absolute",
+    position: 'absolute',
     top: 0,
     left: 0,
     right: 0,
@@ -530,7 +619,11 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flex: 1,
-    paddingTop: 120, // Espace pour le header fixe
+  },
+  scrollContainer: {
+    paddingTop: 145, // Réduit de 165 à 145
+    paddingBottom: 40, // Réduit de 60 à 40
+    minHeight: Dimensions.get('window').height + 60, // Réduit de +80 à +60
   },
   time: {
     color: "#fff",
@@ -570,9 +663,8 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: "#fff",
     marginHorizontal: 16,
-    marginTop: 30,
-    borderRadius: 20,
-    padding: 20,
+    borderRadius: 14, // Rayon encore réduit
+    padding: 14, // Padding encore réduit
     shadowColor: "#000",
     shadowOpacity: 0.1,
     shadowOffset: { width: 0, height: 2 },
@@ -610,7 +702,7 @@ const styles = StyleSheet.create({
     marginLeft: "auto",
   },
   balanceSection: {
-    marginTop: 20,
+    marginTop: 15, // Espacement réduit
   },
   balanceLabel: {
     color: "#777",
@@ -636,10 +728,10 @@ const styles = StyleSheet.create({
   actions: {
     flexDirection: "row",
     justifyContent: "space-around",
-    marginTop: 15,
+    marginTop: 12, // Espacement réduit
     borderTopWidth: 1,
     borderColor: "#eee",
-    paddingTop: 15,
+    paddingTop: 12, // Padding réduit
   },
   actionBtn: {
     alignItems: "center",
@@ -651,18 +743,19 @@ const styles = StyleSheet.create({
   },
   section: {
     paddingHorizontal: 20,
-    marginTop: 30,
+    marginTop: 15, // Espacement réduit entre sections
+    marginBottom: 5, // Espacement minimal en bas
   },
   sectionHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 15,
+    marginBottom: 10, // Espacement réduit
   },
   sectionTitle: {
+    marginBottom: 15,
     fontSize: 18,
     fontWeight: "bold",
-    paddingBottom:20,
     color: "#1A1A1A",
   },
   seeAllText: {
@@ -675,13 +768,12 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     flexWrap: "wrap",
     justifyContent: "space-between",
-    gap: 12,
-    
+    gap: 10, // Espacement réduit
   },
   quickActionCard: {
     backgroundColor: "#fff",
-    borderRadius: 16,
-    padding: 16,
+    borderRadius: 12, // Rayon réduit
+    padding: 12, // Padding réduit
     width: "48%",
     alignItems: "center",
     shadowColor: "#000",
@@ -850,6 +942,7 @@ const styles = StyleSheet.create({
     elevation: 3,
     borderWidth: 1,
     borderColor: "#F0F0F0",
+    // maxHeight sera géré dynamiquement via inline style
   },
   transactionItem: {
     flexDirection: "row",
@@ -895,7 +988,7 @@ const styles = StyleSheet.create({
     marginLeft: 52, // Aligné avec le contenu (40px icon + 12px margin)
   },
   bottomSpace: {
-    height: 30,
+    // height sera géré dynamiquement via inline style
   },
   qrOverlay: {
     flex: 1,
