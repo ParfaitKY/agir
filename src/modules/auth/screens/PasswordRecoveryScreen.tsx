@@ -107,7 +107,7 @@ const PasswordRecoveryScreen: React.FC = () => {
               }
             ]}
             placeholder="exemple@domaine.com ou +225…"
-            placeholderTextColor={colors.text + "80"}
+            placeholderTextColor={`${colors.text}80`}
             autoCapitalize="none"
             onFocus={() => setEmailFocused(true)}
             onBlur={() => setEmailFocused(false)}
@@ -133,7 +133,7 @@ const PasswordRecoveryScreen: React.FC = () => {
               ]}
               secureTextEntry={!showSecret}
               placeholder="Votre clé secrète"
-              placeholderTextColor={colors.text + "80"}
+              placeholderTextColor={`${colors.text}80`}
               autoCapitalize="none"
               onFocus={() => setSecretFocused(true)}
               onBlur={() => setSecretFocused(false)}
@@ -147,7 +147,7 @@ const PasswordRecoveryScreen: React.FC = () => {
               ]} 
               onPress={() => setShowSecret((s) => !s)}
             >
-              <MaterialIcons name={showSecret ? "visibility-off" : "visibility"} size={22} color={colors.text + "CC"} />
+              <MaterialIcons name={showSecret ? "visibility-off" : "visibility"} size={22} color={`${colors.text}CC`} />
             </TouchableOpacity>
           </View>
         </View>

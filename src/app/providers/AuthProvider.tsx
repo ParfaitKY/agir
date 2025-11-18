@@ -1,7 +1,11 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import * as SecureStore from "expo-secure-store";
 import * as Crypto from "expo-crypto";
-import { secureGetItem, secureSetItem, secureDeleteItem } from "../../shared/utils/secureStorage";
+import {
+  secureGetItem,
+  secureSetItem,
+  secureDeleteItem,
+} from "../../shared/utils/secureStorage";
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -93,18 +97,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       // Supprimer TOUTES les données d'authentification
       await secureDeleteItem("auth_token");
       await secureDeleteItem("user_data");
-      
-      // Supprimer également d'autres données potentiellement stockées
-      await secureDeleteItem("is_configured");
-      await secureDeleteItem("pin_user");
-      
-      // Réinitialiser complètement l'état
+
+      // Préserver la configuration pour les utilisateurs déjà inscrits
+      // Ne supprimer is_configured / pin_user QUE pour le mode invité ou si l'app n'est pas configurée
+      const isGuest = user?.username === "invite";
+      if (isGuest || !isConfigured) {
+        await secureDeleteItem("is_configured");
+        await secureDeleteItem("pin_user");
+        setIsConfigured(false);
+      }
+
+      // Réinitialiser l'état d'authentification
       setIsAuthenticated(false);
       setUser(null);
-      setIsConfigured(false);
-      
-      console.log('=== COMPLETE LOGOUT PERFORMED ===');
-      console.log('All authentication data cleared');
+
+      console.log("=== COMPLETE LOGOUT PERFORMED ===");
+      console.log("All authentication data cleared");
     } catch (error) {
       console.error("Error during logout:", error);
     } finally {
@@ -160,10 +168,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   const markConfigured = async (configured: boolean) => {
-    await secureSetItem(
-      "is_configured",
-      configured ? "true" : "false"
-    );
+    await secureSetItem("is_configured", configured ? "true" : "false");
     setIsConfigured(configured);
   };
 

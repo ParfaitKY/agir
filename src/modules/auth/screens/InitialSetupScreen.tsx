@@ -57,42 +57,49 @@ const InitialSetupScreen: React.FC = () => {
   const avatarSize = Math.max(48, Math.min(72, width * 0.12));
   const logoBoxHeight = Math.min(Math.max(60, width * 0.15), 140);
   const logoBoxWidth = Math.min(Math.max(120, width * 0.4), 300);
-  
+
   // Tailles de police adaptatives
   const headingFontSize =
-    width >= 1200 ? 24 :    // Grands écrans
-    width >= 1024 ? 22 :    // Tablettes grandes
-    width >= 768 ? 20 :     // Tablettes
-    width >= 420 ? 18 :     // Grands téléphones
-    width >= 375 ? 17 :     // Téléphones moyens
-    16;                     // Petits téléphones
-    
-  const subtitleFontSize = 
-    width >= 1024 ? 14 : 
-    width >= 768 ? 13 : 
-    12;
-    
+    width >= 1200
+      ? 24 // Grands écrans
+      : width >= 1024
+      ? 22 // Tablettes grandes
+      : width >= 768
+      ? 20 // Tablettes
+      : width >= 420
+      ? 18 // Grands téléphones
+      : width >= 375
+      ? 17 // Téléphones moyens
+      : 16; // Petits téléphones
+
+  const subtitleFontSize = width >= 1024 ? 14 : width >= 768 ? 13 : 12;
+
   // Padding et espacement adaptatifs
-  const containerPadding = 
-    width >= 1024 ? 32 :    // Grands écrans
-    width >= 768 ? 24 :     // Tablettes
-    width >= 420 ? 20 :     // Grands téléphones
-    16;                     // Petits téléphones
-    
-  const cardPadding = 
-    width >= 1024 ? 32 :
-    width >= 768 ? 24 :
-    width >= 420 ? 20 :
-    16;
-    
+  const containerPadding =
+    width >= 1024
+      ? 32 // Grands écrans
+      : width >= 768
+      ? 24 // Tablettes
+      : width >= 420
+      ? 20 // Grands téléphones
+      : 16; // Petits téléphones
+
+  const cardPadding =
+    width >= 1024 ? 32 : width >= 768 ? 24 : width >= 420 ? 20 : 16;
+
   // Largeur maximale du conteneur
-  const maxContainerWidth = 
-    width >= 1400 ? 800 :   // Très grands écrans
-    width >= 1200 ? 700 :   // Grands écrans
-    width >= 1024 ? 600 :   // Tablettes grandes
-    width >= 768 ? 500 :    // Tablettes
-    width >= 420 ? 380 :    // Grands téléphones
-    340;                   // Petits téléphones
+  const maxContainerWidth =
+    width >= 1400
+      ? 800 // Très grands écrans
+      : width >= 1200
+      ? 700 // Grands écrans
+      : width >= 1024
+      ? 600 // Tablettes grandes
+      : width >= 768
+      ? 500 // Tablettes
+      : width >= 420
+      ? 380 // Grands téléphones
+      : 340; // Petits téléphones
 
   // Thème (dark / light)
   const scheme = useColorScheme();
@@ -109,12 +116,12 @@ const InitialSetupScreen: React.FC = () => {
   // Animation de transition - AMÉLIORÉE
   const fadeAnim = useRef(new Animated.Value(1)).current;
   const slideAnim = useRef(new Animated.Value(50)).current;
-  
+
   useEffect(() => {
     // Animation d'entrée plus fluide
     fadeAnim.setValue(0);
     slideAnim.setValue(width >= 768 ? 30 : 20);
-    
+
     Animated.parallel([
       Animated.timing(fadeAnim, {
         toValue: 1,
@@ -222,7 +229,14 @@ const InitialSetupScreen: React.FC = () => {
     setPinError(null);
     // Validations de base
     const minLen = 4;
-    if (!firstName || !lastName || !loginReadonly || !newPin || !confirmPin || !secretKey) {
+    if (
+      !firstName ||
+      !lastName ||
+      !loginReadonly ||
+      !newPin ||
+      !confirmPin ||
+      !secretKey
+    ) {
       setPinError("Tous les champs sont requis.");
       return;
     }
@@ -268,7 +282,16 @@ const InitialSetupScreen: React.FC = () => {
   };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: palette.bg, paddingTop: containerPadding + 30, paddingHorizontal: containerPadding }]}>
+    <SafeAreaView
+      style={[
+        styles.container,
+        {
+          backgroundColor: palette.bg,
+          paddingTop: containerPadding + 30,
+          paddingHorizontal: containerPadding,
+        },
+      ]}
+    >
       <View style={styles.backgroundDecor} pointerEvents="none">
         <View
           style={[
@@ -313,12 +336,17 @@ const InitialSetupScreen: React.FC = () => {
             styles.stack,
             {
               maxWidth: maxContainerWidth,
-              width: '100%',
+              width: "100%",
               paddingHorizontal: width >= 768 ? 16 : 8,
             },
           ]}
         >
-          <View style={[styles.topCard, { backgroundColor: palette.card, padding: cardPadding }]}>
+          <View
+            style={[
+              styles.topCard,
+              { backgroundColor: palette.card, padding: cardPadding },
+            ]}
+          >
             <View
               style={[
                 styles.logoBox,
@@ -340,8 +368,8 @@ const InitialSetupScreen: React.FC = () => {
             <Text
               style={[
                 styles.welcomeText,
-                { 
-                  fontSize: headingFontSize * 0.9, 
+                {
+                  fontSize: headingFontSize * 0.9,
                   color: palette.textMain,
                   lineHeight: headingFontSize * 1.3,
                   marginBottom: width >= 768 ? 2 : 1,
@@ -356,15 +384,16 @@ const InitialSetupScreen: React.FC = () => {
               <Text
                 style={[
                   styles.clientName,
-                  { 
-                    fontSize: headingFontSize * 0.7, 
+                  {
+                    fontSize: headingFontSize * 0.7,
                     color: palette.primary,
                     marginBottom: width >= 768 ? 2 : 1,
                     fontWeight: "600",
                   },
                 ]}
               >
-                {loginReadonly.split('_')[0].charAt(0).toUpperCase() + loginReadonly.split('_')[0].slice(1)}
+                {loginReadonly.split("_")[0].charAt(0).toUpperCase() +
+                  loginReadonly.split("_")[0].slice(1)}
               </Text>
             )}
             <View style={styles.stepPill}>
@@ -375,15 +404,17 @@ const InitialSetupScreen: React.FC = () => {
             <Text
               style={[
                 styles.topSubtitle,
-                { 
-                  fontSize: subtitleFontSize, 
+                {
+                  fontSize: subtitleFontSize,
                   color: palette.textSub,
                   lineHeight: subtitleFontSize * 1.5,
                   marginTop: width >= 768 ? 8 : 4,
                 },
               ]}
             >
-              {step === 1 ? "Configuration initiale de votre appareil" : "Configuration du code PIN"}
+              {step === 1
+                ? "Configuration initiale de votre appareil"
+                : "Configuration du code PIN"}
             </Text>
           </View>
           <ScrollView
@@ -395,10 +426,12 @@ const InitialSetupScreen: React.FC = () => {
             scrollEnabled={true}
             nestedScrollEnabled={true}
           >
-            <Animated.View style={{
-              opacity: fadeAnim,
-              transform: [{ translateY: slideAnim }]
-            }}>
+            <Animated.View
+              style={{
+                opacity: fadeAnim,
+                transform: [{ translateY: slideAnim }],
+              }}
+            >
               {step === 1 && (
                 <View style={[styles.card, { padding: cardPadding }]}>
                   <View style={styles.sectionHeader}>
@@ -413,35 +446,51 @@ const InitialSetupScreen: React.FC = () => {
                   </View>
                   <View style={{ marginTop: 6 }}>
                     <Text style={styles.label}>Numéro de compte</Text>
-                  <TextInput
-                    placeholder="Saisir votre numéro de compte"
-                    value={accountNumber}
-                    onChangeText={setAccountNumber}
-                    style={styles.input}
-                    autoCapitalize="none"
-                    autoFocus
-                    ref={accountNumberRef}
-                    keyboardType="number-pad"
-                    maxLength={12}
-                  />
+                    <TextInput
+                      placeholder="Saisir votre numéro de compte"
+                      value={accountNumber}
+                      onChangeText={setAccountNumber}
+                      style={styles.input}
+                      autoCapitalize="none"
+                      autoFocus
+                      ref={accountNumberRef}
+                      keyboardType="number-pad"
+                      maxLength={12}
+                    />
                   </View>
-                  <Text style={[styles.hint, { color: palette.textSub, marginTop: 8, marginBottom: 12 }]}>
+                  <Text
+                    style={[
+                      styles.hint,
+                      {
+                        color: palette.textSub,
+                        marginTop: 8,
+                        marginBottom: 12,
+                      },
+                    ]}
+                  >
                     Entrez votre numéro de compte reçu par mail ou SMS.
                   </Text>
-                  <View style={[styles.actionsRow, { 
-                    flexDirection: width >= 420 ? 'row' : 'column',
-                    gap: width >= 420 ? 8 : 12,
-                  }]}>
+                  <View
+                    style={[
+                      styles.actionsRow,
+                      {
+                        flexDirection: width >= 420 ? "row" : "column",
+                        gap: width >= 420 ? 8 : 12,
+                      },
+                    ]}
+                  >
                     <View style={{ marginTop: 12 }}>
                       <TouchableOpacity
                         style={[
                           styles.secondaryButton,
                           {
                             flex: width >= 420 ? 1 : undefined,
-                            width: width >= 420 ? 'auto' : '100%',
+                            width: width >= 420 ? "auto" : "100%",
                             backgroundColor: isDark ? "#111827" : "#F1F5F9",
                             borderColor: palette.border,
                             paddingVertical: width >= 768 ? 14 : 12,
+                            justifyContent: "center",
+                            alignItems: "center",
                           },
                         ]}
                         onPress={() =>
@@ -450,19 +499,22 @@ const InitialSetupScreen: React.FC = () => {
                           )
                         }
                       >
-                        <MaterialIcons
-                          name="qr-code-scanner"
-                          size={18}
-                          color={palette.textMain}
-                        />
-                        <Text
-                          style={[
-                            styles.secondaryButtonText,
-                            { color: palette.textMain },
-                          ]}
-                        >
-                          Scanner Code
-                        </Text>
+                        <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", width: "100%" }}>
+                          <MaterialIcons
+                            name="qr-code-scanner"
+                            size={18}
+                            color={palette.primary}
+                            style={{ position: "absolute", left: 16 }}
+                          />
+                          <Text
+                            style={[
+                              styles.secondaryButtonText,
+                              { color: palette.primary, fontSize: 15, fontWeight: "600", textAlign: "center" },
+                            ]}
+                          >
+                            Scanner Code
+                          </Text>
+                        </View>
                       </TouchableOpacity>
                     </View>
                     <TouchableOpacity
@@ -470,7 +522,7 @@ const InitialSetupScreen: React.FC = () => {
                         styles.button,
                         {
                           flex: width >= 420 ? 1 : undefined,
-                          width: width >= 420 ? 'auto' : '100%',
+                          width: width >= 420 ? "auto" : "100%",
                           marginLeft: width >= 420 ? 8 : 0,
                           marginTop: width >= 420 ? 0 : 12,
                           opacity: accountNumber.length >= 8 ? 1 : 0.6,
@@ -512,7 +564,8 @@ const InitialSetupScreen: React.FC = () => {
                     </View>
                   )}
                   <Text style={styles.hint}>
-                    Astuce: entrez le numéro de compte tel qu'indiqué sur votre carte client.
+                    Astuce: entrez le numéro de compte tel qu'indiqué sur votre
+                    carte client.
                   </Text>
                   <TouchableOpacity
                     style={[
@@ -522,30 +575,44 @@ const InitialSetupScreen: React.FC = () => {
                         backgroundColor: isDark ? "#111827" : "#F1F5F9",
                         borderColor: palette.border,
                         paddingVertical: width >= 768 ? 14 : 12,
-                        width: '100%',
+                        width: "100%",
+                        justifyContent: "center",
+                        alignItems: "center",
                       },
                     ]}
                     onPress={handleGuestMode}
                   >
-                    <MaterialIcons
-                      name="person-outline"
-                      size={18}
-                      color={palette.textMain}
-                    />
-                    <Text
-                      style={[
-                        styles.secondaryButtonText,
-                        { color: palette.textMain },
-                      ]}
-                    >
-                      Continuer en mode invité
-                    </Text>
+                    <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", width: "100%" }}>
+                      <MaterialIcons
+                        name="person-outline"
+                        size={18}
+                        color={palette.textMain}
+                        style={{ position: "absolute", left: 16 }}
+                      />
+                      <Text
+                        style={[
+                          styles.secondaryButtonText,
+                          { color: palette.textMain, fontSize: 15, fontWeight: "600", textAlign: "center" },
+                        ]}
+                      >
+                        Continuer en mode invité
+                      </Text>
+                    </View>
                   </TouchableOpacity>
                 </View>
               )}
 
               {step === 2 && (
-                <View style={[styles.card, { backgroundColor: palette.card, padding: cardPadding, marginTop: 20 }]}>
+                <View
+                  style={[
+                    styles.card,
+                    {
+                      backgroundColor: palette.card,
+                      padding: cardPadding,
+                      marginTop: 20,
+                    },
+                  ]}
+                >
                   <View style={styles.sectionHeader}>
                     <MaterialIcons
                       name="vpn-key"
@@ -561,41 +628,41 @@ const InitialSetupScreen: React.FC = () => {
                       Configuration du code PIN
                     </Text>
                   </View>
-                  
+
                   <View style={{ marginTop: 6 }}>
                     <Text style={styles.label}>Nom</Text>
-                  <TextInput
-                    value={lastName}
-                    onChangeText={setLastName}
-                    style={styles.input}
-                    placeholder="Votre nom"
-                    autoCapitalize="words"
-                    ref={lastNameRef}
-                  />
-                  </View>
-                  
-                  <View style={{ marginTop: 6 }}>
-                    <Text style={styles.label}>Prénom</Text>
-                  <TextInput
-                    value={firstName}
-                    onChangeText={setFirstName}
-                    style={styles.input}
-                    placeholder="Votre prénom"
-                    autoCapitalize="words"
-                  />
-                  </View>
-                  
-                  <View style={{ marginTop: 6 }}>
-                    <Text style={styles.label}>Login</Text>
-                  <TextInput
-                    value={loginReadonly}
-                    onChangeText={setLoginReadonly}
-                    style={styles.input}
-                    placeholder="Choisissez votre nom d'utilisateur"
-                    autoCapitalize="none"
+                    <TextInput
+                      value={lastName}
+                      onChangeText={setLastName}
+                      style={styles.input}
+                      placeholder="Votre nom"
+                      autoCapitalize="words"
+                      ref={lastNameRef}
                     />
                   </View>
-                  
+
+                  <View style={{ marginTop: 6 }}>
+                    <Text style={styles.label}>Prénom</Text>
+                    <TextInput
+                      value={firstName}
+                      onChangeText={setFirstName}
+                      style={styles.input}
+                      placeholder="Votre prénom"
+                      autoCapitalize="words"
+                    />
+                  </View>
+
+                  <View style={{ marginTop: 6 }}>
+                    <Text style={styles.label}>Login</Text>
+                    <TextInput
+                      value={loginReadonly}
+                      onChangeText={setLoginReadonly}
+                      style={styles.input}
+                      placeholder="Choisissez votre nom d'utilisateur"
+                      autoCapitalize="none"
+                    />
+                  </View>
+
                   <View style={{ marginTop: 16 }}>
                     <Text style={styles.label}>Code PIN</Text>
                     <View style={styles.pinRow}>
@@ -620,7 +687,7 @@ const InitialSetupScreen: React.FC = () => {
                       </TouchableOpacity>
                     </View>
                   </View>
-                  
+
                   <View style={{ marginTop: 6 }}>
                     <Text style={styles.label}>Confirmation du code PIN</Text>
                     <View style={styles.pinRow}>
@@ -638,72 +705,84 @@ const InitialSetupScreen: React.FC = () => {
                         onPress={() => setShowConfirmPin((s) => !s)}
                       >
                         <MaterialIcons
-                          name={showConfirmPin ? "visibility-off" : "visibility"}
-                          size={18}
-                          color={palette.textMain}
-                      />
-                    </TouchableOpacity>
-                  </View>
-                  
-                  <View style={{ marginTop: 6 }}>
-                    <Text style={styles.label}>Clé secrète</Text>
-                    <View style={styles.pinRow}>
-                      <TextInput
-                        value={secretKey}
-                        onChangeText={setSecretKey}
-                        style={[styles.input, { flex: 1 }]}
-                        secureTextEntry={!showSecretKey}
-                        placeholder="Votre clé secrète personnelle"
-                        autoCapitalize="none"
-                      />
-                      <TouchableOpacity
-                        style={styles.iconButton}
-                        onPress={() => setShowSecretKey((s) => !s)}
-                      >
-                        <MaterialIcons
-                          name={showSecretKey ? "visibility-off" : "visibility"}
+                          name={
+                            showConfirmPin ? "visibility-off" : "visibility"
+                          }
                           size={18}
                           color={palette.textMain}
                         />
                       </TouchableOpacity>
                     </View>
-                  </View>
-                  
-                  {!!pinError && (
-                    <View style={{ marginTop: 12 }}>
-                      <Text style={styles.error}>{pinError}</Text>
-                    </View>
-                  )}
-                  <TouchableOpacity
-                    style={[
-                      styles.button,
-                      {
-                        opacity:
-                          newPin.length >= 4 && newPin === confirmPin && secretKey.length >= 3 ? 1 : 0.6,
-                      },
-                    ]}
-                    onPress={handleSavePin}
-                    disabled={
-                      savingPin || newPin.length < 4 || newPin !== confirmPin || secretKey.length < 3
-                    }
-                  >
-                    <View style={styles.buttonContent}>
-                      <Text style={styles.buttonText}>
-                        {savingPin ? "Enregistrement..." : "Enregistrer"}
-                      </Text>
-                      {!savingPin && (
-                        <MaterialIcons
-                          name="check-circle"
-                          size={16}
-                          color="#FFFFFF"
-                          style={{ marginLeft: 6 }}
+
+                    <View style={{ marginTop: 6 }}>
+                      <Text style={styles.label}>Clé secrète</Text>
+                      <View style={styles.pinRow}>
+                        <TextInput
+                          value={secretKey}
+                          onChangeText={setSecretKey}
+                          style={[styles.input, { flex: 1 }]}
+                          secureTextEntry={!showSecretKey}
+                          placeholder="Votre clé secrète personnelle"
+                          autoCapitalize="none"
                         />
-                      )}
+                        <TouchableOpacity
+                          style={styles.iconButton}
+                          onPress={() => setShowSecretKey((s) => !s)}
+                        >
+                          <MaterialIcons
+                            name={
+                              showSecretKey ? "visibility-off" : "visibility"
+                            }
+                            size={18}
+                            color={palette.textMain}
+                          />
+                        </TouchableOpacity>
+                      </View>
                     </View>
-                  </TouchableOpacity>
-                  <Text style={styles.successHint}>
-                    Après succès, vous serez redirigé vers la connexion par PIN.
-                  </Text>
+
+                    {!!pinError && (
+                      <View style={{ marginTop: 12 }}>
+                        <Text style={styles.error}>{pinError}</Text>
+                      </View>
+                    )}
+                    <TouchableOpacity
+                      style={[
+                        styles.button,
+                        {
+                          opacity:
+                            newPin.length >= 4 &&
+                            newPin === confirmPin &&
+                            secretKey.length >= 3
+                              ? 1
+                              : 0.6,
+                        },
+                      ]}
+                      onPress={handleSavePin}
+                      disabled={
+                        savingPin ||
+                        newPin.length < 4 ||
+                        newPin !== confirmPin ||
+                        secretKey.length < 3
+                      }
+                    >
+                      <View style={styles.buttonContent}>
+                        <Text style={styles.buttonText}>
+                          {savingPin ? "Enregistrement..." : "Enregistrer"}
+                        </Text>
+                        {!savingPin && (
+                          <MaterialIcons
+                            name="check-circle"
+                            size={16}
+                            color="#FFFFFF"
+                            style={{ marginLeft: 6 }}
+                          />
+                        )}
+                      </View>
+                    </TouchableOpacity>
+                    <Text style={styles.successHint}>
+                      Après succès, vous serez redirigé vers la connexion par
+                      PIN.
+                    </Text>
                   </View>
                   {/* Espace supplémentaire pour s'assurer que tout le contenu est visible sur petits écrans */}
                   <View style={{ height: 100 }} />
@@ -719,19 +798,19 @@ const InitialSetupScreen: React.FC = () => {
 };
 
 const styles = StyleSheet.create({
-  container: { 
-    flex: 1, 
-    backgroundColor: "#F1F5F9" 
+  container: {
+    flex: 1,
+    backgroundColor: "#F1F5F9",
   },
-  content: { 
-    flex: 1, 
-    justifyContent: "flex-start", 
+  content: {
+    flex: 1,
+    justifyContent: "flex-start",
     alignItems: "center",
-    minHeight: '110%', // Ajouté pour garantir suffisamment d'espace vertical
+    minHeight: "110%", // Ajouté pour garantir suffisamment d'espace vertical
     paddingHorizontal: 8,
     paddingTop: 20,
   },
-  stack: { 
+  stack: {
     width: "100%",
     maxWidth: 800,
   },
@@ -776,15 +855,15 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     borderRadius: 999,
   },
-  stepPillText: { 
-    fontSize: 13, 
-    fontWeight: "700", 
+  stepPillText: {
+    fontSize: 13,
+    fontWeight: "700",
     color: "#0F172A",
     textAlign: "center",
   },
-  topSubtitle: { 
-    fontSize: 14, 
-    color: "#64748B", 
+  topSubtitle: {
+    fontSize: 14,
+    color: "#64748B",
     marginTop: 6,
     textAlign: "center",
   },
@@ -799,44 +878,44 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 6,
   },
-  logo: { 
-    width: "100%", 
+  logo: {
+    width: "100%",
     height: "100%",
     resizeMode: "contain",
   },
   // Ancien avatar (non utilisé)
-  avatar: { 
-    width: 64, 
-    height: 64, 
-    borderRadius: 32, 
-    marginBottom: 12 
+  avatar: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    marginBottom: 12,
   },
-  welcomeText: { 
-    fontSize: 18, 
-    fontWeight: "700", 
+  welcomeText: {
+    fontSize: 18,
+    fontWeight: "700",
     color: "#0F172A",
     textAlign: "center",
   },
-  header: { 
-    flexDirection: "row", 
-    alignItems: "center", 
-    marginBottom: 16 
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 16,
   },
-  title: { 
-    fontSize: 20, 
-    fontWeight: "700", 
-    color: "#0F172A" 
+  title: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: "#0F172A",
   },
-  subtitle: { 
-    fontSize: 14, 
-    color: "#64748B" 
+  subtitle: {
+    fontSize: 14,
+    color: "#64748B",
   },
-  scrollContent: { 
+  scrollContent: {
     paddingBottom: 300, // Augmenté de 200 à 300 pour petits écrans
     paddingTop: 30,
-    flexGrow: 1, 
+    flexGrow: 1,
     justifyContent: "flex-start",
-    minHeight: '120%', // Augmenté pour s'assurer que tout le contenu est accessible
+    minHeight: "120%", // Augmenté pour s'assurer que tout le contenu est accessible
   },
   card: {
     backgroundColor: "#FFFFFF",
@@ -867,9 +946,9 @@ const styles = StyleSheet.create({
     color: "#111827",
     letterSpacing: -0.5,
   },
-  actionsRow: { 
-    flexDirection: "row", 
-    alignItems: "center", 
+  actionsRow: {
+    flexDirection: "row",
+    alignItems: "center",
     marginTop: 6,
     gap: 8,
   },
@@ -887,19 +966,19 @@ const styles = StyleSheet.create({
     elevation: 1,
     color: "#1F2937",
   },
-  readonly: { 
+  readonly: {
     color: "#6B7280",
     backgroundColor: "#F9FAFB",
   },
-  label: { 
-    fontSize: 14, 
-    fontWeight: "600", 
-    color: "#374151", 
+  label: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#374151",
     marginBottom: 8,
     marginTop: 6,
   },
-  pinRow: { 
-    flexDirection: "row", 
+  pinRow: {
+    flexDirection: "row",
     alignItems: "center",
     marginBottom: 12,
   },
@@ -933,9 +1012,9 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 1,
   },
-  secondaryButtonText: { 
-    marginLeft: 8, 
-    color: "#0F172A", 
+  secondaryButtonText: {
+    marginLeft: 8,
+    color: "#0F172A",
     fontWeight: "600",
     fontSize: 13,
   },
@@ -951,14 +1030,14 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 1,
   },
-  buttonText: { 
-    color: "#FFFFFF", 
+  buttonText: {
+    color: "#FFFFFF",
     fontWeight: "700",
     fontSize: 15,
     letterSpacing: 0.5,
   },
-  error: { 
-    color: "#DC2626", 
+  error: {
+    color: "#DC2626",
     marginBottom: 16,
     fontSize: 14,
     fontWeight: "600",
@@ -968,17 +1047,17 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#FECACA",
   },
-  hint: { 
-    fontSize: 13, 
-    color: "#6B7280", 
+  hint: {
+    fontSize: 13,
+    color: "#6B7280",
     marginTop: 10,
     marginBottom: 16,
     lineHeight: 18,
     fontWeight: "500",
   },
-  successHint: { 
-    fontSize: 13, 
-    color: "#059669", 
+  successHint: {
+    fontSize: 13,
+    color: "#059669",
     marginTop: 16,
     fontWeight: "600",
     backgroundColor: "#F0FDF4",

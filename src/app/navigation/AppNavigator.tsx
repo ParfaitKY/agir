@@ -13,7 +13,7 @@ import { CardsScreen } from "../../modules/cards/screens/CardsScreen";
 import { TransactionsScreen } from "../../modules/transactions/screens/TransactionsScreen";
 import { ProductsScreen } from "../../modules/products/screens/ProductsScreen";
 import { SettingsScreen } from "../../modules/settings/screens/SettingsScreen";
-import { ProfileScreen } from "../../modules/settings/screens/ProfileScreen";
+import ProfileScreen from "../../modules/settings/screens/ProfileScreen";
 import LanguageScreen from "../../modules/settings/screens/LanguageScreen";
 import { TransferScreen } from "../../modules/transactions/screens/TransferScreen";
 import { AccountsScreen } from "../../modules/accounts/screens/AccountsScreen";

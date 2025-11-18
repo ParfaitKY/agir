@@ -24,21 +24,23 @@ export const SettingsScreen: React.FC = () => {
   const { t, tText } = useI18n();
   const { colors } = useTheme();
   const { preference, isDark, setPreference } = useThemeMode();
-  
-  // Détection du mode invité (username === "invite")
   const isGuestMode = user?.username === "invite";
-  
-  // Fonction pour gérer les restrictions en mode invité
-  const handleGuestRestriction = (featureName: string) => {
+  const guestAlert = () => {
     Alert.alert(
       "Connexion requise",
-      "Veuillez vous connecter pour accéder à cette fonctionnalité.",
-      [
-        { text: "Annuler", style: "cancel" },
-        { text: "Se connecter", onPress: () => (navigation as any).navigate("Login") }
-      ]
+      "Veuillez vous connecter pour accéder à cette fonctionnalité."
     );
   };
+  type SettingItem = {
+    icon: string;
+    iconColor?: string;
+    title: string;
+    onPress?: () => void;
+    showChevron?: boolean;
+    rightElement?: React.ReactNode;
+    isRestricted?: boolean;
+  };
+  type SettingsSection = { title: string; items: SettingItem[] };
   // Styles statiques uniquement
   const [biometricEnabled, setBiometricEnabled] = React.useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = React.useState(true);
@@ -57,9 +59,14 @@ export const SettingsScreen: React.FC = () => {
 
   const handleLogout = async () => {
     await logout();
+    try {
+      (navigation as any).reset({ index: 0, routes: [{ name: "PinLogin" }] });
+    } catch (e) {
+      (navigation as any).navigate("PinLogin");
+    }
   };
 
-  const settingsSections = [
+  const settingsSections: SettingsSection[] = [
     {
       title: "COMPTE",
       items: [
@@ -69,6 +76,7 @@ export const SettingsScreen: React.FC = () => {
           title: "Mon Profil",
           onPress: () => (navigation as any).navigate("Profile"),
           showChevron: true,
+          isRestricted: true,
         },
         {
           icon: "lock-closed-outline",
@@ -76,6 +84,7 @@ export const SettingsScreen: React.FC = () => {
           title: "Changer le code PIN",
           onPress: () => setShowChangePinModal(true),
           showChevron: true,
+          isRestricted: true,
         },
         {
           icon: "key-outline",
@@ -83,6 +92,7 @@ export const SettingsScreen: React.FC = () => {
           title: "Changer le mot de passe",
           onPress: () => setShowChangePasswordModal(true),
           showChevron: true,
+          isRestricted: true,
         },
       ],
     },
@@ -95,6 +105,7 @@ export const SettingsScreen: React.FC = () => {
           title: "Mon Wallet",
           onPress: () => (navigation as any).navigate("WalletScreens"),
           showChevron: true,
+          isRestricted: true,
         },
         {
           icon: "card-outline",
@@ -102,6 +113,7 @@ export const SettingsScreen: React.FC = () => {
           title: "Gérer mes comptes",
           onPress: () => (navigation as any).navigate("Accounts"),
           showChevron: true,
+          isRestricted: true,
         },
         {
           icon: "people-outline",
@@ -109,6 +121,7 @@ export const SettingsScreen: React.FC = () => {
           title: "Mes bénéficiaires",
           onPress: () => (navigation as any).navigate("BeneficiairesPage"),
           showChevron: true,
+          isRestricted: true,
         },
         {
           icon: "grid-outline",
@@ -116,6 +129,7 @@ export const SettingsScreen: React.FC = () => {
           title: "Mes produits",
           onPress: () => (navigation as any).navigate("Products"),
           showChevron: true,
+          isRestricted: true,
         },
       ],
     },
@@ -287,52 +301,80 @@ export const SettingsScreen: React.FC = () => {
         {/* Settings Sections */}
         {settingsSections.map((section, sectionIndex) => (
           <View key={sectionIndex} style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: colors.text + '90' }]}>
+            <Text style={[styles.sectionTitle, { color: colors.text + "90" }]}>
               {tText(section.title)}
             </Text>
             <View
               style={[styles.sectionContent, { backgroundColor: colors.card }]}
             >
-              {section.items.map((item, itemIndex) => (
-                <TouchableOpacity
-                  key={itemIndex}
-                  style={[
-                    styles.settingItem,
-                    itemIndex === section.items.length - 1 &&
-                      styles.settingItemLast,
-                    { borderBottomColor: colors.border },
-                  ]}
-                  onPress={item.onPress}
-                  disabled={!item.onPress}
-                  activeOpacity={0.7}
-                >
-                  <View style={styles.settingLeft}>
-                    <Ionicons
-                      name={item.icon as any}
-                      size={22}
-                      color={item.iconColor || colors.primary}
-                    />
-                    <Text style={[styles.settingTitle, { color: colors.text }]}>
-                      {tText(item.title)}
-                    </Text>
-                  </View>
-                  {item.rightElement ||
-                    (item.showChevron && (
+              {section.items.map((item, itemIndex) => {
+                const restricted = isGuestMode && item.isRestricted;
+                return (
+                  <TouchableOpacity
+                    key={itemIndex}
+                    style={[
+                      styles.settingItem,
+                      itemIndex === section.items.length - 1 &&
+                        styles.settingItemLast,
+                      { borderBottomColor: colors.border },
+                    ]}
+                    onPress={() => {
+                      if (restricted) {
+                        guestAlert();
+                        return;
+                      }
+                      if (item.onPress) item.onPress();
+                    }}
+                    activeOpacity={restricted ? 1 : 0.7}
+                  >
+                    <View style={styles.settingLeft}>
                       <Ionicons
-                        name="chevron-forward"
-                        size={20}
-                        color={colors.border}
+                        name={item.icon as any}
+                        size={22}
+                        color={
+                          restricted
+                            ? colors.text + "60"
+                            : item.iconColor || colors.primary
+                        }
                       />
-                    ))}
-                </TouchableOpacity>
-              ))}
+                      <Text
+                        style={[
+                          styles.settingTitle,
+                          {
+                            color: restricted
+                              ? colors.text + "60"
+                              : colors.text,
+                          },
+                        ]}
+                      >
+                        {tText(item.title)}
+                      </Text>
+                    </View>
+                    {("rightElement" in item && item.rightElement) ||
+                      (!restricted && item.showChevron && (
+                        <Ionicons
+                          name="chevron-forward"
+                          size={20}
+                          color={colors.border}
+                        />
+                      ))}
+                    {restricted && (
+                      <Ionicons
+                        name="lock-closed"
+                        size={20}
+                        color={colors.text + "60"}
+                      />
+                    )}
+                  </TouchableOpacity>
+                );
+              })}
             </View>
           </View>
         ))}
 
         {/* Déconnexion Section */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.text + '90' }]}>
+          <Text style={[styles.sectionTitle, { color: colors.text + "90" }]}>
             {tText("DÉCONNEXION")}
           </Text>
           <View
