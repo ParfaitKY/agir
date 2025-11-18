@@ -90,6 +90,7 @@ const PasswordRecoveryScreen: React.FC = () => {
           <Text style={[styles.title, { color: colors.text }]}>Informations requises</Text>
         </View>
         <Text style={[styles.subtitle, { color: colors.text }]}>Entrez vos informations pour réinitialiser votre mot de passe.</Text>
+        
         <View style={{ width: "100%", marginTop: 16 }}>
           <Text style={[styles.label, { color: colors.text }]}>Email ou téléphone</Text>
           <TextInput
@@ -112,6 +113,7 @@ const PasswordRecoveryScreen: React.FC = () => {
             onBlur={() => setEmailFocused(false)}
           />
         </View>
+
         <View style={{ width: "100%", marginTop: 16 }}>
           <Text style={[styles.label, { color: colors.text }]}>Clé secrète</Text>
           <View style={{ position: "relative" }}>
@@ -149,6 +151,7 @@ const PasswordRecoveryScreen: React.FC = () => {
             </TouchableOpacity>
           </View>
         </View>
+
         {!!error && <Text style={[styles.error, { color: colors.error }]}>{error}</Text>}
         {!!success && <Text style={[styles.success, { color: colors.primary }]}>{success}</Text>}
         <TouchableOpacity
