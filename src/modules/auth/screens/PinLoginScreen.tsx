@@ -205,7 +205,7 @@ const PinLoginScreen: React.FC = () => {
           </Animated.View>
         </View>
 
-        <TouchableOpacity style={pinStyles.forgotLink}>
+        <TouchableOpacity style={pinStyles.forgotLink} onPress={() => (navigation as any).navigate('PasswordRecovery')}>
           <Text style={pinStyles.forgotText}>J'ai oublié mon code</Text>
         </TouchableOpacity>
 

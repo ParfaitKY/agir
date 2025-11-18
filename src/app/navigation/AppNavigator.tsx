@@ -36,6 +36,7 @@ import TermsOfUseScreen from "../../modules/settings/screens/TermsOfUseScreen";
 import SplashScreen from "../../modules/auth/screens/SplashScreen";
 import InitialSetupScreen from "../../modules/auth/screens/InitialSetupScreen";
 import PinLoginScreen from "../../modules/auth/screens/PinLoginScreen";
+import PasswordRecoveryScreen from "../../modules/auth/screens/PasswordRecoveryScreen";
 import { useTheme } from "../../shared/styles/ThemeProvider";
 
 const Tab = createBottomTabNavigator();
@@ -229,6 +230,14 @@ export const AppNavigator: React.FC = () => {
       <Stack.Screen name="Splash" component={SplashScreen} />
       <Stack.Screen name="InitialSetup" component={InitialSetupScreen} />
       <Stack.Screen name="PinLogin" component={PinLoginScreen} />
+      <Stack.Screen
+        name="PasswordRecovery"
+        component={PasswordRecoveryScreen}
+        options={{
+          headerShown: true,
+          title: "Récupération de mot de passe",
+        }}
+      />
       {isAuthenticated ? (
         <>
           <Stack.Screen name="Main" component={MainTabs} />
