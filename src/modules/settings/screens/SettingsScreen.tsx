@@ -9,6 +9,7 @@ import {
   Switch,
   Modal,
   TextInput,
+  Alert,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useAuth } from "../../../app/hooks/useAuth";
@@ -23,6 +24,21 @@ export const SettingsScreen: React.FC = () => {
   const { t, tText } = useI18n();
   const { colors } = useTheme();
   const { preference, isDark, setPreference } = useThemeMode();
+  
+  // Détection du mode invité (username === "invite")
+  const isGuestMode = user?.username === "invite";
+  
+  // Fonction pour gérer les restrictions en mode invité
+  const handleGuestRestriction = (featureName: string) => {
+    Alert.alert(
+      "Connexion requise",
+      "Veuillez vous connecter pour accéder à cette fonctionnalité.",
+      [
+        { text: "Annuler", style: "cancel" },
+        { text: "Se connecter", onPress: () => (navigation as any).navigate("Login") }
+      ]
+    );
+  };
   // Styles statiques uniquement
   const [biometricEnabled, setBiometricEnabled] = React.useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = React.useState(true);

@@ -90,10 +90,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const logout = async () => {
     setIsLoading(true);
     try {
+      // Supprimer TOUTES les données d'authentification
       await secureDeleteItem("auth_token");
       await secureDeleteItem("user_data");
+      
+      // Supprimer également d'autres données potentiellement stockées
+      await secureDeleteItem("is_configured");
+      await secureDeleteItem("pin_user");
+      
+      // Réinitialiser complètement l'état
       setIsAuthenticated(false);
       setUser(null);
+      setIsConfigured(false);
+      
+      console.log('=== COMPLETE LOGOUT PERFORMED ===');
+      console.log('All authentication data cleared');
     } catch (error) {
       console.error("Error during logout:", error);
     } finally {

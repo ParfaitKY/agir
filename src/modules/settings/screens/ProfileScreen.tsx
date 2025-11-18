@@ -1,14 +1,27 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, SafeAreaView, TouchableOpacity, Modal, Linking } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  SafeAreaView,
+  TouchableOpacity,
+  Modal,
+  Linking,
+  Alert,
+} from 'react-native';
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../../../app/hooks/useAuth';
+import { useTheme, useThemeMode } from '../../../shared/styles/ThemeProvider';
 
 export const ProfileScreen: React.FC = () => {
   const navigation = useNavigation();
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
+  const { colors } = useTheme();
+  const { preference, isDark, setPreference } = useThemeMode();
   const [editVisible, setEditVisible] = useState(false);
   const [txVisible, setTxVisible] = useState(false);
   const [dateInfoVisible, setDateInfoVisible] = useState(false);
@@ -22,7 +35,63 @@ export const ProfileScreen: React.FC = () => {
   ];
 
   const handleLogout = async () => {
-    await logout();
+    try {
+      // Vérifier si nous sommes en mode invité
+      const isGuestMode = user?.username === "invite";
+      
+      if (isGuestMode) {
+        // Confirmation spécifique pour le mode invité
+        Alert.alert(
+          "Quitter le mode invité",
+          "Êtes-vous sûr de vouloir quitter le mode invité ? Cela effacera toutes les données temporaires.",
+          [
+            { text: "Annuler", style: "cancel" },
+            { 
+              text: "Quitter", 
+              style: "destructive",
+              onPress: async () => {
+                console.log('=== GUEST LOGOUT CONFIRMED ===');
+                // Pour le mode invité : tout effacer et rediriger vers InitialSetupScreen
+                await logout(); // Efface les données d'authentification
+                
+                // Rediriger vers InitialSetupScreen
+                try {
+                  navigation.reset({
+                    index: 0,
+                    routes: [{ name: 'InitialSetup' as never }],
+                  });
+                } catch (error) {
+                  // Fallback si reset n'est pas disponible
+                  console.log('Navigation reset failed, trying navigate...');
+                  navigation.navigate('InitialSetup' as never);
+                }
+                
+                console.log('Guest user logged out and redirected to InitialSetupScreen');
+              }
+            }
+          ]
+        );
+      } else {
+        // Pour les utilisateurs normaux : déconnexion standard avec confirmation
+        Alert.alert(
+          "Déconnexion",
+          "Êtes-vous sûr de vouloir vous déconnecter ?",
+          [
+            { text: "Annuler", style: "cancel" },
+            { 
+              text: "Se déconnecter", 
+              style: "destructive",
+              onPress: async () => {
+                await logout();
+                console.log('Regular user logged out');
+              }
+            }
+          ]
+        );
+      }
+    } catch (error) {
+      console.error('Error during logout:', error);
+    }
   };
 
   const handleCall = () => {
@@ -205,12 +274,18 @@ export const ProfileScreen: React.FC = () => {
 
         {/* Logout card */}
         <View style={styles.sectionBlock}>
-          <TouchableOpacity style={styles.logoutCard} activeOpacity={0.8} onPress={handleLogout}>
+          <TouchableOpacity 
+            style={[styles.logoutCard, { backgroundColor: colors.error + '10', borderColor: colors.error + '30' }]} 
+            activeOpacity={0.8} 
+            onPress={handleLogout}
+          >
             <View style={styles.docLeft}>
-              <View style={[styles.infoIconBg, { backgroundColor: '#FFECEC' }]}> 
-                <Ionicons name="log-out-outline" size={18} color="#FF3B30" />
+              <View style={[styles.infoIconBg, { backgroundColor: colors.error + '20' }]}> 
+                <Ionicons name="log-out-outline" size={18} color={colors.error} />
               </View>
-              <Text style={styles.logoutText}>Se déconnecter</Text>
+              <Text style={[styles.logoutText, { color: colors.error }]}>
+                {user?.username === "invite" ? "Quitter le mode invité" : "Se déconnecter"}
+              </Text>
             </View>
           </TouchableOpacity>
         </View>

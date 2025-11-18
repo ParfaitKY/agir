@@ -9,12 +9,14 @@ import {
   Modal,
   Dimensions,
   SafeAreaView,
+  Alert,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { useI18n } from "../../../app/providers/I18nProvider";
 import { useTheme } from "../../../shared/styles/ThemeProvider";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useAuth } from "../../../app/hooks/useAuth";
 
 export const DashboardScreen: React.FC = () => {
   const servicesScrollRef = useRef<FlatList>(null);
@@ -24,6 +26,32 @@ export const DashboardScreen: React.FC = () => {
   const { t, tText } = useI18n();
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
+  const { isAuthenticated, user } = useAuth();
+  
+  // Détection du mode invité (username === "invite")
+  const isGuestMode = isAuthenticated && user?.username === "invite";
+  
+  // DEBUG: Log authentication state
+  console.log("Dashboard - isAuthenticated:", isAuthenticated);
+  console.log("Dashboard - user:", user);
+  console.log("Dashboard - isGuestMode:", isGuestMode);
+  
+  // Fonction pour gérer les restrictions en mode invité
+  const handleGuestRestriction = (featureName: string) => {
+    console.log("handleGuestRestriction - isGuestMode:", isGuestMode);
+    if (isGuestMode) {
+      Alert.alert(
+        "Connexion requise",
+        "Veuillez vous connecter pour accéder à cette fonctionnalité.",
+        [
+          { text: "Annuler", style: "cancel" },
+          { text: "Se connecter", onPress: () => navigation.navigate("Login" as never) }
+        ]
+      );
+      return true;
+    }
+    return false;
+  };
   
   // Calculer la hauteur totale du header (incluant l'encoche)
   const headerHeight = 140 + insets.top; // Réduit à 140
@@ -245,15 +273,24 @@ export const DashboardScreen: React.FC = () => {
         <View>
           <Text style={[styles.time, { color: colors.background }]}>17:36</Text>
           <Text style={[styles.hello, { color: colors.background }]}>{t("dashboard.greeting")}</Text>
+          <Text style={{ color: colors.background, fontSize: 12, marginTop: 4 }}>
+            {isGuestMode ? "MODE INVITÉ" : isAuthenticated ? "CONNECTÉ" : "NON CONNECTÉ"}
+          </Text>
         </View>
         <View style={styles.headerIcons}>
           <TouchableOpacity
             style={styles.iconBtn}
-            onPress={() => setShowQrModal(true)}
+            onPress={() => {
+              if (handleGuestRestriction("le code QR")) return;
+              setShowQrModal(true);
+            }}
           >
             <Ionicons name="qr-code-outline" size={22} color={colors.background} />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.iconBtn}>
+          <TouchableOpacity 
+            style={styles.iconBtn}
+            onPress={() => handleGuestRestriction("les notifications")}
+          >
             <Ionicons name="notifications-outline" size={22} color={colors.background} />
             <View style={[styles.badge, { backgroundColor: colors.error }]}>
               <Text style={[styles.badgeText, { color: colors.background }]}>5</Text>
@@ -353,8 +390,9 @@ export const DashboardScreen: React.FC = () => {
         </View>
       </Modal>
 
-      {/* Carte principale - espacement encore réduit */}
-      <View style={[styles.card, { backgroundColor: colors.card, marginTop: -15 }]}> // Réduit de 5 à -15
+      {/* Carte principale - MASQUÉE EN MODE INVITÉ */}
+      {!isGuestMode && (
+        <View style={[styles.card, { backgroundColor: colors.card, marginTop: -15 }]}> // Réduit de 5 à -15
         <View style={styles.userSection}>
           <View style={styles.avatar}>
             <Text style={[styles.avatarText, { color: colors.background }]}>DM</Text>
@@ -414,7 +452,8 @@ export const DashboardScreen: React.FC = () => {
             </Text>
           </TouchableOpacity>
         </View>
-      </View>
+        </View>
+      )}
 
       {/* Actions rapides - EXISTANT */}
       <View style={[styles.section, { marginTop: 15, marginBottom: 2 }]}>
@@ -422,7 +461,10 @@ export const DashboardScreen: React.FC = () => {
         <View style={styles.quickActions}>
           <TouchableOpacity
             style={[styles.quickActionCard, { backgroundColor: colors.card, borderColor: colors.border }]}
-            onPress={() => navigation.navigate("Transfer" as never)}
+            onPress={() => {
+              if (handleGuestRestriction("les virements")) return;
+              navigation.navigate("Transfer" as never);
+            }}
           >
             <View
               style={[styles.quickActionIcon, { backgroundColor: colors.card }]}
@@ -438,7 +480,10 @@ export const DashboardScreen: React.FC = () => {
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.quickActionCard, { backgroundColor: colors.card, borderColor: colors.border }]}
-            onPress={() => navigation.navigate("BeneficiairesPage" as never)}
+            onPress={() => {
+              if (handleGuestRestriction("les bénéficiaires")) return;
+              navigation.navigate("BeneficiairesPage" as never);
+            }}
           >
             <View
               style={[styles.quickActionIcon, { backgroundColor: colors.card }]}
@@ -454,7 +499,10 @@ export const DashboardScreen: React.FC = () => {
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.quickActionCard, { backgroundColor: colors.card, borderColor: colors.border }]}
-            onPress={() => navigation.navigate("DetailsProduits" as never)}
+            onPress={() => {
+              if (handleGuestRestriction("les produits")) return;
+              navigation.navigate("DetailsProduits" as never);
+            }}
           >
             <View
               style={[styles.quickActionIcon, { backgroundColor: colors.card }]}
@@ -470,7 +518,10 @@ export const DashboardScreen: React.FC = () => {
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.quickActionCard, { backgroundColor: colors.card, borderColor: colors.border }]}
-            onPress={() => navigation.navigate("Cards" as never)}
+            onPress={() => {
+              if (handleGuestRestriction("les cartes")) return;
+              navigation.navigate("Cards" as never);
+            }}
           >
             <View
               style={[styles.quickActionIcon, { backgroundColor: colors.card }]}
@@ -522,8 +573,9 @@ export const DashboardScreen: React.FC = () => {
         />
       </View>
 
-      {/* NOUVELLE SECTION : Activité récente CORRIGÉE */}
-      <View style={[styles.section, { marginTop: 18, marginBottom: 15 }]}>
+      {/* NOUVELLE SECTION : Activité récente - MASQUÉE EN MODE INVITÉ */}
+      {!isGuestMode && (
+        <View style={[styles.section, { marginTop: 18, marginBottom: 15 }]}>
         <View style={styles.sectionHeader}>
           <Text style={[styles.sectionTitle, { color: colors.text }]}>{t("dashboard.recent.title")}</Text>
           <TouchableOpacity onPress={() => setShowAllTransactions(!showAllTransactions)}>
@@ -589,7 +641,8 @@ export const DashboardScreen: React.FC = () => {
             </View>
           ))}
         </View>
-      </View>
+        </View>
+      )}
 
       </ScrollView>
     </View>

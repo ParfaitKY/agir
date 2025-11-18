@@ -1,5 +1,5 @@
 import React from "react";
-import { TouchableOpacity } from "react-native";
+import { TouchableOpacity, View, Text, Alert } from "react-native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { Ionicons } from "@expo/vector-icons";
@@ -41,11 +41,91 @@ import { useTheme } from "../../shared/styles/ThemeProvider";
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 
+// Composant TabBar personnalisé pour gérer le mode invité
+const CustomTabBar = ({ state, descriptors, navigation, colors, isGuestMode }: any) => {
+  const handleGuestRestriction = () => {
+    Alert.alert(
+      "Connexion requise",
+      "Veuillez vous connecter pour accéder à cette fonctionnalité.",
+      [
+        { text: "Annuler", style: "cancel" },
+        { text: "Se connecter", onPress: () => navigation.navigate("Login") }
+      ]
+    );
+  };
+
+  return (
+    <View style={{
+      flexDirection: 'row',
+      backgroundColor: colors.card,
+      borderTopColor: colors.border,
+      borderTopWidth: 1,
+      paddingBottom: 5,
+      paddingTop: 5,
+    }}>
+      {state.routes.map((route: any, index: number) => {
+        const { options } = descriptors[route.key];
+        const label = options.tabBarLabel !== undefined
+          ? options.tabBarLabel
+          : options.title !== undefined
+          ? options.title
+          : route.name;
+
+        const isFocused = state.index === index;
+        const iconName = options.tabBarIcon?.({ focused: isFocused, color: isFocused ? colors.primary : colors.text, size: 24 });
+
+        // Liste des écrans restreints en mode invité
+        const restrictedScreens = ['Transactions', 'Products'];
+        const isRestricted = isGuestMode && restrictedScreens.includes(route.name);
+
+        const onPress = () => {
+          if (isRestricted) {
+            handleGuestRestriction();
+          } else {
+            navigation.navigate(route.name);
+          }
+        };
+
+        return (
+          <TouchableOpacity
+            key={route.key}
+            accessibilityRole="button"
+            accessibilityState={isFocused ? { selected: true } : {}}
+            accessibilityLabel={options.tabBarAccessibilityLabel}
+            testID={options.tabBarTestID}
+            onPress={onPress}
+            style={{ flex: 1, alignItems: 'center', paddingVertical: 8 }}
+            disabled={isRestricted}
+          >
+            <View style={{ opacity: isRestricted ? 0.5 : 1 }}>
+              {iconName}
+            </View>
+            <Text style={{ 
+              color: isFocused ? colors.primary : colors.text,
+              fontSize: 12,
+              marginTop: 4,
+              opacity: isRestricted ? 0.5 : 1
+            }}>
+              {label}
+            </Text>
+          </TouchableOpacity>
+        );
+      })}
+    </View>
+  );
+};
+
 const MainTabs = () => {
   const { t } = useI18n();
   const { colors } = useTheme();
+  const { isAuthenticated, user } = useAuth();
+  
+  // Détection du mode invité (username === "invite")
+  const isGuestMode = isAuthenticated && user?.username === "invite";
+  
   return (
     <Tab.Navigator
+      tabBar={(props) => <CustomTabBar {...props} colors={colors} isGuestMode={isGuestMode} />}
       screenOptions={({ route }) => ({
         tabBarIcon: ({ focused, color, size }) => {
           let iconName: any;
