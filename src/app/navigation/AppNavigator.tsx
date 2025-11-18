@@ -74,7 +74,7 @@ const CustomTabBar = ({ state, descriptors, navigation, colors, isGuestMode }: a
         const isFocused = state.index === index;
         const iconName = options.tabBarIcon?.({ focused: isFocused, color: isFocused ? colors.primary : colors.text, size: 24 });
 
-        // Liste des écrans restreints en mode invité
+        // Liste des écrans restreints en mode invité (Settings accessible)
         const restrictedScreens = ['Transactions', 'Products'];
         const isRestricted = isGuestMode && restrictedScreens.includes(route.name);
 
