@@ -411,7 +411,7 @@ const InitialSetupScreen: React.FC = () => {
                       Vérification de l'identité
                     </Text>
                   </View>
-                  <View style={{ marginTop: 8 }}>
+                  <View style={{ marginTop: 6 }}>
                     <Text style={styles.label}>Numéro de compte</Text>
                   <TextInput
                     placeholder="Saisir votre numéro de compte"
@@ -425,14 +425,14 @@ const InitialSetupScreen: React.FC = () => {
                     maxLength={12}
                   />
                   </View>
-                  <Text style={[styles.hint, { color: palette.textSub }]}>
+                  <Text style={[styles.hint, { color: palette.textSub, marginTop: 8, marginBottom: 12 }]}>
                     Entrez votre numéro de compte reçu par mail ou SMS.
                   </Text>
                   <View style={[styles.actionsRow, { 
                     flexDirection: width >= 420 ? 'row' : 'column',
                     gap: width >= 420 ? 8 : 12,
                   }]}>
-                    <View style={{ marginTop: 24 }}>
+                    <View style={{ marginTop: 12 }}>
                       <TouchableOpacity
                         style={[
                           styles.secondaryButton,
@@ -505,7 +505,7 @@ const InitialSetupScreen: React.FC = () => {
                     <Text style={styles.error}>{verifyError}</Text>
                   )}
                   {!!verifySuccess && (
-                    <View style={{ marginTop: 16 }}>
+                    <View style={{ marginTop: 12 }}>
                       <Text style={styles.successHint}>
                         Identifiant vérifié avec succès 🎉
                       </Text>
@@ -518,7 +518,7 @@ const InitialSetupScreen: React.FC = () => {
                     style={[
                       styles.secondaryButton,
                       {
-                        marginTop: width >= 768 ? 16 : 12,
+                        marginTop: width >= 768 ? 12 : 10,
                         backgroundColor: isDark ? "#111827" : "#F1F5F9",
                         borderColor: palette.border,
                         paddingVertical: width >= 768 ? 14 : 12,
@@ -562,7 +562,7 @@ const InitialSetupScreen: React.FC = () => {
                     </Text>
                   </View>
                   
-                  <View style={{ marginTop: 8 }}>
+                  <View style={{ marginTop: 6 }}>
                     <Text style={styles.label}>Nom</Text>
                   <TextInput
                     value={lastName}
@@ -574,7 +574,7 @@ const InitialSetupScreen: React.FC = () => {
                   />
                   </View>
                   
-                  <View style={{ marginTop: 8 }}>
+                  <View style={{ marginTop: 6 }}>
                     <Text style={styles.label}>Prénom</Text>
                   <TextInput
                     value={firstName}
@@ -585,7 +585,7 @@ const InitialSetupScreen: React.FC = () => {
                   />
                   </View>
                   
-                  <View style={{ marginTop: 8 }}>
+                  <View style={{ marginTop: 6 }}>
                     <Text style={styles.label}>Login</Text>
                   <TextInput
                     value={loginReadonly}
@@ -621,7 +621,7 @@ const InitialSetupScreen: React.FC = () => {
                     </View>
                   </View>
                   
-                  <View style={{ marginTop: 8 }}>
+                  <View style={{ marginTop: 6 }}>
                     <Text style={styles.label}>Confirmation du code PIN</Text>
                     <View style={styles.pinRow}>
                       <TextInput
@@ -645,7 +645,7 @@ const InitialSetupScreen: React.FC = () => {
                     </TouchableOpacity>
                   </View>
                   
-                  <View style={{ marginTop: 8 }}>
+                  <View style={{ marginTop: 6 }}>
                     <Text style={styles.label}>Clé secrète</Text>
                     <View style={styles.pinRow}>
                       <TextInput
@@ -670,7 +670,7 @@ const InitialSetupScreen: React.FC = () => {
                   </View>
                   
                   {!!pinError && (
-                    <View style={{ marginTop: 16 }}>
+                    <View style={{ marginTop: 12 }}>
                       <Text style={styles.error}>{pinError}</Text>
                     </View>
                   )}
@@ -755,8 +755,8 @@ const styles = StyleSheet.create({
     width: "100%",
     backgroundColor: "#FFFFFF",
     borderRadius: 24,
-    paddingVertical: 24,
-    paddingHorizontal: 28,
+    paddingVertical: 20,
+    paddingHorizontal: 24,
     alignItems: "center",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
@@ -764,13 +764,13 @@ const styles = StyleSheet.create({
     shadowRadius: 16,
     elevation: 4,
     zIndex: 2,
-    marginBottom: 20,
-    marginTop: 20,
+    marginBottom: 16,
+    marginTop: 16,
     borderWidth: 1,
     borderColor: "#E5E7EB",
   },
   stepPill: {
-    marginTop: 8,
+    marginTop: 6,
     backgroundColor: "#E2E8F0",
     paddingHorizontal: 12,
     paddingVertical: 6,
@@ -785,7 +785,7 @@ const styles = StyleSheet.create({
   topSubtitle: { 
     fontSize: 14, 
     color: "#64748B", 
-    marginTop: 8,
+    marginTop: 6,
     textAlign: "center",
   },
   clientName: {
@@ -797,7 +797,7 @@ const styles = StyleSheet.create({
     height: 80,
     justifyContent: "center",
     alignItems: "center",
-    marginBottom: 8,
+    marginBottom: 6,
   },
   logo: { 
     width: "100%", 
@@ -841,8 +841,8 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: "#FFFFFF",
     borderRadius: 24,
-    padding: 28,
-    marginBottom: 24,
+    padding: 24,
+    marginBottom: 20,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
@@ -850,13 +850,13 @@ const styles = StyleSheet.create({
     elevation: 4,
     borderWidth: 1,
     borderColor: "#E5E7EB",
-    minHeight: 500,
+    minHeight: 480,
   },
   sectionHeader: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 20,
-    paddingBottom: 12,
+    marginBottom: 16,
+    paddingBottom: 10,
     borderBottomWidth: 1,
     borderBottomColor: "#F3F4F6",
   },
@@ -870,15 +870,15 @@ const styles = StyleSheet.create({
   actionsRow: { 
     flexDirection: "row", 
     alignItems: "center", 
-    marginTop: 8,
+    marginTop: 6,
     gap: 8,
   },
   input: {
     borderWidth: 1,
     borderColor: "#D1D5DB",
     borderRadius: 12,
-    padding: 14,
-    marginBottom: 12,
+    padding: 12,
+    marginBottom: 10,
     backgroundColor: "#FFFFFF",
     fontSize: 16,
     shadowColor: "#000",
@@ -895,24 +895,24 @@ const styles = StyleSheet.create({
     fontSize: 14, 
     fontWeight: "600", 
     color: "#374151", 
-    marginBottom: 10,
-    marginTop: 8,
+    marginBottom: 8,
+    marginTop: 6,
   },
   pinRow: { 
     flexDirection: "row", 
     alignItems: "center",
-    marginBottom: 16,
+    marginBottom: 12,
   },
   button: {
     backgroundColor: "#0066CC",
-    paddingVertical: 14,
+    paddingVertical: 12,
     borderRadius: 12,
     alignItems: "center",
     shadowColor: "#0066CC",
     shadowOpacity: 0.2,
     shadowRadius: 8,
     elevation: 2,
-    marginTop: 16,
+    marginTop: 14,
   },
   buttonContent: {
     flexDirection: "row",
