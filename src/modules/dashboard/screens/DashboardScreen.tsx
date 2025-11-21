@@ -23,19 +23,20 @@ export const DashboardScreen: React.FC = () => {
   const navigation = useNavigation();
   const [showQrModal, setShowQrModal] = useState(false);
   const [showAllTransactions, setShowAllTransactions] = useState(false);
+  const [isBalanceHidden, setIsBalanceHidden] = useState(false);
   const { t, tText } = useI18n();
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const { isAuthenticated, user } = useAuth();
-  
+
   // Détection du mode invité (username === "invite")
   const isGuestMode = isAuthenticated && user?.username === "invite";
-  
+
   // DEBUG: Log authentication state
   console.log("Dashboard - isAuthenticated:", isAuthenticated);
   console.log("Dashboard - user:", user);
   console.log("Dashboard - isGuestMode:", isGuestMode);
-  
+
   // Fonction pour gérer les restrictions en mode invité
   const handleGuestRestriction = (featureName: string) => {
     console.log("handleGuestRestriction - isGuestMode:", isGuestMode);
@@ -45,14 +46,17 @@ export const DashboardScreen: React.FC = () => {
         "Veuillez vous connecter pour accéder à cette fonctionnalité.",
         [
           { text: "Annuler", style: "cancel" },
-          { text: "Se connecter", onPress: () => navigation.navigate("Login" as never) }
+          {
+            text: "Se connecter",
+            onPress: () => navigation.navigate("Login" as never),
+          },
         ]
       );
       return true;
     }
     return false;
   };
-  
+
   // Calculer la hauteur totale du header (incluant l'encoche)
   const headerHeight = 140 + insets.top; // Réduit à 140
 
@@ -223,7 +227,9 @@ export const DashboardScreen: React.FC = () => {
   ];
 
   // Afficher seulement 3 transactions par défaut, ou toutes si "Voir tout" est activé
-  const transactions = showAllTransactions ? allTransactions : allTransactions.slice(0, 3);
+  const transactions = showAllTransactions
+    ? allTransactions
+    : allTransactions.slice(0, 3);
 
   // Rendu d'une offre pour la pagination horizontale
   const renderOfferItem = ({ item, index }: { item: any; index: number }) => (
@@ -242,9 +248,15 @@ export const DashboardScreen: React.FC = () => {
         <Text style={styles.offerBadgeText}>{tText(item.badge)}</Text>
       </View>
       <View style={styles.offerContent}>
-        <Text style={[styles.offerTitle, { color: colors.text }]}>{tText(item.title)}</Text>
-        <Text style={[styles.offerSubtitle, { color: colors.primary }]}>{tText(item.subtitle)}</Text>
-        <Text style={[styles.offerDescription, { color: colors.text + "80" }]}>{tText(item.description)}</Text>
+        <Text style={[styles.offerTitle, { color: colors.text }]}>
+          {tText(item.title)}
+        </Text>
+        <Text style={[styles.offerSubtitle, { color: colors.primary }]}>
+          {tText(item.subtitle)}
+        </Text>
+        <Text style={[styles.offerDescription, { color: colors.text + "80" }]}>
+          {tText(item.description)}
+        </Text>
       </View>
     </View>
   );
@@ -252,14 +264,23 @@ export const DashboardScreen: React.FC = () => {
   // (redirection supprimée)
 
   const renderServiceItem = ({ item }: { item: any }) => (
-    <TouchableOpacity style={[styles.serviceCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+    <TouchableOpacity
+      style={[
+        styles.serviceCard,
+        { backgroundColor: colors.card, borderColor: colors.border },
+      ]}
+    >
       <View
         style={[styles.serviceIcon, { backgroundColor: item.backgroundColor }]}
       >
         <Ionicons name={item.icon as any} size={24} color={item.iconColor} />
       </View>
-      <Text style={[styles.serviceTitle, { color: colors.text }]}>{tText(item.title)}</Text>
-      <Text style={[styles.serviceSubtitle, { color: colors.text + "70" }]}>{tText(item.subtitle)}</Text>
+      <Text style={[styles.serviceTitle, { color: colors.text }]}>
+        {tText(item.title)}
+      </Text>
+      <Text style={[styles.serviceSubtitle, { color: colors.text + "70" }]}>
+        {tText(item.subtitle)}
+      </Text>
       <View style={{ marginTop: 6 }}>
         <Ionicons name="chevron-forward" size={16} color={colors.text} />
       </View>
@@ -269,12 +290,25 @@ export const DashboardScreen: React.FC = () => {
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Header fixe avec View normale - HAUTEUR AUGMENTÉE */}
-      <View style={[styles.header, { backgroundColor: colors.primary, paddingTop: insets.top + 20 }]}>
+      <View
+        style={[
+          styles.header,
+          { backgroundColor: colors.primary, paddingTop: insets.top + 20 },
+        ]}
+      >
         <View>
           <Text style={[styles.time, { color: colors.background }]}>17:36</Text>
-          <Text style={[styles.hello, { color: colors.background }]}>{t("dashboard.greeting")}</Text>
-          <Text style={{ color: colors.background, fontSize: 12, marginTop: 4 }}>
-            {isGuestMode ? "MODE INVITÉ" : isAuthenticated ? "CONNECTÉ" : "NON CONNECTÉ"}
+          <Text style={[styles.hello, { color: colors.background }]}>
+            {t("dashboard.greeting")}
+          </Text>
+          <Text
+            style={{ color: colors.background, fontSize: 12, marginTop: 4 }}
+          >
+            {isGuestMode
+              ? "MODE INVITÉ"
+              : isAuthenticated
+              ? "CONNECTÉ"
+              : "NON CONNECTÉ"}
           </Text>
         </View>
         <View style={styles.headerIcons}>
@@ -285,365 +319,582 @@ export const DashboardScreen: React.FC = () => {
               setShowQrModal(true);
             }}
           >
-            <Ionicons name="qr-code-outline" size={22} color={colors.background} />
+            <Ionicons
+              name="qr-code-outline"
+              size={22}
+              color={colors.background}
+            />
           </TouchableOpacity>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.iconBtn}
             onPress={() => handleGuestRestriction("les notifications")}
           >
-            <Ionicons name="notifications-outline" size={22} color={colors.background} />
+            <Ionicons
+              name="notifications-outline"
+              size={22}
+              color={colors.background}
+            />
             <View style={[styles.badge, { backgroundColor: colors.error }]}>
-              <Text style={[styles.badgeText, { color: colors.background }]}>5</Text>
+              <Text style={[styles.badgeText, { color: colors.background }]}>
+                5
+              </Text>
             </View>
           </TouchableOpacity>
         </View>
       </View>
 
       {/* Contenu scrollable - ESPACEMENT RÉDUIT */}
-      <ScrollView 
-        style={[styles.scrollContent, { paddingTop: 0 }]} 
+      <ScrollView
+        style={[styles.scrollContent, { paddingTop: 0 }]}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={[styles.scrollContainer, { paddingTop: headerHeight - 10 }]} // Réduit de +3 à -10
+        contentContainerStyle={[
+          styles.scrollContainer,
+          { paddingTop: headerHeight - 10 },
+        ]} // Réduit de +3 à -10
       >
-      {/* Modal QR Code */}
-      <Modal
-        transparent
-        visible={showQrModal}
-        animationType="fade"
-        onRequestClose={() => setShowQrModal(false)}
-      >
-        <View style={styles.qrOverlay}>
-          <View style={[styles.qrContainer, { backgroundColor: colors.card, borderColor: colors.border }]}>
-            <View style={styles.qrHeaderRow}>
-              <Text style={[styles.qrHeaderTitle, { color: colors.text }]}>
-                {t("dashboard.qr.title")}
-              </Text>
-              <TouchableOpacity
-                onPress={() => setShowQrModal(false)}
-                style={styles.qrCloseBtn}
-              >
-                <Ionicons name="close" size={20} color={colors.text} />
-              </TouchableOpacity>
-            </View>
-
-            <View style={[styles.qrBox, { backgroundColor: colors.background, borderColor: colors.border }]}>
-              <Ionicons name="qr-code-outline" size={220} color={colors.text} />
-            </View>
-
-            <View style={[styles.qrInfoCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
-              <View style={[styles.qrInfoRow, { backgroundColor: colors.card }]}>
-                <View
-                  style={[styles.qrInfoIconBg, { backgroundColor: colors.primary + '20' }]}
-                >
-                  <Ionicons name="person-outline" size={18} color={colors.primary} />
-                </View>
-                <View style={styles.qrInfoTexts}>
-                  <Text style={[styles.qrInfoLabel, { color: colors.text + "70" }]}>
-                    {t("dashboard.qr.name")}
-                  </Text>
-                  <Text style={[styles.qrInfoValue, { color: colors.text }]}>Derly MOUPEPIDI</Text>
-                </View>
-              </View>
-
-              <View style={[styles.qrInfoRow, { backgroundColor: colors.card }]}>
-                <View
-                  style={[styles.qrInfoIconBg, { backgroundColor: colors.card }]}
-                >
-                  <Ionicons name="barcode-outline" size={18} color={colors.success} />
-                </View>
-                <View style={styles.qrInfoTexts}>
-                  <Text style={[styles.qrInfoLabel, { color: colors.text + "70" }]}>
-                    {t("dashboard.qr.clientCode")}
-                  </Text>
-                  <Text style={[styles.qrInfoValue, { color: colors.text }]}>LP001234</Text>
-                </View>
-              </View>
-
-              <View style={[styles.qrInfoRow, { backgroundColor: colors.card }]}>
-                <View
-                  style={[styles.qrInfoIconBg, { backgroundColor: colors.card }]}
-                >
-                  <Ionicons name="call-outline" size={18} color={colors.warning} />
-                </View>
-                <View style={styles.qrInfoTexts}>
-                  <Text style={[styles.qrInfoLabel, { color: colors.text + "70" }]}>
-                    {t("dashboard.qr.phone")}
-                  </Text>
-                  <Text style={[styles.qrInfoValue, { color: colors.text }]}>+241 77 68 38 55</Text>
-                </View>
-              </View>
-
-              <View style={[styles.qrTipBox, { backgroundColor: colors.primary + '10' }]}>
-                <View
-                  style={[styles.qrTipIconBg, { backgroundColor: colors.primary + "20" }]}
-                >
-                  <Ionicons
-                    name="information-circle-outline"
-                    size={18}
-                    color={colors.primary}
-                  />
-                </View>
-                <Text style={[styles.qrTipText, { color: colors.text + "90" }]}>{t("dashboard.qr.tip")}</Text>
-              </View>
-            </View>
-          </View>
-        </View>
-      </Modal>
-
-      {/* Carte principale - MASQUÉE EN MODE INVITÉ */}
-      {!isGuestMode && (
-        <View style={[styles.card, { backgroundColor: colors.card, marginTop: -15 }]}> // Réduit de 5 à -15
-        <View style={styles.userSection}>
-          <View style={styles.avatar}>
-            <Text style={[styles.avatarText, { color: colors.background }]}>DM</Text>
-          </View>
-          <View>
-            <Text style={[styles.name, { color: colors.text }]}>Derly MOUPEPIDI</Text>
-            <Text style={[styles.accountType, { color: colors.primary }]}>
-              {t("dashboard.accountType.premium")}
-            </Text>
-          </View>
-          <TouchableOpacity style={styles.eyeBtn}>
-            <Ionicons name="eye-outline" size={20} color={colors.text} />
-          </TouchableOpacity>
-        </View>
-        <View style={styles.balanceSection}>
-          <Text style={[styles.balanceLabel, { color: colors.text }]}>
-            {t("dashboard.balance.label")}
-          </Text>
-          <Text style={[styles.balance, { color: colors.primary }]}>5 850 000 XAF</Text>
-          <View style={styles.subInfo}>
-            <Text style={[styles.subText, { color: colors.text }]}>{`💼 3 ${t(
-              "dashboard.balance.activeAccountsLabel"
-            )}`}</Text>
-            <Text style={[styles.percent, { color: colors.success }]}>📈 +2.5%</Text>
-          </View>
-        </View>
-        <View style={styles.actions}>
-          <TouchableOpacity
-            style={styles.actionBtn}
-            onPress={() => navigation.navigate("Transfer" as never)}
-          >
-            <Ionicons
-              name="arrow-forward-circle-outline"
-              size={18}
-              color={colors.primary}
-            />
-            <Text style={[styles.actionText, { color: colors.primary }]}>
-              {t("dashboard.actions.transfer")}
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.actionBtn}
-            onPress={() => navigation.navigate("Accounts" as never)}
-          >
-            <Ionicons name="list-outline" size={18} color={colors.primary} />
-            <Text style={[styles.actionText, { color: colors.primary }]}>
-              {t("dashboard.actions.accounts")}
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.actionBtn}
-            onPress={() => navigation.navigate("Cards" as never)}
-          >
-            <Ionicons name="card-outline" size={18} color={colors.primary} />
-            <Text style={[styles.actionText, { color: colors.primary }]}>
-              {t("dashboard.actions.cards")}
-            </Text>
-          </TouchableOpacity>
-        </View>
-        </View>
-      )}
-
-      {/* Actions rapides - EXISTANT */}
-      <View style={[styles.section, { marginTop: 15, marginBottom: 2 }]}>
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>{t("dashboard.actions.quick")}</Text>
-        <View style={styles.quickActions}>
-          <TouchableOpacity
-            style={[styles.quickActionCard, { backgroundColor: colors.card, borderColor: colors.border }]}
-            onPress={() => {
-              if (handleGuestRestriction("les virements")) return;
-              navigation.navigate("Transfer" as never);
-            }}
-          >
-            <View
-              style={[styles.quickActionIcon, { backgroundColor: colors.card }]}
-            >
-              <Ionicons name="swap-horizontal" size={24} color={colors.primary} />
-            </View>
-            <Text style={[styles.quickActionTitle, { color: colors.text }]}>
-              {t("dashboard.quick.transfer")}
-            </Text>
-            <Text style={[styles.quickActionSubtitle, { color: colors.primary }]}>
-              {t("dashboard.quick.transfer.subtitle")}
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.quickActionCard, { backgroundColor: colors.card, borderColor: colors.border }]}
-            onPress={() => {
-              if (handleGuestRestriction("les bénéficiaires")) return;
-              navigation.navigate("BeneficiairesPage" as never);
-            }}
-          >
-            <View
-              style={[styles.quickActionIcon, { backgroundColor: colors.card }]}
-            >
-              <Ionicons name="people-outline" size={24} color={colors.success} />
-            </View>
-            <Text style={[styles.quickActionTitle, { color: colors.text }]}>
-              {t("dashboard.quick.beneficiaries")}
-            </Text>
-            <Text style={[styles.quickActionSubtitle, { color: colors.primary }]}>
-              {t("dashboard.quick.beneficiaries.subtitle")}
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.quickActionCard, { backgroundColor: colors.card, borderColor: colors.border }]}
-            onPress={() => {
-              if (handleGuestRestriction("les produits")) return;
-              navigation.navigate("DetailsProduits" as never);
-            }}
-          >
-            <View
-              style={[styles.quickActionIcon, { backgroundColor: colors.card }]}
-            >
-              <Ionicons name="briefcase-outline" size={24} color={colors.warning} />
-            </View>
-            <Text style={[styles.quickActionTitle, { color: colors.text }]}>
-              {t("dashboard.quick.products")}
-            </Text>
-            <Text style={[styles.quickActionSubtitle, { color: colors.primary }]}>
-              {t("dashboard.quick.products.subtitle")}
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.quickActionCard, { backgroundColor: colors.card, borderColor: colors.border }]}
-            onPress={() => {
-              if (handleGuestRestriction("les cartes")) return;
-              navigation.navigate("Cards" as never);
-            }}
-          >
-            <View
-              style={[styles.quickActionIcon, { backgroundColor: colors.card }]}
-            >
-              <Ionicons name="card-outline" size={24} color={colors.primary} />
-            </View>
-            <Text style={[styles.quickActionTitle, { color: colors.text }]}>
-              {t("dashboard.quick.cards")}
-            </Text>
-            <Text style={[styles.quickActionSubtitle, { color: colors.primary }]}>
-              {t("dashboard.quick.cards.subtitle")}
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      {/* Offres spéciales - pagination horizontale */}
-      <View style={[styles.section, { marginTop: 18, marginBottom: 8 }]}>
-        <View style={styles.sectionHeader}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>{t("dashboard.offers.title")}</Text>
-        </View>
-        <FlatList
-          data={offers}
-          renderItem={renderOfferItem}
-          keyExtractor={(item) => item.id.toString()}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={[styles.offersContainer, { paddingBottom: 10 }]}
-          snapToAlignment="center"
-          decelerationRate="fast"
-          snapToInterval={offerCardWidth + itemSpacing}
-          pagingEnabled
-        />
-      </View>
-
-      {/* NOUVELLE SECTION : Nos services avec défilement horizontal */}
-      <View style={[styles.section, { marginTop: 18, marginBottom: 8 }]}>
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>{t("dashboard.services.title")}</Text>
-        <FlatList
-          ref={servicesScrollRef}
-          data={services}
-          renderItem={renderServiceItem}
-          keyExtractor={(item) => item.id.toString()}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={[styles.servicesContainer, { paddingBottom: 10 }]}
-          snapToAlignment="center"
-          decelerationRate="fast"
-        />
-      </View>
-
-      {/* NOUVELLE SECTION : Activité récente - MASQUÉE EN MODE INVITÉ */}
-      {!isGuestMode && (
-        <View style={[styles.section, { marginTop: 18, marginBottom: 15 }]}>
-        <View style={styles.sectionHeader}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>{t("dashboard.recent.title")}</Text>
-          <TouchableOpacity onPress={() => setShowAllTransactions(!showAllTransactions)}>
-            <Text style={[styles.seeAllText, { color: colors.primary }]}>
-              {showAllTransactions ? "Voir moins" : t("dashboard.recent.seeAll")}
-            </Text>
-          </TouchableOpacity>
-        </View>
-
-        <View 
-          style={[
-            styles.transactionsList, 
-            { 
-              backgroundColor: colors.card, 
-              borderColor: colors.border,
-              minHeight: transactions.length * 75 // Hauteur minimale basée sur le nombre de transactions
-            }
-          ]} 
+        {/* Modal QR Code */}
+        <Modal
+          transparent
+          visible={showQrModal}
+          animationType="fade"
+          onRequestClose={() => setShowQrModal(false)}
         >
-          {transactions.map((transaction, index) => (
-            <View key={transaction.id}>
-              <View style={styles.transactionItem}>
-                <View style={styles.transactionLeft}>
+          <View style={styles.qrOverlay}>
+            <View
+              style={[
+                styles.qrContainer,
+                { backgroundColor: colors.card, borderColor: colors.border },
+              ]}
+            >
+              <View style={styles.qrHeaderRow}>
+                <Text style={[styles.qrHeaderTitle, { color: colors.text }]}>
+                  {t("dashboard.qr.title")}
+                </Text>
+                <TouchableOpacity
+                  onPress={() => setShowQrModal(false)}
+                  style={styles.qrCloseBtn}
+                >
+                  <Ionicons name="close" size={20} color={colors.text} />
+                </TouchableOpacity>
+              </View>
+
+              <View
+                style={[
+                  styles.qrBox,
+                  {
+                    backgroundColor: colors.background,
+                    borderColor: colors.border,
+                  },
+                ]}
+              >
+                <Ionicons
+                  name="qr-code-outline"
+                  size={220}
+                  color={colors.text}
+                />
+              </View>
+
+              <View
+                style={[
+                  styles.qrInfoCard,
+                  { backgroundColor: colors.card, borderColor: colors.border },
+                ]}
+              >
+                <View
+                  style={[styles.qrInfoRow, { backgroundColor: colors.card }]}
+                >
                   <View
                     style={[
-                      styles.transactionIcon,
+                      styles.qrInfoIconBg,
+                      { backgroundColor: colors.primary + "20" },
+                    ]}
+                  >
+                    <Ionicons
+                      name="person-outline"
+                      size={18}
+                      color={colors.primary}
+                    />
+                  </View>
+                  <View style={styles.qrInfoTexts}>
+                    <Text
+                      style={[
+                        styles.qrInfoLabel,
+                        { color: colors.text + "70" },
+                      ]}
+                    >
+                      {t("dashboard.qr.name")}
+                    </Text>
+                    <Text style={[styles.qrInfoValue, { color: colors.text }]}>
+                      Derly MOUPEPIDI
+                    </Text>
+                  </View>
+                </View>
+
+                <View
+                  style={[styles.qrInfoRow, { backgroundColor: colors.card }]}
+                >
+                  <View
+                    style={[
+                      styles.qrInfoIconBg,
                       { backgroundColor: colors.card },
                     ]}
                   >
                     <Ionicons
-                      name={transaction.icon as any}
-                      size={20}
-                      color={transaction.iconColor}
+                      name="barcode-outline"
+                      size={18}
+                      color={colors.success}
                     />
                   </View>
-                  <View style={styles.transactionInfo}>
-                    <Text style={[styles.transactionType, { color: colors.text }]}>
-                      {tText(transaction.type)}
+                  <View style={styles.qrInfoTexts}>
+                    <Text
+                      style={[
+                        styles.qrInfoLabel,
+                        { color: colors.text + "70" },
+                      ]}
+                    >
+                      {t("dashboard.qr.clientCode")}
                     </Text>
-                    <Text style={[styles.transactionDate, { color: colors.text + "60" }]}>
-                      {tText(transaction.date)}
+                    <Text style={[styles.qrInfoValue, { color: colors.text }]}>
+                      LP001234
                     </Text>
                   </View>
                 </View>
-                <Text
+
+                <View
+                  style={[styles.qrInfoRow, { backgroundColor: colors.card }]}
+                >
+                  <View
+                    style={[
+                      styles.qrInfoIconBg,
+                      { backgroundColor: colors.card },
+                    ]}
+                  >
+                    <Ionicons
+                      name="call-outline"
+                      size={18}
+                      color={colors.warning}
+                    />
+                  </View>
+                  <View style={styles.qrInfoTexts}>
+                    <Text
+                      style={[
+                        styles.qrInfoLabel,
+                        { color: colors.text + "70" },
+                      ]}
+                    >
+                      {t("dashboard.qr.phone")}
+                    </Text>
+                    <Text style={[styles.qrInfoValue, { color: colors.text }]}>
+                      +241 77 68 38 55
+                    </Text>
+                  </View>
+                </View>
+
+                <View
                   style={[
-                    styles.transactionAmount,
-                    {
-                      color: transaction.amount.startsWith("+")
-                        ? colors.success
-                        : colors.error,
-                    },
+                    styles.qrTipBox,
+                    { backgroundColor: colors.primary + "10" },
                   ]}
                 >
-                  {transaction.amount}
+                  <View
+                    style={[
+                      styles.qrTipIconBg,
+                      { backgroundColor: colors.primary + "20" },
+                    ]}
+                  >
+                    <Ionicons
+                      name="information-circle-outline"
+                      size={18}
+                      color={colors.primary}
+                    />
+                  </View>
+                  <Text
+                    style={[styles.qrTipText, { color: colors.text + "90" }]}
+                  >
+                    {t("dashboard.qr.tip")}
+                  </Text>
+                </View>
+              </View>
+            </View>
+          </View>
+        </Modal>
+
+        {/* Carte principale - MASQUÉE EN MODE INVITÉ */}
+        {!isGuestMode && (
+          <View
+            style={[
+              styles.card,
+              { backgroundColor: colors.card, marginTop: -15 },
+            ]}
+          >
+            {" "}
+            // Réduit de 5 à -15
+            <View style={styles.userSection}>
+              <View style={styles.avatar}>
+                <Text style={[styles.avatarText, { color: colors.background }]}>
+                  DM
                 </Text>
               </View>
-
-              {/* Séparateur sauf pour le dernier élément */}
-              {index < transactions.length - 1 && (
-                <View style={[styles.separator, { backgroundColor: colors.border }]} />
-              )}
+              <View>
+                <Text style={[styles.name, { color: colors.text }]}>
+                  Derly MOUPEPIDI
+                </Text>
+                <Text style={[styles.accountType, { color: colors.primary }]}>
+                  {t("dashboard.accountType.premium")}
+                </Text>
+              </View>
+              <TouchableOpacity
+                style={styles.eyeBtn}
+                onPress={() => setIsBalanceHidden((v) => !v)}
+              >
+                <Ionicons
+                  name={isBalanceHidden ? "eye-off-outline" : "eye-outline"}
+                  size={20}
+                  color={colors.text}
+                />
+              </TouchableOpacity>
             </View>
-          ))}
-        </View>
-        </View>
-      )}
+            <View style={styles.balanceSection}>
+              <Text style={[styles.balanceLabel, { color: colors.text }]}>
+                {t("dashboard.balance.label")}
+              </Text>
+              <Text style={[styles.balance, { color: colors.primary }]}>
+                {isBalanceHidden ? "••••••••" : "5 850 000 XAF"}
+              </Text>
+              <View style={styles.subInfo}>
+                <Text
+                  style={[styles.subText, { color: colors.text }]}
+                >{`💼 3 ${t("dashboard.balance.activeAccountsLabel")}`}</Text>
+                <Text style={[styles.percent, { color: colors.success }]}>
+                  📈 +2.5%
+                </Text>
+              </View>
+            </View>
+            <View style={styles.actions}>
+              <TouchableOpacity
+                style={styles.actionBtn}
+                onPress={() => navigation.navigate("Transfer" as never)}
+              >
+                <Ionicons
+                  name="arrow-forward-circle-outline"
+                  size={18}
+                  color={colors.primary}
+                />
+                <Text style={[styles.actionText, { color: colors.primary }]}>
+                  {t("dashboard.actions.transfer")}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.actionBtn}
+                onPress={() => navigation.navigate("Accounts" as never)}
+              >
+                <Ionicons
+                  name="list-outline"
+                  size={18}
+                  color={colors.primary}
+                />
+                <Text style={[styles.actionText, { color: colors.primary }]}>
+                  {t("dashboard.actions.accounts")}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.actionBtn}
+                onPress={() => navigation.navigate("Cards" as never)}
+              >
+                <Ionicons
+                  name="card-outline"
+                  size={18}
+                  color={colors.primary}
+                />
+                <Text style={[styles.actionText, { color: colors.primary }]}>
+                  {t("dashboard.actions.cards")}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
 
+        {/* Actions rapides - EXISTANT */}
+        <View style={[styles.section, { marginTop: 15, marginBottom: 2 }]}>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>
+            {t("dashboard.actions.quick")}
+          </Text>
+          <View style={styles.quickActions}>
+            <TouchableOpacity
+              style={[
+                styles.quickActionCard,
+                { backgroundColor: colors.card, borderColor: colors.border },
+              ]}
+              onPress={() => {
+                if (handleGuestRestriction("les virements")) return;
+                navigation.navigate("Transfer" as never);
+              }}
+            >
+              <View
+                style={[
+                  styles.quickActionIcon,
+                  { backgroundColor: colors.card },
+                ]}
+              >
+                <Ionicons
+                  name="swap-horizontal"
+                  size={24}
+                  color={colors.primary}
+                />
+              </View>
+              <Text style={[styles.quickActionTitle, { color: colors.text }]}>
+                {t("dashboard.quick.transfer")}
+              </Text>
+              <Text
+                style={[styles.quickActionSubtitle, { color: colors.primary }]}
+              >
+                {t("dashboard.quick.transfer.subtitle")}
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                styles.quickActionCard,
+                { backgroundColor: colors.card, borderColor: colors.border },
+              ]}
+              onPress={() => {
+                if (handleGuestRestriction("les bénéficiaires")) return;
+                navigation.navigate("BeneficiairesPage" as never);
+              }}
+            >
+              <View
+                style={[
+                  styles.quickActionIcon,
+                  { backgroundColor: colors.card },
+                ]}
+              >
+                <Ionicons
+                  name="people-outline"
+                  size={24}
+                  color={colors.success}
+                />
+              </View>
+              <Text style={[styles.quickActionTitle, { color: colors.text }]}>
+                {t("dashboard.quick.beneficiaries")}
+              </Text>
+              <Text
+                style={[styles.quickActionSubtitle, { color: colors.primary }]}
+              >
+                {t("dashboard.quick.beneficiaries.subtitle")}
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                styles.quickActionCard,
+                { backgroundColor: colors.card, borderColor: colors.border },
+              ]}
+              onPress={() => {
+                if (handleGuestRestriction("les produits")) return;
+                navigation.navigate("Products" as never);
+              }}
+            >
+              <View
+                style={[
+                  styles.quickActionIcon,
+                  { backgroundColor: colors.card },
+                ]}
+              >
+                <Ionicons
+                  name="briefcase-outline"
+                  size={24}
+                  color={colors.warning}
+                />
+              </View>
+              <Text style={[styles.quickActionTitle, { color: colors.text }]}>
+                {t("dashboard.quick.products")}
+              </Text>
+              <Text
+                style={[styles.quickActionSubtitle, { color: colors.primary }]}
+              >
+                {t("dashboard.quick.products.subtitle")}
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                styles.quickActionCard,
+                { backgroundColor: colors.card, borderColor: colors.border },
+              ]}
+              onPress={() => {
+                if (handleGuestRestriction("les cartes")) return;
+                navigation.navigate("Cards" as never);
+              }}
+            >
+              <View
+                style={[
+                  styles.quickActionIcon,
+                  { backgroundColor: colors.card },
+                ]}
+              >
+                <Ionicons
+                  name="card-outline"
+                  size={24}
+                  color={colors.primary}
+                />
+              </View>
+              <Text style={[styles.quickActionTitle, { color: colors.text }]}>
+                {t("dashboard.quick.cards")}
+              </Text>
+              <Text
+                style={[styles.quickActionSubtitle, { color: colors.primary }]}
+              >
+                {t("dashboard.quick.cards.subtitle")}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Offres spéciales - pagination horizontale */}
+        <View style={[styles.section, { marginTop: 18, marginBottom: 8 }]}>
+          <View style={styles.sectionHeader}>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>
+              {t("dashboard.offers.title")}
+            </Text>
+          </View>
+          <FlatList
+            data={offers}
+            renderItem={renderOfferItem}
+            keyExtractor={(item) => item.id.toString()}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={[
+              styles.offersContainer,
+              { paddingBottom: 10 },
+            ]}
+            snapToAlignment="center"
+            decelerationRate="fast"
+            snapToInterval={offerCardWidth + itemSpacing}
+            pagingEnabled
+          />
+          <View style={styles.paginationDots}>
+            <View
+              style={[styles.paginationDot, { backgroundColor: colors.border }]}
+            />
+            <View
+              style={[
+                styles.paginationDot,
+                styles.paginationDotActive,
+                { backgroundColor: colors.primary },
+              ]}
+            />
+          </View>
+        </View>
+
+        {/* NOUVELLE SECTION : Nos services avec défilement horizontal */}
+        <View style={[styles.section, { marginTop: 18, marginBottom: 8 }]}>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>
+            {t("dashboard.services.title")}
+          </Text>
+          <FlatList
+            ref={servicesScrollRef}
+            data={services}
+            renderItem={renderServiceItem}
+            keyExtractor={(item) => item.id.toString()}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={[
+              styles.servicesContainer,
+              { paddingBottom: 10 },
+            ]}
+            snapToAlignment="center"
+            decelerationRate="fast"
+          />
+        </View>
+
+        {/* NOUVELLE SECTION : Activité récente - MASQUÉE EN MODE INVITÉ */}
+        {!isGuestMode && (
+          <View style={[styles.section, { marginTop: 18, marginBottom: 15 }]}>
+            <View style={styles.sectionHeader}>
+              <Text style={[styles.sectionTitle, { color: colors.text }]}>
+                {t("dashboard.recent.title")}
+              </Text>
+              <TouchableOpacity
+                onPress={() => setShowAllTransactions(!showAllTransactions)}
+              >
+                <Text style={[styles.seeAllText, { color: colors.primary }]}>
+                  {showAllTransactions
+                    ? "Voir moins"
+                    : t("dashboard.recent.seeAll")}
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            <View
+              style={[
+                styles.transactionsList,
+                {
+                  backgroundColor: colors.card,
+                  borderColor: colors.border,
+                  minHeight: transactions.length * 75, // Hauteur minimale basée sur le nombre de transactions
+                },
+              ]}
+            >
+              {transactions.map((transaction, index) => (
+                <View key={transaction.id}>
+                  <View style={styles.transactionItem}>
+                    <View style={styles.transactionLeft}>
+                      <View
+                        style={[
+                          styles.transactionIcon,
+                          { backgroundColor: colors.card },
+                        ]}
+                      >
+                        <Ionicons
+                          name={transaction.icon as any}
+                          size={20}
+                          color={transaction.iconColor}
+                        />
+                      </View>
+                      <View style={styles.transactionInfo}>
+                        <Text
+                          style={[
+                            styles.transactionType,
+                            { color: colors.text },
+                          ]}
+                        >
+                          {tText(transaction.type)}
+                        </Text>
+                        <Text
+                          style={[
+                            styles.transactionDate,
+                            { color: colors.text + "60" },
+                          ]}
+                        >
+                          {tText(transaction.date)}
+                        </Text>
+                      </View>
+                    </View>
+                    <Text
+                      style={[
+                        styles.transactionAmount,
+                        {
+                          color: transaction.amount.startsWith("+")
+                            ? colors.success
+                            : colors.error,
+                        },
+                      ]}
+                    >
+                      {transaction.amount}
+                    </Text>
+                  </View>
+
+                  {/* Séparateur sauf pour le dernier élément */}
+                  {index < transactions.length - 1 && (
+                    <View
+                      style={[
+                        styles.separator,
+                        { backgroundColor: colors.border },
+                      ]}
+                    />
+                  )}
+                </View>
+              ))}
+            </View>
+          </View>
+        )}
       </ScrollView>
     </View>
   );
@@ -653,7 +904,7 @@ const styles = StyleSheet.create({
   container: {
     backgroundColor: "#F8F9FB",
     flex: 1,
-    position: 'relative',
+    position: "relative",
   },
   header: {
     backgroundColor: "#007AFF",
@@ -663,7 +914,7 @@ const styles = StyleSheet.create({
     paddingBottom: 25,
     borderBottomLeftRadius: 20,
     borderBottomRightRadius: 20,
-    position: 'absolute',
+    position: "absolute",
     top: 0,
     left: 0,
     right: 0,
@@ -676,7 +927,7 @@ const styles = StyleSheet.create({
   scrollContainer: {
     paddingTop: 145, // Réduit de 165 à 145
     paddingBottom: 40, // Réduit de 60 à 40
-    minHeight: Dimensions.get('window').height + 60, // Réduit de +80 à +60
+    minHeight: Dimensions.get("window").height + 60, // Réduit de +80 à +60
   },
   time: {
     color: "#fff",

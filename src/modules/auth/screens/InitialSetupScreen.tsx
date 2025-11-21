@@ -13,6 +13,7 @@ import {
   useColorScheme,
   Animated,
   Platform,
+  KeyboardAvoidingView,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
@@ -176,7 +177,7 @@ const InitialSetupScreen: React.FC = () => {
   const handleVerifyAccountNumber = async () => {
     setVerifyError(null);
     if (!accountNumber || accountNumber.length < 8) {
-      setVerifyError("Numéro de compte invalide. Vérifiez et réessayez.");
+      setVerifyError("Le numéro de compte doit contenir au moins 8 chiffres.");
       return;
     }
     try {
@@ -282,457 +283,445 @@ const InitialSetupScreen: React.FC = () => {
   };
 
   return (
-    <SafeAreaView
-      style={[
-        styles.container,
-        {
-          backgroundColor: palette.bg,
-          paddingTop: containerPadding + 30,
-          paddingHorizontal: containerPadding,
-        },
-      ]}
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
-      <View style={styles.backgroundDecor} pointerEvents="none">
-        <View
-          style={[
-            styles.ring,
-            {
-              top: 60,
-              left: -20,
-              width: Math.min(width * 0.35, 200),
-              height: Math.min(width * 0.35, 200),
-              borderRadius: Math.min(width * 0.35, 200) / 2,
-            },
-          ]}
-        />
-        <View
-          style={[
-            styles.ring,
-            {
-              top: 40,
-              right: -40,
-              width: Math.min(width * 0.4, 250),
-              height: Math.min(width * 0.4, 250),
-              borderRadius: Math.min(width * 0.4, 250) / 2,
-            },
-          ]}
-        />
-        <View
-          style={[
-            styles.ring,
-            {
-              bottom: 80,
-              left: 0,
-              width: Math.min(width * 0.6, 400),
-              height: Math.min(width * 0.6, 400),
-              borderRadius: Math.min(width * 0.6, 400) / 2,
-            },
-          ]}
-        />
-      </View>
-      <View style={styles.content}>
-        <View
-          style={[
-            styles.stack,
-            {
-              maxWidth: maxContainerWidth,
-              width: "100%",
-              paddingHorizontal: width >= 768 ? 16 : 8,
-            },
-          ]}
-        >
+      <SafeAreaView
+        style={[
+          styles.container,
+          {
+            backgroundColor: palette.bg,
+            paddingTop: containerPadding + 30,
+            paddingHorizontal: containerPadding,
+          },
+        ]}
+      >
+        <View style={styles.backgroundDecor} pointerEvents="none">
           <View
             style={[
-              styles.topCard,
-              { backgroundColor: palette.card, padding: cardPadding },
+              styles.ring,
+              {
+                top: 60,
+                left: -20,
+                width: Math.min(width * 0.35, 200),
+                height: Math.min(width * 0.35, 200),
+                borderRadius: Math.min(width * 0.35, 200) / 2,
+              },
+            ]}
+          />
+          <View
+            style={[
+              styles.ring,
+              {
+                top: 40,
+                right: -40,
+                width: Math.min(width * 0.4, 250),
+                height: Math.min(width * 0.4, 250),
+                borderRadius: Math.min(width * 0.4, 250) / 2,
+              },
+            ]}
+          />
+          <View
+            style={[
+              styles.ring,
+              {
+                bottom: 80,
+                left: 0,
+                width: Math.min(width * 0.6, 400),
+                height: Math.min(width * 0.6, 400),
+                borderRadius: Math.min(width * 0.6, 400) / 2,
+              },
+            ]}
+          />
+        </View>
+        <View style={styles.content}>
+          <View
+            style={[
+              styles.stack,
+              {
+                maxWidth: maxContainerWidth,
+                width: "100%",
+                paddingHorizontal: width >= 768 ? 16 : 8,
+              },
             ]}
           >
             <View
               style={[
-                styles.logoBox,
-                { width: logoBoxWidth, height: logoBoxHeight },
+                styles.topCard,
+                { backgroundColor: palette.card, padding: cardPadding },
               ]}
             >
-              <Image
-                source={
-                  logoError
-                    ? require("../../../../assets/icon.png")
-                    : { uri: "https://lapeyrie-emf.ga/logo.png" }
-                }
-                style={styles.logo}
-                resizeMode="contain"
-                onError={() => setLogoError(true)}
-                accessibilityLabel="Logo de l’application"
-              />
-            </View>
-            <Text
-              style={[
-                styles.welcomeText,
-                {
-                  fontSize: headingFontSize * 0.9,
-                  color: palette.textMain,
-                  lineHeight: headingFontSize * 1.3,
-                  marginBottom: width >= 768 ? 2 : 1,
-                },
-              ]}
-            >
-              {step === 1
-                ? "Bienvenue ! Vérifions votre identité"
-                : "Configuration du PIN"}
-            </Text>
-            {step === 2 && loginReadonly && (
+              <View
+                style={[
+                  styles.logoBox,
+                  { width: logoBoxWidth, height: logoBoxHeight },
+                ]}
+              >
+                <Image
+                  source={
+                    logoError
+                      ? require("../../../../assets/icon.png")
+                      : { uri: "https://lapeyrie-emf.ga/logo.png" }
+                  }
+                  style={styles.logo}
+                  resizeMode="contain"
+                  onError={() => setLogoError(true)}
+                  accessibilityLabel="Logo de l’application"
+                />
+              </View>
               <Text
                 style={[
-                  styles.clientName,
+                  styles.welcomeText,
                   {
-                    fontSize: headingFontSize * 0.7,
-                    color: palette.primary,
+                    fontSize: headingFontSize * 0.9,
+                    color: palette.textMain,
+                    lineHeight: headingFontSize * 1.3,
                     marginBottom: width >= 768 ? 2 : 1,
-                    fontWeight: "600",
                   },
                 ]}
               >
-                {loginReadonly.split("_")[0].charAt(0).toUpperCase() +
-                  loginReadonly.split("_")[0].slice(1)}
+                {step === 1
+                  ? "Bienvenue ! Vérifions votre identité"
+                  : "Configuration du PIN"}
               </Text>
-            )}
-            <View style={styles.stepPill}>
-              <Text style={styles.stepPillText}>
-                {step === 1 ? "Étape 1/2" : "Étape 2/2"}
-              </Text>
-            </View>
-            <Text
-              style={[
-                styles.topSubtitle,
-                {
-                  fontSize: subtitleFontSize,
-                  color: palette.textSub,
-                  lineHeight: subtitleFontSize * 1.5,
-                  marginTop: width >= 768 ? 8 : 4,
-                },
-              ]}
-            >
-              {step === 1
-                ? "Configuration initiale de votre appareil"
-                : "Configuration du code PIN"}
-            </Text>
-          </View>
-          <ScrollView
-            contentContainerStyle={styles.scrollContent}
-            keyboardShouldPersistTaps="handled"
-            showsVerticalScrollIndicator={true}
-            bounces={true}
-            alwaysBounceVertical={true}
-            scrollEnabled={true}
-            nestedScrollEnabled={true}
-          >
-            <Animated.View
-              style={{
-                opacity: fadeAnim,
-                transform: [{ translateY: slideAnim }],
-              }}
-            >
-              {step === 1 && (
-                <View style={[styles.card, { padding: cardPadding }]}>
-                  <View style={styles.sectionHeader}>
-                    <MaterialIcons
-                      name="verified-user"
-                      size={18}
-                      color={palette.textMain}
-                    />
-                    <Text style={[styles.sectionTitle, { marginLeft: 8 }]}>
-                      Vérification de l'identité
-                    </Text>
-                  </View>
-                  <View style={{ marginTop: 6 }}>
-                    <Text style={styles.label}>Numéro de compte</Text>
-                    <TextInput
-                      placeholder="Saisir votre numéro de compte"
-                      value={accountNumber}
-                      onChangeText={setAccountNumber}
-                      style={styles.input}
-                      autoCapitalize="none"
-                      autoFocus
-                      ref={accountNumberRef}
-                      keyboardType="number-pad"
-                      maxLength={12}
-                    />
-                  </View>
-                  <Text
-                    style={[
-                      styles.hint,
-                      {
-                        color: palette.textSub,
-                        marginTop: 8,
-                        marginBottom: 12,
-                      },
-                    ]}
-                  >
-                    Entrez votre numéro de compte reçu par mail ou SMS.
-                  </Text>
-                  <View
-                    style={[
-                      styles.actionsRow,
-                      {
-                        flexDirection: width >= 420 ? "row" : "column",
-                        gap: width >= 420 ? 8 : 12,
-                      },
-                    ]}
-                  >
-                    <View style={{ marginTop: 12 }}>
-                      <TouchableOpacity
-                        style={[
-                          styles.secondaryButton,
-                          {
-                            flex: width >= 420 ? 1 : undefined,
-                            width: width >= 420 ? "auto" : "100%",
-                            backgroundColor: isDark ? "#111827" : "#F1F5F9",
-                            borderColor: palette.border,
-                            paddingVertical: width >= 768 ? 14 : 12,
-                            justifyContent: "center",
-                            alignItems: "center",
-                          },
-                        ]}
-                        onPress={() =>
-                          setVerifyError(
-                            "Scan QR indisponible sur ce périphérique. Saisissez le numéro de compte manuellement."
-                          )
-                        }
-                      >
-                        <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", width: "100%" }}>
-                          <MaterialIcons
-                            name="qr-code-scanner"
-                            size={18}
-                            color={palette.primary}
-                            style={{ position: "absolute", left: 16 }}
-                          />
-                          <Text
-                            style={[
-                              styles.secondaryButtonText,
-                              { color: palette.primary, fontSize: 15, fontWeight: "600", textAlign: "center" },
-                            ]}
-                          >
-                            Scanner Code
-                          </Text>
-                        </View>
-                      </TouchableOpacity>
-                    </View>
-                    <TouchableOpacity
-                      style={[
-                        styles.button,
-                        {
-                          flex: width >= 420 ? 1 : undefined,
-                          width: width >= 420 ? "auto" : "100%",
-                          marginLeft: width >= 420 ? 8 : 0,
-                          marginTop: width >= 420 ? 0 : 12,
-                          opacity: accountNumber.length >= 8 ? 1 : 0.6,
-                          paddingVertical: width >= 768 ? 14 : 12,
-                        },
-                      ]}
-                      onPress={handleVerifyAccountNumber}
-                      disabled={loadingVerify || accountNumber.length < 8}
-                    >
-                      <View style={styles.buttonContent}>
-                        <Text style={styles.buttonText}>
-                          {loadingVerify ? "Vérification..." : "Vérifier"}
-                        </Text>
-                        {loadingVerify ? (
-                          <ActivityIndicator
-                            size="small"
-                            color="#FFFFFF"
-                            style={{ marginLeft: 8 }}
-                          />
-                        ) : (
-                          <MaterialIcons
-                            name="arrow-forward"
-                            size={18}
-                            color="#FFFFFF"
-                            style={{ marginLeft: 6 }}
-                          />
-                        )}
-                      </View>
-                    </TouchableOpacity>
-                  </View>
-                  {!!verifyError && (
-                    <Text style={styles.error}>{verifyError}</Text>
-                  )}
-                  {!!verifySuccess && (
-                    <View style={{ marginTop: 12 }}>
-                      <Text style={styles.successHint}>
-                        Identifiant vérifié avec succès 🎉
-                      </Text>
-                    </View>
-                  )}
-                  <Text style={styles.hint}>
-                    Astuce: entrez le numéro de compte tel qu'indiqué sur votre
-                    carte client.
-                  </Text>
-                  <TouchableOpacity
-                    style={[
-                      styles.secondaryButton,
-                      {
-                        marginTop: width >= 768 ? 12 : 10,
-                        backgroundColor: isDark ? "#111827" : "#F1F5F9",
-                        borderColor: palette.border,
-                        paddingVertical: width >= 768 ? 14 : 12,
-                        width: "100%",
-                        justifyContent: "center",
-                        alignItems: "center",
-                      },
-                    ]}
-                    onPress={handleGuestMode}
-                  >
-                    <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", width: "100%" }}>
-                      <MaterialIcons
-                        name="person-outline"
-                        size={18}
-                        color={palette.textMain}
-                        style={{ position: "absolute", left: 16 }}
-                      />
-                      <Text
-                        style={[
-                          styles.secondaryButtonText,
-                          { color: palette.textMain, fontSize: 15, fontWeight: "600", textAlign: "center" },
-                        ]}
-                      >
-                        Continuer en mode invité
-                      </Text>
-                    </View>
-                  </TouchableOpacity>
-                </View>
-              )}
-
-              {step === 2 && (
-                <View
+              {step === 2 && loginReadonly && (
+                <Text
                   style={[
-                    styles.card,
+                    styles.clientName,
                     {
-                      backgroundColor: palette.card,
-                      padding: cardPadding,
-                      marginTop: 20,
+                      fontSize: headingFontSize * 0.7,
+                      color: palette.primary,
+                      marginBottom: width >= 768 ? 2 : 1,
+                      fontWeight: "600",
                     },
                   ]}
                 >
-                  <View style={styles.sectionHeader}>
-                    <MaterialIcons
-                      name="vpn-key"
-                      size={22}
-                      color={palette.primary}
-                    />
+                  {loginReadonly.split("_")[0].charAt(0).toUpperCase() +
+                    loginReadonly.split("_")[0].slice(1)}
+                </Text>
+              )}
+              <View style={styles.stepPill}>
+                <Text style={styles.stepPillText}>
+                  {step === 1 ? "Étape 1/2" : "Étape 2/2"}
+                </Text>
+              </View>
+              <Text
+                style={[
+                  styles.topSubtitle,
+                  {
+                    fontSize: subtitleFontSize,
+                    color: palette.textSub,
+                    lineHeight: subtitleFontSize * 1.5,
+                    marginTop: width >= 768 ? 8 : 4,
+                  },
+                ]}
+              >
+                {step === 1
+                  ? "Configuration initiale de votre appareil"
+                  : "Configuration du code PIN"}
+              </Text>
+            </View>
+            <ScrollView
+              contentContainerStyle={styles.scrollContent}
+              keyboardShouldPersistTaps="handled"
+              showsVerticalScrollIndicator={true}
+              bounces={true}
+              alwaysBounceVertical={true}
+              scrollEnabled={true}
+              nestedScrollEnabled={true}
+            >
+              <Animated.View
+                style={{
+                  opacity: fadeAnim,
+                  transform: [{ translateY: slideAnim }],
+                }}
+              >
+                {step === 1 && (
+                  <View
+                    style={[
+                      styles.card,
+                      {
+                        padding: cardPadding,
+                        minHeight: width >= 420 ? 480 : 420,
+                      },
+                    ]}
+                  >
+                    <View style={styles.sectionHeader}>
+                      <MaterialIcons
+                        name="verified-user"
+                        size={18}
+                        color={palette.textMain}
+                      />
+                      <Text style={[styles.sectionTitle, { marginLeft: 8 }]}>
+                        Vérification de l'identité
+                      </Text>
+                    </View>
+                    <View style={{ marginTop: 6 }}>
+                      <Text style={styles.label}>
+                        Numéro de compte (8 chiffres minimum)
+                      </Text>
+                      <TextInput
+                        placeholder="Saisir votre numéro de compte"
+                        value={accountNumber}
+                        onChangeText={setAccountNumber}
+                        style={styles.input}
+                        autoCapitalize="none"
+                        autoFocus
+                        ref={accountNumberRef}
+                        keyboardType="number-pad"
+                        maxLength={12}
+                      />
+                    </View>
                     <Text
                       style={[
-                        styles.sectionTitle,
-                        { marginLeft: 12, color: palette.textMain },
+                        styles.hint,
+                        {
+                          color: palette.textSub,
+                          marginTop: 8,
+                          marginBottom: 12,
+                        },
                       ]}
                     >
-                      Configuration du code PIN
+                      Entrez votre numéro de compte reçu par mail ou SMS (au
+                      moins 8 chiffres).
                     </Text>
-                  </View>
-
-                  <View style={{ marginTop: 6 }}>
-                    <Text style={styles.label}>Nom</Text>
-                    <TextInput
-                      value={lastName}
-                      onChangeText={setLastName}
-                      style={styles.input}
-                      placeholder="Votre nom"
-                      autoCapitalize="words"
-                      ref={lastNameRef}
-                    />
-                  </View>
-
-                  <View style={{ marginTop: 6 }}>
-                    <Text style={styles.label}>Prénom</Text>
-                    <TextInput
-                      value={firstName}
-                      onChangeText={setFirstName}
-                      style={styles.input}
-                      placeholder="Votre prénom"
-                      autoCapitalize="words"
-                    />
-                  </View>
-
-                  <View style={{ marginTop: 6 }}>
-                    <Text style={styles.label}>Login</Text>
-                    <TextInput
-                      value={loginReadonly}
-                      onChangeText={setLoginReadonly}
-                      style={styles.input}
-                      placeholder="Choisissez votre nom d'utilisateur"
-                      autoCapitalize="none"
-                    />
-                  </View>
-
-                  <View style={{ marginTop: 16 }}>
-                    <Text style={styles.label}>Code PIN</Text>
-                    <View style={styles.pinRow}>
-                      <TextInput
-                        value={newPin}
-                        onChangeText={setNewPin}
-                        style={[styles.input, { flex: 1 }]}
-                        secureTextEntry={!showNewPin}
-                        keyboardType="number-pad"
-                        maxLength={6}
-                        placeholder="Nouveau code PIN"
-                      />
+                    <View
+                      style={[
+                        styles.actionsRow,
+                        {
+                          flexDirection: width >= 420 ? "row" : "column",
+                          gap: width >= 420 ? 8 : 12,
+                        },
+                      ]}
+                    >
+                      <View style={{ marginTop: 12 }}>
+                        <TouchableOpacity
+                          style={[
+                            styles.secondaryButton,
+                            {
+                              flex: width >= 420 ? 1 : undefined,
+                              width: width >= 420 ? "auto" : "100%",
+                              backgroundColor: isDark ? "#111827" : "#F1F5F9",
+                              borderColor: palette.border,
+                              paddingVertical: width >= 768 ? 14 : 12,
+                              justifyContent: "center",
+                              alignItems: "center",
+                            },
+                          ]}
+                          onPress={() =>
+                            setVerifyError(
+                              "Scan QR indisponible sur ce périphérique. Saisissez le numéro de compte manuellement."
+                            )
+                          }
+                        >
+                          <View
+                            style={{
+                              flexDirection: "row",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              width: "100%",
+                            }}
+                          >
+                            <MaterialIcons
+                              name="qr-code-scanner"
+                              size={18}
+                              color={palette.primary}
+                              style={{ position: "absolute", left: 16 }}
+                            />
+                            <Text
+                              style={[
+                                styles.secondaryButtonText,
+                                {
+                                  color: palette.primary,
+                                  fontSize: 15,
+                                  fontWeight: "600",
+                                  textAlign: "center",
+                                },
+                              ]}
+                            >
+                              Scanner Code
+                            </Text>
+                          </View>
+                        </TouchableOpacity>
+                      </View>
                       <TouchableOpacity
-                        style={styles.iconButton}
-                        onPress={() => setShowNewPin((s) => !s)}
+                        style={[
+                          styles.button,
+                          {
+                            flex: width >= 420 ? 1 : undefined,
+                            width: width >= 420 ? "auto" : "100%",
+                            marginLeft: width >= 420 ? 8 : 0,
+                            marginTop: width >= 420 ? 0 : 12,
+                            opacity: accountNumber.length >= 8 ? 1 : 0.6,
+                            paddingVertical: width >= 768 ? 14 : 12,
+                          },
+                        ]}
+                        onPress={handleVerifyAccountNumber}
+                        disabled={loadingVerify || accountNumber.length < 8}
                       >
-                        <MaterialIcons
-                          name={showNewPin ? "visibility-off" : "visibility"}
-                          size={18}
-                          color={palette.textMain}
-                        />
+                        <View style={styles.buttonContent}>
+                          <Text style={styles.buttonText}>
+                            {loadingVerify ? "Vérification..." : "Vérifier"}
+                          </Text>
+                          {loadingVerify ? (
+                            <ActivityIndicator
+                              size="small"
+                              color="#FFFFFF"
+                              style={{ marginLeft: 8 }}
+                            />
+                          ) : (
+                            <MaterialIcons
+                              name="arrow-forward"
+                              size={18}
+                              color="#FFFFFF"
+                              style={{ marginLeft: 6 }}
+                            />
+                          )}
+                        </View>
                       </TouchableOpacity>
                     </View>
-                  </View>
-
-                  <View style={{ marginTop: 6 }}>
-                    <Text style={styles.label}>Confirmation du code PIN</Text>
-                    <View style={styles.pinRow}>
-                      <TextInput
-                        value={confirmPin}
-                        onChangeText={setConfirmPin}
-                        style={[styles.input, { flex: 1 }]}
-                        secureTextEntry={!showConfirmPin}
-                        keyboardType="number-pad"
-                        maxLength={6}
-                        placeholder="Confirmez votre code PIN"
-                      />
-                      <TouchableOpacity
-                        style={styles.iconButton}
-                        onPress={() => setShowConfirmPin((s) => !s)}
+                    {!!verifyError && (
+                      <Text style={styles.error}>{verifyError}</Text>
+                    )}
+                    {!!verifySuccess && (
+                      <View style={{ marginTop: 12 }}>
+                        <Text style={styles.successHint}>
+                          Identifiant vérifié avec succès 🎉
+                        </Text>
+                      </View>
+                    )}
+                    <Text style={styles.hint}>
+                      Astuce: entrez le numéro de compte tel qu'indiqué sur
+                      votre carte client.
+                    </Text>
+                    <TouchableOpacity
+                      style={[
+                        styles.secondaryButton,
+                        {
+                          marginTop: width >= 768 ? 12 : 10,
+                          backgroundColor: isDark ? "#111827" : "#F1F5F9",
+                          borderColor: palette.border,
+                          paddingVertical: width >= 768 ? 14 : 12,
+                          width: "100%",
+                          justifyContent: "center",
+                          alignItems: "center",
+                        },
+                      ]}
+                      onPress={handleGuestMode}
+                    >
+                      <View
+                        style={{
+                          flexDirection: "row",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          width: "100%",
+                        }}
                       >
                         <MaterialIcons
-                          name={
-                            showConfirmPin ? "visibility-off" : "visibility"
-                          }
+                          name="person-outline"
                           size={18}
                           color={palette.textMain}
+                          style={{ position: "absolute", left: 16 }}
                         />
-                      </TouchableOpacity>
+                        <Text
+                          style={[
+                            styles.secondaryButtonText,
+                            {
+                              color: palette.textMain,
+                              fontSize: 15,
+                              fontWeight: "600",
+                              textAlign: "center",
+                            },
+                          ]}
+                        >
+                          Continuer en mode invité
+                        </Text>
+                      </View>
+                    </TouchableOpacity>
+                  </View>
+                )}
+
+                {step === 2 && (
+                  <View
+                    style={[
+                      styles.card,
+                      {
+                        backgroundColor: palette.card,
+                        padding: cardPadding,
+                        minHeight: width >= 420 ? 520 : 440,
+                        marginTop: 20,
+                      },
+                    ]}
+                  >
+                    <View style={styles.sectionHeader}>
+                      <MaterialIcons
+                        name="vpn-key"
+                        size={22}
+                        color={palette.primary}
+                      />
+                      <Text
+                        style={[
+                          styles.sectionTitle,
+                          { marginLeft: 12, color: palette.textMain },
+                        ]}
+                      >
+                        Configuration du code PIN
+                      </Text>
                     </View>
 
                     <View style={{ marginTop: 6 }}>
-                      <Text style={styles.label}>Clé secrète</Text>
+                      <Text style={styles.label}>Nom</Text>
+                      <TextInput
+                        value={lastName}
+                        onChangeText={setLastName}
+                        style={styles.input}
+                        placeholder="Votre nom"
+                        autoCapitalize="words"
+                        ref={lastNameRef}
+                      />
+                    </View>
+
+                    <View style={{ marginTop: 6 }}>
+                      <Text style={styles.label}>Prénom</Text>
+                      <TextInput
+                        value={firstName}
+                        onChangeText={setFirstName}
+                        style={styles.input}
+                        placeholder="Votre prénom"
+                        autoCapitalize="words"
+                      />
+                    </View>
+
+                    <View style={{ marginTop: 6 }}>
+                      <Text style={styles.label}>Login</Text>
+                      <TextInput
+                        value={loginReadonly}
+                        onChangeText={setLoginReadonly}
+                        style={styles.input}
+                        placeholder="Choisissez votre nom d'utilisateur"
+                        autoCapitalize="none"
+                      />
+                    </View>
+
+                    <View style={{ marginTop: 16 }}>
+                      <Text style={styles.label}>Code PIN</Text>
                       <View style={styles.pinRow}>
                         <TextInput
-                          value={secretKey}
-                          onChangeText={setSecretKey}
+                          value={newPin}
+                          onChangeText={setNewPin}
                           style={[styles.input, { flex: 1 }]}
-                          secureTextEntry={!showSecretKey}
-                          placeholder="Votre clé secrète personnelle"
-                          autoCapitalize="none"
+                          secureTextEntry={!showNewPin}
+                          keyboardType="number-pad"
+                          maxLength={6}
+                          placeholder="Nouveau code PIN"
                         />
                         <TouchableOpacity
                           style={styles.iconButton}
-                          onPress={() => setShowSecretKey((s) => !s)}
+                          onPress={() => setShowNewPin((s) => !s)}
                         >
                           <MaterialIcons
-                            name={
-                              showSecretKey ? "visibility-off" : "visibility"
-                            }
+                            name={showNewPin ? "visibility-off" : "visibility"}
                             size={18}
                             color={palette.textMain}
                           />
@@ -740,60 +729,124 @@ const InitialSetupScreen: React.FC = () => {
                       </View>
                     </View>
 
-                    {!!pinError && (
-                      <View style={{ marginTop: 12 }}>
-                        <Text style={styles.error}>{pinError}</Text>
-                      </View>
-                    )}
-                    <TouchableOpacity
-                      style={[
-                        styles.button,
-                        {
-                          opacity:
-                            newPin.length >= 4 &&
-                            newPin === confirmPin &&
-                            secretKey.length >= 3
-                              ? 1
-                              : 0.6,
-                        },
-                      ]}
-                      onPress={handleSavePin}
-                      disabled={
-                        savingPin ||
-                        newPin.length < 4 ||
-                        newPin !== confirmPin ||
-                        secretKey.length < 3
-                      }
-                    >
-                      <View style={styles.buttonContent}>
-                        <Text style={styles.buttonText}>
-                          {savingPin ? "Enregistrement..." : "Enregistrer"}
-                        </Text>
-                        {!savingPin && (
+                    <View style={{ marginTop: 6 }}>
+                      <Text style={styles.label}>Confirmation du code PIN</Text>
+                      <View style={styles.pinRow}>
+                        <TextInput
+                          value={confirmPin}
+                          onChangeText={setConfirmPin}
+                          style={[styles.input, { flex: 1 }]}
+                          secureTextEntry={!showConfirmPin}
+                          keyboardType="number-pad"
+                          maxLength={6}
+                          placeholder="Confirmez votre code PIN"
+                        />
+                        <TouchableOpacity
+                          style={styles.iconButton}
+                          onPress={() => setShowConfirmPin((s) => !s)}
+                        >
                           <MaterialIcons
-                            name="check-circle"
-                            size={16}
-                            color="#FFFFFF"
-                            style={{ marginLeft: 6 }}
+                            name={
+                              showConfirmPin ? "visibility-off" : "visibility"
+                            }
+                            size={18}
+                            color={palette.textMain}
                           />
-                        )}
+                        </TouchableOpacity>
                       </View>
-                    </TouchableOpacity>
-                    <Text style={styles.successHint}>
-                      Après succès, vous serez redirigé vers la connexion par
-                      PIN.
-                    </Text>
+
+                      <View style={{ marginTop: 6 }}>
+                        <Text style={styles.label}>Clé secrète</Text>
+                        <View
+                          style={[
+                            styles.pinRow,
+                            { flexDirection: width >= 360 ? "row" : "column" },
+                          ]}
+                        >
+                          <TextInput
+                            value={secretKey}
+                            onChangeText={setSecretKey}
+                            style={[styles.input, styles.secretInput]}
+                            secureTextEntry={!showSecretKey}
+                            placeholder="Votre clé secrète personnelle"
+                            autoCapitalize="none"
+                          />
+                          <TouchableOpacity
+                            style={[
+                              styles.iconButton,
+                              {
+                                marginTop: width < 360 ? 8 : 0,
+                                alignSelf: width < 360 ? "flex-end" : "auto",
+                              },
+                            ]}
+                            onPress={() => setShowSecretKey((s) => !s)}
+                          >
+                            <MaterialIcons
+                              name={
+                                showSecretKey ? "visibility-off" : "visibility"
+                              }
+                              size={18}
+                              color={palette.textMain}
+                            />
+                          </TouchableOpacity>
+                        </View>
+                      </View>
+
+                      {!!pinError && (
+                        <View style={{ marginTop: 12 }}>
+                          <Text style={styles.error}>{pinError}</Text>
+                        </View>
+                      )}
+                      <TouchableOpacity
+                        style={[
+                          styles.button,
+                          {
+                            opacity:
+                              newPin.length >= 4 &&
+                              newPin === confirmPin &&
+                              secretKey.length >= 3
+                                ? 1
+                                : 0.6,
+                          },
+                        ]}
+                        onPress={handleSavePin}
+                        disabled={
+                          savingPin ||
+                          newPin.length < 4 ||
+                          newPin !== confirmPin ||
+                          secretKey.length < 3
+                        }
+                      >
+                        <View style={styles.buttonContent}>
+                          <Text style={styles.buttonText}>
+                            {savingPin ? "Enregistrement..." : "Enregistrer"}
+                          </Text>
+                          {!savingPin && (
+                            <MaterialIcons
+                              name="check-circle"
+                              size={16}
+                              color="#FFFFFF"
+                              style={{ marginLeft: 6 }}
+                            />
+                          )}
+                        </View>
+                      </TouchableOpacity>
+                      <Text style={styles.successHint}>
+                        Après succès, vous serez redirigé vers la connexion par
+                        PIN.
+                      </Text>
+                    </View>
+                    {/* Espace supplémentaire pour s'assurer que tout le contenu est visible sur petits écrans */}
+                    <View style={{ height: 100 }} />
                   </View>
-                  {/* Espace supplémentaire pour s'assurer que tout le contenu est visible sur petits écrans */}
-                  <View style={{ height: 100 }} />
-                </View>
-              )}
-            </Animated.View>
-          </ScrollView>
+                )}
+              </Animated.View>
+            </ScrollView>
+          </View>
         </View>
-      </View>
-      {/* Overlay scanner QR retiré */}
-    </SafeAreaView>
+        {/* Overlay scanner QR retiré */}
+      </SafeAreaView>
+    </KeyboardAvoidingView>
   );
 };
 
@@ -911,11 +964,10 @@ const styles = StyleSheet.create({
     color: "#64748B",
   },
   scrollContent: {
-    paddingBottom: 300, // Augmenté de 200 à 300 pour petits écrans
+    paddingBottom: 140,
     paddingTop: 30,
     flexGrow: 1,
     justifyContent: "flex-start",
-    minHeight: "120%", // Augmenté pour s'assurer que tout le contenu est accessible
   },
   card: {
     backgroundColor: "#FFFFFF",
@@ -966,6 +1018,7 @@ const styles = StyleSheet.create({
     elevation: 1,
     color: "#1F2937",
   },
+  secretInput: { flex: 1, minWidth: 0 },
   readonly: {
     color: "#6B7280",
     backgroundColor: "#F9FAFB",

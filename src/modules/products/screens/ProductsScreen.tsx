@@ -34,6 +34,8 @@ interface Product {
   category: CategoryType;
   status: string;
   icon: string;
+  statusColor?: string;
+  statusDotColor?: string;
 }
 
 export const ProductsScreen: React.FC = () => {
@@ -78,6 +80,52 @@ export const ProductsScreen: React.FC = () => {
       status: t("products.status.active"),
       icon: "card-outline",
     },
+    {
+      id: "credit-micro-express",
+      title: "Micro-crédit Express",
+      subtitle: "Financement rapide",
+      description: "Obtenez un crédit rapidement pour vos projets",
+      features: ["Réponse en 24h", "Taux avantageux"],
+      category: "credit",
+      status: "Inactif",
+      icon: "flash-outline",
+      statusColor: colors.text + "70",
+      statusDotColor: colors.border,
+    },
+    {
+      id: "service-health-insurance",
+      title: "Assurance Santé",
+      subtitle: "Protection famille",
+      description: "Protégez votre famille avec notre assurance santé",
+      features: ["Couverture complète", "Remboursement rapide"],
+      category: "services",
+      status: "Inactif",
+      icon: "shield-checkmark-outline",
+      statusColor: colors.text + "70",
+      statusDotColor: colors.border,
+    },
+    {
+      id: "savings-standard",
+      title: "Compte Épargne",
+      subtitle: "Épargner et gagner",
+      description: "Faites fructifier votre épargne avec des taux attractifs",
+      features: ["Taux d’intérêt 5%", "Retraits flexibles"],
+      category: "epargne",
+      status: "Actif",
+      icon: "trending-up-outline",
+    },
+    {
+      id: "savings-project",
+      title: "Épargne Projet",
+      subtitle: "Objectifs personnalisés",
+      description: "Épargnez pour vos projets avec un plan personnalisé",
+      features: ["Objectifs ciblés", "Suivi en temps réel"],
+      category: "epargne",
+      status: "En attente",
+      icon: "trophy-outline",
+      statusColor: colors.warning,
+      statusDotColor: colors.warning,
+    },
   ];
 
   const filteredProducts = products.filter(
@@ -86,7 +134,9 @@ export const ProductsScreen: React.FC = () => {
   );
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+    <SafeAreaView
+      style={[styles.container, { backgroundColor: colors.background }]}
+    >
       {/* Header supprimé: on utilise maintenant l’AppBar native du navigateur */}
 
       <ScrollView
@@ -95,30 +145,69 @@ export const ProductsScreen: React.FC = () => {
         contentContainerStyle={styles.scrollContent}
       >
         {/* Section Statistiques avec Cartes et Icônes */}
-        <View style={[styles.statsSection, { backgroundColor: colors.card }] }>
+        <View style={[styles.statsSection, { backgroundColor: colors.card }]}>
           <View style={styles.statsCardsContainer}>
-            <View style={[styles.statCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
-              <View style={[styles.iconContainer, { backgroundColor: colors.card }]}>
-                <Ionicons name="checkmark-circle" size={24} color={colors.success} />
+            <View
+              style={[
+                styles.statCard,
+                { backgroundColor: colors.card, borderColor: colors.border },
+              ]}
+            >
+              <View
+                style={[styles.iconContainer, { backgroundColor: colors.card }]}
+              >
+                <Ionicons
+                  name="checkmark-circle"
+                  size={24}
+                  color={colors.success}
+                />
               </View>
               <Text style={[styles.statNumber, { color: colors.text }]}>3</Text>
-              <Text style={[styles.statLabel, { color: colors.text }]}>{t("products.stats.active")}</Text>
+              <Text style={[styles.statLabel, { color: colors.text }]}>
+                {t("products.stats.active")}
+              </Text>
             </View>
-            <View style={[styles.statCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
-              <View style={[styles.iconContainer, { backgroundColor: colors.card }]}>
-                <Ionicons name="time-outline" size={24} color={colors.warning} />
+            <View
+              style={[
+                styles.statCard,
+                { backgroundColor: colors.card, borderColor: colors.border },
+              ]}
+            >
+              <View
+                style={[styles.iconContainer, { backgroundColor: colors.card }]}
+              >
+                <Ionicons
+                  name="time-outline"
+                  size={24}
+                  color={colors.warning}
+                />
               </View>
               <Text style={[styles.statNumber, { color: colors.text }]}>1</Text>
               <Text style={[styles.statLabel, { color: colors.text }]}>
                 {t("products.stats.pending")}
               </Text>
             </View>
-            <View style={[styles.statCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
-              <View style={[styles.iconContainer, { backgroundColor: colors.card }]}>
-                <Ionicons name="grid-outline" size={24} color={colors.primary} />
+            <View
+              style={[
+                styles.statCard,
+                { backgroundColor: colors.card, borderColor: colors.border },
+              ]}
+            >
+              <View
+                style={[styles.iconContainer, { backgroundColor: colors.card }]}
+              >
+                <Ionicons
+                  name="grid-outline"
+                  size={24}
+                  color={colors.primary}
+                />
               </View>
-              <Text style={[styles.statNumber, { color: colors.text }]}>{products.length}</Text>
-              <Text style={[styles.statLabel, { color: colors.text }]}>{t("products.stats.total")}</Text>
+              <Text style={[styles.statNumber, { color: colors.text }]}>
+                {products.length}
+              </Text>
+              <Text style={[styles.statLabel, { color: colors.text }]}>
+                {t("products.stats.total")}
+              </Text>
             </View>
           </View>
         </View>
@@ -136,7 +225,10 @@ export const ProductsScreen: React.FC = () => {
               style={[
                 styles.categoryButton,
                 { backgroundColor: colors.card, borderColor: colors.border },
-                activeCategory === category.id && { backgroundColor: colors.primary, borderColor: colors.primary },
+                activeCategory === category.id && {
+                  backgroundColor: colors.primary,
+                  borderColor: colors.primary,
+                },
               ]}
               onPress={() => setActiveCategory(category.id)}
             >
@@ -152,7 +244,10 @@ export const ProductsScreen: React.FC = () => {
                 style={[
                   styles.categoryText,
                   { color: colors.text },
-                  activeCategory === category.id && { color: '#fff', fontWeight: '600' },
+                  activeCategory === category.id && {
+                    color: "#fff",
+                    fontWeight: "600",
+                  },
                 ]}
               >
                 {category.label}
@@ -164,19 +259,48 @@ export const ProductsScreen: React.FC = () => {
         {/* Liste des produits */}
         <View style={styles.productsList}>
           {filteredProducts.map((product) => (
-            <View key={product.id} style={[styles.productCard, { backgroundColor: colors.card }]}>
+            <View
+              key={product.id}
+              style={[styles.productCard, { backgroundColor: colors.card }]}
+            >
               {/* Header avec icône et badge */}
               <View style={styles.productHeader}>
-                <View style={[styles.productIconWrapper, { backgroundColor: colors.card }]}>
+                <View
+                  style={[
+                    styles.productIconWrapper,
+                    { backgroundColor: colors.card },
+                  ]}
+                >
                   <Ionicons
                     name={product.icon as any}
                     size={28}
                     color={colors.primary}
                   />
                 </View>
-                <View style={[styles.productBadge, { backgroundColor: colors.card }] }>
-                  <View style={[styles.badgeDot, { backgroundColor: colors.success }]} />
-                  <Text style={[styles.productBadgeText, { color: colors.success }]}>
+                <View
+                  style={[
+                    styles.productBadge,
+                    { backgroundColor: colors.card },
+                  ]}
+                >
+                  <View
+                    style={[
+                      styles.badgeDot,
+                      {
+                        backgroundColor:
+                          (product as Product).statusDotColor || colors.success,
+                      },
+                    ]}
+                  />
+                  <Text
+                    style={[
+                      styles.productBadgeText,
+                      {
+                        color:
+                          (product as Product).statusColor || colors.success,
+                      },
+                    ]}
+                  >
                     {product.status === "Actif"
                       ? t("products.status.active")
                       : tText(product.status)}
@@ -186,33 +310,60 @@ export const ProductsScreen: React.FC = () => {
 
               {/* Contenu du produit */}
               <View style={styles.productContent}>
-                <Text style={[styles.productTitle, { color: colors.text }]}>{tText(product.title)}</Text>
-                <Text style={[styles.productSubtitle, { color: colors.primary }]}>
+                <Text style={[styles.productTitle, { color: colors.text }]}>
+                  {tText(product.title)}
+                </Text>
+                <Text
+                  style={[styles.productSubtitle, { color: colors.primary }]}
+                >
                   {tText(product.subtitle)}
                 </Text>
-                <Text style={[styles.productDescription, { color: colors.text }]}>
+                <Text
+                  style={[styles.productDescription, { color: colors.text }]}
+                >
                   {tText(product.description)}
                 </Text>
 
                 <View style={styles.featuresList}>
                   {product.features.map((feature, index) => (
                     <View key={index} style={styles.featureItem}>
-                      <View style={[styles.checkbox, { backgroundColor: colors.primary }]}>
+                      <View
+                        style={[
+                          styles.checkbox,
+                          { backgroundColor: colors.primary },
+                        ]}
+                      >
                         <Ionicons name="checkmark" size={14} color="#fff" />
                       </View>
-                      <Text style={[styles.featureText, { color: colors.text }]}>{tText(feature)}</Text>
+                      <Text
+                        style={[styles.featureText, { color: colors.text }]}
+                      >
+                        {tText(feature)}
+                      </Text>
                     </View>
                   ))}
                 </View>
 
                 <TouchableOpacity
-                  style={[styles.detailsButton, { borderTopColor: colors.border }]}
+                  style={[
+                    styles.detailsButton,
+                    { borderTopColor: colors.border },
+                  ]}
                   onPress={() => navigation.navigate("DetailsProduits")}
                 >
-                  <Text style={[styles.detailsButtonText, { color: colors.primary }]}>
+                  <Text
+                    style={[
+                      styles.detailsButtonText,
+                      { color: colors.primary },
+                    ]}
+                  >
                     {t("products.action.details")}
                   </Text>
-                  <Ionicons name="arrow-forward" size={18} color={colors.primary} />
+                  <Ionicons
+                    name="arrow-forward"
+                    size={18}
+                    color={colors.primary}
+                  />
                 </TouchableOpacity>
               </View>
             </View>

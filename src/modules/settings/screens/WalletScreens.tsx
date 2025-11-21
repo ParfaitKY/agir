@@ -6,6 +6,9 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
+  KeyboardAvoidingView,
+  Platform,
+  useWindowDimensions,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons"; // ou "react-native-vector-icons/Ionicons"
 import { MaterialCommunityIcons } from "@expo/vector-icons"; // ou Ionicons
@@ -15,6 +18,7 @@ import { useTheme } from "../../../shared/styles/ThemeProvider";
 const WalletScreens: React.FC = () => {
   const { t } = useI18n();
   const { colors } = useTheme();
+  const { width } = useWindowDimensions();
   const [transferType, setTransferType] = useState<
     "walletToBank" | "bankToWallet"
   >("walletToBank");
@@ -27,155 +31,336 @@ const WalletScreens: React.FC = () => {
   };
 
   const handleSubmit = () => {
-    alert(
-      `Transfert de ${amount} XAF depuis ${walletNumber} vers ${bankAccount}`
-    );
+    const from = transferType === "walletToBank" ? walletNumber : bankAccount;
+    const to = transferType === "walletToBank" ? bankAccount : walletNumber;
+    alert(`Transfert de ${amount} XAF: ${from} → ${to}`);
   };
 
   return (
-    <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
-      {/* HEADER */}
-      <View style={[styles.headerCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
-        <View
-          style={{
-            backgroundColor: colors.primary, // fond bleu du thème
-            borderRadius: 25, // rond si largeur = hauteur
-            width: 50,
-            height: 50,
-            justifyContent: "center",
-            alignItems: "center",
-          }}
-        >
-          <Ionicons name="wallet-outline" size={28} color={colors.background} />
-        </View>
-        <View style={{ alignItems: "center" }}>
-          <Text style={[styles.headerTitle, { color: colors.text }]}>{t("wallet.header.title")}</Text>
-          <Text style={[styles.headerSubtitle, { color: colors.text + '80' }]}>
-            {t("wallet.header.subtitle")}
-          </Text>
-        </View>
-      </View>
-
-      {/* TRANSFER TYPE */}
-      <View style={styles.transferTypeRow}>
-        <TouchableOpacity
-          style={[
-            styles.typeBtn,
-            transferType === "walletToBank" && [styles.typeBtnActive, { backgroundColor: colors.primary }],
-            { backgroundColor: transferType === "walletToBank" ? colors.primary : colors.card }
-          ]}
-          onPress={() => setTransferType("walletToBank")}
-        >
-          <Text style={{ color: transferType === "walletToBank" ? colors.background : colors.text }}>{t("wallet.type.walletToBank.title")}</Text>
-          <Text style={[styles.typeBtnText, { color: transferType === "walletToBank" ? colors.background : colors.text + '80' }]}>
-            {t("wallet.type.walletToBank.subtitle")}
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[
-            styles.typeBtn,
-            transferType === "bankToWallet" && [styles.typeBtnActive, { backgroundColor: colors.primary }],
-            { backgroundColor: transferType === "bankToWallet" ? colors.primary : colors.card }
-          ]}
-          onPress={() => setTransferType("bankToWallet")}
-        >
-          <Text style={{ color: transferType === "bankToWallet" ? colors.background : colors.text }}>{t("wallet.type.bankToWallet.title")}</Text>
-          <Text style={[styles.typeBtnText, { color: transferType === "bankToWallet" ? colors.background : colors.text + '80' }]}>
-            {t("wallet.type.bankToWallet.subtitle")}
-          </Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* FORM */}
-      <View style={[styles.formCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
-        <Text style={[styles.label, { color: colors.text }]}>{t("wallet.form.walletSource.label")}</Text>
-        <TextInput
-          style={[styles.input, { backgroundColor: colors.background, color: colors.text, borderColor: colors.border }]}
-          placeholder={t("wallet.form.walletSource.placeholder")}
-          placeholderTextColor={colors.text + '60'}
-          value={walletNumber}
-          onChangeText={setWalletNumber}
-        />
-
-        <Text style={[styles.label, { color: colors.text }]}>{t("wallet.form.bankDest.label")}</Text>
-        <TextInput
-          style={[styles.input, { backgroundColor: colors.background, color: colors.text, borderColor: colors.border }]}
-          placeholder={t("wallet.form.bankDest.placeholder")}
-          placeholderTextColor={colors.text + '60'}
-          value={bankAccount}
-          onChangeText={setBankAccount}
-        />
-
-        <Text style={[styles.label, { color: colors.text }]}>{t("wallet.form.amount.label")}</Text>
-        <View style={styles.amountRow}>
-          <TextInput
-            style={[styles.input, { flex: 1, backgroundColor: colors.background, color: colors.text, borderColor: colors.border }]}
-            keyboardType="numeric"
-            placeholderTextColor={colors.text + '60'}
-            value={amount.toString()}
-            onChangeText={(text) => setAmount(Number(text))}
-          />
-          <Text style={[styles.currency, { color: colors.text }]}>{t("common.currency.xaf")}</Text>
-        </View>
-
-        {/* QUICK AMOUNTS */}
-        <View style={styles.quickRow}>
-          {[10000, 25000, 50000, 100000].map((val) => (
-            <TouchableOpacity
-              key={val}
-              style={[styles.quickBtn, { backgroundColor: colors.success + '20', borderColor: colors.success }]}
-              onPress={() => handleQuickAmount(val)}
-            >
-              <Text style={{ color: colors.success, fontWeight: "bold" }}>
-                {val / 1000}k
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-
-        <TouchableOpacity style={[styles.submitBtn, { backgroundColor: colors.primary }]} onPress={handleSubmit}>
-          <View style={{ flexDirection: "row", alignItems: "center" }}>
-            <Ionicons
-              name="checkmark-circle-outline"
-              size={20}
-              color={colors.background}
-              style={{ marginRight: 8 }}
-            />
-            <Text style={[styles.submitText, { color: colors.background }]}>{t("wallet.action.submit")}</Text>
-          </View>
-        </TouchableOpacity>
-      </View>
-      <View
-        style={{
-          flex: 1,
-          justifyContent: "center",
-          alignItems: "center",
-          marginTop: 10,
-        }}
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
+    >
+      <ScrollView
+        style={[
+          styles.container,
+          {
+            backgroundColor: colors.background,
+            padding: width < 360 ? 12 : 16,
+          },
+        ]}
       >
-        <View style={{ flexDirection: "row", alignItems: "center" }}>
+        {/* HEADER */}
+        <View
+          style={[
+            styles.headerCard,
+            { backgroundColor: colors.card, borderColor: colors.border },
+          ]}
+        >
           <View
             style={{
-              width: 20,
-              height: 20,
-              borderRadius: 10,
-              backgroundColor: colors.success,
+              backgroundColor: colors.primary, // fond bleu du thème
+              borderRadius: 25, // rond si largeur = hauteur
+              width: 50,
+              height: 50,
               justifyContent: "center",
               alignItems: "center",
-              marginRight: 8,
             }}
           >
-            <MaterialCommunityIcons
-              name="shield-check"
-              size={14}
+            <Ionicons
+              name="wallet-outline"
+              size={28}
               color={colors.background}
             />
           </View>
-          <Text style={[styles.secure, { color: colors.text + "80" }]}>{t("wallet.note.secure")}</Text>
+          <View style={{ alignItems: "center" }}>
+            <Text style={[styles.headerTitle, { color: colors.text }]}>
+              {t("wallet.header.title")}
+            </Text>
+            <Text
+              style={[styles.headerSubtitle, { color: colors.text + "80" }]}
+            >
+              {t("wallet.header.subtitle")}
+            </Text>
+          </View>
         </View>
-      </View>
-    </ScrollView>
+
+        {/* TRANSFER TYPE */}
+        <View style={styles.transferTypeRow}>
+          <TouchableOpacity
+            style={[
+              styles.typeBtn,
+              transferType === "walletToBank" && [
+                styles.typeBtnActive,
+                { backgroundColor: colors.primary },
+              ],
+              {
+                backgroundColor:
+                  transferType === "walletToBank"
+                    ? colors.primary
+                    : colors.card,
+              },
+            ]}
+            onPress={() => setTransferType("walletToBank")}
+          >
+            <Text
+              style={{
+                color:
+                  transferType === "walletToBank"
+                    ? colors.background
+                    : colors.text,
+              }}
+            >
+              {t("wallet.type.walletToBank.title")}
+            </Text>
+            <Text
+              style={[
+                styles.typeBtnText,
+                {
+                  color:
+                    transferType === "walletToBank"
+                      ? colors.background
+                      : colors.text + "80",
+                },
+              ]}
+            >
+              {t("wallet.type.walletToBank.subtitle")}
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              styles.typeBtn,
+              transferType === "bankToWallet" && [
+                styles.typeBtnActive,
+                { backgroundColor: colors.primary },
+              ],
+              {
+                backgroundColor:
+                  transferType === "bankToWallet"
+                    ? colors.primary
+                    : colors.card,
+              },
+            ]}
+            onPress={() => setTransferType("bankToWallet")}
+          >
+            <Text
+              style={{
+                color:
+                  transferType === "bankToWallet"
+                    ? colors.background
+                    : colors.text,
+              }}
+            >
+              {t("wallet.type.bankToWallet.title")}
+            </Text>
+            <Text
+              style={[
+                styles.typeBtnText,
+                {
+                  color:
+                    transferType === "bankToWallet"
+                      ? colors.background
+                      : colors.text + "80",
+                },
+              ]}
+            >
+              {t("wallet.type.bankToWallet.subtitle")}
+            </Text>
+          </TouchableOpacity>
+        </View>
+        <View style={{ alignItems: "center", marginBottom: 12 }}>
+          <Ionicons
+            name={
+              transferType === "walletToBank"
+                ? "arrow-forward-outline"
+                : "arrow-back-outline"
+            }
+            size={18}
+            color={colors.primary}
+          />
+        </View>
+
+        {/* FORM */}
+        <View
+          style={[
+            styles.formCard,
+            { backgroundColor: colors.card, borderColor: colors.border },
+          ]}
+        >
+          {transferType === "walletToBank" ? (
+            <>
+              <Text style={[styles.label, { color: colors.text }]}>
+                {t("wallet.form.walletSource.label")}
+              </Text>
+              <TextInput
+                style={[
+                  styles.input,
+                  {
+                    backgroundColor: colors.background,
+                    color: colors.text,
+                    borderColor: colors.border,
+                  },
+                ]}
+                placeholder={t("wallet.form.walletSource.placeholder")}
+                placeholderTextColor={colors.text + "60"}
+                value={walletNumber}
+                onChangeText={setWalletNumber}
+              />
+
+              <Text style={[styles.label, { color: colors.text }]}>
+                {t("wallet.form.bankDest.label")}
+              </Text>
+              <TextInput
+                style={[
+                  styles.input,
+                  {
+                    backgroundColor: colors.background,
+                    color: colors.text,
+                    borderColor: colors.border,
+                  },
+                ]}
+                placeholder={t("wallet.form.bankDest.placeholder")}
+                placeholderTextColor={colors.text + "60"}
+                value={bankAccount}
+                onChangeText={setBankAccount}
+              />
+            </>
+          ) : (
+            <>
+              <Text style={[styles.label, { color: colors.text }]}>
+                {t("wallet.form.bankDest.label")}
+              </Text>
+              <TextInput
+                style={[
+                  styles.input,
+                  {
+                    backgroundColor: colors.background,
+                    color: colors.text,
+                    borderColor: colors.border,
+                  },
+                ]}
+                placeholder={t("wallet.form.bankDest.placeholder")}
+                placeholderTextColor={colors.text + "60"}
+                value={bankAccount}
+                onChangeText={setBankAccount}
+              />
+
+              <Text style={[styles.label, { color: colors.text }]}>
+                {t("wallet.form.walletSource.label")}
+              </Text>
+              <TextInput
+                style={[
+                  styles.input,
+                  {
+                    backgroundColor: colors.background,
+                    color: colors.text,
+                    borderColor: colors.border,
+                  },
+                ]}
+                placeholder={t("wallet.form.walletSource.placeholder")}
+                placeholderTextColor={colors.text + "60"}
+                value={walletNumber}
+                onChangeText={setWalletNumber}
+              />
+            </>
+          )}
+
+          <Text style={[styles.label, { color: colors.text }]}>
+            {t("wallet.form.amount.label")}
+          </Text>
+          <View style={styles.amountRow}>
+            <TextInput
+              style={[
+                styles.input,
+                {
+                  flex: 1,
+                  backgroundColor: colors.background,
+                  color: colors.text,
+                  borderColor: colors.border,
+                },
+              ]}
+              keyboardType="numeric"
+              placeholderTextColor={colors.text + "60"}
+              value={amount.toString()}
+              onChangeText={(text) => setAmount(Number(text) || 0)}
+            />
+            <Text style={[styles.currency, { color: colors.text }]}>
+              {t("common.currency.xaf")}
+            </Text>
+          </View>
+
+          {/* QUICK AMOUNTS */}
+          <View style={styles.quickRow}>
+            {[10000, 25000, 50000, 100000].map((val) => (
+              <TouchableOpacity
+                key={val}
+                style={[
+                  styles.quickBtn,
+                  {
+                    backgroundColor: colors.success + "20",
+                    borderColor: colors.success,
+                  },
+                ]}
+                onPress={() => handleQuickAmount(val)}
+              >
+                <Text style={{ color: colors.success, fontWeight: "bold" }}>
+                  {val / 1000}k
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          <TouchableOpacity
+            style={[styles.submitBtn, { backgroundColor: colors.primary }]}
+            onPress={handleSubmit}
+          >
+            <View style={{ flexDirection: "row", alignItems: "center" }}>
+              <Ionicons
+                name="checkmark-circle-outline"
+                size={20}
+                color={colors.background}
+                style={{ marginRight: 8 }}
+              />
+              <Text style={[styles.submitText, { color: colors.background }]}>
+                {t("wallet.action.submit")}
+              </Text>
+            </View>
+          </TouchableOpacity>
+        </View>
+        <View
+          style={{
+            flex: 1,
+            justifyContent: "center",
+            alignItems: "center",
+            marginTop: 10,
+          }}
+        >
+          <View style={{ flexDirection: "row", alignItems: "center" }}>
+            <View
+              style={{
+                width: 20,
+                height: 20,
+                borderRadius: 10,
+                backgroundColor: colors.success,
+                justifyContent: "center",
+                alignItems: "center",
+                marginRight: 8,
+              }}
+            >
+              <MaterialCommunityIcons
+                name="shield-check"
+                size={14}
+                color={colors.background}
+              />
+            </View>
+            <Text style={[styles.secure, { color: colors.text + "80" }]}>
+              {t("wallet.note.secure")}
+            </Text>
+          </View>
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 };
 
@@ -243,6 +428,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     marginVertical: 10,
+    flexWrap: "wrap",
   },
   quickBtn: {
     flex: 1,

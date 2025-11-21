@@ -786,6 +786,7 @@ const TRANSLATIONS: Translations = {
   "accounts.filters.all": { fr: "Tous", en: "All", zh: "全部" },
   "accounts.filters.checking": { fr: "Chèque", en: "Checking", zh: "支票" },
   "accounts.filters.savings": { fr: "Épargne", en: "Savings", zh: "储蓄" },
+  "accounts.filters.current": { fr: "Courant", en: "Current", zh: "活期" },
   "accounts.type.checking": {
     fr: "Compte Chèque",
     en: "Checking Account",

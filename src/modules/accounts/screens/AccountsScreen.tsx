@@ -13,7 +13,9 @@ import { useTheme } from "../../../shared/styles/ThemeProvider";
 
 export const AccountsScreen: React.FC = () => {
   const navigation = useNavigation();
-  const [filter, setFilter] = useState<"tous" | "cheque" | "epargne">("tous");
+  const [filter, setFilter] = useState<
+    "tous" | "cheque" | "epargne" | "courant"
+  >("tous");
   const { t, tText } = useI18n();
   const { colors } = useTheme();
 
@@ -24,6 +26,7 @@ export const AccountsScreen: React.FC = () => {
       sub: t("accounts.stats.month"),
       icon: "trending-up-outline",
       bg: colors.primary + "15",
+      iconColor: colors.primary,
     },
     {
       id: 2,
@@ -31,6 +34,7 @@ export const AccountsScreen: React.FC = () => {
       sub: t("accounts.stats.accounts"),
       icon: "refresh-circle-outline",
       bg: colors.success + "15",
+      iconColor: colors.success,
     },
     {
       id: 3,
@@ -38,6 +42,7 @@ export const AccountsScreen: React.FC = () => {
       sub: t("accounts.stats.transactions"),
       icon: "flash-outline",
       bg: colors.warning + "15",
+      iconColor: colors.warning,
     },
   ];
 
@@ -74,18 +79,36 @@ export const AccountsScreen: React.FC = () => {
     },
   ];
 
+  const parseAmount = (s: string) => Number(s.replace(/\s/g, ""));
+  const portfolioTotal = accounts.reduce(
+    (sum, a) => sum + parseAmount(a.balance),
+    0
+  );
+
   const renderStat = (s: any) => (
-    <View key={s.id} style={[styles.statCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+    <View
+      key={s.id}
+      style={[
+        styles.statCard,
+        { backgroundColor: colors.card, borderColor: colors.border },
+      ]}
+    >
       <View style={[styles.statIcon, { backgroundColor: s.bg }]}>
-        <Ionicons name={s.icon as any} size={20} color={colors.text} />
+        <Ionicons
+          name={s.icon as any}
+          size={20}
+          color={s.iconColor || colors.text}
+        />
       </View>
       <Text style={[styles.statValue, { color: colors.text }]}>{s.label}</Text>
-      <Text style={[styles.statSub, { color: colors.text + "70" }]}>{s.sub}</Text>
+      <Text style={[styles.statSub, { color: colors.text + "70" }]}>
+        {s.sub}
+      </Text>
     </View>
   );
 
   const renderFilter = (
-    key: "tous" | "cheque" | "epargne",
+    key: "tous" | "cheque" | "epargne" | "courant",
     label: string,
     icon?: any
   ) => (
@@ -94,7 +117,10 @@ export const AccountsScreen: React.FC = () => {
       style={[
         styles.chip,
         { backgroundColor: colors.card, borderColor: colors.border },
-        filter === key && { backgroundColor: colors.primary, borderColor: colors.primary }
+        filter === key && {
+          backgroundColor: colors.primary,
+          borderColor: colors.primary,
+        },
       ]}
       onPress={() => setFilter(key)}
       activeOpacity={0.8}
@@ -107,7 +133,13 @@ export const AccountsScreen: React.FC = () => {
           style={{ marginRight: 6 }}
         />
       )}
-      <Text style={[styles.chipText, { color: colors.text }, filter === key && styles.chipTextActive]}>
+      <Text
+        style={[
+          styles.chipText,
+          { color: colors.text },
+          filter === key && styles.chipTextActive,
+        ]}
+      >
         {label}
       </Text>
     </TouchableOpacity>
@@ -120,15 +152,31 @@ export const AccountsScreen: React.FC = () => {
       showsVerticalScrollIndicator={true}
     >
       {/* Bande blanche avec Portfolio Total */}
-      <View style={[styles.whiteHeader, { backgroundColor: colors.card, borderColor: colors.border }]}>
+      <View
+        style={[
+          styles.whiteHeader,
+          { backgroundColor: colors.card, borderColor: colors.border },
+        ]}
+      >
         <View>
           <Text style={[styles.portfolioLabel, { color: colors.text + "70" }]}>
             {t("accounts.header.portfolioTotal")}
           </Text>
-          <Text style={[styles.portfolioValue, { color: colors.primary }]}>5 850 000 XAF</Text>
+          <Text style={[styles.portfolioValue, { color: colors.primary }]}>
+            5 850 000 XAF
+          </Text>
         </View>
-        <TouchableOpacity style={[styles.notifyBtn, { backgroundColor: colors.card, borderColor: colors.border }]}>
-          <Ionicons name="notifications-outline" size={20} color={colors.primary} />
+        <TouchableOpacity
+          style={[
+            styles.notifyBtn,
+            { backgroundColor: colors.card, borderColor: colors.border },
+          ]}
+        >
+          <Ionicons
+            name="notifications-outline"
+            size={20}
+            color={colors.primary}
+          />
           <View style={[styles.notifyDot, { backgroundColor: colors.error }]} />
         </TouchableOpacity>
       </View>
@@ -138,8 +186,14 @@ export const AccountsScreen: React.FC = () => {
 
       {/* Titre + Filtres */}
       <View style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>{t("accounts.list")}</Text>
-        <View style={styles.filtersRow}>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>
+          {t("accounts.list")}
+        </Text>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.filtersRow}
+        >
           {renderFilter("tous", t("accounts.filters.all"))}
           {renderFilter(
             "cheque",
@@ -151,7 +205,12 @@ export const AccountsScreen: React.FC = () => {
             t("accounts.filters.savings"),
             "wallet-outline"
           )}
-        </View>
+          {renderFilter(
+            "courant",
+            t("accounts.filters.current"),
+            "briefcase-outline"
+          )}
+        </ScrollView>
       </View>
 
       {/* Carte compte */}
@@ -161,12 +220,17 @@ export const AccountsScreen: React.FC = () => {
             ? true
             : filter === "cheque"
             ? a.type.includes("Chèque")
-            : a.type.includes("Épargne")
+            : filter === "epargne"
+            ? a.type.includes("Épargne")
+            : a.type.includes("Courant")
         )
         .map((a) => (
           <TouchableOpacity
             key={a.id}
-            style={[styles.accountCard, { backgroundColor: colors.card, borderColor: colors.border }]}
+            style={[
+              styles.accountCard,
+              { backgroundColor: colors.card, borderColor: colors.border },
+            ]}
             activeOpacity={0.85}
             onPress={() => {
               // Ouvrir l'écran de détails pour tout type de compte
@@ -175,7 +239,10 @@ export const AccountsScreen: React.FC = () => {
           >
             <View style={styles.accountTop}>
               <View
-                style={[styles.accountIcon, { backgroundColor: colors.background }]}
+                style={[
+                  styles.accountIcon,
+                  { backgroundColor: colors.background },
+                ]}
               >
                 <Ionicons
                   name={
@@ -186,11 +253,26 @@ export const AccountsScreen: React.FC = () => {
                 />
               </View>
               <View style={styles.accountInfo}>
-                <Text style={[styles.accountType, { color: colors.text }]}>{tText(a.type)}</Text>
-                <Text style={[styles.accountNumber, { color: colors.text + "70" }]}>{a.number}</Text>
+                <Text style={[styles.accountType, { color: colors.text }]}>
+                  {tText(a.type)}
+                </Text>
+                <Text
+                  style={[styles.accountNumber, { color: colors.text + "70" }]}
+                >
+                  {a.number}
+                </Text>
               </View>
-              <View style={[styles.statusPill, { backgroundColor: colors.success + "15" }]}>
-                <Ionicons name="checkmark-circle" size={14} color={colors.success} />
+              <View
+                style={[
+                  styles.statusPill,
+                  { backgroundColor: colors.success + "15" },
+                ]}
+              >
+                <Ionicons
+                  name="checkmark-circle"
+                  size={14}
+                  color={colors.success}
+                />
                 <Text style={[styles.statusText, { color: colors.success }]}>
                   {t("accounts.status.active")}
                 </Text>
@@ -199,12 +281,18 @@ export const AccountsScreen: React.FC = () => {
 
             <View style={styles.accountBalanceRow}>
               <View>
-                <Text style={[styles.balanceLabel, { color: colors.text + "70" }]}>
+                <Text
+                  style={[styles.balanceLabel, { color: colors.text + "70" }]}
+                >
                   {t("accounts.balance.available")}
                 </Text>
                 <Text style={[styles.balanceValue, { color: colors.text }]}>
                   {a.balance}{" "}
-                  <Text style={[styles.balanceCurrency, { color: colors.primary }]}>{a.currency}</Text>
+                  <Text
+                    style={[styles.balanceCurrency, { color: colors.primary }]}
+                  >
+                    {a.currency}
+                  </Text>
                 </Text>
               </View>
               <TouchableOpacity
@@ -215,7 +303,12 @@ export const AccountsScreen: React.FC = () => {
             </View>
 
             <View style={styles.progressBarWrapper}>
-              <View style={[styles.progressTrack, { backgroundColor: colors.border }]} />
+              <View
+                style={[
+                  styles.progressTrack,
+                  { backgroundColor: colors.border },
+                ]}
+              />
               <View
                 style={[
                   styles.progressFill,
@@ -227,14 +320,18 @@ export const AccountsScreen: React.FC = () => {
               />
             </View>
             <Text style={[styles.progressText, { color: colors.text + "70" }]}>
-              {Math.round(a.progress * 100)}% de 2M XAF
+              {Math.round((parseAmount(a.balance) / portfolioTotal) * 100)}% du
+              portfolio
             </Text>
           </TouchableOpacity>
         ))}
 
       {/* Floating add button */}
       <View style={styles.bottomSpacer} />
-      <TouchableOpacity style={[styles.fab, { backgroundColor: colors.primary }]} activeOpacity={0.85}>
+      <TouchableOpacity
+        style={[styles.fab, { backgroundColor: colors.primary }]}
+        activeOpacity={0.85}
+      >
         <Ionicons name="add" size={24} color="#fff" />
       </TouchableOpacity>
     </ScrollView>

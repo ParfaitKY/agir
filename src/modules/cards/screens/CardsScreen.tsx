@@ -106,6 +106,34 @@ export const CardsScreen: React.FC = () => {
     },
   ];
 
+  const hexToRgb = (hex: string) => {
+    const clean = hex.replace("#", "");
+    const full =
+      clean.length === 3
+        ? clean
+            .split("")
+            .map((c) => c + c)
+            .join("")
+        : clean;
+    const r = parseInt(full.slice(0, 2), 16);
+    const g = parseInt(full.slice(2, 4), 16);
+    const b = parseInt(full.slice(4, 6), 16);
+    return { r, g, b };
+  };
+
+  const isDarkHex = (hex: string) => {
+    try {
+      const { r, g, b } = hexToRgb(hex);
+      const rl = r / 255,
+        gl = g / 255,
+        bl = b / 255;
+      const lum = 0.2126 * rl + 0.7152 * gl + 0.0722 * bl;
+      return lum < 0.5;
+    } catch {
+      return false;
+    }
+  };
+
   const handleCopyNumber = async () => {
     const full = cards[activeIndex]?.fullNumber ?? cards[activeIndex].number;
     try {
@@ -341,58 +369,73 @@ export const CardsScreen: React.FC = () => {
         keyExtractor={(item) => String(item.id)}
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={{ paddingLeft: 10 }}
-        renderItem={({ item, index }) => (
-          <View
-            style={[
-              styles.paymentCard,
-              {
-                width: cardWidth,
-                backgroundColor: item.bg,
-                marginRight: index === cards.length - 1 ? 5 : 5,
-              },
-            ]}
-          >
-            <View style={styles.paymentCardTopRow}>
-              <View style={styles.bankChip}>
-                <Text style={styles.bankChipText}>{item.bank}</Text>
+        renderItem={({ item, index }) => {
+          const darkBg = isDarkHex(item.bg);
+          const cardTextColor = darkBg ? "#FFFFFF" : colors.text;
+          const cardSubColor = darkBg ? "#EDEDED" : colors.text;
+          const statusTextColor = darkBg ? "#EDEDED" : colors.text;
+          return (
+            <View
+              style={[
+                styles.paymentCard,
+                {
+                  width: cardWidth,
+                  backgroundColor: item.bg,
+                  marginRight: index === cards.length - 1 ? 5 : 5,
+                },
+              ]}
+            >
+              <View style={styles.paymentCardTopRow}>
+                <View style={styles.bankChip}>
+                  <Text style={styles.bankChipText}>{item.bank}</Text>
+                </View>
+                <View
+                  style={[
+                    styles.statusPill,
+                    { backgroundColor: item.statusBg },
+                  ]}
+                >
+                  <View style={styles.statusDot} />
+                  <Text style={[styles.statusText, { color: statusTextColor }]}>
+                    {t("cards.card.status.active")}
+                  </Text>
+                </View>
               </View>
-              <View
-                style={[styles.statusPill, { backgroundColor: item.statusBg }]}
-              >
-                <View style={styles.statusDot} />
-                <Text style={styles.statusText}>
-                  {t("cards.card.status.active")}
+
+              <View style={styles.cardBody}>
+                <View style={styles.cardIconCircle}>
+                  <Ionicons
+                    name="hardware-chip-outline"
+                    size={26}
+                    color="#EDEDED"
+                  />
+                </View>
+                <Text style={[styles.cardNumber, { color: cardTextColor }]}>
+                  {item.number}
                 </Text>
-              </View>
-            </View>
 
-            <View style={styles.cardBody}>
-              <View style={styles.cardIconCircle}>
-                <Ionicons
-                  name="hardware-chip-outline"
-                  size={26}
-                  color="#EDEDED"
-                />
-              </View>
-              <Text style={styles.cardNumber}>{item.number}</Text>
-
-              <View style={styles.cardMetaRow}>
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.metaLabel}>
-                    {t("cards.card.meta.holderLabel")}
-                  </Text>
-                  <Text style={styles.metaValue}>{item.holder}</Text>
-                </View>
-                <View style={{ width: 140 }}>
-                  <Text style={styles.metaLabel}>
-                    {t("cards.card.meta.expiryLabel")}
-                  </Text>
-                  <Text style={styles.metaValue}>{item.expiry}</Text>
+                <View style={styles.cardMetaRow}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={[styles.metaLabel, { color: cardSubColor }]}>
+                      {t("cards.card.meta.holderLabel")}
+                    </Text>
+                    <Text style={[styles.metaValue, { color: cardTextColor }]}>
+                      {item.holder}
+                    </Text>
+                  </View>
+                  <View style={{ width: 140 }}>
+                    <Text style={[styles.metaLabel, { color: cardSubColor }]}>
+                      {t("cards.card.meta.expiryLabel")}
+                    </Text>
+                    <Text style={[styles.metaValue, { color: cardTextColor }]}>
+                      {item.expiry}
+                    </Text>
+                  </View>
                 </View>
               </View>
             </View>
-          </View>
-        )}
+          );
+        }}
         onMomentumScrollEnd={(e) => {
           const x = e.nativeEvent.contentOffset.x;
           const index = Math.round(x / cardWidth);
@@ -644,443 +687,454 @@ export const CardsScreen: React.FC = () => {
   );
 };
 
-const getStyles = (colors: any) => StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
-  headerCard: {
-    backgroundColor: colors.card,
-    marginHorizontal: 16,
-    marginTop: 12,
-    borderRadius: 16,
-    padding: 16,
-    shadowColor: "#000",
-    shadowOpacity: 0.08,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 8,
-    elevation: 3,
-    borderWidth: 1,
-    borderColor: colors.border,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  headerTitle: { fontSize: 20, fontWeight: "800", color: colors.text },
-  headerSub: { marginTop: 6, fontSize: 13, color: colors.text },
-  addBtn: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: colors.primary,
-    justifyContent: "center",
-    alignItems: "center",
-  },
+const getStyles = (colors: any) =>
+  StyleSheet.create({
+    container: { flex: 1, backgroundColor: colors.background },
+    headerCard: {
+      backgroundColor: colors.card,
+      marginHorizontal: 16,
+      marginTop: 12,
+      borderRadius: 16,
+      padding: 16,
+      shadowColor: "#000",
+      shadowOpacity: 0.08,
+      shadowOffset: { width: 0, height: 2 },
+      shadowRadius: 8,
+      elevation: 3,
+      borderWidth: 1,
+      borderColor: colors.border,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+    },
+    headerTitle: { fontSize: 20, fontWeight: "800", color: colors.text },
+    headerSub: { marginTop: 6, fontSize: 13, color: colors.text },
+    addBtn: {
+      width: 44,
+      height: 44,
+      borderRadius: 22,
+      backgroundColor: colors.primary,
+      justifyContent: "center",
+      alignItems: "center",
+    },
 
-  statsRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginTop: 18,
-    paddingHorizontal: 16,
-  },
-  statCard: {
-    backgroundColor: colors.card,
-    width: "31%",
-    borderRadius: 16,
-    paddingVertical: 16,
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: colors.border,
-    shadowColor: "#000",
-    shadowOpacity: 0.05,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 6,
-    elevation: 2,
-  },
-  statIconBg: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 8,
-    backgroundColor: colors.background,
-  },
-  statValue: { fontSize: 18, fontWeight: "800", color: colors.text },
-  statLabel: { marginTop: 4, fontSize: 12, color: colors.text },
+    statsRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      marginTop: 18,
+      paddingHorizontal: 16,
+    },
+    statCard: {
+      backgroundColor: colors.card,
+      width: "31%",
+      borderRadius: 16,
+      paddingVertical: 16,
+      alignItems: "center",
+      borderWidth: 1,
+      borderColor: colors.border,
+      shadowColor: "#000",
+      shadowOpacity: 0.05,
+      shadowOffset: { width: 0, height: 2 },
+      shadowRadius: 6,
+      elevation: 2,
+    },
+    statIconBg: {
+      width: 44,
+      height: 44,
+      borderRadius: 22,
+      justifyContent: "center",
+      alignItems: "center",
+      marginBottom: 8,
+      backgroundColor: colors.background,
+    },
+    statValue: { fontSize: 18, fontWeight: "800", color: colors.text },
+    statLabel: { marginTop: 4, fontSize: 12, color: colors.text },
 
-  paymentCard: {
-    backgroundColor: "#242424",
-    marginTop: 18,
-    borderRadius: 18,
-    padding: 16,
-  },
-  paymentCardTopRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  bankChip: {
-    backgroundColor: colors.card,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 14,
-  },
-  bankChipText: { color: colors.text, fontWeight: "700" },
-  statusPill: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#18281D",
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
-  },
-  statusDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: colors.success,
-    marginRight: 8,
-  },
-  statusText: { color: colors.text, fontWeight: "700" },
-  cardBody: { marginTop: 24 },
-  cardIconCircle: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: colors.background,
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 24,
-  },
-  cardNumber: {
-    color: colors.text,
-    fontSize: 24,
-    fontWeight: "800",
-    letterSpacing: 1,
-    marginBottom: 18,
-  },
-  cardMetaRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-  },
-  metaLabel: { color: colors.text, fontSize: 12 },
-  metaValue: { color: colors.text, fontSize: 14, fontWeight: "700", marginTop: 4 },
+    paymentCard: {
+      backgroundColor: "#242424",
+      marginTop: 18,
+      borderRadius: 18,
+      padding: 16,
+    },
+    paymentCardTopRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+    },
+    bankChip: {
+      backgroundColor: colors.card,
+      paddingHorizontal: 14,
+      paddingVertical: 8,
+      borderRadius: 14,
+    },
+    bankChipText: { color: colors.text, fontWeight: "700" },
+    statusPill: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: "#18281D",
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      borderRadius: 16,
+    },
+    statusDot: {
+      width: 8,
+      height: 8,
+      borderRadius: 4,
+      backgroundColor: colors.success,
+      marginRight: 8,
+    },
+    statusText: { color: colors.text, fontWeight: "700" },
+    cardBody: { marginTop: 24 },
+    cardIconCircle: {
+      width: 56,
+      height: 56,
+      borderRadius: 28,
+      backgroundColor: colors.background,
+      justifyContent: "center",
+      alignItems: "center",
+      marginBottom: 24,
+    },
+    cardNumber: {
+      color: colors.text,
+      fontSize: 24,
+      fontWeight: "800",
+      letterSpacing: 1,
+      marginBottom: 18,
+    },
+    cardMetaRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "flex-start",
+    },
+    metaLabel: { color: colors.text, fontSize: 12 },
+    metaValue: {
+      color: colors.text,
+      fontSize: 14,
+      fontWeight: "700",
+      marginTop: 4,
+    },
 
-  paginationRow: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    marginTop: 14,
-  },
-  pageDot: { width: 8, height: 8, borderRadius: 4, marginHorizontal: 6 },
-  pageDotBlue: { backgroundColor: colors.primary },
-  pageDotGray: { backgroundColor: colors.border },
+    paginationRow: {
+      flexDirection: "row",
+      justifyContent: "center",
+      alignItems: "center",
+      marginTop: 14,
+    },
+    pageDot: { width: 8, height: 8, borderRadius: 4, marginHorizontal: 6 },
+    pageDotBlue: { backgroundColor: colors.primary },
+    pageDotGray: { backgroundColor: colors.border },
 
-  ctaCard: {
-    backgroundColor: colors.card,
-    marginHorizontal: 16,
-    marginTop: 18,
-    borderRadius: 16,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: colors.border,
-    shadowColor: "#000",
-    shadowOpacity: 0.06,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 6,
-    elevation: 2,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  ctaLeft: { flexDirection: "row", alignItems: "center" },
-  ctaIconBg: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 12,
-    backgroundColor: colors.background,
-  },
-  ctaTitle: { fontSize: 16, fontWeight: "700", color: colors.text },
-  ctaSub: { marginTop: 4, fontSize: 12, color: colors.text },
+    ctaCard: {
+      backgroundColor: colors.card,
+      marginHorizontal: 16,
+      marginTop: 18,
+      borderRadius: 16,
+      padding: 16,
+      borderWidth: 1,
+      borderColor: colors.border,
+      shadowColor: "#000",
+      shadowOpacity: 0.06,
+      shadowOffset: { width: 0, height: 2 },
+      shadowRadius: 6,
+      elevation: 2,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+    },
+    ctaLeft: { flexDirection: "row", alignItems: "center" },
+    ctaIconBg: {
+      width: 48,
+      height: 48,
+      borderRadius: 24,
+      justifyContent: "center",
+      alignItems: "center",
+      marginRight: 12,
+      backgroundColor: colors.background,
+    },
+    ctaTitle: { fontSize: 16, fontWeight: "700", color: colors.text },
+    ctaSub: { marginTop: 4, fontSize: 12, color: colors.text },
 
-  sectionHeaderRow: {
-    paddingHorizontal: 16,
-    marginTop: 22,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  sectionHeader: { fontSize: 18, fontWeight: "800", color: colors.text },
-  sectionLink: { fontSize: 14, color: colors.primary, fontWeight: "700" },
+    sectionHeaderRow: {
+      paddingHorizontal: 16,
+      marginTop: 22,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+    },
+    sectionHeader: { fontSize: 18, fontWeight: "800", color: colors.text },
+    sectionLink: { fontSize: 14, color: colors.primary, fontWeight: "700" },
 
-  detailBox: {
-    backgroundColor: colors.card,
-    marginHorizontal: 16,
-    marginTop: 12,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: colors.border,
-    paddingHorizontal: 16,
-    paddingVertical: 6,
-    shadowColor: "#000",
-    shadowOpacity: 0.06,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 6,
-    elevation: 2,
-  },
-  detailRowFirst: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingVertical: 16,
-  },
-  detailRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingVertical: 16,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-  },
-  detailLabel: { color: colors.text, fontSize: 13 },
-  detailValue: { color: colors.text, fontSize: 13, fontWeight: "700" },
-  detailRightRow: { flexDirection: "row", alignItems: "center" },
+    detailBox: {
+      backgroundColor: colors.card,
+      marginHorizontal: 16,
+      marginTop: 12,
+      borderRadius: 16,
+      borderWidth: 1,
+      borderColor: colors.border,
+      paddingHorizontal: 16,
+      paddingVertical: 6,
+      shadowColor: "#000",
+      shadowOpacity: 0.06,
+      shadowOffset: { width: 0, height: 2 },
+      shadowRadius: 6,
+      elevation: 2,
+    },
+    detailRowFirst: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      paddingVertical: 16,
+    },
+    detailRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      paddingVertical: 16,
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+    },
+    detailLabel: { color: colors.text, fontSize: 13 },
+    detailValue: { color: colors.text, fontSize: 13, fontWeight: "700" },
+    detailRightRow: { flexDirection: "row", alignItems: "center" },
 
-  limitCard: {
-    backgroundColor: colors.card,
-    marginHorizontal: 16,
-    marginTop: 14,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: 16,
-    shadowColor: "#000",
-    shadowOpacity: 0.06,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 6,
-    elevation: 2,
-  },
-  limitTopRow: { flexDirection: "row", alignItems: "center" },
-  limitIconBg: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 12,
-    backgroundColor: colors.background,
-  },
-  limitTitle: { fontSize: 16, fontWeight: "700", color: colors.text },
-  limitSub: { marginTop: 4, fontSize: 12, color: colors.text },
-  progressTrack: {
-    marginTop: 14,
-    height: 10,
-    borderRadius: 6,
-    backgroundColor: colors.border,
-    overflow: "hidden",
-  },
-  progressFill: { height: 10, borderRadius: 6 },
-  limitBottomRow: {
-    marginTop: 10,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  limitAmount: { fontSize: 12, color: colors.text },
-  limitUsed: { fontSize: 12, color: colors.primary },
-  section: { paddingHorizontal: 16, marginTop: 12 },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: "800",
-    color: colors.text,
-    marginBottom: 12,
-  },
-  quickItem: {
-    backgroundColor: colors.card,
-    borderRadius: 16,
-    padding: 16,
-    flexDirection: "row",
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: colors.border,
-    shadowColor: "#000",
-    shadowOpacity: 0.06,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 6,
-    elevation: 2,
-    marginBottom: 12,
-  },
-  quickIconBg: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 12,
-    backgroundColor: colors.background,
-  },
-  quickTexts: { flex: 1 },
-  quickTitle: { fontSize: 16, fontWeight: "700", color: colors.text },
-  quickSub: { marginTop: 4, fontSize: 12, color: colors.text },
-  txCard: {
-    backgroundColor: colors.card,
-    marginHorizontal: 16,
-    marginTop: 12,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: 14,
-    flexDirection: "row",
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOpacity: 0.05,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 6,
-    elevation: 2,
-  },
-  txIconBg: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 12,
-    backgroundColor: colors.background,
-  },
-  txTitle: { fontSize: 15, fontWeight: "700", color: colors.text },
-  txSub: { marginTop: 4, fontSize: 12, color: colors.text },
-  txAmount: { fontSize: 15, fontWeight: "700", color: colors.error },
-  txCurrency: { marginTop: 2, fontSize: 10, color: colors.text },
-  securityBanner: {
-    backgroundColor: colors.card,
-    marginHorizontal: 16,
-    marginTop: 14,
-    marginBottom: 16,
-    borderRadius: 28,
-    paddingVertical: 18,
-    paddingHorizontal: 18,
-    flexDirection: "row",
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  securityIconBg: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 14,
-    backgroundColor: colors.background,
-  },
-  securityIconInner: {
-    width: 30,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: colors.success,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  securityMessage: {
-    flex: 1,
-    fontSize: 16,
-    lineHeight: 24,
-    color: colors.text,
-    flexWrap: "wrap",
-    flexShrink: 1,
-    paddingRight: 6,
-    letterSpacing: 0.5,
-  },
-  // Action sheet styles
-  sheetOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.25)",
-    justifyContent: "flex-end",
-  },
-  sheetContainer: {
-    backgroundColor: colors.card,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    paddingHorizontal: 16,
-    paddingTop: 20,
-    paddingBottom: 24,
-  },
-  sheetHandle: {
-    alignSelf: "center",
-    width: 72,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: colors.border,
-    marginBottom: 12,
-  },
-  sheetTitle: {
-    fontSize: 18,
-    color: colors.text,
-    fontWeight: "800",
-    fontFamily: "monospace",
-    marginBottom: 8,
-  },
-  sheetItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 16,
-  },
-  sheetItemDivider: { borderTopWidth: 1, borderTopColor: colors.border },
-  sheetIconBg: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 12,
-    backgroundColor: colors.background,
-  },
-  sheetTexts: { flex: 1 },
-  sheetItemTitle: { fontSize: 16, fontWeight: "800", color: colors.text },
-  sheetItemSub: { marginTop: 4, fontSize: 12, color: colors.text },
-  sheetCancelBtn: {
-    marginTop: 12,
-    backgroundColor: colors.background,
-    borderRadius: 18,
-    paddingVertical: 14,
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  sheetCancelText: {
-    fontSize: 18,
-    color: colors.text,
-    fontWeight: "700",
-    fontFamily: "monospace",
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.35)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  modalContent: {
-    width: "88%",
-    backgroundColor: colors.card,
-    borderRadius: 14,
-    paddingHorizontal: 20,
-    paddingVertical: 24,
-  },
-  modalTitle: { color: colors.text, fontSize: 24, fontWeight: "800" },
-  modalText: { marginTop: 16, color: colors.text, fontSize: 18, lineHeight: 28 },
-  modalActions: {
-    marginTop: 28,
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
-  modalActionText: {
-    color: colors.primary,
-    fontSize: 18,
-    fontWeight: "700",
-    letterSpacing: 1,
-  },
-});
+    limitCard: {
+      backgroundColor: colors.card,
+      marginHorizontal: 16,
+      marginTop: 14,
+      borderRadius: 16,
+      borderWidth: 1,
+      borderColor: colors.border,
+      padding: 16,
+      shadowColor: "#000",
+      shadowOpacity: 0.06,
+      shadowOffset: { width: 0, height: 2 },
+      shadowRadius: 6,
+      elevation: 2,
+    },
+    limitTopRow: { flexDirection: "row", alignItems: "center" },
+    limitIconBg: {
+      width: 44,
+      height: 44,
+      borderRadius: 22,
+      justifyContent: "center",
+      alignItems: "center",
+      marginRight: 12,
+      backgroundColor: colors.background,
+    },
+    limitTitle: { fontSize: 16, fontWeight: "700", color: colors.text },
+    limitSub: { marginTop: 4, fontSize: 12, color: colors.text },
+    progressTrack: {
+      marginTop: 14,
+      height: 10,
+      borderRadius: 6,
+      backgroundColor: colors.border,
+      overflow: "hidden",
+    },
+    progressFill: { height: 10, borderRadius: 6 },
+    limitBottomRow: {
+      marginTop: 10,
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+    },
+    limitAmount: { fontSize: 12, color: colors.text },
+    limitUsed: { fontSize: 12, color: colors.primary },
+    section: { paddingHorizontal: 16, marginTop: 12 },
+    sectionTitle: {
+      fontSize: 18,
+      fontWeight: "800",
+      color: colors.text,
+      marginBottom: 12,
+    },
+    quickItem: {
+      backgroundColor: colors.card,
+      borderRadius: 16,
+      padding: 16,
+      flexDirection: "row",
+      alignItems: "center",
+      borderWidth: 1,
+      borderColor: colors.border,
+      shadowColor: "#000",
+      shadowOpacity: 0.06,
+      shadowOffset: { width: 0, height: 2 },
+      shadowRadius: 6,
+      elevation: 2,
+      marginBottom: 12,
+    },
+    quickIconBg: {
+      width: 44,
+      height: 44,
+      borderRadius: 22,
+      justifyContent: "center",
+      alignItems: "center",
+      marginRight: 12,
+      backgroundColor: colors.background,
+    },
+    quickTexts: { flex: 1 },
+    quickTitle: { fontSize: 16, fontWeight: "700", color: colors.text },
+    quickSub: { marginTop: 4, fontSize: 12, color: colors.text },
+    txCard: {
+      backgroundColor: colors.card,
+      marginHorizontal: 16,
+      marginTop: 12,
+      borderRadius: 16,
+      borderWidth: 1,
+      borderColor: colors.border,
+      padding: 14,
+      flexDirection: "row",
+      alignItems: "center",
+      shadowColor: "#000",
+      shadowOpacity: 0.05,
+      shadowOffset: { width: 0, height: 2 },
+      shadowRadius: 6,
+      elevation: 2,
+    },
+    txIconBg: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      justifyContent: "center",
+      alignItems: "center",
+      marginRight: 12,
+      backgroundColor: colors.background,
+    },
+    txTitle: { fontSize: 15, fontWeight: "700", color: colors.text },
+    txSub: { marginTop: 4, fontSize: 12, color: colors.text },
+    txAmount: { fontSize: 15, fontWeight: "700", color: colors.error },
+    txCurrency: { marginTop: 2, fontSize: 10, color: colors.text },
+    securityBanner: {
+      backgroundColor: colors.card,
+      marginHorizontal: 16,
+      marginTop: 14,
+      marginBottom: 16,
+      borderRadius: 28,
+      paddingVertical: 18,
+      paddingHorizontal: 18,
+      flexDirection: "row",
+      alignItems: "center",
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    securityIconBg: {
+      width: 48,
+      height: 48,
+      borderRadius: 24,
+      justifyContent: "center",
+      alignItems: "center",
+      marginRight: 14,
+      backgroundColor: colors.background,
+    },
+    securityIconInner: {
+      width: 30,
+      height: 28,
+      borderRadius: 14,
+      backgroundColor: colors.success,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    securityMessage: {
+      flex: 1,
+      fontSize: 16,
+      lineHeight: 24,
+      color: colors.text,
+      flexWrap: "wrap",
+      flexShrink: 1,
+      paddingRight: 6,
+      letterSpacing: 0.5,
+    },
+    // Action sheet styles
+    sheetOverlay: {
+      flex: 1,
+      backgroundColor: "rgba(0,0,0,0.25)",
+      justifyContent: "flex-end",
+    },
+    sheetContainer: {
+      backgroundColor: colors.card,
+      borderTopLeftRadius: 24,
+      borderTopRightRadius: 24,
+      paddingHorizontal: 16,
+      paddingTop: 20,
+      paddingBottom: 24,
+    },
+    sheetHandle: {
+      alignSelf: "center",
+      width: 72,
+      height: 6,
+      borderRadius: 3,
+      backgroundColor: colors.border,
+      marginBottom: 12,
+    },
+    sheetTitle: {
+      fontSize: 18,
+      color: colors.text,
+      fontWeight: "800",
+      fontFamily: "monospace",
+      marginBottom: 8,
+    },
+    sheetItem: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingVertical: 16,
+    },
+    sheetItemDivider: { borderTopWidth: 1, borderTopColor: colors.border },
+    sheetIconBg: {
+      width: 48,
+      height: 48,
+      borderRadius: 24,
+      justifyContent: "center",
+      alignItems: "center",
+      marginRight: 12,
+      backgroundColor: colors.background,
+    },
+    sheetTexts: { flex: 1 },
+    sheetItemTitle: { fontSize: 16, fontWeight: "800", color: colors.text },
+    sheetItemSub: { marginTop: 4, fontSize: 12, color: colors.text },
+    sheetCancelBtn: {
+      marginTop: 12,
+      backgroundColor: colors.background,
+      borderRadius: 18,
+      paddingVertical: 14,
+      alignItems: "center",
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    sheetCancelText: {
+      fontSize: 18,
+      color: colors.text,
+      fontWeight: "700",
+      fontFamily: "monospace",
+    },
+    modalOverlay: {
+      flex: 1,
+      backgroundColor: "rgba(0,0,0,0.35)",
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    modalContent: {
+      width: "88%",
+      backgroundColor: colors.card,
+      borderRadius: 14,
+      paddingHorizontal: 20,
+      paddingVertical: 24,
+    },
+    modalTitle: { color: colors.text, fontSize: 24, fontWeight: "800" },
+    modalText: {
+      marginTop: 16,
+      color: colors.text,
+      fontSize: 18,
+      lineHeight: 28,
+    },
+    modalActions: {
+      marginTop: 28,
+      flexDirection: "row",
+      justifyContent: "space-between",
+    },
+    modalActionText: {
+      color: colors.primary,
+      fontSize: 18,
+      fontWeight: "700",
+      letterSpacing: 1,
+    },
+  });
 
 export default CardsScreen;
