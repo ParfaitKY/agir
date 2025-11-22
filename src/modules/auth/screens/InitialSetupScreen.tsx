@@ -669,7 +669,6 @@ const InitialSetupScreen: React.FC = () => {
                         Configuration du code PIN
                       </Text>
                     </View>
-
                     <View style={{ marginTop: 6 }}>
                       <Text style={styles.label}>Nom</Text>
                       <TextInput
@@ -836,7 +835,6 @@ const InitialSetupScreen: React.FC = () => {
                         PIN.
                       </Text>
                     </View>
-                    {/* Espace supplémentaire pour s'assurer que tout le contenu est visible sur petits écrans */}
                     <View style={{ height: 100 }} />
                   </View>
                 )}
