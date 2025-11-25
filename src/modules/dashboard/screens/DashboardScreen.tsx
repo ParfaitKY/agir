@@ -32,10 +32,7 @@ export const DashboardScreen: React.FC = () => {
   // Détection du mode invité (username === "invite")
   const isGuestMode = isAuthenticated && user?.username === "invite";
 
-  // DEBUG: Log authentication state
-  console.log("Dashboard - isAuthenticated:", isAuthenticated);
-  console.log("Dashboard - user:", user);
-  console.log("Dashboard - isGuestMode:", isGuestMode);
+  
 
   // Fonction pour gérer les restrictions en mode invité
   const handleGuestRestriction = (featureName: string) => {

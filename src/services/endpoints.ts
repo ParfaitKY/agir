@@ -1,4 +1,4 @@
-export const BASE_URL = "https://zenithmobilereact-serveur-peyrie-test.app.mgdigitalplus.com/api/";
+export const BASE_URL = "https://zenithmobilereact-serveur-peyrie-test.app.mgdigitalplus.com/api";
 
 export const ENDPOINTS = {
   LOGIN: "/auth/login",
