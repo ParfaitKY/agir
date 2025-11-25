@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   ScrollView,
   StyleSheet,
+  Modal,
 } from "react-native";
 import { useRoute, useNavigation, RouteProp } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -13,7 +14,17 @@ import { useTheme } from "../../../shared/styles/ThemeProvider";
 
 // Définir les types pour les paramètres de navigation
 type RootStackParamList = {
-  ProductDetailPage: { productId?: string; categories?: string[] };
+  ProductDetailPage:
+    | {
+        product?: {
+          title: string;
+          subtitle: string;
+          status?: string;
+          advantages?: string[];
+          conditions?: string[];
+        };
+      }
+    | undefined;
 };
 
 type ProductDetailRouteProp = RouteProp<
@@ -31,19 +42,28 @@ const ProductDetailPage: React.FC = () => {
   const { t } = useI18n();
   const { colors } = useTheme();
 
-  const { productId, categories } = route.params || {};
+  const { product } = route.params || {};
 
   const [activeTab, setActiveTab] = useState<"Avantages" | "Conditions">(
     "Avantages"
   );
 
-  const advantages: string[] = [
+  const advantages: string[] = product?.advantages ?? [
     t("products.detail.adv.cardIncluded"),
     t("products.detail.adv.freeTransfers"),
     t("products.detail.adv.monthlyStatements"),
     t("products.detail.adv.mobileApp"),
     t("products.detail.adv.support"),
   ];
+  const conditions: string[] = product?.conditions ?? [
+    t("products.detail.cond.age18"),
+    t("products.detail.cond.idProof"),
+    t("products.detail.cond.addressProof"),
+  ];
+  const [showSubscribeModal, setShowSubscribeModal] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const productName =
+    product?.title || t("products.detail.title.currentAccount");
 
   return (
     <ScrollView style={styles.container}>
@@ -61,12 +81,17 @@ const ProductDetailPage: React.FC = () => {
           <Text style={styles.icon}>📘</Text>
         </View>
         <Text style={[styles.title, { color: colors.text }]}>
-          {t("products.detail.title.currentAccount")}
+          {product?.title || t("products.detail.title.currentAccount")}
         </Text>
         <Text style={[styles.subtitle, { color: colors.primary }]}>
-          {t("products.detail.subtitle.dailyManagement")}
+          {product?.subtitle || t("products.detail.subtitle.dailyManagement")}
         </Text>
-        <Text style={[styles.status, { backgroundColor: colors.success + '20', color: colors.success }]}>
+        <Text
+          style={[
+            styles.status,
+            { backgroundColor: colors.success + "20", color: colors.success },
+          ]}
+        >
           <Text
             style={[
               styles.statusboule,
@@ -76,30 +101,51 @@ const ProductDetailPage: React.FC = () => {
             ●
           </Text>
           <Text style={[styles.statusDisponible, { color: colors.success }]}>
-            {t("products.detail.status.available")}
+            {product?.status || t("products.detail.status.available")}
           </Text>
         </Text>
       </View>
 
-      <View style={[styles.descriptionCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+      <View
+        style={[
+          styles.descriptionCard,
+          { backgroundColor: colors.card, borderColor: colors.border },
+        ]}
+      >
         <Text style={[styles.sectionTitle, { color: colors.text }]}>
           {t("products.detail.section.description")}
         </Text>
-        <Text style={{ color: colors.text }}>{t("products.detail.description.short")}</Text>
-        <Text style={[styles.enteteText, { color: colors.text + '80' }]}>
+        <Text style={{ color: colors.text }}>
+          {t("products.detail.description.short")}
+        </Text>
+        <Text style={[styles.enteteText, { color: colors.text + "80" }]}>
           {t("products.detail.description.long")}
         </Text>
       </View>
 
       {/* Tabs */}
-      <View style={[styles.tabsRow, { backgroundColor: colors.card, borderColor: colors.border }]}>
+      <View
+        style={[
+          styles.tabsRow,
+          { backgroundColor: colors.card, borderColor: colors.border },
+        ]}
+      >
         {[
           t("products.detail.tab.advantages"),
           t("products.detail.tab.conditions"),
         ].map((tab) => (
           <TouchableOpacity
             key={tab}
-            style={[styles.tabBtn, activeTab === tab && [styles.activeTab, { backgroundColor: colors.primary, borderBottomColor: colors.primary }]]}
+            style={[
+              styles.tabBtn,
+              activeTab === tab && [
+                styles.activeTab,
+                {
+                  backgroundColor: colors.primary,
+                  borderBottomColor: colors.primary,
+                },
+              ],
+            ]}
             onPress={() =>
               setActiveTab(
                 (tab === t("products.detail.tab.conditions")
@@ -112,7 +158,7 @@ const ProductDetailPage: React.FC = () => {
               style={[
                 styles.tabText,
                 activeTab === tab
-                  ? [styles.tabTextActive, { color: '#fff' }]
+                  ? [styles.tabTextActive, { color: "#fff" }]
                   : [styles.tabTextInactive, { color: colors.text }],
               ]}
             >
@@ -123,49 +169,91 @@ const ProductDetailPage: React.FC = () => {
       </View>
 
       {activeTab === "Avantages" && (
-        <View style={[styles.floatingCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+        <View
+          style={[
+            styles.floatingCard,
+            { backgroundColor: colors.card, borderColor: colors.border },
+          ]}
+        >
           {advantages.map((adv, i) => (
             <View key={i} style={styles.itemRow}>
-              <View style={[styles.outerCircle, { backgroundColor: colors.primary + '20' }]}>
-                <View style={[styles.innerCircle, { backgroundColor: colors.primary }]}>
+              <View
+                style={[
+                  styles.outerCircle,
+                  { backgroundColor: colors.primary + "20" },
+                ]}
+              >
+                <View
+                  style={[
+                    styles.innerCircle,
+                    { backgroundColor: colors.primary },
+                  ]}
+                >
                   <Text style={styles.checkMark}>✓</Text>
                 </View>
               </View>
-              <Text style={[styles.advItem, { color: colors.text }]}>{adv}</Text>
+              <Text style={[styles.advItem, { color: colors.text }]}>
+                {adv}
+              </Text>
             </View>
           ))}
         </View>
       )}
 
       {activeTab === "Conditions" && (
-        <View style={[styles.floatingCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
-          {[
-            t("products.detail.cond.age18"),
-            t("products.detail.cond.idProof"),
-            t("products.detail.cond.addressProof"),
-          ].map((cond, i) => (
+        <View
+          style={[
+            styles.floatingCard,
+            { backgroundColor: colors.card, borderColor: colors.border },
+          ]}
+        >
+          {conditions.map((cond, i) => (
             <View key={i} style={styles.itemRow}>
-              <View style={[styles.outerCircle, { backgroundColor: colors.primary + '20' }]}>
-                <View style={[styles.innerCircle, { backgroundColor: colors.primary }]}>
+              <View
+                style={[
+                  styles.outerCircle,
+                  { backgroundColor: colors.primary + "20" },
+                ]}
+              >
+                <View
+                  style={[
+                    styles.innerCircle,
+                    { backgroundColor: colors.primary },
+                  ]}
+                >
                   <Text style={styles.checkMark}>✓</Text>
                 </View>
               </View>
-              <Text style={[styles.advItem, { color: colors.text }]}>{cond}</Text>
+              <Text style={[styles.advItem, { color: colors.text }]}>
+                {cond}
+              </Text>
             </View>
           ))}
         </View>
       )}
 
-      <TouchableOpacity style={[styles.subscribeBtn, { backgroundColor: colors.primary }]}>
-        <Text style={[styles.subscribeText, { color: '#fff' }]}>
+      <TouchableOpacity
+        style={[styles.subscribeBtn, { backgroundColor: colors.primary }]}
+        onPress={() => setShowSubscribeModal(true)}
+      >
+        <Text style={[styles.subscribeText, { color: "#fff" }]}>
           {t("products.detail.cta.subscribe")}
         </Text>
       </TouchableOpacity>
 
-      <View style={[styles.helping, { backgroundColor: colors.warning + '10' }]}>
+      <View
+        style={[styles.helping, { backgroundColor: colors.warning + "10" }]}
+      >
         <View style={styles.itemRow}>
-          <View style={[styles.outerCircle, { backgroundColor: colors.warning + '20' }]}>
-            <View style={[styles.innerCircle, { backgroundColor: colors.warning }]}>
+          <View
+            style={[
+              styles.outerCircle,
+              { backgroundColor: colors.warning + "20" },
+            ]}
+          >
+            <View
+              style={[styles.innerCircle, { backgroundColor: colors.warning }]}
+            >
               <Text style={styles.exclamationMark}>!</Text>
             </View>
           </View>
@@ -174,6 +262,83 @@ const ProductDetailPage: React.FC = () => {
           </Text>
         </View>
       </View>
+
+      <Modal
+        transparent
+        visible={showSubscribeModal}
+        animationType="fade"
+        onRequestClose={() => setShowSubscribeModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View
+            style={[
+              styles.modalCard,
+              { backgroundColor: colors.card, borderColor: colors.border },
+            ]}
+          >
+            <Text style={[styles.modalTitle, { color: colors.text }]}>
+              {`Souhaitez-vous souscrire à ${productName} ?`}
+            </Text>
+            <View style={styles.modalActions}>
+              <TouchableOpacity
+                style={[styles.modalAction, { borderColor: colors.border }]}
+                onPress={() => setShowSubscribeModal(false)}
+                activeOpacity={0.8}
+              >
+                <Text style={{ color: colors.text }}>Annuler</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[
+                  styles.modalActionConfirm,
+                  { backgroundColor: colors.primary },
+                ]}
+                onPress={() => {
+                  setShowSubscribeModal(false);
+                  setShowSuccessModal(true);
+                }}
+                activeOpacity={0.8}
+              >
+                <Text style={{ color: "#fff" }}>Confirmer</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      <Modal
+        transparent
+        visible={showSuccessModal}
+        animationType="fade"
+        onRequestClose={() => setShowSuccessModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View
+            style={[
+              styles.modalCard,
+              { backgroundColor: colors.card, borderColor: colors.border },
+            ]}
+          >
+            <Text style={[styles.modalTitle, { color: colors.success }]}>
+              Succès
+            </Text>
+            <Text style={[styles.modalText, { color: colors.text }]}>
+              Votre demande à été envoyée avec succès
+            </Text>
+            <View style={styles.modalActions}>
+              <TouchableOpacity
+                style={[
+                  styles.modalActionConfirm,
+                  { backgroundColor: colors.success },
+                ]}
+                onPress={() => setShowSuccessModal(false)}
+                activeOpacity={0.8}
+              >
+                <Text style={{ color: "#fff" }}>OK</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </ScrollView>
   );
 };
@@ -358,6 +523,36 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   subscribeText: { color: "#fff", fontWeight: "bold" },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.35)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalCard: {
+    width: "88%",
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1,
+  },
+  modalTitle: { fontSize: 18, fontWeight: "800", marginBottom: 8 },
+  modalText: { fontSize: 16, marginBottom: 16 },
+  modalActions: { flexDirection: "row", justifyContent: "space-between" },
+  modalAction: {
+    flex: 1,
+    paddingVertical: 12,
+    alignItems: "center",
+    borderWidth: 1,
+    borderRadius: 8,
+    marginRight: 8,
+  },
+  modalActionConfirm: {
+    flex: 1,
+    paddingVertical: 12,
+    alignItems: "center",
+    borderRadius: 8,
+    marginLeft: 8,
+  },
 });
 
 export default ProductDetailPage;

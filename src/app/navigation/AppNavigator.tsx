@@ -38,6 +38,7 @@ import InitialSetupScreen from "../../modules/auth/screens/InitialSetupScreen";
 import PinLoginScreen from "../../modules/auth/screens/PinLoginScreen";
 import PasswordRecoveryScreen from "../../modules/auth/screens/PasswordRecoveryScreen";
 import { useTheme } from "../../shared/styles/ThemeProvider";
+import { AnalyticsScreen } from "../../modules/analytics/screens/AnalyticsScreen";
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -241,6 +242,17 @@ export const AppNavigator: React.FC = () => {
       {isAuthenticated ? (
         <>
           <Stack.Screen name="Main" component={MainTabs} />
+          <Stack.Screen
+            name="Analytics"
+            component={AnalyticsScreen}
+            options={{
+              headerShown: true,
+              title: tText("Analytics"),
+              headerStyle: { backgroundColor: colors.card },
+              headerTitleStyle: { color: colors.text },
+              headerTintColor: colors.primary,
+            }}
+          />
           <Stack.Screen
             name="Transfer"
             component={TransferScreen}

@@ -15,7 +15,7 @@ import { useTheme } from "../../../shared/styles/ThemeProvider";
 // Définir les types pour la navigation
 type RootStackParamList = {
   ProductsScreen: undefined;
-  DetailsProduits: undefined;
+  DetailsProduits: { product: Product } | undefined;
 };
 
 type CategoryType = "tous" | "comptes" | "epargne" | "credit" | "services";
@@ -36,6 +36,8 @@ interface Product {
   icon: string;
   statusColor?: string;
   statusDotColor?: string;
+  advantages?: string[];
+  conditions?: string[];
 }
 
 export const ProductsScreen: React.FC = () => {
@@ -63,6 +65,18 @@ export const ProductsScreen: React.FC = () => {
         t("products.list.currentAccount.feature.cardFree"),
         t("products.list.currentAccount.feature.unlimitedTransfers"),
       ],
+      advantages: [
+        "Carte bancaire gratuite incluse",
+        "Virements illimités sans frais",
+        "Relevé mensuel détaillé",
+        "Application mobile performante",
+        "Service client dédié 7j/7",
+      ],
+      conditions: [
+        "Dépôt minimum : 25 000 XAF",
+        "Frais de tenue : 1 500 XAF/mois",
+        "Pièce d’identité requise",
+      ],
       category: "comptes",
       status: t("products.status.active"),
       icon: "card-outline",
@@ -76,6 +90,18 @@ export const ProductsScreen: React.FC = () => {
         t("products.list.visaPremium.feature.travelInsurance"),
         t("products.list.visaPremium.feature.cashback2"),
       ],
+      advantages: [
+        "Assurance voyage incluse",
+        "Cashback 2% sur tous vos achats",
+        "Paiement sans contact",
+        "Protection contre la fraude",
+        "Assistance premium 24/7",
+      ],
+      conditions: [
+        "Compte courant requis",
+        "Cotisation : 5 000 XAF/an",
+        "Plafond : 500 000 XAF/jour",
+      ],
       category: "comptes",
       status: t("products.status.active"),
       icon: "card-outline",
@@ -86,6 +112,18 @@ export const ProductsScreen: React.FC = () => {
       subtitle: "Financement rapide",
       description: "Obtenez un crédit rapidement pour vos projets",
       features: ["Réponse en 24h", "Taux avantageux"],
+      advantages: [
+        "Réponse en 24h maximum",
+        "Taux d’intérêt avantageux",
+        "Remboursement flexible",
+        "Montant jusqu’à 500 000 XAF",
+        "Procédure 100% digitale",
+      ],
+      conditions: [
+        "Être client depuis 3 mois",
+        "Justificatif de revenus",
+        "Durée : 3 à 12 mois",
+      ],
       category: "credit",
       status: "Inactif",
       icon: "flash-outline",
@@ -98,6 +136,18 @@ export const ProductsScreen: React.FC = () => {
       subtitle: "Protection famille",
       description: "Protégez votre famille avec notre assurance santé",
       features: ["Couverture complète", "Remboursement rapide"],
+      advantages: [
+        "Couverture médicale complète",
+        "Remboursement sous 48h",
+        "Assistance médicale 24/7",
+        "Réseau de partenaires étendu",
+        "Prise en charge directe",
+      ],
+      conditions: [
+        "À partir de 15 000 XAF/mois",
+        "Questionnaire médical",
+        "Couverture jusqu'à 6 personnes",
+      ],
       category: "services",
       status: "Inactif",
       icon: "shield-checkmark-outline",
@@ -120,6 +170,18 @@ export const ProductsScreen: React.FC = () => {
       subtitle: "Objectifs personnalisés",
       description: "Épargnez pour vos projets avec un plan personnalisé",
       features: ["Objectifs ciblés", "Suivi en temps réel"],
+      advantages: [
+        "Objectifs personnalisés",
+        "Suivi en temps réel",
+        "Bonus de fidélité 3%",
+        "Versements automatiques",
+        "Conseils personnalisés",
+      ],
+      conditions: [
+        "Dépôt initial : 10 000 XAF",
+        "Versement minimum : 5 000 XAF",
+        "Durée : 6 à 36 mois",
+      ],
       category: "epargne",
       status: "En attente",
       icon: "trophy-outline",
@@ -349,7 +411,9 @@ export const ProductsScreen: React.FC = () => {
                     styles.detailsButton,
                     { borderTopColor: colors.border },
                   ]}
-                  onPress={() => navigation.navigate("DetailsProduits")}
+                  onPress={() =>
+                    navigation.navigate("DetailsProduits", { product })
+                  }
                 >
                   <Text
                     style={[

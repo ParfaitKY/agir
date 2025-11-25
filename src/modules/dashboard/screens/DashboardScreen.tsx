@@ -261,8 +261,6 @@ export const DashboardScreen: React.FC = () => {
     </View>
   );
 
-  // (redirection supprimée)
-
   const renderServiceItem = ({ item }: { item: any }) => (
     <TouchableOpacity
       style={[
@@ -527,8 +525,8 @@ export const DashboardScreen: React.FC = () => {
               { backgroundColor: colors.card, marginTop: -15 },
             ]}
           >
-            {" "}
-            // Réduit de 5 à -15
+           
+          
             <View style={styles.userSection}>
               <View style={styles.avatar}>
                 <Text style={[styles.avatarText, { color: colors.background }]}>
@@ -565,9 +563,21 @@ export const DashboardScreen: React.FC = () => {
                 <Text
                   style={[styles.subText, { color: colors.text }]}
                 >{`💼 3 ${t("dashboard.balance.activeAccountsLabel")}`}</Text>
-                <Text style={[styles.percent, { color: colors.success }]}>
-                  📈 +2.5%
-                </Text>
+                <View style={{ flexDirection: "row", alignItems: "center" }}>
+                  <Text style={[styles.percent, { color: colors.success }]}>
+                    📈 +2.5%
+                  </Text>
+                  <TouchableOpacity
+                    onPress={() => navigation.navigate("Analytics" as never)}
+                    style={{ marginLeft: 8 }}
+                  >
+                    <Text
+                      style={[styles.seeAllText, { color: colors.primary }]}
+                    >
+                      Voir plus
+                    </Text>
+                  </TouchableOpacity>
+                </View>
               </View>
             </View>
             <View style={styles.actions}>

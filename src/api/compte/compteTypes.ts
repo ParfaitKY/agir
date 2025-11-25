@@ -26,3 +26,23 @@ export interface SoldeRequest extends BaseRequest {
 
 export type SoldeResponse = Record<string, unknown>;
 
+export interface AnalyseDerniereTransactionRequest {
+  Nombretransactions: number;
+}
+
+export interface AnalyseDerniereTransactionPayload {
+  CL_IDCLIENT: string;
+  NOMBRE_OPERATIONS_CREDIT: number;
+  NOMBRE_OPERATIONS_DEBIT: number;
+  NOMBRE_TOTAL_OPERATIONS: number;
+  POURCENTAGE_CREDIT: number;
+  POURCENTAGE_DEBIT: number;
+  POURCENTAGE_SENS_FORT: number;
+  SENS_FORT: string;
+}
+
+export interface AnalyseDerniereTransactionResponse {
+  data: AnalyseDerniereTransactionPayload;
+  success: boolean;
+}
+

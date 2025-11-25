@@ -79,6 +79,11 @@ export const CardsScreen: React.FC = () => {
   const [limitsY, setLimitsY] = useState(0);
   const scrollRef = useRef<ScrollView>(null);
   const cardWidth = Dimensions.get("window").width - 32; // largeur page = écran - padding
+  const viewabilityConfigRef = useRef({ viewAreaCoveragePercentThreshold: 60 });
+  const onViewableItemsChanged = useRef((info: any) => {
+    const idx = info?.viewableItems?.[0]?.index ?? 0;
+    setActiveIndex(idx);
+  }).current;
   const transactions = [
     {
       id: 1,
@@ -368,7 +373,9 @@ export const CardsScreen: React.FC = () => {
         data={cards}
         keyExtractor={(item) => String(item.id)}
         showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{ paddingLeft: 10 }}
+        contentContainerStyle={{ paddingHorizontal: 16 }}
+        onViewableItemsChanged={onViewableItemsChanged}
+        viewabilityConfig={viewabilityConfigRef.current}
         renderItem={({ item, index }) => {
           const darkBg = isDarkHex(item.bg);
           const cardTextColor = darkBg ? "#FFFFFF" : colors.text;
@@ -382,6 +389,7 @@ export const CardsScreen: React.FC = () => {
                   width: cardWidth,
                   backgroundColor: item.bg,
                   marginRight: index === cards.length - 1 ? 5 : 5,
+                  marginLeft: index === 0 ? 18 : 0,
                 },
               ]}
             >
