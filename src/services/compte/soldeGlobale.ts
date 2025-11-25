@@ -1,11 +1,14 @@
-import { ServiceDescriptor } from "../httpClient";
-import { COMPTE_ENDPOINTS } from "../endpoints";
+import { httpClient, handleRequest, AuthHeaders } from "../httpClient";
+import { ENDPOINTS } from "../endpoints";
 
 export type SoldeGlobalePayload = Record<string, never>;
 
-export const soldeGlobaleService: ServiceDescriptor<SoldeGlobalePayload> = {
-  method: "POST",
-  endpoint: COMPTE_ENDPOINTS.soldeGlobale,
-  requiresAuth: true,
+export const soldeGlobale = (
+  body: SoldeGlobalePayload,
+  headers: AuthHeaders = {}
+) => {
+  return handleRequest(
+    httpClient.post(ENDPOINTS.SOLDE_GLOBALE, body, { headers })
+  );
 };
 

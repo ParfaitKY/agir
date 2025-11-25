@@ -1,13 +1,16 @@
-import { ServiceDescriptor } from "../httpClient";
-import { COMPTE_ENDPOINTS } from "../endpoints";
+import { httpClient, handleRequest, AuthHeaders } from "../httpClient";
+import { ENDPOINTS } from "../endpoints";
 
 export type CompteStatistiquesPayload = {
   DateReference: string;
 };
 
-export const compteStatistiquesService: ServiceDescriptor<CompteStatistiquesPayload> = {
-  method: "POST",
-  endpoint: COMPTE_ENDPOINTS.comptesStatistiques,
-  requiresAuth: true,
+export const compteStatistiques = (
+  body: CompteStatistiquesPayload,
+  headers: AuthHeaders = {}
+) => {
+  return handleRequest(
+    httpClient.post(ENDPOINTS.COMPTE_STATS, body, { headers })
+  );
 };
 

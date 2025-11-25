@@ -1,13 +1,16 @@
-import { ServiceDescriptor } from "../httpClient";
-import { COMPTE_ENDPOINTS } from "../endpoints";
+import { httpClient, handleRequest, AuthHeaders } from "../httpClient";
+import { ENDPOINTS } from "../endpoints";
 
 export type AnalyseDerniereTransactionPayload = {
   Nombretransactions: number;
 };
 
-export const analyseDerniereTransactionService: ServiceDescriptor<AnalyseDerniereTransactionPayload> = {
-  method: "POST",
-  endpoint: COMPTE_ENDPOINTS.analyseDerniereTransaction,
-  requiresAuth: true,
+export const analyseDerniereTransaction = (
+  body: AnalyseDerniereTransactionPayload,
+  headers: AuthHeaders = {}
+) => {
+  return handleRequest(
+    httpClient.post(ENDPOINTS.ANALYSE_DERNIERE_TRANSACTION, body, { headers })
+  );
 };
 

@@ -1,5 +1,5 @@
-import { ServiceDescriptor } from "../httpClient";
-import { COMPTE_ENDPOINTS } from "../endpoints";
+import { httpClient, handleRequest, AuthHeaders } from "../httpClient";
+import { ENDPOINTS } from "../endpoints";
 
 export type SoldePayload = {
   AG_CODEAGENCE: string;
@@ -7,9 +7,7 @@ export type SoldePayload = {
   DATEJOURNEE: string;
 };
 
-export const soldeService: ServiceDescriptor<SoldePayload> = {
-  method: "POST",
-  endpoint: COMPTE_ENDPOINTS.solde,
-  requiresAuth: true,
+export const solde = (body: SoldePayload, headers: AuthHeaders = {}) => {
+  return handleRequest(httpClient.post(ENDPOINTS.SOLDE, body, { headers }));
 };
 

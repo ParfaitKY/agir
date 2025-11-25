@@ -1,5 +1,5 @@
-import { ServiceDescriptor } from "../httpClient";
-import { COMPTE_ENDPOINTS } from "../endpoints";
+import { httpClient, handleRequest, AuthHeaders } from "../httpClient";
+import { ENDPOINTS } from "../endpoints";
 
 export type VirementPayload = {
   MC_DATEJOURNEE: string;
@@ -15,9 +15,10 @@ export type VirementPayload = {
   MC_AUTRE3?: string;
 };
 
-export const virementService: ServiceDescriptor<VirementPayload> = {
-  method: "POST",
-  endpoint: COMPTE_ENDPOINTS.virement,
-  requiresAuth: true,
+export const virement = (
+  body: VirementPayload,
+  headers: AuthHeaders = {}
+) => {
+  return handleRequest(httpClient.post(ENDPOINTS.VIREMENT, body, { headers }));
 };
 

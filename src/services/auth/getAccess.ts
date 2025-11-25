@@ -1,14 +1,15 @@
-import { ServiceDescriptor } from "../httpClient";
-import { AUTH_ENDPOINTS } from "../endpoints";
+import { httpClient, handleRequest, AuthHeaders } from "../httpClient";
+import { ENDPOINTS } from "../endpoints";
 
 export type GetAccessPayload = {
   cle_secrete: string;
   code_cryptage: string;
 };
 
-export const getAccessService: ServiceDescriptor<GetAccessPayload> = {
-  method: "POST",
-  endpoint: AUTH_ENDPOINTS.getAccess,
-  requiresAuth: false,
+export const getAccess = (
+  body: GetAccessPayload,
+  headers: AuthHeaders = {}
+) => {
+  return handleRequest(httpClient.post(ENDPOINTS.GET_ACCESS, body, { headers }));
 };
 

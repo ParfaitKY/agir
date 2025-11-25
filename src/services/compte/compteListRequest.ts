@@ -1,5 +1,5 @@
-import { ServiceDescriptor } from "../httpClient";
-import { COMPTE_ENDPOINTS } from "../endpoints";
+import { httpClient, handleRequest, AuthHeaders } from "../httpClient";
+import { ENDPOINTS } from "../endpoints";
 
 export type CompteListRequestPayload = {
   CL_IDCLIENT: string;
@@ -9,9 +9,10 @@ export type CompteListRequestPayload = {
   CODECRYPTAGE: string;
 };
 
-export const compteListRequestService: ServiceDescriptor<CompteListRequestPayload> = {
-  method: "POST",
-  endpoint: COMPTE_ENDPOINTS.comptes,
-  requiresAuth: true,
+export const compteListRequest = (
+  body: CompteListRequestPayload,
+  headers: AuthHeaders = {}
+) => {
+  return handleRequest(httpClient.post(ENDPOINTS.COMPTE_LIST, body, { headers }));
 };
 

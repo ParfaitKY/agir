@@ -1,5 +1,5 @@
-import { ServiceDescriptor } from "../httpClient";
-import { AUTH_ENDPOINTS } from "../endpoints";
+import { httpClient, handleRequest, AuthHeaders } from "../httpClient";
+import { ENDPOINTS } from "../endpoints";
 
 export type LoginPayload = {
   LG_CODELANGUE: string;
@@ -11,9 +11,7 @@ export type LoginPayload = {
   TERMINALUUID: string;
 };
 
-export const loginService: ServiceDescriptor<LoginPayload> = {
-  method: "POST",
-  endpoint: AUTH_ENDPOINTS.login,
-  requiresAuth: false,
+export const login = (body: LoginPayload, headers: AuthHeaders = {}) => {
+  return handleRequest(httpClient.post(ENDPOINTS.LOGIN, body, { headers }));
 };
 

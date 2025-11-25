@@ -1,5 +1,5 @@
-import { ServiceDescriptor } from "../httpClient";
-import { AUTH_ENDPOINTS } from "../endpoints";
+import { httpClient, handleRequest, AuthHeaders } from "../httpClient";
+import { ENDPOINTS } from "../endpoints";
 
 export type UpdateLoginPayload = {
   nouveau_login: string;
@@ -8,9 +8,10 @@ export type UpdateLoginPayload = {
   code_cryptage: string;
 };
 
-export const updateLoginService: ServiceDescriptor<UpdateLoginPayload> = {
-  method: "PUT",
-  endpoint: AUTH_ENDPOINTS.updateLogin,
-  requiresAuth: true,
+export const updateLogin = (
+  body: UpdateLoginPayload,
+  headers: AuthHeaders = {}
+) => {
+  return handleRequest(httpClient.put(ENDPOINTS.UPDATE_LOGIN, body, { headers }));
 };
 

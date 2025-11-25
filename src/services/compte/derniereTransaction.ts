@@ -1,5 +1,5 @@
-import { ServiceDescriptor } from "../httpClient";
-import { COMPTE_ENDPOINTS } from "../endpoints";
+import { httpClient, handleRequest, AuthHeaders } from "../httpClient";
+import { ENDPOINTS } from "../endpoints";
 
 export type DerniereTransactionPayload = {
   AG_CODEAGENCE: string;
@@ -7,9 +7,12 @@ export type DerniereTransactionPayload = {
   CODECRYPTAGE: string;
 };
 
-export const derniereTransactionService: ServiceDescriptor<DerniereTransactionPayload> = {
-  method: "POST",
-  endpoint: COMPTE_ENDPOINTS.derniereTransaction,
-  requiresAuth: true,
+export const derniereTransaction = (
+  body: DerniereTransactionPayload,
+  headers: AuthHeaders = {}
+) => {
+  return handleRequest(
+    httpClient.post(ENDPOINTS.DERNIERE_TRANSACTION, body, { headers })
+  );
 };
 

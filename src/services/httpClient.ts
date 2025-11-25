@@ -1,18 +1,31 @@
-export type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
+import axios, { AxiosInstance, AxiosResponse } from "axios";
+import { BASE_URL } from "./endpoints";
 
-export type HttpClientConfig = {
-  baseURL: string;
-  timeout?: number;
+export type AuthHeaders = Record<string, string>;
+
+export type RequestResult<T = any> = {
+  data?: T;
+  error?: unknown;
 };
 
-export type AuthHeaders = {
-  Authorization?: string;
-};
+export const httpClient: AxiosInstance = axios.create({
+  baseURL: BASE_URL,
+  timeout: 20000,
+  headers: {
+    "Content-Type": "application/json",
+    Accept: "application/json",
+  },
+});
 
-export type ServiceDescriptor<P = unknown> = {
-  method: HttpMethod;
-  endpoint: string;
-  requiresAuth: boolean;
-  params?: P;
-};
+export async function handleRequest<T = any>(
+  request: Promise<AxiosResponse<T>>
+): Promise<RequestResult<T>> {
+  try {
+    const res = await request;
+    return { data: res.data };
+  } catch (err: any) {
+    console.error(err?.message ?? "request_error");
+    return { error: err };
+  }
+}
 
