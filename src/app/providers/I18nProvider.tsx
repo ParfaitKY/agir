@@ -21,6 +21,144 @@ const STORAGE_KEY = "app_language";
 
 // Dictionnaire minimal — peut être étendu progressivement
 const TRANSLATIONS: Translations = {
+  // Initial setup
+  "initial.title.verify": {
+    fr: "Bienvenue ! Vérifions votre identité",
+    en: "Welcome! Let's verify your identity",
+    zh: "欢迎！让我们验证您的身份",
+  },
+  "initial.title.pin": {
+    fr: "Configuration du PIN",
+    en: "PIN setup",
+    zh: "设置 PIN",
+  },
+  "initial.step.1": { fr: "Étape 1/2", en: "Step 1/2", zh: "步骤 1/2" },
+  "initial.step.2": { fr: "Étape 2/2", en: "Step 2/2", zh: "步骤 2/2" },
+  "initial.subtitle.verify": {
+    fr: "Configuration initiale de votre appareil",
+    en: "Initial configuration of your device",
+    zh: "设备初始配置",
+  },
+  "initial.subtitle.pin": {
+    fr: "Configuration du code PIN",
+    en: "PIN code configuration",
+    zh: "PIN 码配置",
+  },
+  "initial.section.verify": {
+    fr: "Vérification de l'identité",
+    en: "Identity verification",
+    zh: "身份验证",
+  },
+  "initial.labels.accountNumber": {
+    fr: "Numéro de compte (8 chiffres minimum)",
+    en: "Account number (min 8 digits)",
+    zh: "账户号码（至少 8 位）",
+  },
+  "initial.placeholders.accountNumber": {
+    fr: "Saisir votre numéro de compte",
+    en: "Enter your account number",
+    zh: "输入您的账户号码",
+  },
+  "initial.hint.accountNumber": {
+    fr: "Entrez votre numéro de compte reçu par mail ou SMS (au moins 8 chiffres).",
+    en: "Enter the account number received by email or SMS (at least 8 digits).",
+    zh: "输入您通过邮件或短信收到的账户号码（至少 8 位）。",
+  },
+  "initial.actions.scan": {
+    fr: "Scanner Code",
+    en: "Scan Code",
+    zh: "扫描二维码",
+  },
+  "initial.actions.verify.loading": {
+    fr: "Vérification...",
+    en: "Verifying...",
+    zh: "正在验证...",
+  },
+  "initial.actions.verify": { fr: "Vérifier", en: "Verify", zh: "验证" },
+  "initial.success.verify": {
+    fr: "Identifiant vérifié avec succès 🎉",
+    en: "Identifier verified successfully 🎉",
+    zh: "验证成功 🎉",
+  },
+  "initial.hint.card": {
+    fr: "Astuce: entrez le numéro de compte tel qu'indiqué sur votre carte client.",
+    en: "Tip: enter the account number as shown on your client card.",
+    zh: "提示：按客户卡上的号码输入账户号码。",
+  },
+  "initial.guestMode": {
+    fr: "Continuer en mode invité",
+    en: "Continue as guest",
+    zh: "以访客模式继续",
+  },
+  "initial.labels.lastName": { fr: "Nom", en: "Last name", zh: "姓氏" },
+  "initial.placeholders.lastName": {
+    fr: "Votre nom",
+    en: "Your last name",
+    zh: "您的姓氏",
+  },
+  "initial.labels.firstName": { fr: "Prénom", en: "First name", zh: "名字" },
+  "initial.placeholders.firstName": {
+    fr: "Votre prénom",
+    en: "Your first name",
+    zh: "您的名字",
+  },
+  "initial.labels.login": { fr: "Login", en: "Login", zh: "登录名" },
+  "initial.placeholders.login": {
+    fr: "Choisissez votre nom d'utilisateur",
+    en: "Choose your username",
+    zh: "选择您的用户名",
+  },
+  "initial.labels.pin": {
+    fr: "Code PIN (min 4 chiffres)",
+    en: "PIN code (min 4 digits)",
+    zh: "PIN 码（至少 4 位）",
+  },
+  "initial.placeholders.pin": {
+    fr: "Nouveau code PIN",
+    en: "New PIN code",
+    zh: "新的 PIN 码",
+  },
+  "initial.labels.pinConfirm": {
+    fr: "Confirmation du code PIN (min 4 chiffres)",
+    en: "Confirm PIN code (min 4 digits)",
+    zh: "确认 PIN 码（至少 4 位）",
+  },
+  "initial.placeholders.pinConfirm": {
+    fr: "Confirmez votre code PIN",
+    en: "Confirm your PIN code",
+    zh: "确认您的 PIN 码",
+  },
+  "initial.labels.secret": {
+    fr: "Clé secrète (min 3 caractères)",
+    en: "Secret key (min 3 characters)",
+    zh: "密钥（至少 3 个字符）",
+  },
+  "initial.placeholders.secret": {
+    fr: "Votre clé secrète personnelle",
+    en: "Your personal secret key",
+    zh: "您的个人密钥",
+  },
+  "initial.hint.min4": {
+    fr: "Minimum 4 chiffres",
+    en: "Minimum 4 digits",
+    zh: "至少 4 位",
+  },
+  "initial.hint.min3": {
+    fr: "Minimum 3 caractères",
+    en: "Minimum 3 characters",
+    zh: "至少 3 个字符",
+  },
+  "initial.actions.save.loading": {
+    fr: "Enregistrement...",
+    en: "Saving...",
+    zh: "正在保存...",
+  },
+  "initial.actions.save": { fr: "Enregistrer", en: "Save", zh: "保存" },
+  "initial.hint.redirect": {
+    fr: "Après succès, vous serez redirigé vers la connexion par PIN.",
+    en: "After success, you will be redirected to PIN login.",
+    zh: "成功后将跳转至 PIN 登录。",
+  },
   // Settings sections and header
   "settings.header": { fr: "Paramètres", en: "Settings", zh: "设置" },
   "settings.section.account": { fr: "COMPTE", en: "ACCOUNT", zh: "账户" },
@@ -1057,6 +1195,410 @@ const TRANSLATIONS: Translations = {
     en: "Express Credit",
     zh: "快速贷款",
   },
+  // Common actions
+  "common.cancel": { fr: "Annuler", en: "Cancel", zh: "取消" },
+  "common.confirm": { fr: "Confirmer", en: "Confirm", zh: "确认" },
+  "common.ok": { fr: "OK", en: "OK", zh: "确定" },
+  "common.success": { fr: "Succès", en: "Success", zh: "成功" },
+
+  // Products detail
+  "products.detail.modal.confirm.prefix": {
+    fr: "Souhaitez-vous souscrire à",
+    en: "Do you want to subscribe to",
+    zh: "您是否要订阅",
+  },
+  "products.detail.modal.success.body": {
+    fr: "Votre demande a été envoyée avec succès",
+    en: "Your request was sent successfully",
+    zh: "您的请求已成功发送",
+  },
+
+  // Current Account
+  "products.currentAccount.adv1": {
+    fr: "Carte bancaire gratuite incluse",
+    en: "Free bank card included",
+    zh: "包含免费银行卡",
+  },
+  "products.currentAccount.adv2": {
+    fr: "Virements illimités sans frais",
+    en: "Unlimited transfers with no fees",
+    zh: "无限次转账免手续费",
+  },
+  "products.currentAccount.adv3": {
+    fr: "Relevé mensuel détaillé",
+    en: "Detailed monthly statements",
+    zh: "详细月度对账单",
+  },
+  "products.currentAccount.adv4": {
+    fr: "Application mobile performante",
+    en: "High-performance mobile app",
+    zh: "高性能移动应用",
+  },
+  "products.currentAccount.adv5": {
+    fr: "Service client dédié 7j/7",
+    en: "Dedicated customer service 7/7",
+    zh: "7 天客服支持",
+  },
+  "products.currentAccount.cond1": {
+    fr: "Dépôt minimum : 25 000 XAF",
+    en: "Minimum deposit: 25,000 XAF",
+    zh: "最低存款：25,000 XAF",
+  },
+  "products.currentAccount.cond2": {
+    fr: "Frais de tenue : 1 500 XAF/mois",
+    en: "Maintenance fee: 1,500 XAF/month",
+    zh: "账户维护费：每月 1,500 XAF",
+  },
+  "products.currentAccount.cond3": {
+    fr: "Pièce d’identité requise",
+    en: "ID document required",
+    zh: "需要身份证件",
+  },
+
+  // Visa Premium
+  "products.visaPremium.adv1": {
+    fr: "Assurance voyage incluse",
+    en: "Travel insurance included",
+    zh: "包含旅行保险",
+  },
+  "products.visaPremium.adv2": {
+    fr: "Cashback 2% sur tous vos achats",
+    en: "2% cashback on all purchases",
+    zh: "所有消费返现 2%",
+  },
+  "products.visaPremium.adv3": {
+    fr: "Paiement sans contact",
+    en: "Contactless payment",
+    zh: "非接触式支付",
+  },
+  "products.visaPremium.adv4": {
+    fr: "Protection contre la fraude",
+    en: "Fraud protection",
+    zh: "防欺诈保护",
+  },
+  "products.visaPremium.adv5": {
+    fr: "Assistance premium 24/7",
+    en: "Premium assistance 24/7",
+    zh: "24/7 高级客服",
+  },
+  "products.visaPremium.cond1": {
+    fr: "Compte courant requis",
+    en: "Current account required",
+    zh: "需要活期账户",
+  },
+  "products.visaPremium.cond2": {
+    fr: "Cotisation : 5 000 XAF/an",
+    en: "Fee: 5,000 XAF/year",
+    zh: "年费：5,000 XAF",
+  },
+  "products.visaPremium.cond3": {
+    fr: "Plafond : 500 000 XAF/jour",
+    en: "Limit: 500,000 XAF/day",
+    zh: "每日限额：500,000 XAF",
+  },
+
+  // Micro Credit Express
+  "products.microCredit.adv1": {
+    fr: "Réponse en 24h maximum",
+    en: "Response within 24h",
+    zh: "24 小时内回复",
+  },
+  "products.microCredit.adv2": {
+    fr: "Taux d’intérêt avantageux",
+    en: "Competitive interest rates",
+    zh: "优惠利率",
+  },
+  "products.microCredit.adv3": {
+    fr: "Remboursement flexible",
+    en: "Flexible repayment",
+    zh: "灵活还款",
+  },
+  "products.microCredit.adv4": {
+    fr: "Montant jusqu’à 500 000 XAF",
+    en: "Amount up to 500,000 XAF",
+    zh: "额度最高 500,000 XAF",
+  },
+  "products.microCredit.adv5": {
+    fr: "Procédure 100% digitale",
+    en: "100% digital process",
+    zh: "全程数字化流程",
+  },
+  "products.microCredit.cond1": {
+    fr: "Être client depuis 3 mois",
+    en: "Client for at least 3 months",
+    zh: "成为客户至少 3 个月",
+  },
+  "products.microCredit.cond2": {
+    fr: "Justificatif de revenus",
+    en: "Proof of income",
+    zh: "收入证明",
+  },
+  "products.microCredit.cond3": {
+    fr: "Durée : 3 à 12 mois",
+    en: "Duration: 3 to 12 months",
+    zh: "期限：3 至 12 个月",
+  },
+
+  // Health Insurance
+  "products.healthInsurance.adv1": {
+    fr: "Couverture médicale complète",
+    en: "Comprehensive medical coverage",
+    zh: "全面医疗保障",
+  },
+  "products.healthInsurance.adv2": {
+    fr: "Remboursement sous 48h",
+    en: "Reimbursement within 48h",
+    zh: "48 小时内报销",
+  },
+  "products.healthInsurance.adv3": {
+    fr: "Assistance médicale 24/7",
+    en: "24/7 medical assistance",
+    zh: "24/7 医疗援助",
+  },
+  "products.healthInsurance.adv4": {
+    fr: "Réseau de partenaires étendu",
+    en: "Wide partner network",
+    zh: "广泛合作网络",
+  },
+  "products.healthInsurance.adv5": {
+    fr: "Prise en charge directe",
+    en: "Direct coverage",
+    zh: "直接报销",
+  },
+  "products.healthInsurance.cond1": {
+    fr: "À partir de 15 000 XAF/mois",
+    en: "From 15,000 XAF/month",
+    zh: "每月起价 15,000 XAF",
+  },
+  "products.healthInsurance.cond2": {
+    fr: "Questionnaire médical",
+    en: "Medical questionnaire",
+    zh: "医疗问卷",
+  },
+  "products.healthInsurance.cond3": {
+    fr: "Couverture jusqu'à 6 personnes",
+    en: "Coverage up to 6 people",
+    zh: "最多覆盖 6 人",
+  },
+
+  // Savings Project
+  "products.savingsProject.adv1": {
+    fr: "Objectifs personnalisés",
+    en: "Personalized goals",
+    zh: "个性化目标",
+  },
+  "products.savingsProject.adv2": {
+    fr: "Suivi en temps réel",
+    en: "Real-time tracking",
+    zh: "实时跟踪",
+  },
+  "products.savingsProject.adv3": {
+    fr: "Bonus de fidélité 3%",
+    en: "3% loyalty bonus",
+    zh: "3% 忠诚奖励",
+  },
+  "products.savingsProject.adv4": {
+    fr: "Versements automatiques",
+    en: "Automatic deposits",
+    zh: "自动存款",
+  },
+  "products.savingsProject.adv5": {
+    fr: "Conseils personnalisés",
+    en: "Personalized advice",
+    zh: "个性化建议",
+  },
+  "products.savingsProject.cond1": {
+    fr: "Dépôt initial : 10 000 XAF",
+    en: "Initial deposit: 10,000 XAF",
+    zh: "初始存款：10,000 XAF",
+  },
+  "products.savingsProject.cond2": {
+    fr: "Versement minimum : 5 000 XAF",
+    en: "Minimum deposit: 5,000 XAF",
+    zh: "最低存款：5,000 XAF",
+  },
+  "products.savingsProject.cond3": {
+    fr: "Durée : 6 à 36 mois",
+    en: "Duration: 6 to 36 months",
+    zh: "期限：6 至 36 个月",
+  },
+
+  // Product list (titles/subtitles/descriptions)
+  "products.list.microCreditExpress.title": {
+    fr: "Micro-crédit Express",
+    en: "Micro-credit Express",
+    zh: "快速小额信贷",
+  },
+  "products.list.microCreditExpress.subtitle": {
+    fr: "Financement rapide",
+    en: "Fast financing",
+    zh: "快速融资",
+  },
+  "products.list.microCreditExpress.description": {
+    fr: "Obtenez un crédit rapidement pour vos projets",
+    en: "Get credit quickly for your projects",
+    zh: "快速获取项目所需的贷款",
+  },
+  "products.list.healthInsurance.title": {
+    fr: "Assurance Santé",
+    en: "Health Insurance",
+    zh: "健康保险",
+  },
+  "products.list.healthInsurance.subtitle": {
+    fr: "Protection famille",
+    en: "Family protection",
+    zh: "家庭保障",
+  },
+  "products.list.healthInsurance.description": {
+    fr: "Protégez votre famille avec notre assurance santé",
+    en: "Protect your family with our health insurance",
+    zh: "使用我们的健康保险保护您的家人",
+  },
+  "products.list.savingsStandard.title": {
+    fr: "Compte Épargne",
+    en: "Savings Account",
+    zh: "储蓄账户",
+  },
+  "products.list.savingsStandard.subtitle": {
+    fr: "Épargner et gagner",
+    en: "Save and earn",
+    zh: "储蓄并获利",
+  },
+  "products.list.savingsStandard.description": {
+    fr: "Faites fructifier votre épargne avec des taux attractifs",
+    en: "Grow your savings with attractive rates",
+    zh: "以有吸引力的利率增值您的储蓄",
+  },
+  "products.list.savingsProject.title": {
+    fr: "Épargne Projet",
+    en: "Project Savings",
+    zh: "项目储蓄",
+  },
+  "products.list.savingsProject.subtitle": {
+    fr: "Objectifs personnalisés",
+    en: "Personalized goals",
+    zh: "个性化目标",
+  },
+  "products.list.savingsProject.description": {
+    fr: "Épargnez pour vos projets avec un plan personnalisé",
+    en: "Save for your projects with a personalized plan",
+    zh: "通过个性化计划为您的项目储蓄",
+  },
+
+  // Analytics
+  "analytics.title": {
+    fr: "Statistiques générales",
+    en: "General statistics",
+    zh: "总体统计",
+  },
+  "analytics.loading": { fr: "Chargement…", en: "Loading…", zh: "加载中…" },
+  "analytics.errorLoading": {
+    fr: "Erreur lors du chargement des données",
+    en: "Error loading data",
+    zh: "加载数据时出错",
+  },
+  "analytics.label.debitCount": {
+    fr: "Nombre d'op sortante",
+    en: "Outgoing operations count",
+    zh: "支出操作数量",
+  },
+  "analytics.label.creditCount": {
+    fr: "Nombre d'op entrante",
+    en: "Incoming operations count",
+    zh: "收入操作数量",
+  },
+  "analytics.label.totalCount": {
+    fr: "Total des opérations",
+    en: "Total operations",
+    zh: "总操作数",
+  },
+  "analytics.label.percentDebit": {
+    fr: "Pourcentage débit",
+    en: "Debit percentage",
+    zh: "支出百分比",
+  },
+  "analytics.label.percentCredit": {
+    fr: "Pourcentage crédit",
+    en: "Credit percentage",
+    zh: "收入百分比",
+  },
+  "analytics.label.strongTrend": {
+    fr: "Sens fort",
+    en: "Strong trend",
+    zh: "强势方向",
+  },
+  "analytics.chart.barTitle": {
+    fr: "Nombre d'opérations (barres)",
+    en: "Operations count (bars)",
+    zh: "操作数量（柱形图）",
+  },
+  "analytics.chart.donutTitle": {
+    fr: "Répartition crédit / débit (donut)",
+    en: "Credit/Debit distribution (donut)",
+    zh: "收入/支出分布（甜甜圈图）",
+  },
+  "analytics.legend.debit": {
+    fr: "Pourcentage débit",
+    en: "Debit percentage",
+    zh: "支出百分比",
+  },
+  "analytics.legend.credit": {
+    fr: "Pourcentage crédit",
+    en: "Credit percentage",
+    zh: "收入百分比",
+  },
+  "analytics.label.debitShort": {
+    fr: "nombre d'op sortante",
+    en: "outgoing ops",
+    zh: "支出操作",
+  },
+  "analytics.label.creditShort": {
+    fr: "nombre d'op entrante",
+    en: "incoming ops",
+    zh: "收入操作",
+  },
+  "analytics.label.totalShort": { fr: "Cumul", en: "Total", zh: "累计" },
+  // Product list features
+  "products.list.microCreditExpress.feature.response24h": {
+    fr: "Réponse en 24h",
+    en: "Response within 24h",
+    zh: "24 小时内回复",
+  },
+  "products.list.microCreditExpress.feature.rateAdvantage": {
+    fr: "Taux avantageux",
+    en: "Competitive rate",
+    zh: "优惠利率",
+  },
+  "products.list.healthInsurance.feature.coverage": {
+    fr: "Couverture complète",
+    en: "Full coverage",
+    zh: "全面保障",
+  },
+  "products.list.healthInsurance.feature.fastReimbursement": {
+    fr: "Remboursement rapide",
+    en: "Fast reimbursement",
+    zh: "快速报销",
+  },
+  "products.list.savingsStandard.feature.rate5": {
+    fr: "Taux d’intérêt 5%",
+    en: "5% interest rate",
+    zh: "5% 利率",
+  },
+  "products.list.savingsStandard.feature.flexWithdrawals": {
+    fr: "Retraits flexibles",
+    en: "Flexible withdrawals",
+    zh: "灵活取款",
+  },
+  "products.list.savingsProject.feature.targetedGoals": {
+    fr: "Objectifs ciblés",
+    en: "Targeted goals",
+    zh: "目标明确",
+  },
+  "products.list.savingsProject.feature.realTime": {
+    fr: "Suivi en temps réel",
+    en: "Real-time tracking",
+    zh: "实时跟踪",
+  },
   "dashboard.offer.creditExpress.subtitle": {
     fr: "Obtenez jusqu'à 5M FCFA",
     en: "Get up to 5M FCFA",
@@ -1650,8 +2192,7 @@ const TRANSLATIONS: Translations = {
     en: "Order a new card",
     zh: "申请新卡",
   },
-  "common.cancel": { fr: "Annuler", en: "Cancel", zh: "取消" },
-  "common.ok": { fr: "OK", en: "OK", zh: "确定" },
+
   "cards.modal.info.title": { fr: "INFO", en: "INFO", zh: "信息" },
   "cards.modal.info.body": {
     fr: "FONCTIONNALITE A VENIR",

@@ -17,6 +17,7 @@ import {
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
+import { useI18n } from "../../../app/providers/I18nProvider";
 import * as SecureStore from "expo-secure-store";
 import * as Crypto from "expo-crypto";
 import { secureSetItem } from "../../../shared/utils/secureStorage";
@@ -27,6 +28,7 @@ const InitialSetupScreen: React.FC = () => {
   usePreventScreenCapture();
   const { width, height } = useWindowDimensions();
   const { user, markConfigured, login } = useAuth() as any;
+  const { t } = useI18n();
   const navigation = useNavigation() as any;
   const [step, setStep] = useState<1 | 2>(1);
   const [accountNumber, setAccountNumber] = useState("");
@@ -382,8 +384,8 @@ const InitialSetupScreen: React.FC = () => {
                 ]}
               >
                 {step === 1
-                  ? "Bienvenue ! Vérifions votre identité"
-                  : "Configuration du PIN"}
+                  ? t("initial.title.verify")
+                  : t("initial.title.pin")}
               </Text>
               {step === 2 && loginReadonly && (
                 <Text
@@ -403,7 +405,7 @@ const InitialSetupScreen: React.FC = () => {
               )}
               <View style={styles.stepPill}>
                 <Text style={styles.stepPillText}>
-                  {step === 1 ? "Étape 1/2" : "Étape 2/2"}
+                  {step === 1 ? t("initial.step.1") : t("initial.step.2")}
                 </Text>
               </View>
               <Text
@@ -418,8 +420,8 @@ const InitialSetupScreen: React.FC = () => {
                 ]}
               >
                 {step === 1
-                  ? "Configuration initiale de votre appareil"
-                  : "Configuration du code PIN"}
+                  ? t("initial.subtitle.verify")
+                  : t("initial.subtitle.pin")}
               </Text>
             </View>
             <ScrollView
@@ -454,15 +456,15 @@ const InitialSetupScreen: React.FC = () => {
                         color={palette.textMain}
                       />
                       <Text style={[styles.sectionTitle, { marginLeft: 8 }]}>
-                        Vérification de l'identité
+                        {t("initial.section.verify")}
                       </Text>
                     </View>
                     <View style={{ marginTop: 6 }}>
                       <Text style={styles.label}>
-                        Numéro de compte (8 chiffres minimum)
+                        {t("initial.labels.accountNumber")}
                       </Text>
                       <TextInput
-                        placeholder="Saisir votre numéro de compte"
+                        placeholder={t("initial.placeholders.accountNumber")}
                         value={accountNumber}
                         onChangeText={setAccountNumber}
                         style={styles.input}
@@ -483,8 +485,7 @@ const InitialSetupScreen: React.FC = () => {
                         },
                       ]}
                     >
-                      Entrez votre numéro de compte reçu par mail ou SMS (au
-                      moins 8 chiffres).
+                      {t("initial.hint.accountNumber")}
                     </Text>
                     <View
                       style={[
@@ -540,7 +541,7 @@ const InitialSetupScreen: React.FC = () => {
                                 },
                               ]}
                             >
-                              Scanner Code
+                              {t("initial.actions.scan")}
                             </Text>
                           </View>
                         </TouchableOpacity>
@@ -562,7 +563,9 @@ const InitialSetupScreen: React.FC = () => {
                       >
                         <View style={styles.buttonContent}>
                           <Text style={styles.buttonText}>
-                            {loadingVerify ? "Vérification..." : "Vérifier"}
+                            {loadingVerify
+                              ? t("initial.actions.verify.loading")
+                              : t("initial.actions.verify")}
                           </Text>
                           {loadingVerify ? (
                             <ActivityIndicator
@@ -587,14 +590,11 @@ const InitialSetupScreen: React.FC = () => {
                     {!!verifySuccess && (
                       <View style={{ marginTop: 12 }}>
                         <Text style={styles.successHint}>
-                          Identifiant vérifié avec succès 🎉
+                          {t("initial.success.verify")}
                         </Text>
                       </View>
                     )}
-                    <Text style={styles.hint}>
-                      Astuce: entrez le numéro de compte tel qu'indiqué sur
-                      votre carte client.
-                    </Text>
+                    <Text style={styles.hint}>{t("initial.hint.card")}</Text>
                     <TouchableOpacity
                       style={[
                         styles.secondaryButton,
@@ -635,7 +635,7 @@ const InitialSetupScreen: React.FC = () => {
                             },
                           ]}
                         >
-                          Continuer en mode invité
+                          {t("initial.guestMode")}
                         </Text>
                       </View>
                     </TouchableOpacity>
@@ -666,45 +666,53 @@ const InitialSetupScreen: React.FC = () => {
                           { marginLeft: 12, color: palette.textMain },
                         ]}
                       >
-                        Configuration du code PIN
+                        {t("initial.subtitle.pin")}
                       </Text>
                     </View>
                     <View style={{ marginTop: 6 }}>
-                      <Text style={styles.label}>Nom</Text>
+                      <Text style={styles.label}>
+                        {t("initial.labels.lastName")}
+                      </Text>
                       <TextInput
                         value={lastName}
                         onChangeText={setLastName}
                         style={styles.input}
-                        placeholder="Votre nom"
+                        placeholder={t("initial.placeholders.lastName")}
                         autoCapitalize="words"
                         ref={lastNameRef}
                       />
                     </View>
 
                     <View style={{ marginTop: 6 }}>
-                      <Text style={styles.label}>Prénom</Text>
+                      <Text style={styles.label}>
+                        {t("initial.labels.firstName")}
+                      </Text>
                       <TextInput
                         value={firstName}
                         onChangeText={setFirstName}
                         style={styles.input}
-                        placeholder="Votre prénom"
+                        placeholder={t("initial.placeholders.firstName")}
                         autoCapitalize="words"
                       />
                     </View>
 
                     <View style={{ marginTop: 6 }}>
-                      <Text style={styles.label}>Login</Text>
+                      <Text style={styles.label}>
+                        {t("initial.labels.login")}
+                      </Text>
                       <TextInput
                         value={loginReadonly}
                         onChangeText={setLoginReadonly}
                         style={styles.input}
-                        placeholder="Choisissez votre nom d'utilisateur"
+                        placeholder={t("initial.placeholders.login")}
                         autoCapitalize="none"
                       />
                     </View>
 
                     <View style={{ marginTop: 16 }}>
-                      <Text style={styles.label}>Code PIN</Text>
+                      <Text style={styles.label}>
+                        {t("initial.labels.pin")}
+                      </Text>
                       <View style={styles.pinRow}>
                         <TextInput
                           value={newPin}
@@ -713,7 +721,7 @@ const InitialSetupScreen: React.FC = () => {
                           secureTextEntry={!showNewPin}
                           keyboardType="number-pad"
                           maxLength={6}
-                          placeholder="Nouveau code PIN"
+                          placeholder={t("initial.placeholders.pin")}
                         />
                         <TouchableOpacity
                           style={styles.iconButton}
@@ -729,7 +737,9 @@ const InitialSetupScreen: React.FC = () => {
                     </View>
 
                     <View style={{ marginTop: 6 }}>
-                      <Text style={styles.label}>Confirmation du code PIN</Text>
+                      <Text style={styles.label}>
+                        {t("initial.labels.pinConfirm")}
+                      </Text>
                       <View style={styles.pinRow}>
                         <TextInput
                           value={confirmPin}
@@ -738,7 +748,7 @@ const InitialSetupScreen: React.FC = () => {
                           secureTextEntry={!showConfirmPin}
                           keyboardType="number-pad"
                           maxLength={6}
-                          placeholder="Confirmez votre code PIN"
+                          placeholder={t("initial.placeholders.pinConfirm")}
                         />
                         <TouchableOpacity
                           style={styles.iconButton}
@@ -755,7 +765,9 @@ const InitialSetupScreen: React.FC = () => {
                       </View>
 
                       <View style={{ marginTop: 6 }}>
-                        <Text style={styles.label}>Clé secrète</Text>
+                        <Text style={styles.label}>
+                          {t("initial.labels.secret")}
+                        </Text>
                         <View
                           style={[
                             styles.pinRow,
@@ -767,7 +779,7 @@ const InitialSetupScreen: React.FC = () => {
                             onChangeText={setSecretKey}
                             style={[styles.input, styles.secretInput]}
                             secureTextEntry={!showSecretKey}
-                            placeholder="Votre clé secrète personnelle"
+                            placeholder={t("initial.placeholders.secret")}
                             autoCapitalize="none"
                           />
                           <TouchableOpacity
@@ -818,7 +830,9 @@ const InitialSetupScreen: React.FC = () => {
                       >
                         <View style={styles.buttonContent}>
                           <Text style={styles.buttonText}>
-                            {savingPin ? "Enregistrement..." : "Enregistrer"}
+                            {savingPin
+                              ? t("initial.actions.save.loading")
+                              : t("initial.actions.save")}
                           </Text>
                           {!savingPin && (
                             <MaterialIcons
@@ -831,8 +845,7 @@ const InitialSetupScreen: React.FC = () => {
                         </View>
                       </TouchableOpacity>
                       <Text style={styles.successHint}>
-                        Après succès, vous serez redirigé vers la connexion par
-                        PIN.
+                        {t("initial.hint.redirect")}
                       </Text>
                     </View>
                     <View style={{ height: 100 }} />

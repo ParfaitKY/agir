@@ -89,6 +89,15 @@ export const DashboardScreen: React.FC = () => {
     },
   ];
 
+  const [activeOfferIndex, setActiveOfferIndex] = useState(0);
+  const offerViewabilityConfigRef = useRef({
+    viewAreaCoveragePercentThreshold: 60,
+  });
+  const onOfferViewableItemsChanged = useRef((info: any) => {
+    const idx = info?.viewableItems?.[0]?.index ?? 0;
+    setActiveOfferIndex(idx);
+  }).current;
+
   const services = [
     {
       id: 1,
@@ -525,8 +534,6 @@ export const DashboardScreen: React.FC = () => {
               { backgroundColor: colors.card, marginTop: -15 },
             ]}
           >
-           
-          
             <View style={styles.userSection}>
               <View style={styles.avatar}>
                 <Text style={[styles.avatarText, { color: colors.background }]}>
@@ -574,7 +581,7 @@ export const DashboardScreen: React.FC = () => {
                     <Text
                       style={[styles.seeAllText, { color: colors.primary }]}
                     >
-                      Voir plus
+                      {t("dashboard.recent.seeAll")}
                     </Text>
                   </TouchableOpacity>
                 </View>
@@ -778,18 +785,22 @@ export const DashboardScreen: React.FC = () => {
             decelerationRate="fast"
             snapToInterval={offerCardWidth + itemSpacing}
             pagingEnabled
+            onViewableItemsChanged={onOfferViewableItemsChanged}
+            viewabilityConfig={offerViewabilityConfigRef.current}
           />
           <View style={styles.paginationDots}>
-            <View
-              style={[styles.paginationDot, { backgroundColor: colors.border }]}
-            />
-            <View
-              style={[
-                styles.paginationDot,
-                styles.paginationDotActive,
-                { backgroundColor: colors.primary },
-              ]}
-            />
+            {offers.map((_, i) => (
+              <View
+                key={`dot-${i}`}
+                style={[
+                  styles.paginationDot,
+                  {
+                    backgroundColor:
+                      i === activeOfferIndex ? colors.primary : colors.border,
+                  },
+                ]}
+              />
+            ))}
           </View>
         </View>
 

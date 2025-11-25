@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { useTheme } from "../../../shared/styles/ThemeProvider";
+import { useI18n } from "../../../app/providers/I18nProvider";
 import axios from "axios";
 import { BASE_URL, COMPTE_ENDPOINTS } from "../../../api";
 import { Svg, Circle } from "react-native-svg";
@@ -36,13 +37,26 @@ const BarChart = ({
   colors: any;
   title: string;
 }) => {
+  const { t } = useI18n();
   const chartHeight = 180;
   const values = [debit, credit, total];
   const max = Math.max(...values, 1);
   const bars = [
-    { label: "nombre d'op sortante", value: debit, color: colors.warning },
-    { label: "nombre d'op entrante", value: credit, color: colors.success },
-    { label: "Cumul", value: total, color: colors.primary },
+    {
+      label: t("analytics.label.debitShort"),
+      value: debit,
+      color: colors.warning,
+    },
+    {
+      label: t("analytics.label.creditShort"),
+      value: credit,
+      color: colors.success,
+    },
+    {
+      label: t("analytics.label.totalShort"),
+      value: total,
+      color: colors.primary,
+    },
   ];
 
   return (
@@ -110,6 +124,7 @@ const DonutChart = ({
   colors: any;
   title: string;
 }) => {
+  const { t } = useI18n();
   const size = 180;
   const strokeWidth = 18;
   const radius = size / 2 - strokeWidth / 2;
@@ -175,7 +190,7 @@ const DonutChart = ({
             style={[styles.legendDot, { backgroundColor: colors.warning }]}
           />
           <Text style={[styles.legendLabel, { color: colors.text }]}>
-            Pourcentage débit
+            {t("analytics.legend.debit")}
           </Text>
         </View>
         <View style={styles.legendItem}>
@@ -183,7 +198,7 @@ const DonutChart = ({
             style={[styles.legendDot, { backgroundColor: colors.primary }]}
           />
           <Text style={[styles.legendLabel, { color: colors.text }]}>
-            Pourcentage crédit
+            {t("analytics.legend.credit")}
           </Text>
         </View>
       </View>
@@ -193,12 +208,12 @@ const DonutChart = ({
 
 export const AnalyticsScreen: React.FC = () => {
   const { colors } = useTheme();
+  const { t } = useI18n();
   const [data, setData] = useState<AnalysisData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    
     const fetchData = async () => {
       try {
         const res = await axios.post(
@@ -208,7 +223,7 @@ export const AnalyticsScreen: React.FC = () => {
         const d = res?.data?.data as AnalysisData;
         setData(d);
       } catch (e: any) {
-        setError("Erreur lors du chargement des données");
+        setError(t("analytics.errorLoading"));
       } finally {
         setLoading(false);
       }
@@ -235,13 +250,17 @@ export const AnalyticsScreen: React.FC = () => {
           { backgroundColor: colors.card, borderColor: colors.border },
         ]}
       >
-        <Text style={[styles.title, { color: colors.text }]}>Statistiques générales</Text>
+        <Text style={[styles.title, { color: colors.text }]}>
+          {t("analytics.title")}
+        </Text>
       </View>
 
       {loading && (
         <View style={[styles.loadingBox, { borderColor: colors.border }]}>
           <ActivityIndicator color={colors.primary} />
-          <Text style={{ marginTop: 8, color: colors.text }}>Chargement…</Text>
+          <Text style={{ marginTop: 8, color: colors.text }}>
+            {t("analytics.loading")}
+          </Text>
         </View>
       )}
 
@@ -266,7 +285,7 @@ export const AnalyticsScreen: React.FC = () => {
           >
             <View style={styles.metricRow}>
               <Text style={[styles.metricLabel, { color: colors.text + "70" }]}>
-                Nombre d'op sortante
+                {t("analytics.label.debitCount")}
               </Text>
               <Text style={[styles.metricValue, { color: colors.warning }]}>
                 {debit}
@@ -274,7 +293,7 @@ export const AnalyticsScreen: React.FC = () => {
             </View>
             <View style={styles.metricRow}>
               <Text style={[styles.metricLabel, { color: colors.text + "70" }]}>
-                Nombre d'op entrante
+                {t("analytics.label.creditCount")}
               </Text>
               <Text style={[styles.metricValue, { color: colors.success }]}>
                 {credit}
@@ -282,7 +301,7 @@ export const AnalyticsScreen: React.FC = () => {
             </View>
             <View style={styles.metricRow}>
               <Text style={[styles.metricLabel, { color: colors.text + "70" }]}>
-                Total des opérations
+                {t("analytics.label.totalCount")}
               </Text>
               <Text style={[styles.metricValue, { color: colors.primary }]}>
                 {total}
@@ -291,7 +310,7 @@ export const AnalyticsScreen: React.FC = () => {
             <View style={styles.separator} />
             <View style={styles.metricRow}>
               <Text style={[styles.metricLabel, { color: colors.text + "70" }]}>
-                Pourcentage débit
+                {t("analytics.label.percentDebit")}
               </Text>
               <Text style={[styles.metricValue, { color: colors.warning }]}>
                 {Math.round(pctDebit)}%
@@ -299,7 +318,7 @@ export const AnalyticsScreen: React.FC = () => {
             </View>
             <View style={styles.metricRow}>
               <Text style={[styles.metricLabel, { color: colors.text + "70" }]}>
-                Pourcentage crédit
+                {t("analytics.label.percentCredit")}
               </Text>
               <Text style={[styles.metricValue, { color: colors.primary }]}>
                 {Math.round(pctCredit)}%
@@ -312,13 +331,13 @@ export const AnalyticsScreen: React.FC = () => {
             credit={credit}
             total={total}
             colors={colors}
-            title={"Nombre d'opérations (barres)"}
+            title={t("analytics.chart.barTitle")}
           />
           <DonutChart
             creditPercent={pctCredit}
             debitPercent={pctDebit}
             colors={colors}
-            title={"Répartition crédit / débit (donut)"}
+            title={t("analytics.chart.donutTitle")}
           />
 
           <View
@@ -328,7 +347,7 @@ export const AnalyticsScreen: React.FC = () => {
             ]}
           >
             <Text style={[styles.chartTitle, { color: colors.text }]}>
-              Sens fort
+              {t("analytics.label.strongTrend")}
             </Text>
             <Text style={[styles.sensText, { color: colors.text }]}>
               {sensFort}

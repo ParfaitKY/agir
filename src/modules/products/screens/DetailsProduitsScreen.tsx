@@ -277,7 +277,7 @@ const ProductDetailPage: React.FC = () => {
             ]}
           >
             <Text style={[styles.modalTitle, { color: colors.text }]}>
-              {`Souhaitez-vous souscrire à ${productName} ?`}
+              {`${t("products.detail.modal.confirm.prefix")} ${productName} ?`}
             </Text>
             <View style={styles.modalActions}>
               <TouchableOpacity
@@ -285,7 +285,7 @@ const ProductDetailPage: React.FC = () => {
                 onPress={() => setShowSubscribeModal(false)}
                 activeOpacity={0.8}
               >
-                <Text style={{ color: colors.text }}>Annuler</Text>
+                <Text style={{ color: colors.text }}>{t("common.cancel")}</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[
@@ -298,7 +298,7 @@ const ProductDetailPage: React.FC = () => {
                 }}
                 activeOpacity={0.8}
               >
-                <Text style={{ color: "#fff" }}>Confirmer</Text>
+                <Text style={{ color: "#fff" }}>{t("common.confirm")}</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -319,10 +319,10 @@ const ProductDetailPage: React.FC = () => {
             ]}
           >
             <Text style={[styles.modalTitle, { color: colors.success }]}>
-              Succès
+              {t("common.success")}
             </Text>
             <Text style={[styles.modalText, { color: colors.text }]}>
-              Votre demande à été envoyée avec succès
+              {t("products.detail.modal.success.body")}
             </Text>
             <View style={styles.modalActions}>
               <TouchableOpacity
@@ -333,7 +333,7 @@ const ProductDetailPage: React.FC = () => {
                 onPress={() => setShowSuccessModal(false)}
                 activeOpacity={0.8}
               >
-                <Text style={{ color: "#fff" }}>OK</Text>
+                <Text style={{ color: "#fff" }}>{t("common.ok")}</Text>
               </TouchableOpacity>
             </View>
           </View>

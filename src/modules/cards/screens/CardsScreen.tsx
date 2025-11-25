@@ -388,8 +388,8 @@ export const CardsScreen: React.FC = () => {
                 {
                   width: cardWidth,
                   backgroundColor: item.bg,
-                  marginRight: index === cards.length - 1 ? 5 : 5,
-                  marginLeft: index === 0 ? 18 : 0,
+                  marginRight: index === cards.length - 1 ? 0 : 10,
+                  marginLeft: index === 0 ? 2 : 0,
                 },
               ]}
             >
