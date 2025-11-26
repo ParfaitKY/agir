@@ -153,6 +153,21 @@ const InitialSetupScreen: React.FC = () => {
       lastNameRef.current?.focus();
     }
   }, [step]);
+  useEffect(() => {
+    if (step === 1 && clientData) {
+      const ln = clientData.NOMCLIENT ?? clientData.lastName ?? "";
+      const fn = clientData.PRENOMCLIENT ?? clientData.firstName ?? "";
+      const lg = clientData.login ?? accountNumber;
+      setLastName(ln);
+      setFirstName(fn);
+      setLoginReadonly(String(lg));
+      setVerifySuccess(true);
+      setTimeout(() => {
+        setStep(2);
+        setVerifySuccess(false);
+      }, 300);
+    }
+  }, [clientData]);
   // closeScanner retiré avec le scanner QR
 
   // Écriture sécurisée avec fallback Web
@@ -198,17 +213,7 @@ const InitialSetupScreen: React.FC = () => {
       );
       return;
     }
-    const ln = clientData?.lastName ?? "";
-    const fn = clientData?.firstName ?? "";
-    const lg = clientData?.login ?? `user_${accountNumber.substring(0, 8)}`;
-    setLastName(ln);
-    setFirstName(fn);
-    setLoginReadonly(lg);
     setVerifySuccess(true);
-    setTimeout(() => {
-      setStep(2);
-      setVerifySuccess(false);
-    }, 600);
   };
 
   const handleGuestMode = async () => {

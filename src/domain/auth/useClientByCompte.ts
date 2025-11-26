@@ -4,10 +4,14 @@ import { secureSetItem } from "../../shared/utils/secureStorage";
 
 export type ClientInfo = {
   id?: string;
+  IDCLIENT?: string;
+  NOMCLIENT?: string;
+  PRENOMCLIENT?: string;
   lastName?: string;
   firstName?: string;
   login?: string;
   agency?: string;
+  NUMCOMPTE?: string;
   raw?: any;
 };
 
@@ -32,27 +36,103 @@ export const useClientByCompte = () => {
     return d;
   };
 
+  const pickKeyValue = (obj: any, patterns: string[]): any => {
+    if (!obj) return undefined;
+    const keys = Object.keys(obj);
+    for (const p of patterns) {
+      const np = p.toLowerCase().replace(/_/g, "");
+      for (const k of keys) {
+        const nk = k.toLowerCase().replace(/_/g, "");
+        if (nk === np) return obj[k];
+      }
+    }
+    return undefined;
+  };
+
   const extractClientInfo = (raw: any): ClientInfo => {
     const source = normalizeSource(raw);
     const id =
-      source?.id ?? source?.IDCLIENT ?? source?.clientId ?? source?.CLIENT_ID;
-    const lastName =
+      source?.id ??
+      source?.IDCLIENT ??
+      source?.clientId ??
+      source?.CLIENT_ID ??
+      source?.CODECLIENT;
+    let lastName =
       source?.NOMCLIENT ??
+      source?.NOM ??
       source?.nom ??
       source?.lastName ??
-      source?.NOM_CLIENT;
-    const firstName =
+      source?.NOM_CLIENT ??
+      source?.NOMS ??
+      pickKeyValue(source, [
+        "NOMCLIENT",
+        "NOM",
+        "nom",
+        "lastName",
+        "NOM_CLIENT",
+        "NOMS",
+        "NomClient",
+        "nomclient",
+        "CL_NOMCLIENT",
+      ]);
+    let firstName =
       source?.PRENOMCLIENT ??
+      source?.PRENOM ??
       source?.prenom ??
       source?.firstName ??
-      source?.PRENOM_CLIENT;
+      source?.PRENOM_CLIENT ??
+      source?.PRENOMS ??
+      pickKeyValue(source, [
+        "PRENOMCLIENT",
+        "PRENOM",
+        "prenom",
+        "firstName",
+        "PRENOM_CLIENT",
+        "PRENOMS",
+        "PrenomClient",
+        "prenomclient",
+        "CL_PRENOMCLIENT",
+      ]);
+    const combined = source?.name ?? source?.FULLNAME ?? source?.NOMPRENOM;
+    if ((!lastName || !firstName) && typeof combined === "string") {
+      const parts = combined.trim().split(/\s+/);
+      if (parts.length >= 2) {
+        firstName = firstName || parts[0];
+        lastName = lastName || parts.slice(1).join(" ");
+      } else {
+        lastName = lastName || combined;
+      }
+    }
     const login =
       source?.LOGIN ??
       source?.login ??
       source?.LOGINCLIENT ??
-      source?.NUMCOMPTE;
+      source?.NUMCOMPTE ??
+      source?.compte ??
+      source?.ACCOUNT_NUMBER ??
+      source?.CO_CODECOMPTE;
     const agency = source?.AGENCE ?? source?.agency;
-    return { id, lastName, firstName, login, agency, raw };
+    const NUMCOMPTE =
+      source?.NUMCOMPTE ??
+      source?.compte ??
+      source?.ACCOUNT_NUMBER ??
+      source?.CO_CODECOMPTE;
+    const IDCLIENT =
+      source?.IDCLIENT ?? source?.CLIENT_ID ?? source?.CODECLIENT ?? id;
+    const NOMCLIENT = lastName;
+    const PRENOMCLIENT = firstName;
+    return {
+      id,
+      IDCLIENT,
+      NOMCLIENT,
+      PRENOMCLIENT,
+      lastName,
+      firstName,
+      login,
+      agency,
+      NUMCOMPTE,
+      raw,
+    };
   };
 
   const fetchClientInfo = useCallback(async (payload: FetchPayload) => {
@@ -81,17 +161,19 @@ export const useClientByCompte = () => {
         return false;
       }
       setClientData(info);
-      const fullName = `${info.firstName ?? ""} ${info.lastName ?? ""}`.trim();
+      const fullName = `${info.PRENOMCLIENT ?? info.firstName ?? ""} ${
+        info.NOMCLIENT ?? info.lastName ?? ""
+      }`.trim();
       const userData = {
-        id: info.id ?? numero_compte,
-        username: (info.login ?? numero_compte) as string,
-        name: fullName || "",
+        id: numero_compte,
+        username: numero_compte,
+        name: fullName,
         email: "",
       };
       await secureSetItem("user_data", JSON.stringify(userData));
       if (info.firstName) await secureSetItem("user_firstname", info.firstName);
       if (info.lastName) await secureSetItem("user_lastname", info.lastName);
-      if (info.login) await secureSetItem("user_login", String(info.login));
+      await secureSetItem("user_login", numero_compte);
       await secureSetItem("user_account_number", numero_compte);
       return true;
     } catch (e) {
