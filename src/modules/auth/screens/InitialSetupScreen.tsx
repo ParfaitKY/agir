@@ -23,6 +23,7 @@ import * as Crypto from "expo-crypto";
 import { secureSetItem } from "../../../shared/utils/secureStorage";
 import { usePreventScreenCapture } from "expo-screen-capture";
 import { useAuth } from "../../../app/hooks/useAuth";
+import useClientByCompte from "../../../domain/auth/useClientByCompte";
 
 const InitialSetupScreen: React.FC = () => {
   usePreventScreenCapture();
@@ -33,6 +34,12 @@ const InitialSetupScreen: React.FC = () => {
   const [step, setStep] = useState<1 | 2>(1);
   const [accountNumber, setAccountNumber] = useState("");
   const [verifyError, setVerifyError] = useState<string | null>(null);
+  const {
+    fetchClientInfo,
+    isLoading,
+    error: fetchError,
+    clientData,
+  } = useClientByCompte();
   const [loadingVerify, setLoadingVerify] = useState(false);
   const [verifySuccess, setVerifySuccess] = useState(false);
 
@@ -182,35 +189,26 @@ const InitialSetupScreen: React.FC = () => {
       setVerifyError("Le numéro de compte doit contenir au moins 8 chiffres.");
       return;
     }
-    try {
-      setLoadingVerify(true);
-      // Simulation de vérification serveur
-      await new Promise((res) => setTimeout(res, 800));
-      const clientName = "Client";
-      const fetchedUser = {
-        id: accountNumber,
-        login: `user_${accountNumber.substring(0, 8)}`,
-        name: clientName,
-        agency: "Agence Principale",
-      };
-      // Affiche message de succès puis transition
-      setVerifySuccess(true);
-      setLoginReadonly(fetchedUser.login);
-      setTimeout(() => {
-        setStep(2);
-        setVerifySuccess(false);
-      }, 600);
-      // Stockage en arrière-plan (ne bloque pas la navigation entre sections)
-      SecureStore.setItemAsync("user_data", JSON.stringify(fetchedUser)).catch(
-        () => {
-          // En cas d'échec de stockage, on laisse quand même l'utilisateur poursuivre
-        }
+    setLoadingVerify(true);
+    const ok = await fetchClientInfo({ NUMCOMPTE: accountNumber });
+    setLoadingVerify(false);
+    if (!ok) {
+      setVerifyError(
+        fetchError || "Erreur lors de la vérification. Réessayez."
       );
-    } catch (e) {
-      setVerifyError("Erreur lors de la vérification. Réessayez.");
-    } finally {
-      setLoadingVerify(false);
+      return;
     }
+    const ln = clientData?.lastName ?? "";
+    const fn = clientData?.firstName ?? "";
+    const lg = clientData?.login ?? `user_${accountNumber.substring(0, 8)}`;
+    setLastName(ln);
+    setFirstName(fn);
+    setLoginReadonly(lg);
+    setVerifySuccess(true);
+    setTimeout(() => {
+      setStep(2);
+      setVerifySuccess(false);
+    }, 600);
   };
 
   const handleGuestMode = async () => {
@@ -466,13 +464,12 @@ const InitialSetupScreen: React.FC = () => {
                       <TextInput
                         placeholder={t("initial.placeholders.accountNumber")}
                         value={accountNumber}
-                        onChangeText={setAccountNumber}
+                        onChangeText={(t) => setAccountNumber(t.toUpperCase())}
                         style={styles.input}
-                        autoCapitalize="none"
+                        autoCapitalize="characters"
                         autoFocus
                         ref={accountNumberRef}
-                        keyboardType="number-pad"
-                        maxLength={12}
+                        keyboardType="default"
                       />
                     </View>
                     <Text
@@ -567,7 +564,7 @@ const InitialSetupScreen: React.FC = () => {
                               ? t("initial.actions.verify.loading")
                               : t("initial.actions.verify")}
                           </Text>
-                          {loadingVerify ? (
+                          {isLoading || loadingVerify ? (
                             <ActivityIndicator
                               size="small"
                               color="#FFFFFF"
