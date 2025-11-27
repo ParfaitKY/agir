@@ -14,6 +14,7 @@ export const useGetAccess = () => {
       const clientId = await secureGetItem("client_id");
       const token = await secureGetItem("auth_token");
       const secret = await secureGetItem("user_secret_key");
+      const login = await secureGetItem("user_login");
       if (!clientId || !token || !secret) {
         setError("Informations d’accès manquantes");
         return false;
@@ -21,10 +22,12 @@ export const useGetAccess = () => {
       const headers = {
         Authorization: `Bearer ${token}`,
         "X-CLIENT-ID": clientId,
+        ...(login ? { "X-LOGIN": login } : {}),
       } as any;
       const body = {
         LG_CODELANGUE: "FR",
         CLIENT_ID: clientId,
+        SL_LOGIN: login,
         CLE_SECRETE: secret,
         CODECRYPTAGE: "Y}@128eVIXfoi7",
       } as any;

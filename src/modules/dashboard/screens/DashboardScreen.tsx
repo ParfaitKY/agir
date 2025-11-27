@@ -20,6 +20,7 @@ import { useAuth } from "../../../app/hooks/useAuth";
 
 import { useSoldeGlobale } from "../../../domain/compte/useSoldeGlobale";
 import { useDerniereTransaction } from "../../../domain/compte/useDerniereTransaction";
+import { useAnalyseDerniereTransaction } from "../../../domain/compte/useAnalyseDerniereTransaction";
 
 export const DashboardScreen: React.FC = () => {
   const servicesScrollRef = useRef<FlatList>(null);
@@ -44,10 +45,35 @@ export const DashboardScreen: React.FC = () => {
     error: transactionError,
     fetchData: fetchTransaction,
   } = useDerniereTransaction();
+  const {
+    data: analyse,
+    isLoading: loadingAnalyse,
+    error: analyseError,
+    fetchData: fetchAnalyse,
+  } = useAnalyseDerniereTransaction(50);
+  const sensFort = analyse?.SENS_FORT;
+  const percentStrong = analyse?.POURCENTAGE_SENS_FORT;
+  const isUp = sensFort === "CREDIT";
+  const isDown = sensFort === "DEBIT";
+  const trendIcon = isUp
+    ? ("trending-up-outline" as const)
+    : isDown
+    ? ("trending-down-outline" as const)
+    : ("remove-outline" as const);
+  const trendColor = isUp
+    ? colors.success
+    : isDown
+    ? colors.error
+    : colors.text;
+  const percentDisplay =
+    percentStrong !== undefined && percentStrong !== null
+      ? `${isUp ? "+" : isDown ? "-" : ""}${percentStrong}%`
+      : "0%";
   React.useEffect(() => {
     if (!isAuthenticated) return;
     fetchSolde();
     fetchTransaction();
+    fetchAnalyse();
   }, [isAuthenticated]);
   // Détection du mode invité (username === "invite")
   const isGuestMode = isAuthenticated && user?.username === "invite";
@@ -594,9 +620,33 @@ export const DashboardScreen: React.FC = () => {
                   style={[styles.subText, { color: colors.text }]}
                 >{`💼 3 ${t("dashboard.balance.activeAccountsLabel")}`}</Text>
                 <View style={{ flexDirection: "row", alignItems: "center" }}>
-                  <Text style={[styles.percent, { color: colors.success }]}>
-                    📈 +2.5%
-                  </Text>
+                  {loadingAnalyse ? (
+                    <Text style={[styles.percent, { color: colors.text }]}>
+                      Chargement…
+                    </Text>
+                  ) : analyseError ? (
+                    <Text style={[styles.percent, { color: colors.error }]}>
+                      –
+                    </Text>
+                  ) : (
+                    <View
+                      style={{ flexDirection: "row", alignItems: "center" }}
+                    >
+                      <Ionicons
+                        name={trendIcon as any}
+                        size={16}
+                        color={trendColor}
+                      />
+                      <Text
+                        style={[
+                          styles.percent,
+                          { color: trendColor, marginLeft: 4 },
+                        ]}
+                      >
+                        {percentDisplay}
+                      </Text>
+                    </View>
+                  )}
                   <TouchableOpacity
                     onPress={() => navigation.navigate("Analytics" as never)}
                     style={{ marginLeft: 8 }}
