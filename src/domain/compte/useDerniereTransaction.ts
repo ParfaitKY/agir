@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { derniereTransaction } from "../../services/compte/derniereTransaction";
+import { getDerniereTransaction } from "../../services/compte/derniereTransaction";
 import { secureGetItem, secureSetItem } from "../../shared/utils/secureStorage";
 
 export const useDerniereTransaction = () => {
@@ -17,11 +17,43 @@ export const useDerniereTransaction = () => {
         setError("Identifiants manquants");
         return false;
       }
-      const headers = { Authorization: `Bearer ${token}`, "X-CLIENT-ID": clientId } as any;
-      const result: any = await derniereTransaction({ client_id: clientId }, headers);
+      const accountNumber = await secureGetItem("user_account_number");
+      const agencyRaw = (await secureGetItem("user_agency")) || "1000";
+      const sanitizedAccount = String(accountNumber || "").replace(/\D/g, "");
+      const sanitizedAgency =
+        String(agencyRaw || "").replace(/\D/g, "") || "1000";
+      const login = await secureGetItem("user_login");
+      const headers = {
+        Authorization: `Bearer ${token}`,
+        "X-CLIENT-ID": clientId,
+        ...(login ? { "X-LOGIN": login } : {}),
+      } as any;
+      if (!sanitizedAccount || !/^\d+$/.test(sanitizedAccount)) {
+        setError("Numéro de compte invalide");
+        return false;
+      }
+      if (!sanitizedAgency || !/^\d+$/.test(sanitizedAgency)) {
+        setError("Code agence invalide");
+        return false;
+      }
+      const result: any = await getDerniereTransaction(
+        {
+          AG_CODEAGENCE: sanitizedAgency,
+          CO_CODECOMPTE: sanitizedAccount,
+          CODECRYPTAGE: "Y}@128eVIXfoi7",
+        },
+        headers
+      );
       if (result?.error) {
         const err: any = result.error;
-        const msg = err?.response?.data?.message || err?.message || "Erreur transaction";
+        const server = err?.response?.data;
+        const msg =
+          server?.message ||
+          (Array.isArray(server?.errors)
+            ? server.errors.join(", ")
+            : undefined) ||
+          err?.message ||
+          "Erreur transaction";
         setError(msg);
         return false;
       }

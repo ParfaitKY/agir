@@ -1,15 +1,17 @@
 import { httpClient, handleRequest, AuthHeaders } from "../httpClient";
 import { ENDPOINTS } from "../endpoints";
 
-export type DerniereTransactionPayload = {
-  client_id: string;
+export type DerniereTransactionExactPayload = {
+  AG_CODEAGENCE: string;
+  CO_CODECOMPTE: string;
+  CODECRYPTAGE: string;
 };
 
-export const derniereTransaction = (
-  body: DerniereTransactionPayload,
+export const getDerniereTransaction = (
+  payload: DerniereTransactionExactPayload,
   headers: AuthHeaders = {}
 ) => {
   return handleRequest(
-    httpClient.post(ENDPOINTS.DERNIERE_TRANSACTION, body, { headers })
+    httpClient.post(ENDPOINTS.DERNIERE_TRANSACTION, payload, { headers })
   );
 };

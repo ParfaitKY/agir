@@ -17,6 +17,7 @@ import { useI18n } from "../../../app/providers/I18nProvider";
 import { useTheme } from "../../../shared/styles/ThemeProvider";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAuth } from "../../../app/hooks/useAuth";
+
 import { useSoldeGlobale } from "../../../domain/compte/useSoldeGlobale";
 import { useDerniereTransaction } from "../../../domain/compte/useDerniereTransaction";
 
@@ -30,6 +31,7 @@ export const DashboardScreen: React.FC = () => {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const { isAuthenticated, user } = useAuth();
+
   const {
     data: solde,
     isLoading: loadingSolde,

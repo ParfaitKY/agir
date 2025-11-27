@@ -53,7 +53,11 @@ export const useClientByCompte = () => {
     const source = normalizeSource(raw);
 
     const id =
-      source?.id ?? source?.IDCLIENT ?? source?.clientId ?? source?.CLIENT_ID ?? source?.CODECLIENT;
+      source?.id ??
+      source?.IDCLIENT ??
+      source?.clientId ??
+      source?.CLIENT_ID ??
+      source?.CODECLIENT;
 
     let lastName =
       source?.NOMCLIENT ??
@@ -105,15 +109,29 @@ export const useClientByCompte = () => {
     }
 
     const login =
-      source?.LOGIN ?? source?.login ?? source?.LOGINCLIENT ?? source?.NUMCOMPTE ?? source?.compte ?? source?.ACCOUNT_NUMBER ?? source?.CO_CODECOMPTE;
+      source?.LOGIN ??
+      source?.login ??
+      source?.LOGINCLIENT ??
+      source?.NUMCOMPTE ??
+      source?.compte ??
+      source?.ACCOUNT_NUMBER ??
+      source?.CO_CODECOMPTE;
 
     const agency = source?.AGENCE ?? source?.agency;
 
     const NUMCOMPTE =
-      source?.NUMCOMPTE ?? source?.compte ?? source?.ACCOUNT_NUMBER ?? source?.CO_CODECOMPTE;
+      source?.NUMCOMPTE ??
+      source?.compte ??
+      source?.ACCOUNT_NUMBER ??
+      source?.CO_CODECOMPTE;
 
     // ✅ Ici on génère un client_id si l'API ne le renvoie pas
-    const IDCLIENT = source?.IDCLIENT ?? source?.CLIENT_ID ?? source?.CODECLIENT ?? id ?? NUMCOMPTE;
+    const IDCLIENT =
+      source?.IDCLIENT ??
+      source?.CLIENT_ID ??
+      source?.CODECLIENT ??
+      id ??
+      NUMCOMPTE;
 
     const NOMCLIENT = lastName;
     const PRENOMCLIENT = firstName;
@@ -166,21 +184,28 @@ export const useClientByCompte = () => {
       // ⚡ Stockage et génération automatique de client_id si nécessaire
       setClientData(info);
 
-      const fullName = `${info.PRENOMCLIENT ?? info.firstName ?? ""} ${info.NOMCLIENT ?? info.lastName ?? ""}`.trim();
+      const fullName = `${info.PRENOMCLIENT ?? info.firstName ?? ""} ${
+        info.NOMCLIENT ?? info.lastName ?? ""
+      }`.trim();
 
       const userData = {
-        id: info.IDCLIENT, // utilisation du client_id généré
-        username: numero_compte,
+        id: info.IDCLIENT ?? numero_compte,
+        username: info.login ?? numero_compte,
         name: fullName,
         email: "",
       };
-
       await secureSetItem("user_data", JSON.stringify(userData));
       if (info.firstName) await secureSetItem("user_firstname", info.firstName);
       if (info.lastName) await secureSetItem("user_lastname", info.lastName);
-      await secureSetItem("user_login", numero_compte);
-      await secureSetItem("user_account_number", numero_compte);
-      await secureSetItem("user_id", info.IDCLIENT ?? numero_compte); 
+      await secureSetItem("user_login", info.login ?? numero_compte);
+      const rawAccount = info.NUMCOMPTE ?? numero_compte;
+      const sanitizedAccount = String(rawAccount).replace(/\D/g, "");
+      await secureSetItem("user_account_number", sanitizedAccount);
+      await secureSetItem("user_id", info.IDCLIENT ?? numero_compte);
+      if (info.agency) {
+        const sanitizedAgency = String(info.agency).replace(/\D/g, "");
+        await secureSetItem("user_agency", sanitizedAgency);
+      }
 
       return true;
     } catch (e) {

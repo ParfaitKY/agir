@@ -17,11 +17,28 @@ export const useSoldeGlobale = () => {
         setError("Identifiants manquants");
         return false;
       }
-      const headers = { Authorization: `Bearer ${token}`, "X-CLIENT-ID": clientId } as any;
-      const result: any = await soldeGlobale({ client_id: clientId }, headers);
+      const headers = {
+        Authorization: `Bearer ${token}`,
+        "X-CLIENT-ID": clientId,
+      } as any;
+      const result: any = await soldeGlobale(
+        {
+          CLIENT_ID: clientId,
+          LG_CODELANGUE: "FR",
+          CODECRYPTAGE: "Y}@128eVIXfoi7",
+        },
+        headers
+      );
       if (result?.error) {
         const err: any = result.error;
-        const msg = err?.response?.data?.message || err?.message || "Erreur solde";
+        const server = err?.response?.data;
+        const msg =
+          server?.message ||
+          (Array.isArray(server?.errors)
+            ? server.errors.join(", ")
+            : undefined) ||
+          err?.message ||
+          "Erreur solde";
         setError(msg);
         return false;
       }

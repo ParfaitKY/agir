@@ -22,10 +22,23 @@ export const useGetAccess = () => {
         Authorization: `Bearer ${token}`,
         "X-CLIENT-ID": clientId,
       } as any;
-      const result: any = await getAccessApi({ cle_secrete: secret, code_cryptage: "SHA256" }, headers);
+      const body = {
+        LG_CODELANGUE: "FR",
+        CLIENT_ID: clientId,
+        CLE_SECRETE: secret,
+        CODECRYPTAGE: "Y}@128eVIXfoi7",
+      } as any;
+      const result: any = await getAccessApi(body, headers);
       if (result?.error) {
         const err: any = result.error;
-        const msg = err?.response?.data?.message || err?.message || "Échec de récupération des accès";
+        const server = err?.response?.data;
+        const msg =
+          server?.message ||
+          (Array.isArray(server?.errors)
+            ? server.errors.join(", ")
+            : undefined) ||
+          err?.message ||
+          "Échec de récupération des accès";
         setError(msg);
         return false;
       }
