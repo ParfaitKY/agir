@@ -10,6 +10,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { useI18n } from "../../../app/providers/I18nProvider";
 import { useTheme } from "../../../shared/styles/ThemeProvider";
+import { useCompteStatistiques } from "../../../domain/compte/useCompteStatistiques";
 
 export const AccountsScreen: React.FC = () => {
   const navigation = useNavigation();
@@ -18,6 +19,8 @@ export const AccountsScreen: React.FC = () => {
   >("tous");
   const { t, tText } = useI18n();
   const { colors } = useTheme();
+  const { data: compteStats, isLoading, error, fetchData } = useCompteStatistiques();
+  React.useEffect(() => { fetchData(); }, []);
 
   const stats = [
     {
@@ -46,44 +49,23 @@ export const AccountsScreen: React.FC = () => {
     },
   ];
 
-  const accounts = [
-    {
-      id: 1,
-      type: "Compte Chèque",
-      number: "1000CCHQ000000031001",
-      balance: "1 250 000",
+  const accounts = (compteStats?.COMPTES ?? []).map((c, idx) => {
+    const type = String(c.CO_INTITULECOMPTE ?? "");
+    const color = type.includes("Épargne") || type.includes("EPARGNE") ? colors.success : colors.primary;
+    return {
+      id: c.id ?? idx,
+      type,
+      number: String(c.NUMEROCOMPTE ?? ""),
+      balance: String(c.SOLDE ?? c.SOLDE_GLOBAL ?? 0),
       currency: "XAF",
-      progress: 0.63,
+      progress: typeof c.POURCENTAGE_SOLDE === "number" ? Math.max(0, Math.min(1, c.POURCENTAGE_SOLDE / 100)) : 0,
       active: true,
-      color: colors.primary,
-    },
-    {
-      id: 2,
-      type: "Compte Épargne",
-      number: "1000CEPG000000056123",
-      balance: "3 750 000",
-      currency: "XAF",
-      progress: 0.45,
-      active: true,
-      color: colors.success,
-    },
-    {
-      id: 3,
-      type: "Compte Courant",
-      number: "1000COURO000000031003",
-      balance: "850 000",
-      currency: "XAF",
-      progress: 0.43,
-      active: true,
-      color: colors.primary,
-    },
-  ];
+      color,
+    } as any;
+  });
 
   const parseAmount = (s: string) => Number(s.replace(/\s/g, ""));
-  const portfolioTotal = accounts.reduce(
-    (sum, a) => sum + parseAmount(a.balance),
-    0
-  );
+  const portfolioTotal = Number(compteStats?.SOLDE_GLOBAL ?? accounts.reduce((sum, a) => sum + parseAmount(a.balance), 0));
 
   const renderStat = (s: any) => (
     <View
@@ -162,8 +144,8 @@ export const AccountsScreen: React.FC = () => {
           <Text style={[styles.portfolioLabel, { color: colors.text + "70" }]}>
             {t("accounts.header.portfolioTotal")}
           </Text>
-          <Text style={[styles.portfolioValue, { color: colors.primary }]}>
-            5 850 000 XAF
+          <Text style={[styles.portfolioValue, { color: colors.primary }]}> 
+            {String(portfolioTotal)} XAF
           </Text>
         </View>
         <TouchableOpacity
@@ -181,7 +163,6 @@ export const AccountsScreen: React.FC = () => {
         </TouchableOpacity>
       </View>
 
-      {/* Statistiques */}
       <View style={styles.statsRow}>{stats.map(renderStat)}</View>
 
       {/* Titre + Filtres */}
@@ -214,15 +195,30 @@ export const AccountsScreen: React.FC = () => {
       </View>
 
       {/* Carte compte */}
-      {accounts
+      {isLoading && (
+        <View style={{ padding: 16 }}>
+          <Text style={{ color: colors.text }}>Chargement…</Text>
+        </View>
+      )}
+      {!!error && (
+        <View style={{ padding: 16 }}>
+          <Text style={{ color: colors.error }}>{error}</Text>
+        </View>
+      )}
+      {!isLoading && !error && accounts.length === 0 && (
+        <View style={{ padding: 16 }}>
+          <Text style={{ color: colors.text + "70" }}>Aucun compte</Text>
+        </View>
+      )}
+      {(accounts || [])
         .filter((a) =>
           filter === "tous"
             ? true
             : filter === "cheque"
-            ? a.type.includes("Chèque")
+            ? a.type.toUpperCase().includes("CHEQUE")
             : filter === "epargne"
-            ? a.type.includes("Épargne")
-            : a.type.includes("Courant")
+            ? a.type.toUpperCase().includes("EPARGNE")
+            : a.type.toUpperCase().includes("COURANT")
         )
         .map((a) => (
           <TouchableOpacity

@@ -2,7 +2,8 @@ import { httpClient, handleRequest, AuthHeaders } from "../httpClient";
 import { ENDPOINTS } from "../endpoints";
 
 export type CompteStatistiquesPayload = {
-  client_id: string;
+  DateReference?: string;
+  client_id?: string;
 };
 
 export const compteStatistiques = (
