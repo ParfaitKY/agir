@@ -25,25 +25,25 @@ export const AccountsScreen: React.FC = () => {
   const stats = [
     {
       id: 1,
-      label: "+12.5%",
-      sub: t("accounts.stats.month"),
-      icon: "trending-up-outline",
+      label: `${new Intl.NumberFormat("fr-FR").format(Number(compteStats?.SOLDE_GLOBAL || 0))} XAF`,
+      sub: tText("Total"),
+      icon: "wallet-outline",
       bg: colors.primary + "15",
       iconColor: colors.primary,
     },
     {
       id: 2,
-      label: "3",
+      label: String(compteStats?.NOMBRE_COMPTES ?? 0),
       sub: t("accounts.stats.accounts"),
-      icon: "refresh-circle-outline",
+      icon: "list-outline",
       bg: colors.success + "15",
       iconColor: colors.success,
     },
     {
       id: 3,
-      label: "24",
-      sub: t("accounts.stats.transactions"),
-      icon: "flash-outline",
+      label: `${new Intl.NumberFormat("fr-FR").format((compteStats?.COMPTES ?? []).reduce((s: number, c: any) => s + (Number(c?.MONTANTBLOQUE || 0)), 0))} XAF`,
+      sub: tText("Bloqué"),
+      icon: "lock-closed-outline",
       bg: colors.warning + "15",
       iconColor: colors.warning,
     },
@@ -59,7 +59,7 @@ export const AccountsScreen: React.FC = () => {
       balance: String(c.SOLDE ?? c.SOLDE_GLOBAL ?? 0),
       currency: "XAF",
       progress: typeof c.POURCENTAGE_SOLDE === "number" ? Math.max(0, Math.min(1, c.POURCENTAGE_SOLDE / 100)) : 0,
-      active: true,
+      active: !c.CO_DATECLOTURE || String(c.CO_DATECLOTURE).includes("1900"),
       color,
     } as any;
   });
@@ -145,7 +145,7 @@ export const AccountsScreen: React.FC = () => {
             {t("accounts.header.portfolioTotal")}
           </Text>
           <Text style={[styles.portfolioValue, { color: colors.primary }]}> 
-            {String(portfolioTotal)} XAF
+            {new Intl.NumberFormat("fr-FR").format(portfolioTotal)} XAF
           </Text>
         </View>
         <TouchableOpacity
@@ -153,9 +153,10 @@ export const AccountsScreen: React.FC = () => {
             styles.notifyBtn,
             { backgroundColor: colors.card, borderColor: colors.border },
           ]}
+          onPress={fetchData}
         >
           <Ionicons
-            name="notifications-outline"
+            name="refresh-outline"
             size={20}
             color={colors.primary}
           />
@@ -249,7 +250,7 @@ export const AccountsScreen: React.FC = () => {
                 />
               </View>
               <View style={styles.accountInfo}>
-                <Text style={[styles.accountType, { color: colors.text }]}>
+                <Text style={[styles.accountType, { color: colors.text }]}> 
                   {tText(a.type)}
                 </Text>
                 <Text
@@ -261,16 +262,16 @@ export const AccountsScreen: React.FC = () => {
               <View
                 style={[
                   styles.statusPill,
-                  { backgroundColor: colors.success + "15" },
+                  { backgroundColor: a.active ? colors.success + "15" : colors.error + "15" },
                 ]}
               >
                 <Ionicons
-                  name="checkmark-circle"
+                  name={a.active ? "checkmark-circle" : "close-circle"}
                   size={14}
-                  color={colors.success}
+                  color={a.active ? colors.success : colors.error}
                 />
-                <Text style={[styles.statusText, { color: colors.success }]}>
-                  {t("accounts.status.active")}
+                <Text style={[styles.statusText, { color: a.active ? colors.success : colors.error }]}> 
+                  {a.active ? t("accounts.status.active") : tText("Clôturé")}
                 </Text>
               </View>
             </View>
@@ -282,8 +283,8 @@ export const AccountsScreen: React.FC = () => {
                 >
                   {t("accounts.balance.available")}
                 </Text>
-                <Text style={[styles.balanceValue, { color: colors.text }]}>
-                  {a.balance}{" "}
+                <Text style={[styles.balanceValue, { color: colors.text }]}> 
+                  {new Intl.NumberFormat("fr-FR").format(parseAmount(a.balance))}{" "}
                   <Text
                     style={[styles.balanceCurrency, { color: colors.primary }]}
                   >

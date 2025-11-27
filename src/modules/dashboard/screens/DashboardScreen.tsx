@@ -17,10 +17,12 @@ import { useI18n } from "../../../app/providers/I18nProvider";
 import { useTheme } from "../../../shared/styles/ThemeProvider";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAuth } from "../../../app/hooks/useAuth";
+import { secureGetItem } from "../../../shared/utils/secureStorage";
 
 import { useSoldeGlobale } from "../../../domain/compte/useSoldeGlobale";
 import { useDerniereTransaction } from "../../../domain/compte/useDerniereTransaction";
 import { useAnalyseDerniereTransaction } from "../../../domain/compte/useAnalyseDerniereTransaction";
+import { useCompteStatistiques } from "../../../domain/compte/useCompteStatistiques";
 
 export const DashboardScreen: React.FC = () => {
   const servicesScrollRef = useRef<FlatList>(null);
@@ -51,6 +53,12 @@ export const DashboardScreen: React.FC = () => {
     error: analyseError,
     fetchData: fetchAnalyse,
   } = useAnalyseDerniereTransaction(50);
+  const {
+    data: compteStats,
+    isLoading: loadingCompteStats,
+    error: compteStatsError,
+    fetchData: fetchCompteStats,
+  } = useCompteStatistiques();
   const sensFort = analyse?.SENS_FORT;
   const percentStrong = analyse?.POURCENTAGE_SENS_FORT;
   const isUp = sensFort === "CREDIT";
@@ -74,9 +82,33 @@ export const DashboardScreen: React.FC = () => {
     fetchSolde();
     fetchTransaction();
     fetchAnalyse();
+    fetchCompteStats();
   }, [isAuthenticated]);
   // Détection du mode invité (username === "invite")
   const isGuestMode = isAuthenticated && user?.username === "invite";
+  const [loginDisplay, setLoginDisplay] = useState("");
+  React.useEffect(() => {
+    const run = async () => {
+      const lg = (await secureGetItem("user_login")) || "";
+      setLoginDisplay(lg);
+    };
+    run();
+  }, []);
+  const displayName = (loginDisplay || user?.username || user?.name || "").trim();
+  const initials = displayName
+    ? displayName
+        .split(/\s+/)
+        .filter(Boolean)
+        .map((p) => p[0])
+        .join("")
+        .slice(0, 2)
+        .toUpperCase()
+    : "";
+  const fmt = (n: any) => new Intl.NumberFormat("fr-FR").format(Number(n || 0));
+  const nombreComptes = Number(
+    (compteStats?.NOMBRE_COMPTES ?? (Array.isArray(compteStats?.COMPTES) ? compteStats?.COMPTES?.length : 0)) || 0
+  );
+  const soldeGlobalFromStats = compteStats?.SOLDE_GLOBAL;
 
   // Fonction pour gérer les restrictions en mode invité
   const handleGuestRestriction = (featureName: string) => {
@@ -578,12 +610,12 @@ export const DashboardScreen: React.FC = () => {
             <View style={styles.userSection}>
               <View style={styles.avatar}>
                 <Text style={[styles.avatarText, { color: colors.background }]}>
-                  DM
+                  {initials || ""}
                 </Text>
               </View>
               <View>
-                <Text style={[styles.name, { color: colors.text }]}>
-                  Derly MOUPEPIDI
+                <Text style={[styles.name, { color: colors.text }]}> 
+                  {displayName || tText("Utilisateur")}
                 </Text>
                 <Text style={[styles.accountType, { color: colors.primary }]}>
                   {t("dashboard.accountType.premium")}
@@ -611,14 +643,14 @@ export const DashboardScreen: React.FC = () => {
                   ? "Chargement…"
                   : soldeError
                   ? "–"
-                  : `${
-                      solde?.solde ?? solde?.balance ?? solde?.montant ?? "0"
-                    } XAF`}
+                  : `${fmt(
+                      (solde?.solde ?? solde?.balance ?? solde?.montant ?? soldeGlobalFromStats ?? 0)
+                    )} XAF`}
               </Text>
               <View style={styles.subInfo}>
                 <Text
                   style={[styles.subText, { color: colors.text }]}
-                >{`💼 3 ${t("dashboard.balance.activeAccountsLabel")}`}</Text>
+                >{`💼 ${nombreComptes} ${t("dashboard.balance.activeAccountsLabel")}`}</Text>
                 <View style={{ flexDirection: "row", alignItems: "center" }}>
                   {loadingAnalyse ? (
                     <Text style={[styles.percent, { color: colors.text }]}>

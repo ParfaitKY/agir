@@ -16,13 +16,18 @@ export const AccountDetailsScreen: React.FC = () => {
   const route = useRoute() as any;
   const { t, tText } = useI18n();
   const { colors } = useTheme();
-  const account = route?.params?.account ?? {
-    type: "Compte Chèque",
-    number: "****31001",
-    balance: "1 250 000",
-    currency: "XAF",
-    color: "#0A84FF",
-  };
+  const accountRaw = route?.params?.account ?? {};
+  const fmt = (n: any) => new Intl.NumberFormat("fr-FR").format(Number(n || 0));
+  const type = String(accountRaw.CO_INTITULECOMPTE ?? accountRaw.type ?? "");
+  const number = String(accountRaw.NUMEROCOMPTE ?? accountRaw.number ?? "");
+  const balanceNum = Number(accountRaw.SOLDE ?? accountRaw.balance ?? 0);
+  const currency = String(accountRaw.currency ?? "XAF");
+  const blockedNum = Number(accountRaw.MONTANTBLOQUE ?? 0);
+  const pourcentage = Number(accountRaw.POURCENTAGE_SOLDE ?? 0);
+  const isActive = !accountRaw.CO_DATECLOTURE || String(accountRaw.CO_DATECLOTURE).includes("1900");
+  const closedDate = isActive ? "" : String(accountRaw.CO_DATECLOTURE);
+  const agency = String(accountRaw.AG_CODEAGENCE ?? "");
+  const color = String(accountRaw.color ?? colors.primary);
 
   const styles = getStyles(colors);
   return (
@@ -31,8 +36,8 @@ export const AccountDetailsScreen: React.FC = () => {
       <View style={[styles.blueCard, { backgroundColor: colors.primary }]}>
         <View style={styles.blueCardHeader}>
           <View>
-            <Text style={styles.blueCardType}>{tText(account.type)}</Text>
-            <Text style={styles.blueCardNumber}>***1001</Text>
+            <Text style={styles.blueCardType}>{tText(type)}</Text>
+            <Text style={styles.blueCardNumber}>{number}</Text>
           </View>
           <View style={[styles.blueIconBg]}>
             <Ionicons name="card" size={20} color="#fff" />
@@ -42,14 +47,16 @@ export const AccountDetailsScreen: React.FC = () => {
           <Text style={styles.blueCardLabel}>
             {t("accounts.balance.available")}
           </Text>
-          <Text style={styles.blueCardBalance}>{account.balance} XAF</Text>
+          <Text style={styles.blueCardBalance}>{fmt(balanceNum)} {currency}</Text>
         </View>
         <View style={styles.blueCardFooter}>
           <View style={styles.dateRow}>
             <Ionicons name="calendar" size={14} color="#E3EEFF" />
-            <Text style={styles.blueCardDate}>{`${t(
-              "accounts.details.openedOn"
-            )} 15/03/2023`}</Text>
+            <Text style={styles.blueCardDate}>
+              {isActive
+                ? t("accounts.status.active")
+                : `${t("accounts.details.closedOn")} ${closedDate}`}
+            </Text>
           </View>
           <View style={styles.secureRow}>
             <Ionicons name="shield-checkmark" size={14} color="#fff" />
@@ -97,19 +104,19 @@ export const AccountDetailsScreen: React.FC = () => {
       <View style={styles.statsRow}>
         <View style={styles.statBox}>
           <Ionicons name="arrow-down" size={16} color={colors.success} />
-          <Text style={[styles.statValue, { color: colors.success }]}>+125 000</Text>
-          <Text style={styles.statLabel}>{t("transactions.summary.in")}</Text>
+          <Text style={[styles.statValue, { color: colors.success }]}>{fmt(Math.max(0, balanceNum))}</Text>
+          <Text style={styles.statLabel}>{tText("Solde")}</Text>
         </View>
         <View style={styles.statBox}>
           <Ionicons name="arrow-up" size={16} color={colors.error} />
-          <Text style={[styles.statValue, { color: colors.error }]}>-87 500</Text>
-          <Text style={styles.statLabel}>{t("transactions.summary.out")}</Text>
+          <Text style={[styles.statValue, { color: colors.error }]}>{fmt(blockedNum)}</Text>
+          <Text style={styles.statLabel}>{tText("Bloqué")}</Text>
         </View>
         <View style={styles.statBox}>
           <Ionicons name="swap-horizontal" size={16} color={colors.primary} />
-          <Text style={styles.statValue}>23</Text>
+          <Text style={styles.statValue}>{`${Math.round(pourcentage)}%`}</Text>
           <Text style={styles.statLabel}>
-            {t("accounts.stats.transactions")}
+            {tText("% du portefeuille")}
           </Text>
         </View>
       </View>
@@ -211,26 +218,32 @@ export const AccountDetailsScreen: React.FC = () => {
             <Text style={styles.infoLabel}>
               {t("accounts.info.accountNumber")}
             </Text>
-            <Text style={styles.infoValue}>{account.number}</Text>
+            <Text style={styles.infoValue}>{number}</Text>
           </View>
           <View style={styles.infoRow}>
             <Text style={styles.infoLabel}>
               {t("accounts.info.accountType")}
             </Text>
-            <Text style={styles.infoValue}>{tText(account.type)}</Text>
+            <Text style={styles.infoValue}>{tText(type)}</Text>
           </View>
           <View style={styles.infoRow}>
             <Text style={styles.infoLabel}>{t("accounts.info.currency")}</Text>
-            <Text style={styles.infoValue}>{t("common.currency.xof")}</Text>
+            <Text style={styles.infoValue}>{currency}</Text>
           </View>
           <View style={styles.infoRow}>
             <Text style={styles.infoLabel}>{t("accounts.info.status")}</Text>
             <View style={styles.statusPill}>
               <Text style={styles.statusPillText}>
-                {t("accounts.status.active")}
+                {isActive ? t("accounts.status.active") : tText("Clôturé")}
               </Text>
             </View>
           </View>
+          {!!agency && (
+            <View style={styles.infoRow}>
+              <Text style={styles.infoLabel}>{tText("Agence")}</Text>
+              <Text style={styles.infoValue}>{agency}</Text>
+            </View>
+          )}
         </View>
       </View>
 

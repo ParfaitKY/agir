@@ -103,10 +103,10 @@ export const AnalyticsScreen: React.FC = () => {
         <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}> 
           <View style={{ marginBottom: 8 }}>
             <Text style={[styles.metricLabel, { color: colors.text }]}> 
-              {tText("nombre d'op sortante")}: {String(debitCount)}
+              {tText("nombres d'opérations sortantes")}: {String(debitCount)}
             </Text>
             <Text style={[styles.metricLabel, { color: colors.text }]}> 
-              {tText("nombre d'op entrante")}: {String(creditCount)}
+              {tText("nombres d'opérations entrantes")}: {String(creditCount)}
             </Text>
             <Text style={[styles.metricLabel, { color: colors.text }]}> 
               {tText("Cumul")}: {String(totalCount)}
