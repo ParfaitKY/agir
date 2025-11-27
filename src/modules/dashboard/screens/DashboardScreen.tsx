@@ -18,6 +18,7 @@ import { useTheme } from "../../../shared/styles/ThemeProvider";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAuth } from "../../../app/hooks/useAuth";
 import { secureGetItem } from "../../../shared/utils/secureStorage";
+import QRCode from "react-native-qrcode-svg";
 
 import { useSoldeGlobale } from "../../../domain/compte/useSoldeGlobale";
 import { useDerniereTransaction } from "../../../domain/compte/useDerniereTransaction";
@@ -87,14 +88,25 @@ export const DashboardScreen: React.FC = () => {
   // Détection du mode invité (username === "invite")
   const isGuestMode = isAuthenticated && user?.username === "invite";
   const [loginDisplay, setLoginDisplay] = useState("");
+  const [clientIdDisplay, setClientIdDisplay] = useState("");
+  const [accountNumberDisplay, setAccountNumberDisplay] = useState("");
   React.useEffect(() => {
     const run = async () => {
       const lg = (await secureGetItem("user_login")) || "";
       setLoginDisplay(lg);
+      const cid = (await secureGetItem("client_id")) || "";
+      setClientIdDisplay(cid);
+      const acc = (await secureGetItem("user_account_number")) || "";
+      setAccountNumberDisplay(acc);
     };
     run();
   }, []);
-  const displayName = (loginDisplay || user?.username || user?.name || "").trim();
+  const displayName = (
+    loginDisplay ||
+    user?.username ||
+    user?.name ||
+    ""
+  ).trim();
   const initials = displayName
     ? displayName
         .split(/\s+/)
@@ -106,7 +118,11 @@ export const DashboardScreen: React.FC = () => {
     : "";
   const fmt = (n: any) => new Intl.NumberFormat("fr-FR").format(Number(n || 0));
   const nombreComptes = Number(
-    (compteStats?.NOMBRE_COMPTES ?? (Array.isArray(compteStats?.COMPTES) ? compteStats?.COMPTES?.length : 0)) || 0
+    (compteStats?.NOMBRE_COMPTES ??
+      (Array.isArray(compteStats?.COMPTES)
+        ? compteStats?.COMPTES?.length
+        : 0)) ||
+      0
   );
   const soldeGlobalFromStats = compteStats?.SOLDE_GLOBAL;
 
@@ -467,9 +483,10 @@ export const DashboardScreen: React.FC = () => {
                   },
                 ]}
               >
-                <Ionicons
-                  name="qr-code-outline"
+                <QRCode
+                  value={loginDisplay || displayName || ""}
                   size={220}
+                  backgroundColor={colors.background}
                   color={colors.text}
                 />
               </View>
@@ -505,7 +522,7 @@ export const DashboardScreen: React.FC = () => {
                       {t("dashboard.qr.name")}
                     </Text>
                     <Text style={[styles.qrInfoValue, { color: colors.text }]}>
-                      Derly MOUPEPIDI
+                      {displayName || ""}
                     </Text>
                   </View>
                 </View>
@@ -535,7 +552,7 @@ export const DashboardScreen: React.FC = () => {
                       {t("dashboard.qr.clientCode")}
                     </Text>
                     <Text style={[styles.qrInfoValue, { color: colors.text }]}>
-                      LP001234
+                      {clientIdDisplay || ""}
                     </Text>
                   </View>
                 </View>
@@ -565,7 +582,7 @@ export const DashboardScreen: React.FC = () => {
                       {t("dashboard.qr.phone")}
                     </Text>
                     <Text style={[styles.qrInfoValue, { color: colors.text }]}>
-                      +241 77 68 38 55
+                      {accountNumberDisplay || ""}
                     </Text>
                   </View>
                 </View>
@@ -614,7 +631,7 @@ export const DashboardScreen: React.FC = () => {
                 </Text>
               </View>
               <View>
-                <Text style={[styles.name, { color: colors.text }]}> 
+                <Text style={[styles.name, { color: colors.text }]}>
                   {displayName || tText("Utilisateur")}
                 </Text>
                 <Text style={[styles.accountType, { color: colors.primary }]}>
@@ -644,13 +661,19 @@ export const DashboardScreen: React.FC = () => {
                   : soldeError
                   ? "–"
                   : `${fmt(
-                      (solde?.solde ?? solde?.balance ?? solde?.montant ?? soldeGlobalFromStats ?? 0)
+                      solde?.solde ??
+                        solde?.balance ??
+                        solde?.montant ??
+                        soldeGlobalFromStats ??
+                        0
                     )} XAF`}
               </Text>
               <View style={styles.subInfo}>
                 <Text
                   style={[styles.subText, { color: colors.text }]}
-                >{`💼 ${nombreComptes} ${t("dashboard.balance.activeAccountsLabel")}`}</Text>
+                >{`💼 ${nombreComptes} ${t(
+                  "dashboard.balance.activeAccountsLabel"
+                )}`}</Text>
                 <View style={{ flexDirection: "row", alignItems: "center" }}>
                   {loadingAnalyse ? (
                     <Text style={[styles.percent, { color: colors.text }]}>

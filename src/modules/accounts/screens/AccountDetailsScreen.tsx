@@ -28,6 +28,27 @@ export const AccountDetailsScreen: React.FC = () => {
   const closedDate = isActive ? "" : String(accountRaw.CO_DATECLOTURE);
   const agency = String(accountRaw.AG_CODEAGENCE ?? "");
   const color = String(accountRaw.color ?? colors.primary);
+  const categoriesRaw = route?.params?.categories ?? null;
+  const limitsRaw = route?.params?.limits ?? null;
+  const categories = Array.isArray(categoriesRaw)
+    ? categoriesRaw.map((c: any) => ({
+        label: String(c?.label ?? ""),
+        color: String(c?.color ?? colors.primary),
+        amount: `${fmt(Number(c?.amount ?? 0))} ${currency}`,
+        percent: `${Math.round(Number(c?.percent ?? 0))}%`,
+      }))
+    : [
+        { label: t("accounts.category.food"), color: "#2196F3", amount: `35 000 ${currency}`, percent: "40%" },
+        { label: t("accounts.category.transport"), color: "#00C853", amount: `25 000 ${currency}`, percent: "28%" },
+        { label: t("accounts.category.leisure"), color: "#FFC400", amount: `15 000 ${currency}`, percent: "17%" },
+        { label: t("accounts.category.other"), color: "#26A69A", amount: `12 500 ${currency}`, percent: "15%" },
+      ];
+  const dailyUsed = Number(limitsRaw?.dailyWithdrawalUsed ?? 25000);
+  const dailyLimit = Number(limitsRaw?.dailyWithdrawalLimit ?? 50000);
+  const monthlyUsed = Number(limitsRaw?.monthlyTransferUsed ?? 87500);
+  const monthlyLimit = Number(limitsRaw?.monthlyTransferLimit ?? 200000);
+  const dailyPct = dailyLimit > 0 ? Math.min(100, Math.round((dailyUsed / dailyLimit) * 100)) : 0;
+  const monthlyPct = monthlyLimit > 0 ? Math.min(100, Math.round((monthlyUsed / monthlyLimit) * 100)) : 0;
 
   const styles = getStyles(colors);
   return (
@@ -132,32 +153,7 @@ export const AccountDetailsScreen: React.FC = () => {
           </TouchableOpacity>
         </View>
         <View style={styles.categoryCard}>
-          {[
-            {
-              label: t("accounts.category.food"),
-              color: "#2196F3",
-              amount: "35 000 XOF",
-              percent: "40%",
-            },
-            {
-              label: t("accounts.category.transport"),
-              color: "#00C853",
-              amount: "25 000 XOF",
-              percent: "28%",
-            },
-            {
-              label: t("accounts.category.leisure"),
-              color: "#FFC400",
-              amount: "15 000 XOF",
-              percent: "17%",
-            },
-            {
-              label: t("accounts.category.other"),
-              color: "#26A69A",
-              amount: "12 500 XOF",
-              percent: "15%",
-            },
-          ].map((item, idx, arr) => (
+          {categories.map((item, idx, arr) => (
             <React.Fragment key={item.label}>
               <View style={styles.categoryRow}>
                 <View style={[styles.dot, { backgroundColor: item.color }]} />
@@ -181,13 +177,13 @@ export const AccountDetailsScreen: React.FC = () => {
             <Text style={styles.limitLabel}>
               {t("accounts.limits.dailyWithdrawal")}
             </Text>
-            <Text style={styles.limitAmount}>25 000 / 50 000 XOF</Text>
+            <Text style={styles.limitAmount}>{fmt(dailyUsed)} / {fmt(dailyLimit)} {currency}</Text>
           </View>
           <View style={styles.progressTrack}>
             <View
               style={[
                 styles.progressFill,
-                { width: "50%", backgroundColor: colors.primary },
+                { width: `${dailyPct}%`, backgroundColor: colors.primary },
               ]}
             />
           </View>
@@ -197,13 +193,13 @@ export const AccountDetailsScreen: React.FC = () => {
             <Text style={styles.limitLabel}>
               {t("accounts.limits.monthlyTransfer")}
             </Text>
-            <Text style={styles.limitAmount}>87 500 / 200 000 XOF</Text>
+            <Text style={styles.limitAmount}>{fmt(monthlyUsed)} / {fmt(monthlyLimit)} {currency}</Text>
           </View>
           <View style={styles.progressTrack}>
             <View
               style={[
                 styles.progressFill,
-                { width: "44%", backgroundColor: colors.success },
+                { width: `${monthlyPct}%`, backgroundColor: colors.success },
               ]}
             />
           </View>
