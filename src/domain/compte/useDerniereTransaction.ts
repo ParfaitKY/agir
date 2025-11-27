@@ -58,8 +58,29 @@ export const useDerniereTransaction = () => {
         return false;
       }
       const payload = result?.data;
-      setData(payload);
-      await secureSetItem("derniere_transaction", JSON.stringify(payload));
+      const txRaw = Array.isArray(payload?.data) ? payload.data[0] : null;
+      const debit = txRaw?.MC_MONTANTDEBIT
+        ? Number(String(txRaw.MC_MONTANTDEBIT).replace(/[,\s]/g, ""))
+        : 0;
+      const credit = txRaw?.MC_MONTANTCREDIT
+        ? Number(String(txRaw.MC_MONTANTCREDIT).replace(/[,\s]/g, ""))
+        : 0;
+      const normalized = txRaw
+        ? {
+            label: txRaw.MC_LIBELLEOPERATION,
+            date: txRaw.MC_DATEPIECE,
+            montant: String(
+              debit > 0 ? txRaw.MC_MONTANTDEBIT : txRaw.MC_MONTANTCREDIT
+            ),
+            type: debit > 0 ? "Débit" : credit > 0 ? "Crédit" : "N/A",
+            raw: txRaw,
+          }
+        : null;
+      setData(normalized);
+      await secureSetItem(
+        "derniere_transaction",
+        JSON.stringify(normalized ?? payload)
+      );
       return true;
     } catch (e: any) {
       setError(e?.message || "Erreur réseau");
