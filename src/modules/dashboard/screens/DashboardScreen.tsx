@@ -17,6 +17,8 @@ import { useI18n } from "../../../app/providers/I18nProvider";
 import { useTheme } from "../../../shared/styles/ThemeProvider";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAuth } from "../../../app/hooks/useAuth";
+import { useSoldeGlobale } from "../../../domain/compte/useSoldeGlobale";
+import { useDerniereTransaction } from "../../../domain/compte/useDerniereTransaction";
 
 export const DashboardScreen: React.FC = () => {
   const servicesScrollRef = useRef<FlatList>(null);
@@ -28,11 +30,25 @@ export const DashboardScreen: React.FC = () => {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const { isAuthenticated, user } = useAuth();
-
+  const {
+    data: solde,
+    isLoading: loadingSolde,
+    error: soldeError,
+    fetchData: fetchSolde,
+  } = useSoldeGlobale();
+  const {
+    data: derniereTransaction,
+    isLoading: loadingTransaction,
+    error: transactionError,
+    fetchData: fetchTransaction,
+  } = useDerniereTransaction();
+  React.useEffect(() => {
+    if (!isAuthenticated) return;
+    fetchSolde();
+    fetchTransaction();
+  }, [isAuthenticated]);
   // Détection du mode invité (username === "invite")
   const isGuestMode = isAuthenticated && user?.username === "invite";
-
-  
 
   // Fonction pour gérer les restrictions en mode invité
   const handleGuestRestriction = (featureName: string) => {
@@ -561,7 +577,15 @@ export const DashboardScreen: React.FC = () => {
                 {t("dashboard.balance.label")}
               </Text>
               <Text style={[styles.balance, { color: colors.primary }]}>
-                {isBalanceHidden ? "••••••••" : "5 850 000 XAF"}
+                {isBalanceHidden
+                  ? "••••••••"
+                  : loadingSolde
+                  ? "Chargement…"
+                  : soldeError
+                  ? "–"
+                  : `${
+                      solde?.solde ?? solde?.balance ?? solde?.montant ?? "0"
+                    } XAF`}
               </Text>
               <View style={styles.subInfo}>
                 <Text
@@ -822,8 +846,8 @@ export const DashboardScreen: React.FC = () => {
           />
         </View>
 
-        {/* NOUVELLE SECTION : Activité récente - MASQUÉE EN MODE INVITÉ */}
-        {!isGuestMode && (
+        {/* NOUVELLE SECTION : Activité récente - MASQUÉE SI NON CONNECTÉ OU INVITÉ */}
+        {isAuthenticated && !isGuestMode && (
           <View style={[styles.section, { marginTop: 18, marginBottom: 15 }]}>
             <View style={styles.sectionHeader}>
               <Text style={[styles.sectionTitle, { color: colors.text }]}>
@@ -846,70 +870,94 @@ export const DashboardScreen: React.FC = () => {
                 {
                   backgroundColor: colors.card,
                   borderColor: colors.border,
-                  minHeight: transactions.length * 75, // Hauteur minimale basée sur le nombre de transactions
+                  minHeight: 75,
                 },
               ]}
             >
-              {transactions.map((transaction, index) => (
-                <View key={transaction.id}>
-                  <View style={styles.transactionItem}>
-                    <View style={styles.transactionLeft}>
-                      <View
+              {loadingTransaction && (
+                <View style={{ padding: 16 }}>
+                  <Text style={{ color: colors.text }}>Chargement…</Text>
+                </View>
+              )}
+              {!!transactionError && (
+                <View style={{ padding: 16 }}>
+                  <Text style={{ color: colors.error }}>
+                    {transactionError}
+                  </Text>
+                </View>
+              )}
+              {!loadingTransaction &&
+                !transactionError &&
+                derniereTransaction && (
+                  <View>
+                    <View style={styles.transactionItem}>
+                      <View style={styles.transactionLeft}>
+                        <View
+                          style={[
+                            styles.transactionIcon,
+                            { backgroundColor: colors.card },
+                          ]}
+                        >
+                          <Ionicons
+                            name={"swap-horizontal" as any}
+                            size={20}
+                            color={colors.primary}
+                          />
+                        </View>
+                        <View style={styles.transactionInfo}>
+                          <Text
+                            style={[
+                              styles.transactionType,
+                              { color: colors.text },
+                            ]}
+                          >
+                            {String(
+                              derniereTransaction?.type ||
+                                derniereTransaction?.TYPE ||
+                                derniereTransaction?.label ||
+                                "Dernière transaction"
+                            )}
+                          </Text>
+                          <Text
+                            style={[
+                              styles.transactionDate,
+                              { color: colors.text + "60" },
+                            ]}
+                          >
+                            {String(
+                              derniereTransaction?.date ||
+                                derniereTransaction?.DATE ||
+                                derniereTransaction?.createdAt ||
+                                ""
+                            )}
+                          </Text>
+                        </View>
+                      </View>
+                      <Text
                         style={[
-                          styles.transactionIcon,
-                          { backgroundColor: colors.card },
+                          styles.transactionAmount,
+                          { color: colors.text },
                         ]}
                       >
-                        <Ionicons
-                          name={transaction.icon as any}
-                          size={20}
-                          color={transaction.iconColor}
-                        />
-                      </View>
-                      <View style={styles.transactionInfo}>
-                        <Text
-                          style={[
-                            styles.transactionType,
-                            { color: colors.text },
-                          ]}
-                        >
-                          {tText(transaction.type)}
-                        </Text>
-                        <Text
-                          style={[
-                            styles.transactionDate,
-                            { color: colors.text + "60" },
-                          ]}
-                        >
-                          {tText(transaction.date)}
-                        </Text>
-                      </View>
+                        {String(
+                          derniereTransaction?.montant ||
+                            derniereTransaction?.amount ||
+                            derniereTransaction?.AMOUNT ||
+                            "0"
+                        )}
+                      </Text>
                     </View>
-                    <Text
-                      style={[
-                        styles.transactionAmount,
-                        {
-                          color: transaction.amount.startsWith("+")
-                            ? colors.success
-                            : colors.error,
-                        },
-                      ]}
-                    >
-                      {transaction.amount}
+                  </View>
+                )}
+              {!loadingTransaction &&
+                !transactionError &&
+                !derniereTransaction && (
+                  <View style={{ padding: 16 }}>
+                    <Text style={{ color: colors.text + "70" }}>
+                      Aucune transaction
                     </Text>
                   </View>
-
-                  {/* Séparateur sauf pour le dernier élément */}
-                  {index < transactions.length - 1 && (
-                    <View
-                      style={[
-                        styles.separator,
-                        { backgroundColor: colors.border },
-                      ]}
-                    />
-                  )}
-                </View>
-              ))}
+                )}
             </View>
           </View>
         )}

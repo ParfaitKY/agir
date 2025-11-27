@@ -51,12 +51,10 @@ export const useClientByCompte = () => {
 
   const extractClientInfo = (raw: any): ClientInfo => {
     const source = normalizeSource(raw);
+
     const id =
-      source?.id ??
-      source?.IDCLIENT ??
-      source?.clientId ??
-      source?.CLIENT_ID ??
-      source?.CODECLIENT;
+      source?.id ?? source?.IDCLIENT ?? source?.clientId ?? source?.CLIENT_ID ?? source?.CODECLIENT;
+
     let lastName =
       source?.NOMCLIENT ??
       source?.NOM ??
@@ -75,6 +73,7 @@ export const useClientByCompte = () => {
         "nomclient",
         "CL_NOMCLIENT",
       ]);
+
     let firstName =
       source?.PRENOMCLIENT ??
       source?.PRENOM ??
@@ -93,6 +92,7 @@ export const useClientByCompte = () => {
         "prenomclient",
         "CL_PRENOMCLIENT",
       ]);
+
     const combined = source?.name ?? source?.FULLNAME ?? source?.NOMPRENOM;
     if ((!lastName || !firstName) && typeof combined === "string") {
       const parts = combined.trim().split(/\s+/);
@@ -103,24 +103,21 @@ export const useClientByCompte = () => {
         lastName = lastName || combined;
       }
     }
+
     const login =
-      source?.LOGIN ??
-      source?.login ??
-      source?.LOGINCLIENT ??
-      source?.NUMCOMPTE ??
-      source?.compte ??
-      source?.ACCOUNT_NUMBER ??
-      source?.CO_CODECOMPTE;
+      source?.LOGIN ?? source?.login ?? source?.LOGINCLIENT ?? source?.NUMCOMPTE ?? source?.compte ?? source?.ACCOUNT_NUMBER ?? source?.CO_CODECOMPTE;
+
     const agency = source?.AGENCE ?? source?.agency;
+
     const NUMCOMPTE =
-      source?.NUMCOMPTE ??
-      source?.compte ??
-      source?.ACCOUNT_NUMBER ??
-      source?.CO_CODECOMPTE;
-    const IDCLIENT =
-      source?.IDCLIENT ?? source?.CLIENT_ID ?? source?.CODECLIENT ?? id;
+      source?.NUMCOMPTE ?? source?.compte ?? source?.ACCOUNT_NUMBER ?? source?.CO_CODECOMPTE;
+
+    // ✅ Ici on génère un client_id si l'API ne le renvoie pas
+    const IDCLIENT = source?.IDCLIENT ?? source?.CLIENT_ID ?? source?.CODECLIENT ?? id ?? NUMCOMPTE;
+
     const NOMCLIENT = lastName;
     const PRENOMCLIENT = firstName;
+
     return {
       id,
       IDCLIENT,
@@ -144,37 +141,47 @@ export const useClientByCompte = () => {
         setError("Numéro de compte invalide");
         return false;
       }
+
       const result = await clientByCompte({ numero_compte });
+
       if (result.error) {
-        const err: any = result.error as any;
+        const err: any = result.error;
         const serverMsg = err?.response?.data?.message || err?.message;
         setError(serverMsg || "Impossible de récupérer le client");
         return false;
       }
+
       if (!result.data) {
         setError("Réponse API vide");
         return false;
       }
+
       const info = extractClientInfo(result.data);
+
       if (!info) {
         setError("Client introuvable ou données manquantes");
         return false;
       }
+
+      // ⚡ Stockage et génération automatique de client_id si nécessaire
       setClientData(info);
-      const fullName = `${info.PRENOMCLIENT ?? info.firstName ?? ""} ${
-        info.NOMCLIENT ?? info.lastName ?? ""
-      }`.trim();
+
+      const fullName = `${info.PRENOMCLIENT ?? info.firstName ?? ""} ${info.NOMCLIENT ?? info.lastName ?? ""}`.trim();
+
       const userData = {
-        id: numero_compte,
+        id: info.IDCLIENT, // utilisation du client_id généré
         username: numero_compte,
         name: fullName,
         email: "",
       };
+
       await secureSetItem("user_data", JSON.stringify(userData));
       if (info.firstName) await secureSetItem("user_firstname", info.firstName);
       if (info.lastName) await secureSetItem("user_lastname", info.lastName);
       await secureSetItem("user_login", numero_compte);
       await secureSetItem("user_account_number", numero_compte);
+      await secureSetItem("user_id", info.IDCLIENT ?? numero_compte); 
+
       return true;
     } catch (e) {
       const msg = (e as any)?.message ?? "Erreur réseau";

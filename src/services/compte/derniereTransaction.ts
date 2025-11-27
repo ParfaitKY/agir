@@ -2,9 +2,7 @@ import { httpClient, handleRequest, AuthHeaders } from "../httpClient";
 import { ENDPOINTS } from "../endpoints";
 
 export type DerniereTransactionPayload = {
-  AG_CODEAGENCE: string;
-  CO_CODECOMPTE: string;
-  CODECRYPTAGE: string;
+  client_id: string;
 };
 
 export const derniereTransaction = (
@@ -15,4 +13,3 @@ export const derniereTransaction = (
     httpClient.post(ENDPOINTS.DERNIERE_TRANSACTION, body, { headers })
   );
 };
-

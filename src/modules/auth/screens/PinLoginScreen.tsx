@@ -12,14 +12,29 @@ import {
   Vibration,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import * as Crypto from "expo-crypto";
 import * as LocalAuthentication from "expo-local-authentication";
-import { usePreventScreenCapture } from "expo-screen-capture";
+import * as ScreenCapture from "expo-screen-capture";
 import { useAuth } from "../../../app/hooks/useAuth";
 import { useNavigation } from "@react-navigation/native";
 
 const PinLoginScreen: React.FC = () => {
-  usePreventScreenCapture();
+  React.useEffect(() => {
+    const run = async () => {
+      if (Platform.OS !== "web") {
+        try {
+          await ScreenCapture.preventScreenCaptureAsync();
+        } catch {}
+      }
+    };
+    run();
+    return () => {
+      if (Platform.OS !== "web") {
+        try {
+          ScreenCapture.allowScreenCaptureAsync();
+        } catch {}
+      }
+    };
+  }, []);
   const { width } = useWindowDimensions();
   const { loginWithPin, login, isLoading, user } = useAuth() as any;
   const navigation = useNavigation() as any;
@@ -83,11 +98,7 @@ const PinLoginScreen: React.FC = () => {
     setError(null);
     const timeout = setTimeout(async () => {
       try {
-        const hashed = await Crypto.digestStringAsync(
-          Crypto.CryptoDigestAlgorithm.SHA256,
-          pin
-        );
-        await loginWithPin(hashed);
+        await loginWithPin(pin);
         setPinSuccess(true);
         Vibration.vibrate(30);
         setTimeout(() => {

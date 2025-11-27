@@ -1,4 +1,4 @@
-import { httpClient, handleRequest, AuthHeaders } from "../httpClient";
+import { httpClient } from "../httpClient";
 import { ENDPOINTS } from "../endpoints";
 
 export type LoginPayload = {
@@ -11,7 +11,26 @@ export type LoginPayload = {
   TERMINALUUID: string;
 };
 
-export const login = (body: LoginPayload, headers: AuthHeaders = {}) => {
-  return handleRequest(httpClient.post(ENDPOINTS.LOGIN, body, { headers }));
+export type LoginResult = { data?: any; error?: string; status?: number };
+
+const login = async (body: LoginPayload): Promise<LoginResult> => {
+  try {
+    const res = await httpClient.post(ENDPOINTS.LOGIN, body, {
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+    });
+    return { data: res.data, status: res.status };
+  } catch (err: any) {
+    const status = err?.response?.status;
+    const error =
+      status === 401
+        ? "Login ou mot de passe incorrect"
+        : err?.response?.data?.message || "Erreur de connexion";
+    return { error, status };
+  }
 };
 
+export default login;
+export { login };

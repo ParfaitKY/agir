@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import * as SecureStore from "expo-secure-store";
 import * as Crypto from "expo-crypto";
+import { login as loginApi, LoginPayload } from "../../services/auth/login";
 import {
   secureGetItem,
   secureSetItem,
@@ -38,7 +39,6 @@ export const AuthContext = createContext<AuthContextType | undefined>(
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const DEFAULT_TEST_PIN = "12345";
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isConfigured, setIsConfigured] = useState(false);
   const [user, setUser] = useState<User | null>(null);
@@ -69,15 +69,49 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const login = async (credentials: LoginDTO) => {
     setIsLoading(true);
     try {
-      // Simulation d'authentification
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      await secureSetItem("auth_token", "mock-jwt-token");
-     
-
-      setIsAuthenticated(true); //@ts-ignore
-      setUser(mockUser);
-    } catch (error) {
-      throw error;
+      const body: LoginPayload = {
+        LG_CODELANGUE: "fr",
+        SL_LOGIN: credentials.username,
+        SL_MOTPASSE: credentials.password,
+        TYPEOPERATEUR: "CLIENT",
+        TYPEOPERATION: "LOGIN",
+        CODECRYPTAGE: "SHA256",
+        TERMINALUUID: credentials.username,
+      };
+      const result = await loginApi(body);
+      if ((result as any)?.error) {
+        const err: any = (result as any).error;
+        const msg =
+          err?.response?.data?.message || err?.message || "Échec de connexion";
+        throw new Error(msg);
+      }
+      const data: any = (result as any)?.data;
+      const token =
+        data?.token ||
+        data?.jwt ||
+        data?.access_token ||
+        data?.data?.token ||
+        data?.result?.token;
+      if (!token) throw new Error("Token absent dans la réponse");
+      await secureSetItem("auth_token", String(token));
+      let finalUser: User | null = null;
+      const saved = await secureGetItem("user_data");
+      if (saved) {
+        finalUser = JSON.parse(saved);
+      } else {
+        const fn = await secureGetItem("user_firstname");
+        const ln = await secureGetItem("user_lastname");
+        const name = `${fn ?? ""} ${ln ?? ""}`.trim() || credentials.username;
+        finalUser = {
+          id: credentials.username,
+          username: credentials.username,
+          name,
+          email: "",
+        } as User;
+        await secureSetItem("user_data", JSON.stringify(finalUser));
+      }
+      setIsAuthenticated(true);
+      if (finalUser) setUser(finalUser);
     } finally {
       setIsLoading(false);
     }
@@ -112,8 +146,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
-  // Le paramètre attendu est le hash SHA-256 du PIN
-  const loginWithPin = async (hashedPin: string) => {
+  // Le paramètre attendu est le PIN en clair; vérification locale via SHA-256
+  const loginWithPin = async (pin: string) => {
     setIsLoading(true);
     try {
       const storedPin = await secureGetItem("pin_user");
@@ -123,36 +157,69 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       if (storedPin) {
         const isHash = /^[a-f0-9]{64}$/i.test(storedPin);
         if (isHash) {
-          matchStored = storedPin === hashedPin;
+          const hashedInput = await Crypto.digestStringAsync(
+            Crypto.CryptoDigestAlgorithm.SHA256,
+            pin
+          );
+          matchStored = storedPin === hashedInput;
         } else {
           const hashedStored = await Crypto.digestStringAsync(
             Crypto.CryptoDigestAlgorithm.SHA256,
             storedPin
           );
-          matchStored = hashedStored === hashedPin;
+          const hashedInput = await Crypto.digestStringAsync(
+            Crypto.CryptoDigestAlgorithm.SHA256,
+            pin
+          );
+          matchStored = hashedStored === hashedInput;
         }
       }
-      const hashedDefault = await Crypto.digestStringAsync(
-        Crypto.CryptoDigestAlgorithm.SHA256,
-        DEFAULT_TEST_PIN
-      );
-      if (matchStored && userData) {
-        await secureSetItem("auth_token", "pin-login-token");
-        setIsAuthenticated(true);
-        setUser(JSON.parse(userData));
-      } else if (hashedPin === hashedDefault) {
-        const mockUser: User = {
-          id: "test",
-          username: "demo",
-          name: "Utilisateur Test",
-          email: "test@zenith.mf",
+      if (matchStored) {
+        const lg = (await secureGetItem("user_login")) || undefined;
+        if (!lg) {
+          throw new Error("Identifiant utilisateur manquant");
+        }
+        const body: LoginPayload = {
+          LG_CODELANGUE: "FR",
+          SL_LOGIN: lg,
+          SL_MOTPASSE: pin,
+          TYPEOPERATEUR: "01",
+          TYPEOPERATION: "01",
+          CODECRYPTAGE: "Y}@128eVIXfoi7",
+          TERMINALUUID: "",
         };
-        await secureSetItem("auth_token", "pin-login-token");
-        await secureSetItem("user_data", JSON.stringify(mockUser));
+        const result: any = await loginApi(body);
+        if (result?.error) {
+          const err: any = result.error;
+          const msg =
+            err?.response?.data?.message ||
+            err?.message ||
+            "Échec de connexion";
+          throw new Error(msg);
+        }
+        const data: any = result?.data;
+        const token =
+          data?.token ||
+          data?.jwt ||
+          data?.access_token ||
+          data?.data?.token ||
+          data?.result?.token;
+        if (!token) throw new Error("Token absent dans la réponse");
+        await secureSetItem("auth_token", String(token));
+        let finalUser: User | null = null;
+        if (userData) {
+          finalUser = JSON.parse(userData);
+        } else {
+          const fn = await secureGetItem("user_firstname");
+          const ln = await secureGetItem("user_lastname");
+          const name = `${fn ?? ""} ${ln ?? ""}`.trim() || lg;
+          finalUser = { id: lg, username: lg, name, email: "" } as User;
+          await secureSetItem("user_data", JSON.stringify(finalUser));
+        }
         setIsAuthenticated(true);
-        setUser(mockUser);
+        if (finalUser) setUser(finalUser);
       } else {
-        throw new Error("PIN invalide");
+        throw new Error("PIN incorrect");
       }
     } finally {
       setIsLoading(false);

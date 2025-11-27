@@ -41,6 +41,17 @@ const ThemedNavigation: React.FC<{ children: React.ReactNode }> = ({
 };
 
 export const AppProviders: React.FC<AppProvidersProps> = ({ children }) => {
+  React.useEffect(() => {
+    try {
+      // Clear web localStorage when query contains reset=1
+      if (typeof window !== "undefined") {
+        const params = new URLSearchParams(window.location.search);
+        if (params.get("reset") === "1") {
+          window.localStorage?.clear?.();
+        }
+      }
+    } catch {}
+  }, []);
   return (
     <ThemeProvider>
       <I18nProvider>
