@@ -36,7 +36,7 @@ const PinLoginScreen: React.FC = () => {
   const isDarkMode = scheme === "dark";
   const shakeAnim = React.useRef(new Animated.Value(0)).current;
   const pulseAnim = React.useRef(new Animated.Value(0)).current;
-  const MAX_LEN = 6;
+  const MAX_LEN = 5;
 
   React.useEffect(() => {
     (async () => {
@@ -73,7 +73,7 @@ const PinLoginScreen: React.FC = () => {
   React.useEffect(() => {
     const length = pin.length;
     setPinSuccess(false);
-    const shouldAttempt = length === 4 || length === 6;
+    const shouldAttempt = length === 5;
     if (!shouldAttempt) {
       setIsVerifying(false);
       return;
@@ -181,11 +181,15 @@ const PinLoginScreen: React.FC = () => {
   };
 
   return (
-    <SafeAreaView style={[pinStyles.container, isDarkMode && pinStyles.containerDark]}>
+    <SafeAreaView
+      style={[pinStyles.container, isDarkMode && pinStyles.containerDark]}
+    >
       <View style={pinStyles.card}>
         <Text style={pinStyles.title}>Code de sécurité</Text>
-        <Text style={pinStyles.subtitle}>Veuillez entrer votre code de sécurité</Text>
-        
+        <Text style={pinStyles.subtitle}>
+          Veuillez entrer votre code de sécurité
+        </Text>
+
         <View style={pinStyles.pinContainer}>
           <Animated.View
             style={[
@@ -205,7 +209,10 @@ const PinLoginScreen: React.FC = () => {
           </Animated.View>
         </View>
 
-        <TouchableOpacity style={pinStyles.forgotLink} onPress={() => (navigation as any).navigate('PasswordRecovery')}>
+        <TouchableOpacity
+          style={pinStyles.forgotLink}
+          onPress={() => (navigation as any).navigate("PasswordRecovery")}
+        >
           <Text style={pinStyles.forgotText}>J'ai oublié mon code</Text>
         </TouchableOpacity>
 
@@ -278,7 +285,7 @@ const PinLoginScreen: React.FC = () => {
               style={[pinStyles.keyButton, pinStyles.biometricButton]}
               onPress={handleBiometricLogin}
             >
-            <Ionicons name="finger-print" size={24} color="#007AFF" />
+              <Ionicons name="finger-print" size={24} color="#007AFF" />
             </TouchableOpacity>
             <TouchableOpacity
               style={pinStyles.keyButton}

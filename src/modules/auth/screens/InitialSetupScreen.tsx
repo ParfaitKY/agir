@@ -234,7 +234,7 @@ const InitialSetupScreen: React.FC = () => {
   const handleSavePin = async () => {
     setPinError(null);
     // Validations de base
-    const minLen = 4;
+    const minLen = 5;
     if (
       !firstName ||
       !lastName ||
@@ -247,7 +247,7 @@ const InitialSetupScreen: React.FC = () => {
       return;
     }
     if (newPin.length < minLen) {
-      setPinError(`Le code PIN doit contenir au moins ${minLen} chiffres.`);
+      setPinError(`Le code PIN doit contenir ${minLen} chiffres.`);
       return;
     }
     if (newPin !== confirmPin) {
@@ -722,7 +722,7 @@ const InitialSetupScreen: React.FC = () => {
                           style={[styles.input, { flex: 1 }]}
                           secureTextEntry={!showNewPin}
                           keyboardType="number-pad"
-                          maxLength={6}
+                          maxLength={5}
                           placeholder={t("initial.placeholders.pin")}
                         />
                         <TouchableOpacity
@@ -749,7 +749,7 @@ const InitialSetupScreen: React.FC = () => {
                           style={[styles.input, { flex: 1 }]}
                           secureTextEntry={!showConfirmPin}
                           keyboardType="number-pad"
-                          maxLength={6}
+                          maxLength={5}
                           placeholder={t("initial.placeholders.pinConfirm")}
                         />
                         <TouchableOpacity
@@ -815,7 +815,7 @@ const InitialSetupScreen: React.FC = () => {
                           styles.button,
                           {
                             opacity:
-                              newPin.length >= 4 &&
+                              newPin.length >= 5 &&
                               newPin === confirmPin &&
                               secretKey.length >= 3
                                 ? 1
@@ -825,7 +825,7 @@ const InitialSetupScreen: React.FC = () => {
                         onPress={handleSavePin}
                         disabled={
                           savingPin ||
-                          newPin.length < 4 ||
+                          newPin.length < 5 ||
                           newPin !== confirmPin ||
                           secretKey.length < 3
                         }

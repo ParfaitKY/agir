@@ -18,7 +18,7 @@ export const LoginScreen: React.FC = () => {
   const { login } = useAuth();
 
   const handleNumberPress = (num: string) => {
-    if (code.length < 6) setCode(prev => prev + num);
+    if (code.length < 5) setCode(prev => prev + num);
   };
 
   const handleDelete = () => {
@@ -44,7 +44,7 @@ export const LoginScreen: React.FC = () => {
   };
 
   const handleValidation = async () => {
-    if (code.length === 6) {
+    if (code.length === 5) {
       try {
         await login({ username: 'PIN_USER', password: code });
       } catch (error) {

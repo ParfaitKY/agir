@@ -38,7 +38,7 @@ export const AuthContext = createContext<AuthContextType | undefined>(
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const DEFAULT_TEST_PIN = "123456"; // PIN de test par défaut
+  const DEFAULT_TEST_PIN = "12345";
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isConfigured, setIsConfigured] = useState(false);
   const [user, setUser] = useState<User | null>(null);
@@ -71,16 +71,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     try {
       // Simulation d'authentification
       await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      const mockUser: User = {
-        id: "1",
-        username: credentials.username,
-        name: "Utilisateur Demo",
-        email: "demo@zenith.mf",
-      };
-
       await secureSetItem("auth_token", "mock-jwt-token");
-      await secureSetItem("user_data", JSON.stringify(mockUser));
+     
 
       setIsAuthenticated(true); //@ts-ignore
       setUser(mockUser);

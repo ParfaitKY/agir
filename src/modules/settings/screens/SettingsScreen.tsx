@@ -566,7 +566,7 @@ export const SettingsScreen: React.FC = () => {
               keyboardType="numeric"
               value={currentPin}
               onChangeText={setCurrentPin}
-              maxLength={6}
+              maxLength={5}
             />
             <TextInput
               style={[
@@ -577,12 +577,12 @@ export const SettingsScreen: React.FC = () => {
                   color: colors.text,
                 },
               ]}
-              placeholder="Nouveau PIN (4-6 chiffres)"
+              placeholder="Nouveau PIN (5 chiffres)"
               secureTextEntry
               keyboardType="numeric"
               value={newPin}
               onChangeText={setNewPin}
-              maxLength={6}
+              maxLength={5}
             />
             <TextInput
               style={[
@@ -598,7 +598,7 @@ export const SettingsScreen: React.FC = () => {
               keyboardType="numeric"
               value={confirmPin}
               onChangeText={setConfirmPin}
-              maxLength={6}
+              maxLength={5}
             />
             {pinError && (
               <Text style={[styles.errorText, { color: colors.error }]}>
@@ -621,9 +621,9 @@ export const SettingsScreen: React.FC = () => {
                 ]}
                 onPress={() => {
                   // Validation simple du PIN
-                  const pinRegex = /^\d{4,6}$/;
+                  const pinRegex = /^\d{5}$/;
                   if (!pinRegex.test(newPin)) {
-                    setPinError("Le PIN doit contenir 4 à 6 chiffres");
+                    setPinError("Le PIN doit contenir 5 chiffres");
                     return;
                   }
                   if (newPin !== confirmPin) {

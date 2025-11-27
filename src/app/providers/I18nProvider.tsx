@@ -109,9 +109,9 @@ const TRANSLATIONS: Translations = {
     zh: "选择您的用户名",
   },
   "initial.labels.pin": {
-    fr: "Code PIN (min 4 chiffres)",
-    en: "PIN code (min 4 digits)",
-    zh: "PIN 码（至少 4 位）",
+    fr: "Code PIN (5 chiffres)",
+    en: "PIN code (5 digits)",
+    zh: "PIN 码（5 位）",
   },
   "initial.placeholders.pin": {
     fr: "Nouveau code PIN",
@@ -119,9 +119,9 @@ const TRANSLATIONS: Translations = {
     zh: "新的 PIN 码",
   },
   "initial.labels.pinConfirm": {
-    fr: "Confirmation du code PIN (min 4 chiffres)",
-    en: "Confirm PIN code (min 4 digits)",
-    zh: "确认 PIN 码（至少 4 位）",
+    fr: "Confirmation du code PIN (5 chiffres)",
+    en: "Confirm PIN code (5 digits)",
+    zh: "确认 PIN 码（5 位）",
   },
   "initial.placeholders.pinConfirm": {
     fr: "Confirmez votre code PIN",
