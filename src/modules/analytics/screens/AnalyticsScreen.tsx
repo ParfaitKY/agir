@@ -10,6 +10,14 @@ import { useI18n } from "../../../app/providers/I18nProvider";
 import { useTheme } from "../../../shared/styles/ThemeProvider";
 import { Ionicons } from "@expo/vector-icons";
 import { useAnalyseDerniereTransaction } from "../../../domain/compte/useAnalyseDerniereTransaction";
+import { Dimensions, Platform } from "react-native";
+const {
+  VictoryChart,
+  VictoryBar,
+  VictoryTheme,
+  VictoryAxis,
+  VictoryPie,
+} = Platform.OS === "web" ? require("victory") : require("victory-native");
 
 export const AnalyticsScreen: React.FC = () => {
   const { t, tText } = useI18n();
@@ -34,6 +42,16 @@ export const AnalyticsScreen: React.FC = () => {
     percentStrong !== undefined && percentStrong !== null
       ? `${isUp ? "+" : isDown ? "-" : ""}${percentStrong}%`
       : "0%";
+  const debitCount = Number(data?.NOMBRE_OPERATIONS_DEBIT ?? 0);
+  const creditCount = Number(data?.NOMBRE_OPERATIONS_CREDIT ?? 0);
+  const totalCount = Number(
+    data?.NOMBRE_TOTAL_OPERATIONS ?? debitCount + creditCount
+  );
+  const percentDebit = Number(data?.POURCENTAGE_DEBIT ?? 0);
+  const percentCredit = Number(data?.POURCENTAGE_CREDIT ?? 0);
+  const chartWidth = Dimensions.get("window").width - 32;
+  const excelBlue = "#4472C4";
+  const excelOrange = "#ED7D31";
   React.useEffect(() => {
     fetchData();
   }, []);
@@ -61,102 +79,89 @@ export const AnalyticsScreen: React.FC = () => {
         </Text>
       )}
       {!!error && (
-        <Text style={[styles.error, { color: colors.error }]}>
-          {String(error)}
-        </Text>
+        <Text style={[styles.error, { color: colors.error }]}>{String(error)}</Text>
       )}
 
-      {!isLoading && !error && (
-        <View>
-          <View
-            style={[
-              styles.card,
-              { backgroundColor: colors.card, borderColor: colors.border },
-            ]}
-          >
-            <View style={styles.rowCenter}>
-              <Ionicons name={trendIcon as any} size={20} color={trendColor} />
-              <Text style={[styles.metricMain, { color: trendColor }]}>
-                {percentDisplay}
-              </Text>
-            </View>
-            <Text style={[styles.metricLabel, { color: colors.text }]}>
-              {tText("Sens fort")}: {String(sens ?? "EGAL")}
+      <View>
+        <View
+          style={[
+            styles.card,
+            { backgroundColor: colors.card, borderColor: colors.border },
+          ]}
+        >
+          <View style={styles.rowCenter}>
+            <Ionicons name={trendIcon as any} size={20} color={trendColor} />
+            <Text style={[styles.metricMain, { color: trendColor }]}>
+              {percentDisplay}
             </Text>
           </View>
+          <Text style={[styles.metricLabel, { color: colors.text }]}> 
+            {tText("Sens fort")}: {String(sens ?? "EGAL")}
+          </Text>
+        </View>
 
-          <View style={styles.grid}>
-            <View
-              style={[
-                styles.card,
-                { backgroundColor: colors.card, borderColor: colors.border },
-              ]}
-            >
-              <Text style={[styles.metricValue, { color: colors.text }]}>
-                {String(data?.NOMBRE_TOTAL_OPERATIONS ?? 0)}
-              </Text>
-              <Text style={[styles.metricLabel, { color: colors.text + "70" }]}>
-                {tText("Total opérations")}
-              </Text>
-            </View>
-            <View
-              style={[
-                styles.card,
-                { backgroundColor: colors.card, borderColor: colors.border },
-              ]}
-            >
-              <Text style={[styles.metricValue, { color: colors.success }]}>
-                {String(data?.NOMBRE_OPERATIONS_CREDIT ?? 0)}
-              </Text>
-              <Text style={[styles.metricLabel, { color: colors.text + "70" }]}>
-                {tText("Crédit")}
-              </Text>
-            </View>
-            <View
-              style={[
-                styles.card,
-                { backgroundColor: colors.card, borderColor: colors.border },
-              ]}
-            >
-              <Text style={[styles.metricValue, { color: colors.error }]}>
-                {String(data?.NOMBRE_OPERATIONS_DEBIT ?? 0)}
-              </Text>
-              <Text style={[styles.metricLabel, { color: colors.text + "70" }]}>
-                {tText("Débit")}
-              </Text>
-            </View>
+        <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}> 
+          <View style={{ marginBottom: 8 }}>
+            <Text style={[styles.metricLabel, { color: colors.text }]}> 
+              {tText("nombre d'op sortante")}: {String(debitCount)}
+            </Text>
+            <Text style={[styles.metricLabel, { color: colors.text }]}> 
+              {tText("nombre d'op entrante")}: {String(creditCount)}
+            </Text>
+            <Text style={[styles.metricLabel, { color: colors.text }]}> 
+              {tText("Cumul")}: {String(totalCount)}
+            </Text>
           </View>
+          <Text style={[styles.title, { color: colors.text, marginBottom: 8 }]}>{tText("Titre du graphique")}</Text>
+          <VictoryChart theme={VictoryTheme.material} domainPadding={{ x: 30 }} width={chartWidth} height={240} domain={{ y: [0, Math.max(totalCount, 30)] }}> 
+            <VictoryAxis style={{ tickLabels: { fill: colors.text } }} />
+            <VictoryAxis dependentAxis style={{ tickLabels: { fill: colors.text } }} />
+            <VictoryBar
+              data={[
+                { x: tText("nombre d'op sortante"), y: debitCount },
+                { x: tText("nombre d'op entrante"), y: creditCount },
+                { x: tText("Cumul"), y: totalCount },
+              ]}
+              style={{ data: { fill: excelBlue } }}
+              barRatio={0.8}
+            />
+          </VictoryChart>
+        </View>
 
-          <View style={styles.grid}>
-            <View
-              style={[
-                styles.card,
-                { backgroundColor: colors.card, borderColor: colors.border },
-              ]}
-            >
-              <Text style={[styles.metricValue, { color: colors.success }]}>
-                {String(data?.POURCENTAGE_CREDIT ?? 0)}%
-              </Text>
-              <Text style={[styles.metricLabel, { color: colors.text + "70" }]}>
-                {tText("% Crédit")}
-              </Text>
+        <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}> 
+          <View style={{ marginBottom: 8 }}>
+            <Text style={[styles.metricLabel, { color: colors.text }]}> 
+              {tText("Pourcentage debit")}: {String(percentDebit)}%
+            </Text>
+            <Text style={[styles.metricLabel, { color: colors.text }]}> 
+              {tText("Pourcentage credit")}: {String(percentCredit)}%
+            </Text>
+          </View>
+          <Text style={[styles.title, { color: colors.text, marginBottom: 8 }]}>{tText("Titre du graphique")}</Text>
+          <VictoryPie 
+            width={chartWidth}
+            height={240}
+            innerRadius={60}
+            colorScale={[excelOrange, excelBlue]}
+            data={[
+              { x: tText("Pourcentage debit"), y: percentDebit },
+              { x: tText("Pourcentage credit"), y: percentCredit },
+            ]}
+            labels={({ datum }) => `${Math.round(datum.y)}%`}
+            style={{ labels: { fill: colors.text } }}
+          />
+          <View style={{ flexDirection: "row", justifyContent: "center", marginTop: 8 }}>
+            <View style={{ flexDirection: "row", alignItems: "center", marginRight: 16 }}>
+              <View style={{ width: 10, height: 10, backgroundColor: excelOrange, marginRight: 6, borderRadius: 2 }} />
+              <Text style={{ color: colors.text }}>{tText("Pourcentage debit")}</Text>
             </View>
-            <View
-              style={[
-                styles.card,
-                { backgroundColor: colors.card, borderColor: colors.border },
-              ]}
-            >
-              <Text style={[styles.metricValue, { color: colors.error }]}>
-                {String(data?.POURCENTAGE_DEBIT ?? 0)}%
-              </Text>
-              <Text style={[styles.metricLabel, { color: colors.text + "70" }]}>
-                {tText("% Débit")}
-              </Text>
+            <View style={{ flexDirection: "row", alignItems: "center" }}>
+              <View style={{ width: 10, height: 10, backgroundColor: excelBlue, marginRight: 6, borderRadius: 2 }} />
+              <Text style={{ color: colors.text }}>{tText("Pourcentage credit")}</Text>
             </View>
           </View>
         </View>
-      )}
+      </View>
     </ScrollView>
   );
 };
