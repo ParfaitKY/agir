@@ -10,14 +10,8 @@ import { useI18n } from "../../../app/providers/I18nProvider";
 import { useTheme } from "../../../shared/styles/ThemeProvider";
 import { Ionicons } from "@expo/vector-icons";
 import { useAnalyseDerniereTransaction } from "../../../domain/compte/useAnalyseDerniereTransaction";
-import { Dimensions, Platform } from "react-native";
-const {
-  VictoryChart,
-  VictoryBar,
-  VictoryTheme,
-  VictoryAxis,
-  VictoryPie,
-} = Platform.OS === "web" ? require("victory") : require("victory-native");
+import { useWindowDimensions } from "react-native";
+import { BarChart, PieChart, ProgressChart } from "react-native-chart-kit";
 
 export const AnalyticsScreen: React.FC = () => {
   const { t, tText } = useI18n();
@@ -49,9 +43,44 @@ export const AnalyticsScreen: React.FC = () => {
   );
   const percentDebit = Number(data?.POURCENTAGE_DEBIT ?? 0);
   const percentCredit = Number(data?.POURCENTAGE_CREDIT ?? 0);
-  const chartWidth = Dimensions.get("window").width - 32;
+  const { width: screenWidth } = useWindowDimensions();
+  const contentPadding = 16;
+  const cardPadding = 14;
+  const [barWidth, setBarWidth] = React.useState(0);
+  const [pieWidth, setPieWidth] = React.useState(0);
+  const fallbackChartWidth = Math.max(
+    220,
+    screenWidth - contentPadding * 2 - cardPadding * 2
+  );
+  const barChartWidth = Math.max(
+    220,
+    barWidth ? barWidth - cardPadding * 2 : fallbackChartWidth
+  );
+  const pieChartWidth = Math.max(
+    220,
+    pieWidth ? pieWidth - cardPadding * 2 : fallbackChartWidth
+  );
+  const computeHeight = (w: number) =>
+    Math.max(200, Math.min(300, Math.round(w * 0.6)));
+  const barChartHeight = computeHeight(barChartWidth);
+  const pieChartHeight = computeHeight(pieChartWidth);
+  const labelRotation = barChartWidth < 320 ? 30 : 0;
   const excelBlue = "#4472C4";
   const excelOrange = "#ED7D31";
+  const chartConfig = {
+    backgroundColor: colors.card,
+    backgroundGradientFrom: colors.card,
+    backgroundGradientTo: colors.card,
+    decimalPlaces: 0,
+    color: (opacity = 1) => `rgba(68, 114, 196, ${opacity})`,
+    labelColor: (opacity = 1) =>
+      `rgba( ${parseInt(colors.text.slice(1, 3), 16)}, ${parseInt(
+        colors.text.slice(3, 5),
+        16
+      )}, ${parseInt(colors.text.slice(5, 7), 16)}, ${opacity})`,
+    propsForLabels: { fill: colors.text, fontSize: 9 },
+    propsForBackgroundLines: { stroke: colors.border },
+  } as const;
   React.useEffect(() => {
     fetchData();
   }, []);
@@ -79,7 +108,9 @@ export const AnalyticsScreen: React.FC = () => {
         </Text>
       )}
       {!!error && (
-        <Text style={[styles.error, { color: colors.error }]}>{String(error)}</Text>
+        <Text style={[styles.error, { color: colors.error }]}>
+          {String(error)}
+        </Text>
       )}
 
       <View>
@@ -95,69 +126,137 @@ export const AnalyticsScreen: React.FC = () => {
               {percentDisplay}
             </Text>
           </View>
-          <Text style={[styles.metricLabel, { color: colors.text }]}> 
+          <Text style={[styles.metricLabel, { color: colors.text }]}>
             {tText("Sens fort")}: {String(sens ?? "EGAL")}
           </Text>
         </View>
 
-        <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}> 
+        <View
+          style={[
+            styles.card,
+            { backgroundColor: colors.card, borderColor: colors.border },
+          ]}
+          onLayout={(e) => setBarWidth(e.nativeEvent.layout.width)}
+        >
           <View style={{ marginBottom: 8 }}>
-            <Text style={[styles.metricLabel, { color: colors.text }]}> 
+            <Text style={[styles.metricLabel, { color: colors.text }]}>
               {tText("nombres d'opérations sortantes")}: {String(debitCount)}
             </Text>
-            <Text style={[styles.metricLabel, { color: colors.text }]}> 
+            <Text style={[styles.metricLabel, { color: colors.text }]}>
               {tText("nombres d'opérations entrantes")}: {String(creditCount)}
             </Text>
-            <Text style={[styles.metricLabel, { color: colors.text }]}> 
+            <Text style={[styles.metricLabel, { color: colors.text }]}>
               {tText("Cumul")}: {String(totalCount)}
             </Text>
           </View>
-          <Text style={[styles.title, { color: colors.text, marginBottom: 8 }]}>{tText("Titre du graphique")}</Text>
-          <VictoryChart theme={VictoryTheme.material} domainPadding={{ x: 30 }} width={chartWidth} height={240} domain={{ y: [0, Math.max(totalCount, 30)] }}> 
-            <VictoryAxis style={{ tickLabels: { fill: colors.text } }} />
-            <VictoryAxis dependentAxis style={{ tickLabels: { fill: colors.text } }} />
-            <VictoryBar
-              data={[
-                { x: tText("nombre d'op sortante"), y: debitCount },
-                { x: tText("nombre d'op entrante"), y: creditCount },
-                { x: tText("Cumul"), y: totalCount },
-              ]}
-              style={{ data: { fill: excelBlue } }}
-              barRatio={0.8}
-            />
-          </VictoryChart>
+          <Text style={[styles.title, { color: colors.text, marginBottom: 8 }]}>
+            {tText("Titre du graphique")}
+          </Text>
+          <BarChart
+            width={barChartWidth}
+            height={barChartHeight}
+            fromZero
+            chartConfig={chartConfig}
+            style={{ borderRadius: 8 }}
+            yAxisLabel=""
+            yAxisSuffix=""
+            verticalLabelRotation={labelRotation}
+            showValuesOnTopOfBars
+            xLabelsOffset={-4}
+            data={{
+              labels: [tText("Sort."), tText("Entr."), tText("Cum.")],
+              datasets: [
+                {
+                  data: [debitCount, creditCount, totalCount],
+                },
+              ],
+            }}
+          />
         </View>
 
-        <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}> 
+        <View
+          style={[
+            styles.card,
+            { backgroundColor: colors.card, borderColor: colors.border },
+          ]}
+          onLayout={(e) => setPieWidth(e.nativeEvent.layout.width)}
+        >
           <View style={{ marginBottom: 8 }}>
-            <Text style={[styles.metricLabel, { color: colors.text }]}> 
+            <Text style={[styles.metricLabel, { color: colors.text }]}>
               {tText("Pourcentage debit")}: {String(percentDebit)}%
             </Text>
-            <Text style={[styles.metricLabel, { color: colors.text }]}> 
+            <Text style={[styles.metricLabel, { color: colors.text }]}>
               {tText("Pourcentage credit")}: {String(percentCredit)}%
             </Text>
           </View>
-          <Text style={[styles.title, { color: colors.text, marginBottom: 8 }]}>{tText("Titre du graphique")}</Text>
-          <VictoryPie 
-            width={chartWidth}
-            height={240}
-            innerRadius={60}
-            colorScale={[excelOrange, excelBlue]}
-            data={[
-              { x: tText("Pourcentage debit"), y: percentDebit },
-              { x: tText("Pourcentage credit"), y: percentCredit },
-            ]}
-            labels={({ datum }) => `${Math.round(datum.y)}%`}
-            style={{ labels: { fill: colors.text } }}
-          />
-          <View style={{ flexDirection: "row", justifyContent: "center", marginTop: 8 }}>
-            <View style={{ flexDirection: "row", alignItems: "center", marginRight: 16 }}>
-              <View style={{ width: 10, height: 10, backgroundColor: excelOrange, marginRight: 6, borderRadius: 2 }} />
-              <Text style={{ color: colors.text }}>{tText("Pourcentage debit")}</Text>
+          <Text style={[styles.title, { color: colors.text, marginBottom: 8 }]}>
+            {tText("Répartition")}
+          </Text>
+          {(() => {
+            const debitProgress = Math.max(0, Math.min(1, percentDebit / 100));
+            const creditProgress = Math.max(
+              0,
+              Math.min(1, percentCredit / 100)
+            );
+            const strokeWidth = Math.max(10, Math.round(pieChartWidth * 0.06));
+            const radius = Math.max(28, Math.round(pieChartWidth * 0.18));
+            return (
+              <ProgressChart
+                width={pieChartWidth}
+                height={pieChartHeight}
+                strokeWidth={strokeWidth}
+                radius={radius}
+                hideLegend={true}
+                chartConfig={chartConfig}
+                data={{
+                  labels: [tText("Débit"), tText("Crédit")],
+                  data: [debitProgress, creditProgress],
+                }}
+                style={{ borderRadius: 8 }}
+              />
+            );
+          })()}
+          <View
+            style={{
+              flexDirection: "row",
+              flexWrap: "wrap",
+              justifyContent: "center",
+              marginTop: 6,
+            }}
+          >
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                marginRight: 16,
+              }}
+            >
+              <View
+                style={{
+                  width: 10,
+                  height: 10,
+                  backgroundColor: excelOrange,
+                  marginRight: 6,
+                  borderRadius: 2,
+                }}
+              />
+              <Text style={{ color: colors.text }} numberOfLines={1}>
+                {tText("Débit")}
+              </Text>
             </View>
             <View style={{ flexDirection: "row", alignItems: "center" }}>
-              <View style={{ width: 10, height: 10, backgroundColor: excelBlue, marginRight: 6, borderRadius: 2 }} />
-              <Text style={{ color: colors.text }}>{tText("Pourcentage credit")}</Text>
+              <View
+                style={{
+                  width: 10,
+                  height: 10,
+                  backgroundColor: excelBlue,
+                  marginRight: 6,
+                  borderRadius: 2,
+                }}
+              />
+              <Text style={{ color: colors.text }} numberOfLines={1}>
+                {tText("Crédit")}
+              </Text>
             </View>
           </View>
         </View>
@@ -178,7 +277,13 @@ const styles = StyleSheet.create({
   },
   refreshBtn: { flexDirection: "row", alignItems: "center" },
   refreshText: { marginLeft: 6, fontWeight: "600" },
-  card: { borderRadius: 14, padding: 14, marginBottom: 12, borderWidth: 1 },
+  card: {
+    borderRadius: 14,
+    padding: 14,
+    marginBottom: 12,
+    borderWidth: 1,
+    overflow: "hidden",
+  },
   grid: { flexDirection: "row", justifyContent: "space-between" },
   rowCenter: { flexDirection: "row", alignItems: "center" },
   metricMain: { marginLeft: 8, fontSize: 22, fontWeight: "800" },

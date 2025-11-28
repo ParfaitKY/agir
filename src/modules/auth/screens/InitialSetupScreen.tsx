@@ -271,12 +271,34 @@ const InitialSetupScreen: React.FC = () => {
                   value={accountNumber}
                   onChangeText={(t) => setAccountNumber(t.toUpperCase())}
                   placeholder={t("initial.placeholders.accountNumber")}
-                  style={styles.input}
+                  style={[
+                    styles.input,
+                    {
+                      borderColor: palette.border,
+                      backgroundColor: isDark ? "#111827" : "#FFFFFF",
+                      color: palette.textMain,
+                    },
+                  ]}
+                  placeholderTextColor={palette.textSub}
                   autoCapitalize="characters"
                 />
-                {verifyError && <Text style={styles.error}>{verifyError}</Text>}
+                {verifyError && (
+                  <Text
+                    style={[
+                      styles.error,
+                      isDark
+                        ? { backgroundColor: "#7F1D1D", color: "#FCA5A5" }
+                        : {},
+                    ]}
+                  >
+                    {verifyError}
+                  </Text>
+                )}
                 <TouchableOpacity
-                  style={[styles.button, { marginTop: 12 }]}
+                  style={[
+                    styles.button,
+                    { marginTop: 12, backgroundColor: palette.primary },
+                  ]}
                   onPress={handleVerifyAccountNumber}
                 >
                   {loadingVerify ? (
@@ -287,65 +309,152 @@ const InitialSetupScreen: React.FC = () => {
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                  style={[styles.secondaryButton, { marginTop: 12 }]}
+                  style={[
+                    styles.secondaryButton,
+                    {
+                      marginTop: 12,
+                      backgroundColor: isDark ? "#1F2937" : "#F1F5F9",
+                    },
+                  ]}
                   onPress={handleGuestMode}
                 >
-                  <Text style={styles.secondaryButtonText}>Mode invité</Text>
+                  <Text
+                    style={[
+                      styles.secondaryButtonText,
+                      { color: isDark ? "#E5E7EB" : "#0F172A" },
+                    ]}
+                  >
+                    Mode invité
+                  </Text>
                 </TouchableOpacity>
               </View>
             ) : (
               <View style={[styles.card, { backgroundColor: palette.card }]}>
-                <Text style={styles.label}>Nom</Text>
+                <Text style={[styles.label, { color: palette.textMain }]}>
+                  Nom
+                </Text>
                 <TextInput
                   value={lastName}
                   onChangeText={setLastName}
-                  style={styles.input}
+                  style={[
+                    styles.input,
+                    {
+                      borderColor: palette.border,
+                      backgroundColor: isDark ? "#111827" : "#FFFFFF",
+                      color: palette.textMain,
+                    },
+                  ]}
+                  placeholderTextColor={palette.textSub}
                 />
-                <Text style={styles.label}>Prénom</Text>
+                <Text style={[styles.label, { color: palette.textMain }]}>
+                  Prénom
+                </Text>
                 <TextInput
                   value={firstName}
                   onChangeText={setFirstName}
-                  style={styles.input}
+                  style={[
+                    styles.input,
+                    {
+                      borderColor: palette.border,
+                      backgroundColor: isDark ? "#111827" : "#FFFFFF",
+                      color: palette.textMain,
+                    },
+                  ]}
+                  placeholderTextColor={palette.textSub}
                 />
-                <Text style={styles.label}>Login</Text>
+                <Text style={[styles.label, { color: palette.textMain }]}>
+                  Login
+                </Text>
                 <TextInput
                   value={loginReadonly}
                   onChangeText={setLoginReadonly}
-                  style={styles.input}
+                  style={[
+                    styles.input,
+                    {
+                      borderColor: palette.border,
+                      backgroundColor: isDark ? "#111827" : "#FFFFFF",
+                      color: palette.textMain,
+                    },
+                  ]}
+                  placeholderTextColor={palette.textSub}
                 />
 
-                <Text style={styles.label}>Nouveau PIN</Text>
+                <Text style={[styles.label, { color: palette.textMain }]}>
+                  Nouveau PIN
+                </Text>
                 <TextInput
                   value={newPin}
                   onChangeText={setNewPin}
-                  style={styles.input}
+                  style={[
+                    styles.input,
+                    {
+                      borderColor: palette.border,
+                      backgroundColor: isDark ? "#111827" : "#FFFFFF",
+                      color: palette.textMain,
+                    },
+                  ]}
                   secureTextEntry={!showNewPin}
                   keyboardType="number-pad"
                   maxLength={5}
+                  placeholderTextColor={palette.textSub}
                 />
 
-                <Text style={styles.label}>Confirmer PIN</Text>
+                <Text style={[styles.label, { color: palette.textMain }]}>
+                  Confirmer PIN
+                </Text>
                 <TextInput
                   value={confirmPin}
                   onChangeText={setConfirmPin}
-                  style={styles.input}
+                  style={[
+                    styles.input,
+                    {
+                      borderColor: palette.border,
+                      backgroundColor: isDark ? "#111827" : "#FFFFFF",
+                      color: palette.textMain,
+                    },
+                  ]}
                   secureTextEntry={!showConfirmPin}
                   keyboardType="number-pad"
                   maxLength={5}
+                  placeholderTextColor={palette.textSub}
                 />
 
-                <Text style={styles.label}>Clé secrète</Text>
+                <Text style={[styles.label, { color: palette.textMain }]}>
+                  Clé secrète
+                </Text>
                 <TextInput
                   value={secretKey}
                   onChangeText={setSecretKey}
-                  style={styles.input}
+                  style={[
+                    styles.input,
+                    {
+                      borderColor: palette.border,
+                      backgroundColor: isDark ? "#111827" : "#FFFFFF",
+                      color: palette.textMain,
+                    },
+                  ]}
                   secureTextEntry={!showSecretKey}
+                  placeholderTextColor={palette.textSub}
                 />
 
-                {pinError && <Text style={styles.error}>{pinError}</Text>}
+                {pinError && (
+                  <Text
+                    style={[
+                      styles.error,
+                      isDark
+                        ? { backgroundColor: "#7F1D1D", color: "#FCA5A5" }
+                        : {},
+                    ]}
+                  >
+                    {pinError}
+                  </Text>
+                )}
 
                 <TouchableOpacity
-                  style={[styles.button, { marginTop: 12 }]}
+                  style={[
+                    styles.button,
+                    { marginTop: 12, backgroundColor: palette.primary },
+                  ]}
                   onPress={handleSavePin}
                 >
                   {savingPin ? (
