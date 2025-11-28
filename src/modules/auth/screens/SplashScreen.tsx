@@ -12,7 +12,7 @@ import { useAuth } from "../../../app/hooks/useAuth";
 
 const SplashScreen: React.FC = () => {
   const navigation = useNavigation();
-  const { isAuthenticated, isConfigured } = useAuth() as any;
+  const { isAuthenticated, isConfigured, user } = useAuth() as any;
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(0.94)).current;
@@ -50,21 +50,33 @@ const SplashScreen: React.FC = () => {
       })
     ).start();
 
-    const timeout = setTimeout(() => {
-      // Redirection automatique après ~2.4s
-      const target = isAuthenticated
-        ? "Main"
-        : isConfigured
-        ? "PinLogin"
-        : "InitialSetup";
+    // Redirection automatique
+    const isGuestMode = isAuthenticated && user?.username === "invite";
+    let redirectTimeout: ReturnType<typeof setTimeout> | undefined;
+    if (isGuestMode) {
       if ((navigation as any).replace) {
-        (navigation as any).replace(target);
+        (navigation as any).replace("Main");
       } else {
-        (navigation as any).navigate(target);
+        (navigation as any).navigate("Main");
       }
-    }, 2400);
+    } else {
+      redirectTimeout = setTimeout(() => {
+        const target = isAuthenticated
+          ? "Main"
+          : isConfigured
+          ? "PinLogin"
+          : "InitialSetup";
+        if ((navigation as any).replace) {
+          (navigation as any).replace(target);
+        } else {
+          (navigation as any).navigate(target);
+        }
+      }, 2400);
+    }
 
-    return () => clearTimeout(timeout);
+    return () => {
+      if (redirectTimeout) clearTimeout(redirectTimeout);
+    };
   }, [
     fadeAnim,
     scaleAnim,
@@ -72,6 +84,7 @@ const SplashScreen: React.FC = () => {
     spinAnim,
     isAuthenticated,
     isConfigured,
+    user?.username,
     navigation,
   ]);
 

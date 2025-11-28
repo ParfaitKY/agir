@@ -18,6 +18,18 @@ import { useAuth } from "../../../app/hooks/useAuth";
 import { useNavigation } from "@react-navigation/native";
 
 const PinLoginScreen: React.FC = () => {
+  const { isAuthenticated, user } = useAuth() as any;
+  const navigation = useNavigation() as any;
+  React.useEffect(() => {
+    const isGuestMode = isAuthenticated && user?.username === "invite";
+    if (isGuestMode) {
+      if ((navigation as any)?.replace) {
+        (navigation as any).replace("Main");
+      } else if ((navigation as any)?.navigate) {
+        (navigation as any).navigate("Main");
+      }
+    }
+  }, [isAuthenticated, user?.username]);
   React.useEffect(() => {
     const run = async () => {
       if (Platform.OS !== "web") {
@@ -36,8 +48,7 @@ const PinLoginScreen: React.FC = () => {
     };
   }, []);
   const { width } = useWindowDimensions();
-  const { loginWithPin, login, isLoading, user } = useAuth() as any;
-  const navigation = useNavigation() as any;
+  const { loginWithPin, login, isLoading } = useAuth() as any;
   const [pin, setPin] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [showPin, setShowPin] = useState(false);
@@ -111,6 +122,7 @@ const PinLoginScreen: React.FC = () => {
       } catch (e: any) {
         setError(e?.message || "Échec de connexion par PIN.");
         setPinSuccess(false);
+        setPin("");
         Vibration.vibrate(60);
         Animated.sequence([
           Animated.timing(shakeAnim, {

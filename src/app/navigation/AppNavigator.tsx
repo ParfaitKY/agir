@@ -2,6 +2,7 @@ import React from "react";
 import { TouchableOpacity, View, Text, Alert } from "react-native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import { useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 
 // Import avec les bons chemins relatifs
@@ -44,41 +45,55 @@ const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 
 // Composant TabBar personnalisé pour gérer le mode invité
-const CustomTabBar = ({ state, descriptors, navigation, colors, isGuestMode }: any) => {
+const CustomTabBar = ({
+  state,
+  descriptors,
+  navigation,
+  colors,
+  isGuestMode,
+}: any) => {
   const handleGuestRestriction = () => {
     Alert.alert(
       "Connexion requise",
       "Veuillez vous connecter pour accéder à cette fonctionnalité.",
       [
         { text: "Annuler", style: "cancel" },
-        { text: "Se connecter", onPress: () => navigation.navigate("Login") }
+        { text: "Se connecter", onPress: () => navigation.navigate("Login") },
       ]
     );
   };
 
   return (
-    <View style={{
-      flexDirection: 'row',
-      backgroundColor: colors.card,
-      borderTopColor: colors.border,
-      borderTopWidth: 1,
-      paddingBottom: 5,
-      paddingTop: 5,
-    }}>
+    <View
+      style={{
+        flexDirection: "row",
+        backgroundColor: colors.card,
+        borderTopColor: colors.border,
+        borderTopWidth: 1,
+        paddingBottom: 5,
+        paddingTop: 5,
+      }}
+    >
       {state.routes.map((route: any, index: number) => {
         const { options } = descriptors[route.key];
-        const label = options.tabBarLabel !== undefined
-          ? options.tabBarLabel
-          : options.title !== undefined
-          ? options.title
-          : route.name;
+        const label =
+          options.tabBarLabel !== undefined
+            ? options.tabBarLabel
+            : options.title !== undefined
+            ? options.title
+            : route.name;
 
         const isFocused = state.index === index;
-        const iconName = options.tabBarIcon?.({ focused: isFocused, color: isFocused ? colors.primary : colors.text, size: 24 });
+        const iconName = options.tabBarIcon?.({
+          focused: isFocused,
+          color: isFocused ? colors.primary : colors.text,
+          size: 24,
+        });
 
         // Liste des écrans restreints en mode invité (Settings accessible)
-        const restrictedScreens = ['Transactions', 'Products'];
-        const isRestricted = isGuestMode && restrictedScreens.includes(route.name);
+        const restrictedScreens = ["Transactions", "Products"];
+        const isRestricted =
+          isGuestMode && restrictedScreens.includes(route.name);
 
         const onPress = () => {
           if (isRestricted) {
@@ -96,18 +111,18 @@ const CustomTabBar = ({ state, descriptors, navigation, colors, isGuestMode }: a
             accessibilityLabel={options.tabBarAccessibilityLabel}
             testID={options.tabBarTestID}
             onPress={onPress}
-            style={{ flex: 1, alignItems: 'center', paddingVertical: 8 }}
+            style={{ flex: 1, alignItems: "center", paddingVertical: 8 }}
             disabled={isRestricted}
           >
-            <View style={{ opacity: isRestricted ? 0.5 : 1 }}>
-              {iconName}
-            </View>
-            <Text style={{ 
-              color: isFocused ? colors.primary : colors.text,
-              fontSize: 12,
-              marginTop: 4,
-              opacity: isRestricted ? 0.5 : 1
-            }}>
+            <View style={{ opacity: isRestricted ? 0.5 : 1 }}>{iconName}</View>
+            <Text
+              style={{
+                color: isFocused ? colors.primary : colors.text,
+                fontSize: 12,
+                marginTop: 4,
+                opacity: isRestricted ? 0.5 : 1,
+              }}
+            >
               {label}
             </Text>
           </TouchableOpacity>
@@ -121,13 +136,15 @@ const MainTabs = () => {
   const { t } = useI18n();
   const { colors } = useTheme();
   const { isAuthenticated, user } = useAuth();
-  
+
   // Détection du mode invité (username === "invite")
   const isGuestMode = isAuthenticated && user?.username === "invite";
-  
+
   return (
     <Tab.Navigator
-      tabBar={(props) => <CustomTabBar {...props} colors={colors} isGuestMode={isGuestMode} />}
+      tabBar={(props) => (
+        <CustomTabBar {...props} colors={colors} isGuestMode={isGuestMode} />
+      )}
       screenOptions={({ route }) => ({
         tabBarIcon: ({ focused, color, size }) => {
           let iconName: any;
@@ -218,9 +235,10 @@ const MainTabs = () => {
 };
 
 export const AppNavigator: React.FC = () => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const { t, tText } = useI18n();
   const { colors } = useTheme();
+  const isGuestMode = isAuthenticated && user?.username === "invite";
 
   return (
     <Stack.Navigator
@@ -230,7 +248,9 @@ export const AppNavigator: React.FC = () => {
       {/* Écran Splash affiché au démarrage, redirige vers Main ou Login */}
       <Stack.Screen name="Splash" component={SplashScreen} />
       <Stack.Screen name="InitialSetup" component={InitialSetupScreen} />
-      <Stack.Screen name="PinLogin" component={PinLoginScreen} />
+      {!isGuestMode && (
+        <Stack.Screen name="PinLogin" component={PinLoginScreen} />
+      )}
       <Stack.Screen
         name="PasswordRecovery"
         component={PasswordRecoveryScreen}
@@ -244,7 +264,7 @@ export const AppNavigator: React.FC = () => {
           <Stack.Screen name="Main" component={MainTabs} />
           <Stack.Screen
             name="Analytics"
-            component={AnalyticsScreen}
+            component={withGuestRestriction(AnalyticsScreen)}
             options={{
               headerShown: true,
               title: tText("Analytics"),
@@ -255,7 +275,7 @@ export const AppNavigator: React.FC = () => {
           />
           <Stack.Screen
             name="Transfer"
-            component={TransferScreen}
+            component={withGuestRestriction(TransferScreen)}
             options={{
               headerShown: true,
               title: tText("Virement"),
@@ -266,7 +286,7 @@ export const AppNavigator: React.FC = () => {
           />
           <Stack.Screen
             name="Accounts"
-            component={AccountsScreen}
+            component={withGuestRestriction(AccountsScreen)}
             options={{
               headerShown: true,
               title: tText("Mes Comptes"),
@@ -277,7 +297,7 @@ export const AppNavigator: React.FC = () => {
           />
           <Stack.Screen
             name="AccountDetails"
-            component={AccountDetailsScreen}
+            component={withGuestRestriction(AccountDetailsScreen)}
             options={{
               headerShown: true,
               title: tText("Détails du compte"),
@@ -288,7 +308,7 @@ export const AppNavigator: React.FC = () => {
           />
           <Stack.Screen
             name="Cards"
-            component={CardsScreen}
+            component={withGuestRestriction(CardsScreen)}
             options={{
               headerShown: true,
               title: tText("Mes Cartes"),
@@ -299,7 +319,7 @@ export const AppNavigator: React.FC = () => {
           />
           <Stack.Screen
             name="DetailsProduits"
-            component={ProductDetailPage}
+            component={withGuestRestriction(ProductDetailPage)}
             options={{
               headerShown: true,
               title: tText("Détail du produit"),
@@ -310,7 +330,7 @@ export const AppNavigator: React.FC = () => {
           />
           <Stack.Screen
             name="BeneficiairesPage"
-            component={BeneficiairesPage}
+            component={withGuestRestriction(BeneficiairesPage)}
             options={{
               headerShown: true,
               title: "Beneficiaires",
@@ -321,7 +341,7 @@ export const AppNavigator: React.FC = () => {
           />
           <Stack.Screen
             name="WalletScreens"
-            component={WalletScreens}
+            component={withGuestRestriction(WalletScreens)}
             options={{
               headerShown: true,
               title: "Mon Wallet",
@@ -437,4 +457,44 @@ export const AppNavigator: React.FC = () => {
       )}
     </Stack.Navigator>
   );
+};
+// Wrapper de restriction pour les écrans sensibles en mode invité
+const withGuestRestriction = (Component: any) => (props: any) => {
+  const { isAuthenticated, user } = useAuth();
+  const { colors } = useTheme();
+  const { tText } = useI18n();
+  const navigation = useNavigation<any>();
+  const isGuestMode = isAuthenticated && user?.username === "invite";
+  if (isGuestMode) {
+    return (
+      <View
+        style={{
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+          backgroundColor: colors.background,
+        }}
+      >
+        <Ionicons name="lock-closed-outline" size={48} color={colors.border} />
+        <Text style={{ color: colors.text, marginTop: 8, fontWeight: "600" }}>
+          {tText("Connexion requise")}
+        </Text>
+        <TouchableOpacity
+          onPress={() => navigation.navigate("Login")}
+          style={{
+            marginTop: 12,
+            paddingVertical: 10,
+            paddingHorizontal: 16,
+            backgroundColor: colors.primary,
+            borderRadius: 8,
+          }}
+        >
+          <Text style={{ color: "#fff", fontWeight: "700" }}>
+            {tText("Se connecter")}
+          </Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+  return <Component {...props} />;
 };

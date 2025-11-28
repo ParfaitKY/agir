@@ -80,11 +80,13 @@ export const DashboardScreen: React.FC = () => {
       : "0%";
   React.useEffect(() => {
     if (!isAuthenticated) return;
+    const isGuestMode = isAuthenticated && user?.username === "invite";
+    if (isGuestMode) return;
     fetchSolde();
     fetchTransaction();
     fetchAnalyse();
     fetchCompteStats();
-  }, [isAuthenticated]);
+  }, [isAuthenticated, user?.username]);
   // Détection du mode invité (username === "invite")
   const isGuestMode = isAuthenticated && user?.username === "invite";
   const [loginDisplay, setLoginDisplay] = useState("");

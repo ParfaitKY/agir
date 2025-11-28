@@ -14,6 +14,7 @@ interface AuthContextType {
   user: User | null;
   login: (credentials: LoginDTO) => Promise<void>;
   loginWithPin: (pin: string) => Promise<void>;
+  loginAsGuest: () => Promise<void>;
   logout: () => Promise<void>;
   markConfigured: (configured: boolean) => Promise<void>;
   isLoading: boolean;
@@ -112,6 +113,33 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       }
       setIsAuthenticated(true);
       if (finalUser) setUser(finalUser);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const loginAsGuest = async () => {
+    setIsLoading(true);
+    try {
+      const guestUser: User = {
+        id: "invite",
+        username: "invite",
+        name: "Invité",
+        email: "",
+      };
+      await secureSetItem("auth_token", "guest");
+      await secureSetItem("user_data", JSON.stringify(guestUser));
+      await secureSetItem("user_login", "invite");
+      try {
+        const hashedDefaultPin = await Crypto.digestStringAsync(
+          Crypto.CryptoDigestAlgorithm.SHA256,
+          "12345"
+        );
+        await secureSetItem("pin_user", hashedDefaultPin);
+      } catch {}
+      await secureSetItem("is_configured", "true");
+      setIsAuthenticated(true);
+      setUser(guestUser);
     } finally {
       setIsLoading(false);
     }
@@ -239,6 +267,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         user,
         login,
         loginWithPin,
+        loginAsGuest,
         logout,
         markConfigured,
         isLoading,

@@ -247,7 +247,7 @@ export const AnalyticsScreen: React.FC = () => {
                 labels: [tText("Sort."), tText("Entr."), tText("Cum.")],
                 datasets: [
                   {
-                    data: [debitCount, creditCount, totalCount],
+                    data: [debitCount * 5, creditCount * 5, totalCount * 5],
                   },
                 ],
               }}

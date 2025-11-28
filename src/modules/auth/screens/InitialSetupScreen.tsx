@@ -35,7 +35,7 @@ const InitialSetupScreen: React.FC = () => {
   const scheme = useColorScheme();
   const isDark = scheme === "dark";
 
-  const { user, markConfigured, login } = useAuth() as any;
+  const { user, markConfigured, login, loginAsGuest } = useAuth() as any;
   const { loginUser, isLoading: isLoginLoading } = useLogin();
   const { getAccess, isLoading: isAccessLoading, accessData } = useGetAccess();
   const {
@@ -164,11 +164,39 @@ const InitialSetupScreen: React.FC = () => {
   // Fonction mode invité
   const handleGuestMode = async () => {
     try {
-      await login({ username: "invite", password: "invite" });
-      markConfigured && (await markConfigured(true));
-      navigation?.navigate("Main", { screen: "Dashboard" });
-    } catch (e) {
-      setVerifyError("Impossible d’activer le mode invité.");
+      setVerifyError(null);
+      if (typeof loginAsGuest === "function") {
+        await loginAsGuest();
+      } else {
+        await secureSetItem("auth_token", "guest");
+        await secureSetItem(
+          "user_data",
+          JSON.stringify({
+            id: "invite",
+            username: "invite",
+            name: "Invité",
+            email: "",
+          })
+        );
+        await secureSetItem("user_login", "invite");
+        try {
+          const hashedDefaultPin = await Crypto.digestStringAsync(
+            Crypto.CryptoDigestAlgorithm.SHA256,
+            "12345"
+          );
+          await secureSetItem("pin_user", hashedDefaultPin);
+        } catch {}
+      }
+      if (markConfigured) await markConfigured(true);
+      try {
+        (navigation as any).reset({ index: 0, routes: [{ name: "Splash" }] });
+      } catch {
+        navigation?.navigate("Splash");
+      }
+    } catch (e: any) {
+      setVerifyError(
+        String(e?.message || "Impossible d’activer le mode invité.")
+      );
     }
   };
 
@@ -382,45 +410,109 @@ const InitialSetupScreen: React.FC = () => {
                 <Text style={[styles.label, { color: palette.textMain }]}>
                   Nouveau PIN
                 </Text>
-                <TextInput
-                  value={newPin}
-                  onChangeText={setNewPin}
+                <View style={styles.pinHintRow}>
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <View
+                      key={`hint-${i}`}
+                      style={[
+                        styles.hintDot,
+                        { borderColor: palette.border },
+                        i < newPin.length ? styles.hintDotFilled : undefined,
+                      ]}
+                    />
+                  ))}
+                  {newPin.length === 5 && (
+                    <MaterialIcons
+                      name="check-circle"
+                      size={16}
+                      color="#22C55E"
+                      style={styles.hintIcon}
+                    />
+                  )}
+                </View>
+                <Text
                   style={[
-                    styles.input,
-                    {
-                      borderColor: palette.border,
-                      backgroundColor: isDark ? "#111827" : "#FFFFFF",
-                      color: palette.textMain,
-                    },
+                    styles.hintText,
+                    { color: palette.textMain, fontWeight: "600" },
                   ]}
-                  secureTextEntry={!showNewPin}
-                  keyboardType="number-pad"
-                  maxLength={5}
-                  placeholderTextColor={palette.textSub}
-                />
+                >
+                  5 chiffres requis
+                </Text>
+                <View style={styles.inputContainer}>
+                  <TextInput
+                    value={newPin}
+                    onChangeText={setNewPin}
+                    style={[
+                      styles.input,
+                      {
+                        borderColor: palette.border,
+                        backgroundColor: isDark ? "#111827" : "#FFFFFF",
+                        color: palette.textMain,
+                        paddingRight: 36,
+                      },
+                    ]}
+                    secureTextEntry={!showNewPin}
+                    keyboardType="number-pad"
+                    maxLength={5}
+                    placeholder="•••••"
+                    placeholderTextColor={palette.textSub}
+                  />
+                  <TouchableOpacity
+                    onPress={() => setShowNewPin((v) => !v)}
+                    style={styles.iconOverlay}
+                  >
+                    <MaterialIcons
+                      name={showNewPin ? "visibility" : "visibility-off"}
+                      size={20}
+                      color={palette.primary}
+                    />
+                  </TouchableOpacity>
+                </View>
 
                 <Text style={[styles.label, { color: palette.textMain }]}>
                   Confirmer PIN
                 </Text>
-                <TextInput
-                  value={confirmPin}
-                  onChangeText={setConfirmPin}
-                  style={[
-                    styles.input,
-                    {
-                      borderColor: palette.border,
-                      backgroundColor: isDark ? "#111827" : "#FFFFFF",
-                      color: palette.textMain,
-                    },
-                  ]}
-                  secureTextEntry={!showConfirmPin}
-                  keyboardType="number-pad"
-                  maxLength={5}
-                  placeholderTextColor={palette.textSub}
-                />
+                <View style={styles.inputContainer}>
+                  <TextInput
+                    value={confirmPin}
+                    onChangeText={setConfirmPin}
+                    style={[
+                      styles.input,
+                      {
+                        borderColor: palette.border,
+                        backgroundColor: isDark ? "#111827" : "#FFFFFF",
+                        color: palette.textMain,
+                        paddingRight: 36,
+                      },
+                    ]}
+                    secureTextEntry={!showConfirmPin}
+                    keyboardType="number-pad"
+                    maxLength={5}
+                    placeholder="•••••"
+                    placeholderTextColor={palette.textSub}
+                  />
+                  <TouchableOpacity
+                    onPress={() => setShowConfirmPin((v) => !v)}
+                    style={styles.iconOverlay}
+                  >
+                    <MaterialIcons
+                      name={showConfirmPin ? "visibility" : "visibility-off"}
+                      size={20}
+                      color={palette.primary}
+                    />
+                  </TouchableOpacity>
+                </View>
 
                 <Text style={[styles.label, { color: palette.textMain }]}>
                   Clé secrète
+                </Text>
+                <Text
+                  style={[
+                    styles.hintText,
+                    { color: palette.textMain, fontWeight: "600" },
+                  ]}
+                >
+                  3 caractères minimum
                 </Text>
                 <TextInput
                   value={secretKey}
@@ -434,6 +526,7 @@ const InitialSetupScreen: React.FC = () => {
                     },
                   ]}
                   secureTextEntry={!showSecretKey}
+                  placeholder="3 caractères minimum"
                   placeholderTextColor={palette.textSub}
                 />
 
@@ -491,7 +584,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     backgroundColor: "#fff",
   },
-  label: { fontWeight: "600", marginBottom: 6 },
+  label: { fontWeight: "600", marginBottom: 10 },
   button: {
     backgroundColor: "#0066CC",
     paddingVertical: 12,
@@ -524,6 +617,54 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     textAlign: "center",
     marginBottom: 16,
+  },
+  helper: {
+    fontSize: 11,
+    marginBottom: 6,
+  },
+  inputRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  inputContainer: {
+    position: "relative",
+  },
+  eyeButton: {
+    paddingHorizontal: 6,
+    paddingVertical: 6,
+    borderRadius: 8,
+  },
+  iconOverlay: {
+    position: "absolute",
+    right: 10,
+    top: 18,
+  },
+  pinHintRow: {
+    flexDirection: "row",
+    justifyContent: "flex-start",
+    alignSelf: "flex-start",
+    marginBottom: 5,
+  },
+  hintDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    borderWidth: 1,
+    marginHorizontal: 4,
+    backgroundColor: "transparent",
+  },
+  hintText: {
+    fontSize: 12,
+    textAlign: "left",
+    alignSelf: "flex-start",
+    marginBottom: 6,
+  },
+  hintDotFilled: {
+    backgroundColor: "#0066CC",
+  },
+  hintIcon: {
+    marginLeft: 8,
   },
 });
 
