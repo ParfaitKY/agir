@@ -16,7 +16,7 @@ import {
   KeyboardAvoidingView,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useRoute } from "@react-navigation/native";
 import * as SecureStore from "expo-secure-store";
 import * as Crypto from "expo-crypto";
 import * as ScreenCapture from "expo-screen-capture";
@@ -30,6 +30,7 @@ import { useGetAccess } from "../../../domain/auth/useGetAccess";
 
 const InitialSetupScreen: React.FC = () => {
   const navigation = useNavigation<any>();
+  const route = useRoute<any>();
   const { width } = useWindowDimensions();
   const { t } = useI18n();
   const scheme = useColorScheme();
@@ -60,6 +61,7 @@ const InitialSetupScreen: React.FC = () => {
   const [newPin, setNewPin] = useState("");
   const [confirmPin, setConfirmPin] = useState("");
   const [secretKey, setSecretKey] = useState("");
+  const [hasPrefilledParams, setHasPrefilledParams] = useState(false);
 
   const [showNewPin, setShowNewPin] = useState(false);
   const [showConfirmPin, setShowConfirmPin] = useState(false);
@@ -124,10 +126,8 @@ const InitialSetupScreen: React.FC = () => {
     if (step === 1 && clientData) {
       const ln = clientData.NOMCLIENT ?? clientData.lastName ?? "";
       const fn = clientData.PRENOMCLIENT ?? clientData.firstName ?? "";
-      const lg = clientData.login ?? accountNumber;
       setLastName(ln);
       setFirstName(fn);
-      setLoginReadonly(String(lg));
       const cid = clientData.IDCLIENT ?? clientData.id;
       if (cid) {
         const cidStr = String(cid);
@@ -141,6 +141,27 @@ const InitialSetupScreen: React.FC = () => {
       }, 300);
     }
   }, [clientData]);
+
+  useEffect(() => {
+    const params = (route as any)?.params || {};
+    const nom = params?.nom;
+    const prenom = params?.prenom;
+    const login = params?.login;
+    const hasAll =
+      typeof login !== "undefined" ||
+      typeof nom !== "undefined" ||
+      typeof prenom !== "undefined";
+    if (hasAll) {
+      setLastName(nom ?? "");
+      setFirstName(prenom ?? "");
+      setLoginReadonly(login ?? "");
+      setHasPrefilledParams(true);
+      secureSetItem("user_lastname", String(nom ?? ""));
+      secureSetItem("user_firstname", String(prenom ?? ""));
+      secureSetItem("user_login", String(login ?? ""));
+      setStep(2);
+    }
+  }, [route]);
 
   // Fonction vérification compte
   const handleVerifyAccountNumber = async () => {
@@ -373,6 +394,7 @@ const InitialSetupScreen: React.FC = () => {
                     },
                   ]}
                   placeholderTextColor={palette.textSub}
+                  editable={!hasPrefilledParams}
                 />
                 <Text style={[styles.label, { color: palette.textMain }]}>
                   Prénom
@@ -389,6 +411,7 @@ const InitialSetupScreen: React.FC = () => {
                     },
                   ]}
                   placeholderTextColor={palette.textSub}
+                  editable={!hasPrefilledParams}
                 />
                 <Text style={[styles.label, { color: palette.textMain }]}>
                   Login
@@ -405,6 +428,8 @@ const InitialSetupScreen: React.FC = () => {
                     },
                   ]}
                   placeholderTextColor={palette.textSub}
+                  placeholder="Entrez votre login"
+                  editable={!hasPrefilledParams}
                 />
 
                 <Text style={[styles.label, { color: palette.textMain }]}>
