@@ -95,22 +95,66 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         data?.result?.token;
       if (!token) throw new Error("Token absent dans la réponse");
       await secureSetItem("auth_token", String(token));
-      let finalUser: User | null = null;
-      const saved = await secureGetItem("user_data");
-      if (saved) {
-        finalUser = JSON.parse(saved);
-      } else {
-        const fn = await secureGetItem("user_firstname");
-        const ln = await secureGetItem("user_lastname");
-        const name = `${fn ?? ""} ${ln ?? ""}`.trim() || credentials.username;
-        finalUser = {
-          id: credentials.username,
-          username: credentials.username,
-          name,
-          email: "",
-        } as User;
-        await secureSetItem("user_data", JSON.stringify(finalUser));
-      }
+      const normalize = (raw: any) => {
+        const d = raw?.data ?? raw;
+        if (Array.isArray(d)) return d[0] ?? {};
+        if (Array.isArray(d?.data)) return d.data[0] ?? {};
+        if (Array.isArray(d?.result)) return d.result[0] ?? {};
+        if (Array.isArray(d?.payload)) return d.payload[0] ?? {};
+        if (d?.data && typeof d.data === "object") return d.data;
+        return d ?? {};
+      };
+      const pick = (obj: any, patterns: string[]) => {
+        if (!obj) return undefined;
+        const keys = Object.keys(obj);
+        for (const p of patterns) {
+          const np = p.toLowerCase().replace(/_/g, "");
+          for (const k of keys) {
+            const nk = k.toLowerCase().replace(/_/g, "");
+            if (nk === np) return obj[k];
+          }
+        }
+        return undefined;
+      };
+      const block = normalize(data);
+      const fnSaved = await secureGetItem("user_firstname");
+      const lnSaved = await secureGetItem("user_lastname");
+      const fn =
+        block?.CL_PRENOMCLIENT ||
+        pick(block, [
+          "CL_PRENOMCLIENT",
+          "PRENOMCLIENT",
+          "PRENOM",
+          "firstName",
+        ]) ||
+        fnSaved ||
+        "";
+      const ln =
+        block?.CL_NOMCLIENT ||
+        pick(block, ["CL_NOMCLIENT", "NOMCLIENT", "NOM", "lastName"]) ||
+        lnSaved ||
+        "";
+      const username =
+        block?.SL_LOGIN ||
+        pick(block, ["SL_LOGIN", "LOGIN", "login", "username"]) ||
+        data?.username ||
+        credentials.username;
+      const email =
+        pick(block, [
+          "CL_EMAILCLIENT",
+          "CL_EMAIL",
+          "EMAILCLIENT",
+          "ADRESSEMAIL",
+          "ADRESSE_EMAIL",
+          "EMAIL",
+          "MAIL",
+          "E_MAIL",
+        ]) ||
+        data?.email ||
+        "";
+      const name = `${fn} ${ln}`.trim() || data?.name || username;
+      const finalUser: User = { id: username, username, name, email } as User;
+      await secureSetItem("user_data", JSON.stringify(finalUser));
       setIsAuthenticated(true);
       if (finalUser) setUser(finalUser);
     } finally {
@@ -234,14 +278,64 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           data?.result?.token;
         if (!token) throw new Error("Token absent dans la réponse");
         await secureSetItem("auth_token", String(token));
+        const normalize = (raw: any) => {
+          const d = raw?.data ?? raw;
+          if (Array.isArray(d)) return d[0] ?? {};
+          if (Array.isArray(d?.data)) return d.data[0] ?? {};
+          if (Array.isArray(d?.result)) return d.result[0] ?? {};
+          if (Array.isArray(d?.payload)) return d.payload[0] ?? {};
+          if (d?.data && typeof d.data === "object") return d.data;
+          return d ?? {};
+        };
+        const pick = (obj: any, patterns: string[]) => {
+          if (!obj) return undefined;
+          const keys = Object.keys(obj);
+          for (const p of patterns) {
+            const np = p.toLowerCase().replace(/_/g, "");
+            for (const k of keys) {
+              const nk = k.toLowerCase().replace(/_/g, "");
+              if (nk === np) return obj[k];
+            }
+          }
+          return undefined;
+        };
+        const block = normalize(data);
         let finalUser: User | null = null;
         if (userData) {
           finalUser = JSON.parse(userData);
         } else {
-          const fn = await secureGetItem("user_firstname");
-          const ln = await secureGetItem("user_lastname");
-          const name = `${fn ?? ""} ${ln ?? ""}`.trim() || lg;
-          finalUser = { id: lg, username: lg, name, email: "" } as User;
+          const fnSaved = await secureGetItem("user_firstname");
+          const lnSaved = await secureGetItem("user_lastname");
+          const fn =
+            block?.CL_PRENOMCLIENT ||
+            pick(block, [
+              "CL_PRENOMCLIENT",
+              "PRENOMCLIENT",
+              "PRENOM",
+              "firstName",
+            ]) ||
+            fnSaved ||
+            "";
+          const ln =
+            block?.CL_NOMCLIENT ||
+            pick(block, ["CL_NOMCLIENT", "NOMCLIENT", "NOM", "lastName"]) ||
+            lnSaved ||
+            "";
+          const email =
+            pick(block, [
+              "CL_EMAILCLIENT",
+              "CL_EMAIL",
+              "EMAILCLIENT",
+              "ADRESSEMAIL",
+              "ADRESSE_EMAIL",
+              "EMAIL",
+              "MAIL",
+              "E_MAIL",
+            ]) ||
+            data?.email ||
+            "";
+          const name = `${fn} ${ln}`.trim() || lg;
+          finalUser = { id: lg, username: lg, name, email } as User;
           await secureSetItem("user_data", JSON.stringify(finalUser));
         }
         setIsAuthenticated(true);

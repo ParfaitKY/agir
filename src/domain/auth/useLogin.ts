@@ -26,7 +26,8 @@ export const useLogin = () => {
 
       if (result?.error) {
         const err: any = result.error;
-        const msg = err?.response?.data?.message || err?.message || "Échec de connexion";
+        const msg =
+          err?.response?.data?.message || err?.message || "Échec de connexion";
         setError(msg);
         return false;
       }
@@ -42,13 +43,63 @@ export const useLogin = () => {
       // Stockage sécurisé du token
       await secureSetItem("auth_token", String(token));
 
-      // Stockage user_data si présent
-      const userData = {
-        id: data?.id,
-        username: data?.username,
-        name: data?.name,
-        email: data?.email || "",
+      const normalize = (raw: any) => {
+        const d = raw?.data ?? raw;
+        if (Array.isArray(d)) return d[0] ?? {};
+        if (Array.isArray(d?.data)) return d.data[0] ?? {};
+        if (Array.isArray(d?.result)) return d.result[0] ?? {};
+        if (Array.isArray(d?.payload)) return d.payload[0] ?? {};
+        if (d?.data && typeof d.data === "object") return d.data;
+        return d ?? {};
       };
+      const pick = (obj: any, patterns: string[]) => {
+        if (!obj) return undefined;
+        const keys = Object.keys(obj);
+        for (const p of patterns) {
+          const np = p.toLowerCase().replace(/_/g, "");
+          for (const k of keys) {
+            const nk = k.toLowerCase().replace(/_/g, "");
+            if (nk === np) return obj[k];
+          }
+        }
+        return undefined;
+      };
+      const block = normalize(data);
+      const fn =
+        block?.CL_PRENOMCLIENT ||
+        pick(block, [
+          "CL_PRENOMCLIENT",
+          "PRENOMCLIENT",
+          "PRENOM",
+          "firstName",
+        ]) ||
+        "";
+      const ln =
+        block?.CL_NOMCLIENT ||
+        pick(block, ["CL_NOMCLIENT", "NOMCLIENT", "NOM", "lastName"]) ||
+        "";
+      const username =
+        block?.SL_LOGIN ||
+        pick(block, ["SL_LOGIN", "LOGIN", "login", "username"]) ||
+        payload?.SL_LOGIN ||
+        "";
+      const name =
+        `${fn} ${ln}`.trim() || block?.name || data?.name || username || "";
+      const email =
+        pick(block, [
+          "CL_EMAILCLIENT",
+          "CL_EMAIL",
+          "EMAILCLIENT",
+          "ADRESSEMAIL",
+          "ADRESSE_EMAIL",
+          "EMAIL",
+          "MAIL",
+          "E_MAIL",
+        ]) ||
+        data?.email ||
+        "";
+      const id = data?.id || username || "";
+      const userData = { id, username, name, email };
       await secureSetItem("user_data", JSON.stringify(userData));
 
       setUserInfo({ token, user: userData });
