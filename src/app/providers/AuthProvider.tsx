@@ -155,6 +155,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       const name = `${fn} ${ln}`.trim() || data?.name || username;
       const finalUser: User = { id: username, username, name, email } as User;
       await secureSetItem("user_data", JSON.stringify(finalUser));
+      const phone =
+        pick(block, [
+          "TELEPHONE",
+          "TEL",
+          "PHONE",
+          "MOBILE",
+          "GSM",
+          "CONTACT",
+        ]) || "";
+      const address =
+        pick(block, [
+          "ADRESSE",
+          "ADDRESS",
+          "LOCALISATION",
+          "VILLE",
+          "CITY",
+          "LOCATION",
+        ]) || "";
+      if (phone) await secureSetItem("user_phone", String(phone));
+      if (address) await secureSetItem("user_address", String(address));
       setIsAuthenticated(true);
       if (finalUser) setUser(finalUser);
     } finally {
@@ -338,6 +358,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           finalUser = { id: lg, username: lg, name, email } as User;
           await secureSetItem("user_data", JSON.stringify(finalUser));
         }
+        const phone =
+          pick(block, [
+            "CL_TELEPHONECLIENT",
+            "CONTACTCLIENT",
+            "TELEPHONE",
+            "TEL",
+            "PHONE",
+            "MOBILE",
+            "GSM",
+            "CONTACT",
+          ]) || "";
+        const address =
+          pick(block, [
+            "CL_ADRESSECLIENT",
+            "ADRESSE",
+            "ADDRESS",
+            "LOCALISATION",
+            "VILLE",
+            "CITY",
+            "LOCATION",
+          ]) || "";
+        if (phone) await secureSetItem("user_phone", String(phone));
+        if (address) await secureSetItem("user_address", String(address));
         setIsAuthenticated(true);
         if (finalUser) setUser(finalUser);
       } else {

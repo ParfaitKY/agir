@@ -1,46 +1,144 @@
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, SafeAreaView, Platform } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
-import * as Print from 'expo-print';
-import * as Sharing from 'expo-sharing';
+import React from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  SafeAreaView,
+  Platform,
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { useNavigation } from "@react-navigation/native";
+import * as Print from "expo-print";
+import * as Sharing from "expo-sharing";
+import { secureGetItem } from "../../../shared/utils/secureStorage";
+import { getDerniereTransaction } from "../../../services/compte/derniereTransaction";
 
-const statements = [
-  { month: 'Octobre 2025', range: '01/10/2025 - 31/10/2025', size: '245 KB' },
-  { month: 'Septembre 2025', range: '01/09/2025 - 30/09/2025', size: '312 KB' },
-  { month: 'Août 2025', range: '01/08/2025 - 31/08/2025', size: '298 KB' },
-  { month: 'Juillet 2025', range: '01/07/2025 - 31/07/2025', size: '276 KB' },
-  { month: 'Juin 2025', range: '01/06/2025 - 30/06/2025', size: '270 KB' },
-];
+const formatDate = (d: Date) => {
+  const dd = String(d.getDate()).padStart(2, "0");
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const yyyy = d.getFullYear();
+  return `${dd}/${mm}/${yyyy}`;
+};
+
+const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+
+const useRecentStatements = (count: number = 6) => {
+  const [items, setItems] = React.useState<
+    Array<{ month: string; range: string; size: string }>
+  >([]);
+  React.useEffect(() => {
+    const list: Array<{ month: string; range: string; size: string }> = [];
+    for (let i = 0; i < count; i++) {
+      const ref = new Date();
+      ref.setHours(0, 0, 0, 0);
+      ref.setMonth(ref.getMonth() - i);
+      const start = new Date(ref.getFullYear(), ref.getMonth(), 1);
+      const end = new Date(ref.getFullYear(), ref.getMonth() + 1, 0);
+      const monthLabel =
+        capitalize(start.toLocaleDateString("fr-FR", { month: "long" })) +
+        ` ${start.getFullYear()}`;
+      const range = `${formatDate(start)} - ${formatDate(end)}`;
+      list.push({ month: monthLabel, range, size: "—" });
+    }
+    setItems(list);
+  }, [count]);
+  return items;
+};
 
 export const StatementsScreen: React.FC = () => {
   const navigation = useNavigation();
+  const statements = useRecentStatements(6);
 
-  const generateHtml = (item: { month: string; range: string }) => {
+  const generateHtml = async (item: { month: string; range: string }) => {
     const company = {
-      name: 'LA PEYRIE EMF',
-      city: 'Libreville, Gabon',
-      phone: '+241 XX XX XX XX',
+      name: "LA PEYRIE EMF",
+      city: "Libreville, Gabon",
+      phone: "+241 XX XX XX XX",
     };
-    const account = {
-      number: '1000CCHQ000000031001',
-      holder: 'DERLY MOUPEPIDI',
-      openingBalance: 1500000,
-      closingBalance: 1850000,
+    const number = (await secureGetItem("user_account_number")) || "";
+    const fn = (await secureGetItem("user_firstname")) || "";
+    const ln = (await secureGetItem("user_lastname")) || "";
+    const holder =
+      `${fn} ${ln}`.trim() || (await secureGetItem("user_login")) || "";
+    const token = await secureGetItem("auth_token");
+    const clientId = await secureGetItem("client_id");
+    const login = await secureGetItem("user_login");
+    const agency = (await secureGetItem("user_agency")) || "";
+    const headers: any =
+      token && clientId
+        ? {
+            Authorization: `Bearer ${token}`,
+            "X-CLIENT-ID": clientId,
+            ...(login ? { "X-LOGIN": login } : {}),
+          }
+        : {};
+    const payload: any = {
+      AG_CODEAGENCE: String(agency || ""),
+      CO_CODECOMPTE: String(number || ""),
+      CODECRYPTAGE: "Y}@128eVIXfoi7",
     };
-    const rows = [
-      { date: '23/10/2025', desc: 'Virement reçu - MOUPEPIDI', debit: '', credit: 50000, balance: 1550000 },
-      { date: '22/10/2025', desc: 'Retrait ATM - Agence 2', debit: 25000, credit: '', balance: 1525000 },
-      { date: '21/10/2025', desc: 'Paiement facture ENEO', debit: 15000, credit: '', balance: 1510000 },
-      { date: '20/10/2025', desc: 'Salaire mensuel', debit: '', credit: 350000, balance: 1860000 },
-      { date: '19/10/2025', desc: 'Achat supermarché', debit: 35000, credit: '', balance: 1825000 },
-      { date: '18/10/2025', desc: 'Transfert épargne', debit: 75000, credit: '', balance: 1750000 },
-    ];
+    let row = {
+      date: new Date().toLocaleDateString("fr-FR"),
+      desc: "Dernière opération",
+      debit: 0,
+      credit: 0,
+      balance: 0,
+    } as any;
+    try {
+      const result: any = await getDerniereTransaction(payload, headers);
+      const raw = result?.data;
+      const normalize = (r: any) => {
+        const d = r?.data ?? r;
+        if (Array.isArray(d)) return d[0] ?? {};
+        if (Array.isArray(d?.data)) return d.data[0] ?? {};
+        if (Array.isArray(d?.result)) return d.result[0] ?? {};
+        if (Array.isArray(d?.payload)) return d.payload[0] ?? {};
+        if (d?.data && typeof d.data === "object") return d.data;
+        return d ?? {};
+      };
+      const pick = (obj: any, patterns: string[]) => {
+        if (!obj) return undefined;
+        const keys = Object.keys(obj);
+        for (const p of patterns) {
+          const np = p.toLowerCase().replace(/_/g, "");
+          for (const k of keys) {
+            const nk = k.toLowerCase().replace(/_/g, "");
+            if (nk === np) return obj[k];
+          }
+        }
+        return undefined;
+      };
+      const itemData = normalize(raw);
+      const date =
+        pick(itemData, ["DATEOPERATION", "DATE", "DATEVALEUR", "OP_DATE"]) ||
+        new Date().toLocaleDateString("fr-FR");
+      const desc =
+        pick(itemData, [
+          "LIBELLEOPERATION",
+          "LIBELLE",
+          "INTITULE",
+          "MOTIF",
+          "DETAILS",
+        ]) || "Dernière opération";
+      const amountNum = Number(
+        pick(itemData, ["MONTANTOPERATION", "MONTANT", "MONTANT_TOTAL"]) || 0
+      );
+      row = {
+        date,
+        desc,
+        debit: amountNum < 0 ? Math.abs(amountNum) : 0,
+        credit: amountNum > 0 ? Math.abs(amountNum) : 0,
+        balance: amountNum,
+      };
+    } catch {}
+    const rows = [row];
     const totalCredit = rows.reduce((s, r) => s + Number(r.credit || 0), 0);
     const totalDebit = rows.reduce((s, r) => s + Number(r.debit || 0), 0);
     const variation = totalCredit - totalDebit;
 
-    const currency = (n: number) => `${n.toLocaleString('fr-FR')} XAF`;
+    const currency = (n: number) => `${n.toLocaleString("fr-FR")} XAF`;
 
     return `
       <!doctype html>
@@ -78,8 +176,8 @@ export const StatementsScreen: React.FC = () => {
         <div class="summary">
           <div>Période: <span class="right">${item.month}</span></div>
           <div>Dates: <span class="right">${item.range}</span></div>
-          <div>Numéro de compte: <span class="right">${account.number}</span></div>
-          <div>Titulaire: <span class="right">${account.holder}</span></div>
+          <div>Numéro de compte: <span class="right">${number}</span></div>
+          <div>Titulaire: <span class="right">${holder}</span></div>
         </div>
         <table class="table">
           <thead>
@@ -93,25 +191,41 @@ export const StatementsScreen: React.FC = () => {
           </thead>
           <tbody>
             <tr><td colspan="5" class="section-title">Solde d'ouverture</td></tr>
-            ${rows.map(r => `
+            ${rows
+              .map(
+                (r) => `
               <tr>
                 <td>${r.date}</td>
                 <td>${r.desc}</td>
-                <td style="color:${Number(r.debit) > 0 ? '#EB5757' : '#777'}">${Number(r.debit) > 0 ? currency(Number(r.debit)) : '-'}</td>
-                <td style="color:${Number(r.credit) > 0 ? '#27AE60' : '#777'}">${Number(r.credit) > 0 ? currency(Number(r.credit)) : '-'}</td>
+                <td style="color:${Number(r.debit) > 0 ? "#EB5757" : "#777"}">${
+                  Number(r.debit) > 0 ? currency(Number(r.debit)) : "-"
+                }</td>
+                <td style="color:${
+                  Number(r.credit) > 0 ? "#27AE60" : "#777"
+                }">${
+                  Number(r.credit) > 0 ? currency(Number(r.credit)) : "-"
+                }</td>
                 <td>${currency(r.balance)}</td>
               </tr>
-            `).join('')}
+            `
+              )
+              .join("")}
             <tr><td colspan="5" class="section-title">Solde de clôture</td></tr>
           </tbody>
         </table>
         <div class="totals">
-          <div>Total des crédits: <span class="credit">+${currency(totalCredit)}</span></div>
-          <div>Total des débits: <span class="debit">-${currency(totalDebit)}</span></div>
-          <div>Variation: <span class="variation">${currency(variation)}</span></div>
+          <div>Total des crédits: <span class="credit">+${currency(
+            totalCredit
+          )}</span></div>
+          <div>Total des débits: <span class="debit">-${currency(
+            totalDebit
+          )}</span></div>
+          <div>Variation: <span class="variation">${currency(
+            variation
+          )}</span></div>
         </div>
         <div class="footer">
-          Document généré le ${(new Date()).toLocaleString('fr-FR')}<br/>
+          Document généré le ${new Date().toLocaleString("fr-FR")}<br/>
           ${company.name} - ${company.city} - Tél ${company.phone}<br/>
           Ce document est généré automatiquement et ne nécessite pas de signature
         </div>
@@ -121,8 +235,8 @@ export const StatementsScreen: React.FC = () => {
   };
 
   const handleDownload = async (item: { month: string; range: string }) => {
-    const html = generateHtml(item);
-    if (Platform.OS === 'web') {
+    const html = await generateHtml(item);
+    if (Platform.OS === "web") {
       await Print.printAsync({ html });
       return;
     }
@@ -136,7 +250,11 @@ export const StatementsScreen: React.FC = () => {
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Relevés de compte</Text>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.closeBtn} activeOpacity={0.7}>
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={styles.closeBtn}
+          activeOpacity={0.7}
+        >
           <Ionicons name="close" size={24} color="#000" />
         </TouchableOpacity>
       </View>
@@ -157,7 +275,11 @@ export const StatementsScreen: React.FC = () => {
             </View>
             <View style={styles.cardRight}>
               <Text style={styles.sizeText}>{item.size}</Text>
-              <TouchableOpacity style={styles.downloadBtn} activeOpacity={0.7} onPress={() => handleDownload(item)}>
+              <TouchableOpacity
+                style={styles.downloadBtn}
+                activeOpacity={0.7}
+                onPress={() => handleDownload(item)}
+              >
                 <Ionicons name="download-outline" size={20} color="#2F80ED" />
               </TouchableOpacity>
             </View>
@@ -171,30 +293,30 @@ export const StatementsScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
   },
   header: {
     paddingHorizontal: 20,
     paddingTop: 16,
     paddingBottom: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#F0F0F0',
+    borderBottomColor: "#F0F0F0",
   },
   headerTitle: {
     fontSize: 28,
-    fontWeight: '700',
-    color: '#000',
+    fontWeight: "700",
+    color: "#000",
   },
   closeBtn: {
-    position: 'absolute',
+    position: "absolute",
     right: 16,
     top: 16,
     width: 36,
     height: 36,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     borderRadius: 18,
-    backgroundColor: '#F8F8F8',
+    backgroundColor: "#F8F8F8",
   },
   content: {
     paddingHorizontal: 16,
@@ -203,39 +325,39 @@ const styles = StyleSheet.create({
   },
   subTitle: {
     fontSize: 18,
-    fontWeight: '700',
-    color: '#000',
+    fontWeight: "700",
+    color: "#000",
     marginBottom: 12,
   },
   card: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: '#fff',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: "#fff",
     borderRadius: 16,
     paddingVertical: 16,
     paddingHorizontal: 16,
     marginBottom: 14,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.06,
     shadowRadius: 8,
     elevation: 3,
     borderWidth: 1,
-    borderColor: '#F0F0F0',
+    borderColor: "#F0F0F0",
   },
   cardLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     flex: 1,
   },
   iconBg: {
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: '#E7F1FF',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: "#E7F1FF",
+    alignItems: "center",
+    justifyContent: "center",
   },
   cardTexts: {
     marginLeft: 14,
@@ -244,29 +366,29 @@ const styles = StyleSheet.create({
   },
   cardTitle: {
     fontSize: 18,
-    fontWeight: '700',
-    color: '#000',
+    fontWeight: "700",
+    color: "#000",
     marginBottom: 4,
   },
   cardRange: {
     fontSize: 14,
-    color: '#777',
+    color: "#777",
   },
   cardRight: {
-    alignItems: 'flex-end',
+    alignItems: "flex-end",
   },
   sizeText: {
     fontSize: 14,
-    color: '#777',
+    color: "#777",
     marginBottom: 8,
   },
   downloadBtn: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#E7F1FF',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: "#E7F1FF",
+    alignItems: "center",
+    justifyContent: "center",
   },
 });
 

@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
 import { clientByCompte } from "../../services/auth/clientByCompte";
-import { secureSetItem } from "../../shared/utils/secureStorage";
+import { secureSetItem, secureGetItem } from "../../shared/utils/secureStorage";
 
 export type ClientInfo = {
   id?: string;
@@ -12,6 +12,8 @@ export type ClientInfo = {
   login?: string;
   agency?: string;
   NUMCOMPTE?: string;
+  phone?: string;
+  address?: string;
   raw?: any;
 };
 //01/0/2025
@@ -125,6 +127,44 @@ export const useClientByCompte = () => {
       source?.ACCOUNT_NUMBER ??
       source?.CO_CODECOMPTE;
 
+    const phone =
+      source?.CL_TELEPHONECLIENT ??
+      source?.CONTACTCLIENT ??
+      source?.TELEPHONE ??
+      source?.TEL ??
+      source?.PHONE ??
+      source?.MOBILE ??
+      source?.GSM ??
+      source?.CONTACT ??
+      pickKeyValue(source, [
+        "CL_TELEPHONECLIENT",
+        "CONTACTCLIENT",
+        "TELEPHONE",
+        "TEL",
+        "PHONE",
+        "MOBILE",
+        "GSM",
+        "CONTACT",
+      ]);
+
+    const address =
+      source?.CL_ADRESSECLIENT ??
+      source?.ADRESSE ??
+      source?.ADDRESS ??
+      source?.LOCALISATION ??
+      source?.VILLE ??
+      source?.CITY ??
+      source?.LOCATION ??
+      pickKeyValue(source, [
+        "CL_ADRESSECLIENT",
+        "ADRESSE",
+        "ADDRESS",
+        "LOCALISATION",
+        "VILLE",
+        "CITY",
+        "LOCATION",
+      ]);
+
     // ✅ Ici on génère un client_id si l'API ne le renvoie pas
     const IDCLIENT =
       source?.IDCLIENT ??
@@ -146,6 +186,8 @@ export const useClientByCompte = () => {
       login,
       agency,
       NUMCOMPTE,
+      phone,
+      address,
       raw,
     };
   };
@@ -160,7 +202,17 @@ export const useClientByCompte = () => {
         return false;
       }
 
-      const result = await clientByCompte({ numero_compte });
+      const token = await secureGetItem("auth_token");
+      const clientId = await secureGetItem("client_id");
+      const login = await secureGetItem("user_login");
+      const headers: any = token
+        ? {
+            Authorization: `Bearer ${token}`,
+            ...(clientId ? { "X-CLIENT-ID": clientId } : {}),
+            ...(login ? { "X-LOGIN": login } : {}),
+          }
+        : {};
+      const result = await clientByCompte({ numero_compte }, headers);
 
       if (result.error) {
         const err: any = result.error;
@@ -206,6 +258,9 @@ export const useClientByCompte = () => {
         const sanitizedAgency = String(info.agency).replace(/\D/g, "");
         await secureSetItem("user_agency", sanitizedAgency);
       }
+      if (info.phone) await secureSetItem("user_phone", String(info.phone));
+      if (info.address)
+        await secureSetItem("user_address", String(info.address));
 
       return true;
     } catch (e) {

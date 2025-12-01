@@ -19,13 +19,22 @@ export const AccountsScreen: React.FC = () => {
   >("tous");
   const { t, tText } = useI18n();
   const { colors } = useTheme();
-  const { data: compteStats, isLoading, error, fetchData } = useCompteStatistiques();
-  React.useEffect(() => { fetchData(); }, []);
+  const {
+    data: compteStats,
+    isLoading,
+    error,
+    fetchData,
+  } = useCompteStatistiques();
+  React.useEffect(() => {
+    fetchData();
+  }, []);
 
   const stats = [
     {
       id: 1,
-      label: `${new Intl.NumberFormat("fr-FR").format(Number(compteStats?.SOLDE_GLOBAL || 0))} XAF`,
+      label: `${new Intl.NumberFormat("fr-FR").format(
+        Number(compteStats?.SOLDE_GLOBAL || 0)
+      )} XAF`,
       sub: tText("Total"),
       icon: "wallet-outline",
       bg: colors.primary + "15",
@@ -41,7 +50,12 @@ export const AccountsScreen: React.FC = () => {
     },
     {
       id: 3,
-      label: `${new Intl.NumberFormat("fr-FR").format((compteStats?.COMPTES ?? []).reduce((s: number, c: any) => s + (Number(c?.MONTANTBLOQUE || 0)), 0))} XAF`,
+      label: `${new Intl.NumberFormat("fr-FR").format(
+        (compteStats?.COMPTES ?? []).reduce(
+          (s: number, c: any) => s + Number(c?.MONTANTBLOQUE || 0),
+          0
+        )
+      )} XAF`,
       sub: tText("Bloqué"),
       icon: "lock-closed-outline",
       bg: colors.warning + "15",
@@ -51,21 +65,31 @@ export const AccountsScreen: React.FC = () => {
 
   const accounts = (compteStats?.COMPTES ?? []).map((c, idx) => {
     const type = String(c.CO_INTITULECOMPTE ?? "");
-    const color = type.includes("Épargne") || type.includes("EPARGNE") ? colors.success : colors.primary;
+    const color =
+      type.includes("Épargne") || type.includes("EPARGNE")
+        ? colors.success
+        : colors.primary;
     return {
       id: c.id ?? idx,
       type,
       number: String(c.NUMEROCOMPTE ?? ""),
       balance: String(c.SOLDE ?? c.SOLDE_GLOBAL ?? 0),
+      blocked: Number(c.MONTANTBLOQUE ?? 0),
       currency: "XAF",
-      progress: typeof c.POURCENTAGE_SOLDE === "number" ? Math.max(0, Math.min(1, c.POURCENTAGE_SOLDE / 100)) : 0,
+      progress:
+        typeof c.POURCENTAGE_SOLDE === "number"
+          ? Math.max(0, Math.min(1, c.POURCENTAGE_SOLDE / 100))
+          : 0,
       active: !c.CO_DATECLOTURE || String(c.CO_DATECLOTURE).includes("1900"),
       color,
     } as any;
   });
 
   const parseAmount = (s: string) => Number(s.replace(/\s/g, ""));
-  const portfolioTotal = Number(compteStats?.SOLDE_GLOBAL ?? accounts.reduce((sum, a) => sum + parseAmount(a.balance), 0));
+  const portfolioTotal = Number(
+    compteStats?.SOLDE_GLOBAL ??
+      accounts.reduce((sum, a) => sum + parseAmount(a.balance), 0)
+  );
 
   const renderStat = (s: any) => (
     <View
@@ -144,7 +168,7 @@ export const AccountsScreen: React.FC = () => {
           <Text style={[styles.portfolioLabel, { color: colors.text + "70" }]}>
             {t("accounts.header.portfolioTotal")}
           </Text>
-          <Text style={[styles.portfolioValue, { color: colors.primary }]}> 
+          <Text style={[styles.portfolioValue, { color: colors.primary }]}>
             {new Intl.NumberFormat("fr-FR").format(portfolioTotal)} XAF
           </Text>
         </View>
@@ -155,11 +179,7 @@ export const AccountsScreen: React.FC = () => {
           ]}
           onPress={fetchData}
         >
-          <Ionicons
-            name="refresh-outline"
-            size={20}
-            color={colors.primary}
-          />
+          <Ionicons name="refresh-outline" size={20} color={colors.primary} />
           <View style={[styles.notifyDot, { backgroundColor: colors.error }]} />
         </TouchableOpacity>
       </View>
@@ -231,7 +251,13 @@ export const AccountsScreen: React.FC = () => {
             activeOpacity={0.85}
             onPress={() => {
               // Ouvrir l'écran de détails pour tout type de compte
-              (navigation as any).navigate("AccountDetails", { account: a });
+              (navigation as any).navigate("AccountDetails", {
+                account: a,
+                sharePct: Math.round(
+                  (parseAmount(a.balance) / portfolioTotal) * 100
+                ),
+                total: portfolioTotal,
+              });
             }}
           >
             <View style={styles.accountTop}>
@@ -250,7 +276,7 @@ export const AccountsScreen: React.FC = () => {
                 />
               </View>
               <View style={styles.accountInfo}>
-                <Text style={[styles.accountType, { color: colors.text }]}> 
+                <Text style={[styles.accountType, { color: colors.text }]}>
                   {tText(a.type)}
                 </Text>
                 <Text
@@ -262,7 +288,11 @@ export const AccountsScreen: React.FC = () => {
               <View
                 style={[
                   styles.statusPill,
-                  { backgroundColor: a.active ? colors.success + "15" : colors.error + "15" },
+                  {
+                    backgroundColor: a.active
+                      ? colors.success + "15"
+                      : colors.error + "15",
+                  },
                 ]}
               >
                 <Ionicons
@@ -270,7 +300,12 @@ export const AccountsScreen: React.FC = () => {
                   size={14}
                   color={a.active ? colors.success : colors.error}
                 />
-                <Text style={[styles.statusText, { color: a.active ? colors.success : colors.error }]}> 
+                <Text
+                  style={[
+                    styles.statusText,
+                    { color: a.active ? colors.success : colors.error },
+                  ]}
+                >
                   {a.active ? t("accounts.status.active") : tText("Clôturé")}
                 </Text>
               </View>
@@ -283,8 +318,10 @@ export const AccountsScreen: React.FC = () => {
                 >
                   {t("accounts.balance.available")}
                 </Text>
-                <Text style={[styles.balanceValue, { color: colors.text }]}> 
-                  {new Intl.NumberFormat("fr-FR").format(parseAmount(a.balance))}{" "}
+                <Text style={[styles.balanceValue, { color: colors.text }]}>
+                  {new Intl.NumberFormat("fr-FR").format(
+                    parseAmount(a.balance)
+                  )}{" "}
                   <Text
                     style={[styles.balanceCurrency, { color: colors.primary }]}
                   >
@@ -294,6 +331,10 @@ export const AccountsScreen: React.FC = () => {
               </View>
               <TouchableOpacity
                 style={[styles.roundActionBtn, { backgroundColor: a.color }]}
+                onPress={() =>
+                  (navigation as any).navigate("Transfer", { account: a })
+                }
+                activeOpacity={0.85}
               >
                 <Ionicons name="swap-horizontal" size={20} color="#fff" />
               </TouchableOpacity>
