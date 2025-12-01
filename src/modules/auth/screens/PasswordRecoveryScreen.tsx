@@ -1,10 +1,23 @@
 import React, { useEffect, useRef, useState } from "react";
-import { SafeAreaView, View, Text, StyleSheet, TextInput, TouchableOpacity, Animated, Image } from "react-native";
+import {
+  SafeAreaView,
+  View,
+  Text,
+  StyleSheet,
+  TextInput,
+  TouchableOpacity,
+  Animated,
+  Image,
+} from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useTheme } from "../../../shared/styles/ThemeProvider";
 import { useAuth } from "../../../app/hooks/useAuth";
-import { secureGetItem } from "../../../shared/utils/secureStorage";
+import {
+  secureGetItem,
+  secureSetItem,
+} from "../../../shared/utils/secureStorage";
+import * as Crypto from "expo-crypto";
 
 const PasswordRecoveryScreen: React.FC = () => {
   const navigation = useNavigation() as any;
@@ -19,10 +32,21 @@ const PasswordRecoveryScreen: React.FC = () => {
   const [logoError, setLogoError] = useState(false);
   const [emailFocused, setEmailFocused] = useState(false);
   const [secretFocused, setSecretFocused] = useState(false);
+  const [validated, setValidated] = useState(false);
+  const [newPin, setNewPin] = useState("");
+  const [confirmPin, setConfirmPin] = useState("");
+  const [showNewPin, setShowNewPin] = useState(false);
+  const [showConfirmPin, setShowConfirmPin] = useState(false);
+  const [pinError, setPinError] = useState<string | null>(null);
+  const [pinLoading, setPinLoading] = useState(false);
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    Animated.timing(fadeAnim, { toValue: 1, duration: 300, useNativeDriver: true }).start();
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 300,
+      useNativeDriver: true,
+    }).start();
   }, [fadeAnim]);
 
   const handleRecover = async () => {
@@ -54,18 +78,52 @@ const PasswordRecoveryScreen: React.FC = () => {
         setError("Clé secrète invalide. Réinitialisation impossible.");
         return;
       }
-      setSuccess("Votre mot de passe a été réinitialisé avec succès.");
-      setTimeout(() => {
-        if (navigation?.replace) navigation.replace("PinLogin");
-        else if (navigation?.navigate) navigation.navigate("PinLogin");
-      }, 800);
+      setValidated(true);
+      setSuccess("Identité vérifiée. Saisissez un nouveau code PIN.");
     } finally {
       setLoading(false);
     }
   };
 
+  const handleResetPin = async () => {
+    setPinError(null);
+    if (!validated) {
+      setPinError("Validation requise.");
+      return;
+    }
+    if (!newPin || !confirmPin) {
+      setPinError("Veuillez saisir le nouveau PIN et sa confirmation.");
+      return;
+    }
+    if (newPin.length < 5) {
+      setPinError("Le code PIN doit contenir au moins 5 chiffres.");
+      return;
+    }
+    if (newPin !== confirmPin) {
+      setPinError("Le code PIN et sa confirmation ne correspondent pas.");
+      return;
+    }
+    setPinLoading(true);
+    try {
+      const hashed = await Crypto.digestStringAsync(
+        Crypto.CryptoDigestAlgorithm.SHA256,
+        newPin
+      );
+      await secureSetItem("pin_user", hashed);
+      setSuccess("Code PIN réinitialisé avec succès.");
+      if (navigation?.replace) navigation.replace("PinLogin");
+      else if (navigation?.navigate) navigation.navigate("PinLogin");
+    } catch (e) {
+      setPinError("Échec de la réinitialisation.");
+    } finally {
+      setPinLoading(false);
+    }
+  };
+
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+    <SafeAreaView
+      style={[styles.container, { backgroundColor: colors.background }]}
+    >
       <View style={[styles.header, { backgroundColor: colors.card }]}>
         <View style={styles.logoBox}>
           <Image
@@ -80,31 +138,44 @@ const PasswordRecoveryScreen: React.FC = () => {
             accessibilityLabel="Logo de l'application"
           />
         </View>
-       
+
         <View style={[styles.headerLine, { backgroundColor: colors.border }]} />
-        <Text style={[styles.headerTitle, { color: colors.text }]}>Récupération de mot de passe</Text>
+        <Text style={[styles.headerTitle, { color: colors.text }]}>
+          Récupération de mot de passe
+        </Text>
       </View>
-      <Animated.View style={[styles.card, { backgroundColor: colors.card, opacity: fadeAnim }]}>
+      <Animated.View
+        style={[
+          styles.card,
+          { backgroundColor: colors.card, opacity: fadeAnim },
+        ]}
+      >
         <View style={styles.headerRow}>
           <MaterialIcons name="info" size={18} color={colors.primary} />
-          <Text style={[styles.title, { color: colors.text }]}>Informations requises</Text>
+          <Text style={[styles.title, { color: colors.text }]}>
+            Informations requises
+          </Text>
         </View>
-        <Text style={[styles.subtitle, { color: colors.text }]}>Entrez vos informations pour réinitialiser votre mot de passe.</Text>
-        
+        <Text style={[styles.subtitle, { color: colors.text }]}>
+          Entrez vos informations pour réinitialiser votre mot de passe.
+        </Text>
+
         <View style={{ width: "100%", marginTop: 16 }}>
-          <Text style={[styles.label, { color: colors.text }]}>Email ou téléphone</Text>
+          <Text style={[styles.label, { color: colors.text }]}>
+            Email ou téléphone
+          </Text>
           <TextInput
             value={emailOrPhone}
             onChangeText={setEmailOrPhone}
             style={[
-              styles.input, 
-              { 
-                borderColor: emailFocused ? colors.primary : colors.border, 
-                backgroundColor: colors.background, 
+              styles.input,
+              {
+                borderColor: emailFocused ? colors.primary : colors.border,
+                backgroundColor: colors.background,
                 color: colors.text,
                 borderWidth: emailFocused ? 2 : 1.5,
                 shadowOpacity: emailFocused ? 0.1 : 0.05,
-              }
+              },
             ]}
             placeholder="exemple@domaine.com ou +225…"
             placeholderTextColor={`${colors.text}80`}
@@ -115,21 +186,23 @@ const PasswordRecoveryScreen: React.FC = () => {
         </View>
 
         <View style={{ width: "100%", marginTop: 16 }}>
-          <Text style={[styles.label, { color: colors.text }]}>Clé secrète</Text>
+          <Text style={[styles.label, { color: colors.text }]}>
+            Clé secrète
+          </Text>
           <View style={{ position: "relative" }}>
             <TextInput
               value={secretKey}
               onChangeText={setSecretKey}
               style={[
-                styles.input, 
-                { 
-                  borderColor: secretFocused ? colors.primary : colors.border, 
-                  backgroundColor: colors.background, 
+                styles.input,
+                {
+                  borderColor: secretFocused ? colors.primary : colors.border,
+                  backgroundColor: colors.background,
                   color: colors.text,
                   borderWidth: secretFocused ? 2 : 1.5,
                   shadowOpacity: secretFocused ? 0.1 : 0.05,
                   paddingRight: 50,
-                }
+                },
               ]}
               secureTextEntry={!showSecret}
               placeholder="Votre clé secrète"
@@ -138,32 +211,171 @@ const PasswordRecoveryScreen: React.FC = () => {
               onFocus={() => setSecretFocused(true)}
               onBlur={() => setSecretFocused(false)}
             />
-            <TouchableOpacity 
+            <TouchableOpacity
               style={[
-                styles.iconButtonInside, 
-                { 
+                styles.iconButtonInside,
+                {
                   backgroundColor: "transparent",
-                }
-              ]} 
+                },
+              ]}
               onPress={() => setShowSecret((s) => !s)}
             >
-              <MaterialIcons name={showSecret ? "visibility-off" : "visibility"} size={22} color={`${colors.text}CC`} />
+              <MaterialIcons
+                name={showSecret ? "visibility-off" : "visibility"}
+                size={22}
+                color={`${colors.text}CC`}
+              />
             </TouchableOpacity>
           </View>
         </View>
 
-        {!!error && <Text style={[styles.error, { color: colors.error }]}>{error}</Text>}
-        {!!success && <Text style={[styles.success, { color: colors.primary }]}>{success}</Text>}
+        {!!error && (
+          <Text style={[styles.error, { color: colors.error }]}>{error}</Text>
+        )}
+        {!!success && (
+          <Text style={[styles.success, { color: colors.primary }]}>
+            {success}
+          </Text>
+        )}
         <TouchableOpacity
-          style={[styles.button, { backgroundColor: colors.primary, opacity: loading ? 0.7 : 1 }]}
+          style={[
+            styles.button,
+            { backgroundColor: colors.primary, opacity: loading ? 0.7 : 1 },
+          ]}
           onPress={handleRecover}
           disabled={loading}
         >
           <View style={styles.buttonContent}>
-            <Text style={styles.buttonText}>{loading ? "Envoi..." : "Envoyer le lien de réinitialisation"}</Text>
-            {!loading && <MaterialIcons name="check-circle" size={16} color="#FFFFFF" style={{ marginLeft: 6 }} />}
+            <Text style={styles.buttonText}>
+              {loading ? "Vérification..." : "Vérifier et continuer"}
+            </Text>
+            {!loading && (
+              <MaterialIcons
+                name="check-circle"
+                size={16}
+                color="#FFFFFF"
+                style={{ marginLeft: 6 }}
+              />
+            )}
           </View>
         </TouchableOpacity>
+
+        {validated && (
+          <View style={{ width: "100%", marginTop: 18 }}>
+            <View style={styles.headerRow}>
+              <MaterialIcons
+                name="lock-reset"
+                size={18}
+                color={colors.primary}
+              />
+              <Text style={[styles.title, { color: colors.text }]}>
+                Nouveau code PIN
+              </Text>
+            </View>
+
+            <Text style={[styles.label, { color: colors.text }]}>
+              Nouveau PIN
+            </Text>
+            <View style={{ position: "relative" }}>
+              <TextInput
+                value={newPin}
+                onChangeText={setNewPin}
+                style={[
+                  styles.input,
+                  {
+                    borderColor: colors.border,
+                    backgroundColor: colors.background,
+                    color: colors.text,
+                    paddingRight: 50,
+                  },
+                ]}
+                secureTextEntry={!showNewPin}
+                placeholder="•••••"
+                placeholderTextColor={`${colors.text}80`}
+                keyboardType="number-pad"
+                maxLength={5}
+              />
+              <TouchableOpacity
+                style={styles.iconButtonInside}
+                onPress={() => setShowNewPin((v) => !v)}
+              >
+                <MaterialIcons
+                  name={showNewPin ? "visibility-off" : "visibility"}
+                  size={22}
+                  color={`${colors.text}CC`}
+                />
+              </TouchableOpacity>
+            </View>
+
+            <Text style={[styles.label, { color: colors.text }]}>
+              Confirmer PIN
+            </Text>
+            <View style={{ position: "relative" }}>
+              <TextInput
+                value={confirmPin}
+                onChangeText={setConfirmPin}
+                style={[
+                  styles.input,
+                  {
+                    borderColor: colors.border,
+                    backgroundColor: colors.background,
+                    color: colors.text,
+                    paddingRight: 50,
+                  },
+                ]}
+                secureTextEntry={!showConfirmPin}
+                placeholder="•••••"
+                placeholderTextColor={`${colors.text}80`}
+                keyboardType="number-pad"
+                maxLength={5}
+              />
+              <TouchableOpacity
+                style={styles.iconButtonInside}
+                onPress={() => setShowConfirmPin((v) => !v)}
+              >
+                <MaterialIcons
+                  name={showConfirmPin ? "visibility-off" : "visibility"}
+                  size={22}
+                  color={`${colors.text}CC`}
+                />
+              </TouchableOpacity>
+            </View>
+
+            {!!pinError && (
+              <Text style={[styles.error, { color: colors.error }]}>
+                {pinError}
+              </Text>
+            )}
+
+            <TouchableOpacity
+              style={[
+                styles.button,
+                {
+                  backgroundColor: colors.primary,
+                  opacity: pinLoading ? 0.7 : 1,
+                },
+              ]}
+              onPress={handleResetPin}
+              disabled={pinLoading}
+            >
+              <View style={styles.buttonContent}>
+                <Text style={styles.buttonText}>
+                  {pinLoading
+                    ? "Réinitialisation..."
+                    : "Réinitialiser le code PIN"}
+                </Text>
+                {!pinLoading && (
+                  <MaterialIcons
+                    name="check-circle"
+                    size={16}
+                    color="#FFFFFF"
+                    style={{ marginLeft: 6 }}
+                  />
+                )}
+              </View>
+            </TouchableOpacity>
+          </View>
+        )}
       </Animated.View>
     </SafeAreaView>
   );
@@ -204,20 +416,30 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 12,
   },
-  logo: { 
-    width: "100%", 
+  logo: {
+    width: "100%",
     height: "100%",
     resizeMode: "contain",
   },
-  card: { width: "92%", maxWidth: 420, borderRadius: 20, padding: 20, shadowColor: "#000", shadowOpacity: 0.08, shadowOffset: { width: 0, height: 2 }, shadowRadius: 16, elevation: 5 },
+  card: {
+    width: "92%",
+    maxWidth: 420,
+    borderRadius: 20,
+    padding: 20,
+    shadowColor: "#000",
+    shadowOpacity: 0.08,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 16,
+    elevation: 5,
+  },
   headerRow: { flexDirection: "row", alignItems: "center", gap: 10 },
   title: { fontSize: 18, fontWeight: "700" },
   subtitle: { fontSize: 13, marginTop: 8 },
   label: { fontSize: 14, marginBottom: 8, fontWeight: "600", opacity: 0.9 },
-  input: { 
-    height: 52, 
-    borderWidth: 1.5, 
-    borderRadius: 14, 
+  input: {
+    height: 52,
+    borderWidth: 1.5,
+    borderRadius: 14,
     paddingHorizontal: 16,
     fontSize: 15,
     fontWeight: "500",
@@ -227,7 +449,7 @@ const styles = StyleSheet.create({
     shadowRadius: 2,
     elevation: 2,
   },
-  iconButtonInside: { 
+  iconButtonInside: {
     position: "absolute",
     right: 8,
     top: 8,
@@ -238,7 +460,11 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   button: { marginTop: 16, paddingVertical: 12, borderRadius: 10 },
-  buttonContent: { flexDirection: "row", justifyContent: "center", alignItems: "center" },
+  buttonContent: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+  },
   buttonText: { color: "#FFFFFF", fontSize: 14, fontWeight: "600" },
   error: { marginTop: 12, fontSize: 13 },
   success: { marginTop: 12, fontSize: 13, fontWeight: "600" },
