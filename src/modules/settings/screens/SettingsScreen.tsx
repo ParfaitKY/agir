@@ -163,6 +163,14 @@ export const SettingsScreen: React.FC = () => {
           isRestricted: true,
         },
         {
+          icon: "phone-portrait-outline",
+          iconColor: colors.primary,
+          title: "Mon Wallet Mobile",
+          onPress: () => (navigation as any).navigate("WalletMobileScreens"),
+          showChevron: true,
+          isRestricted: true,
+        },
+        {
           icon: "card-outline",
           iconColor: colors.primary,
           title: "Gérer mes comptes",

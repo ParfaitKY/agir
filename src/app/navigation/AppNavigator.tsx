@@ -28,6 +28,12 @@ import BeneficiairesPage from "../../modules/dashboard/screens/BeneficiairesPage
 import { useAuth } from "../hooks/useAuth";
 import { useI18n } from "../providers/I18nProvider";
 import WalletScreens from "../../modules/settings/screens/WalletScreens";
+import WalletMobileScreens from "../../modules/settings/screens/WalletMobileScreens";
+import WalletMobileSubscribeScreen from "../../modules/settings/screens/WalletMobileSubscribeScreen";
+import WalletMobileTransferBankScreen from "../../modules/settings/screens/WalletMobileTransferBankScreen";
+import WalletMobileUnsubscribeScreen from "../../modules/settings/screens/WalletMobileUnsubscribeScreen";
+import WalletMobileOperationsListScreen from "../../modules/settings/screens/WalletMobileOperationsListScreen";
+import WalletBankTransferMobileScreen from "../../modules/settings/screens/WalletBankTransferMobileScreen";
 import PrivacyPolicyScreen from "../../modules/settings/screens/PrivacyPolicyScreen";
 import EmailSupportScreen from "../../modules/settings/screens/EmailSupportScreen";
 import AboutAppScreen from "../../modules/settings/screens/AboutAppScreen";
@@ -347,6 +353,7 @@ export const AppNavigator: React.FC = () => {
               headerTintColor: colors.primary,
             }}
           />
+
           <Stack.Screen
             name="WalletScreens"
             component={withGuestRestriction(WalletScreens)}
@@ -358,6 +365,73 @@ export const AppNavigator: React.FC = () => {
               headerTintColor: colors.primary,
             }}
           />
+          <Stack.Screen
+            name="WalletMobileScreens"
+            component={withGuestRestriction(WalletMobileScreens)}
+            options={{
+              headerShown: true,
+              title: "Mon Wallet Mobile",
+              headerStyle: { backgroundColor: colors.card },
+              headerTitleStyle: { color: colors.text },
+              headerTintColor: colors.primary,
+            }}
+          />
+          <Stack.Screen
+            name="WalletMobileSubscribe"
+            component={withGuestRestriction(WalletMobileSubscribeScreen)}
+            options={{
+              headerShown: true,
+              title: "Souscription",
+              headerStyle: { backgroundColor: colors.card },
+              headerTitleStyle: { color: colors.text },
+              headerTintColor: colors.primary,
+            }}
+          />
+          <Stack.Screen
+            name="WalletMobileTransferBank"
+            component={withGuestRestriction(WalletMobileTransferBankScreen)}
+            options={{
+              headerShown: true,
+              title: "Transfert",
+              headerStyle: { backgroundColor: colors.card },
+              headerTitleStyle: { color: colors.text },
+              headerTintColor: colors.primary,
+            }}
+          />
+          <Stack.Screen
+            name="WalletBankTransferMobile"
+            component={withGuestRestriction(WalletBankTransferMobileScreen)}
+            options={{
+              headerShown: true,
+              title: "Transfert",
+              headerStyle: { backgroundColor: colors.card },
+              headerTitleStyle: { color: colors.text },
+              headerTintColor: colors.primary,
+            }}
+          />
+          <Stack.Screen
+            name="WalletMobileUnsubscribe"
+            component={withGuestRestriction(WalletMobileUnsubscribeScreen)}
+            options={{
+              headerShown: true,
+              title: "Désouscription",
+              headerStyle: { backgroundColor: colors.card },
+              headerTitleStyle: { color: colors.text },
+              headerTintColor: colors.primary,
+            }}
+          />
+          <Stack.Screen
+            name="WalletMobileOperationsList"
+            component={withGuestRestriction(WalletMobileOperationsListScreen)}
+            options={{
+              headerShown: true,
+              title: "Liste des opérations",
+              headerStyle: { backgroundColor: colors.card },
+              headerTitleStyle: { color: colors.text },
+              headerTintColor: colors.primary,
+            }}
+          />
+
           <Stack.Screen
             name="Profile"
             component={ProfileScreen}
