@@ -70,9 +70,11 @@ const InitialSetupScreen: React.FC = () => {
   const [savingPin, setSavingPin] = useState(false);
 
   const [logoError, setLogoError] = useState(false);
+  const showVerifyButton = step === 1 && accountNumber.trim().length < 8;
 
   const accountNumberRef = useRef<TextInput>(null);
   const lastNameRef = useRef<TextInput>(null);
+  const autoVerifyRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Palette couleur
   const palette = {
@@ -181,6 +183,20 @@ const InitialSetupScreen: React.FC = () => {
     }
     setVerifySuccess(true);
   };
+
+  useEffect(() => {
+    if (autoVerifyRef.current) clearTimeout(autoVerifyRef.current);
+    const num = accountNumber.trim();
+    if (step === 1 && num.length >= 8) {
+      autoVerifyRef.current = setTimeout(() => {
+        if (loadingVerify || isLoading) return;
+        handleVerifyAccountNumber();
+      }, 600);
+    }
+    return () => {
+      if (autoVerifyRef.current) clearTimeout(autoVerifyRef.current);
+    };
+  }, [accountNumber, step, loadingVerify, isLoading]);
 
   // Fonction mode invité
   const handleGuestMode = async () => {
@@ -343,19 +359,21 @@ const InitialSetupScreen: React.FC = () => {
                     {verifyError}
                   </Text>
                 )}
-                <TouchableOpacity
-                  style={[
-                    styles.button,
-                    { marginTop: 12, backgroundColor: palette.primary },
-                  ]}
-                  onPress={handleVerifyAccountNumber}
-                >
-                  {loadingVerify ? (
-                    <ActivityIndicator color="#FFF" />
-                  ) : (
-                    <Text style={styles.buttonText}>Vérifier</Text>
-                  )}
-                </TouchableOpacity>
+                {showVerifyButton && (
+                  <TouchableOpacity
+                    style={[
+                      styles.button,
+                      { marginTop: 12, backgroundColor: palette.primary },
+                    ]}
+                    onPress={handleVerifyAccountNumber}
+                  >
+                    {loadingVerify ? (
+                      <ActivityIndicator color="#FFF" />
+                    ) : (
+                      <Text style={styles.buttonText}>Vérifier</Text>
+                    )}
+                  </TouchableOpacity>
+                )}
 
                 <TouchableOpacity
                   style={[

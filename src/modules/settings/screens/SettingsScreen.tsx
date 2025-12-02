@@ -13,6 +13,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useAuth } from "../../../app/hooks/useAuth";
+import { secureDeleteItem } from "../../../shared/utils/secureStorage";
 import { useNavigation } from "@react-navigation/native";
 import { useI18n } from "../../../app/providers/I18nProvider";
 import { useTheme, useThemeMode } from "../../../shared/styles/ThemeProvider";
@@ -56,13 +57,67 @@ export const SettingsScreen: React.FC = () => {
   const [newPin, setNewPin] = React.useState("");
   const [confirmPin, setConfirmPin] = React.useState("");
   const [pinError, setPinError] = React.useState<string | null>(null);
+  const [showLogoutModal, setShowLogoutModal] = React.useState(false);
+  const [logoutProcessing, setLogoutProcessing] = React.useState<
+    "normal" | "forget" | null
+  >(null);
 
   const handleLogout = async () => {
     await logout();
     try {
-      (navigation as any).reset({ index: 0, routes: [{ name: "PinLogin" }] });
+      const isGuestMode = user?.username === "invite";
+      const target = isGuestMode ? "InitialSetup" : "PinLogin";
+      (navigation as any).reset({ index: 0, routes: [{ name: target }] });
     } catch (e) {
-      (navigation as any).navigate("PinLogin");
+      const isGuestMode = user?.username === "invite";
+      const fallback = isGuestMode ? "InitialSetup" : "PinLogin";
+      (navigation as any).navigate(fallback);
+    }
+  };
+
+  const handleLogoutAndForget = async () => {
+    setLogoutProcessing("forget");
+    try {
+      await logout();
+      const ALL_CLEAR_KEYS = [
+        "auth_token",
+        "user_data",
+        "is_configured",
+        "pin_user",
+        "user_login",
+        "user_firstname",
+        "user_lastname",
+        "user_phone",
+        "user_address",
+        "user_account_number",
+        "user_agency",
+        "user_id",
+        "user_secret_key",
+        "access_data",
+        "client_id",
+        "solde_globale",
+        "compte_statistiques",
+        "analyse_derniere_transaction",
+      ];
+      for (const k of ALL_CLEAR_KEYS) {
+        try {
+          await secureDeleteItem(k);
+        } catch {}
+      }
+      try {
+        if (typeof window !== "undefined") {
+          window.localStorage?.clear?.();
+        }
+      } catch {}
+      (navigation as any).reset({
+        index: 0,
+        routes: [{ name: "InitialSetup" }],
+      });
+    } catch (e) {
+      (navigation as any).navigate("InitialSetup");
+    } finally {
+      setShowLogoutModal(false);
+      setLogoutProcessing(null);
     }
   };
 
@@ -382,7 +437,7 @@ export const SettingsScreen: React.FC = () => {
           >
             <TouchableOpacity
               style={[styles.settingItem, styles.settingItemLast]}
-              onPress={handleLogout}
+              onPress={() => setShowLogoutModal(true)}
               activeOpacity={0.7}
             >
               <View style={styles.settingLeft}>
@@ -422,6 +477,74 @@ export const SettingsScreen: React.FC = () => {
       </ScrollView>
 
       {/* Modal Changer le mot de passe */}
+      {/* Modal Déconnexion */}
+      <Modal
+        visible={showLogoutModal}
+        animationType="fade"
+        transparent
+        onRequestClose={() => setShowLogoutModal(false)}
+      >
+        <View
+          style={[
+            styles.modalOverlay,
+            { backgroundColor: isDark ? "rgba(0,0,0,0.6)" : "rgba(0,0,0,0.4)" },
+          ]}
+        >
+          <View
+            style={[styles.modalContainer, { backgroundColor: colors.card }]}
+          >
+            <Text style={[styles.modalTitle, { color: colors.text }]}>
+              {t("logout.modal.title")}
+            </Text>
+            <View style={styles.modalActionsColumn}>
+              <TouchableOpacity
+                style={[
+                  styles.actionButton,
+                  styles.actionButtonBlock,
+                  { backgroundColor: colors.primary },
+                ]}
+                onPress={async () => {
+                  setLogoutProcessing("normal");
+                  await handleLogout();
+                  setShowLogoutModal(false);
+                  setLogoutProcessing(null);
+                }}
+              >
+                <Text style={[styles.actionText, { color: "#fff" }]}>
+                  {t("settings.logout")}
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[
+                  styles.actionButton,
+                  styles.actionButtonBlock,
+                  { backgroundColor: colors.error },
+                ]}
+                onPress={handleLogoutAndForget}
+              >
+                <Text style={[styles.actionText, { color: "#fff" }]}>
+                  {t("logout.modal.erase")}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[
+                  styles.actionButton,
+                  styles.actionButtonBlock,
+                  { backgroundColor: colors.card },
+                ]}
+                onPress={() => setShowLogoutModal(false)}
+              >
+                <Text style={[styles.actionText, { color: colors.text }]}>
+                  {t("common.cancel")}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Modal Changer le mot de passe */}
       <Modal
         visible={showChangePasswordModal}
         animationType="slide"
@@ -438,7 +561,7 @@ export const SettingsScreen: React.FC = () => {
             style={[styles.modalContainer, { backgroundColor: colors.card }]}
           >
             <Text style={[styles.modalTitle, { color: colors.text }]}>
-              Changer le mot de passe
+              {t("password.change.title")}
             </Text>
             <TextInput
               style={[
@@ -449,7 +572,7 @@ export const SettingsScreen: React.FC = () => {
                   color: colors.text,
                 },
               ]}
-              placeholder="Mot de passe actuel"
+              placeholder={t("password.current")}
               secureTextEntry
               value={currentPassword}
               onChangeText={setCurrentPassword}
@@ -463,7 +586,7 @@ export const SettingsScreen: React.FC = () => {
                   color: colors.text,
                 },
               ]}
-              placeholder="Nouveau mot de passe"
+              placeholder={t("password.new")}
               secureTextEntry
               value={newPassword}
               onChangeText={setNewPassword}
@@ -477,7 +600,7 @@ export const SettingsScreen: React.FC = () => {
                   color: colors.text,
                 },
               ]}
-              placeholder="Confirmer le nouveau mot de passe"
+              placeholder={t("password.confirm")}
               secureTextEntry
               value={confirmPassword}
               onChangeText={setConfirmPassword}
@@ -493,7 +616,7 @@ export const SettingsScreen: React.FC = () => {
                 onPress={() => setShowChangePasswordModal(false)}
               >
                 <Text style={[styles.actionText, { color: colors.text }]}>
-                  Annuler
+                  {t("common.cancel")}
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
@@ -502,15 +625,12 @@ export const SettingsScreen: React.FC = () => {
                   { backgroundColor: colors.primary },
                 ]}
                 onPress={() => {
-                  // Validation simple
                   if (newPassword.length < 6) {
-                    setPasswordError(
-                      "Le mot de passe doit contenir au moins 6 caractères"
-                    );
+                    setPasswordError(t("password.error.length"));
                     return;
                   }
                   if (newPassword !== confirmPassword) {
-                    setPasswordError("Les mots de passe ne correspondent pas");
+                    setPasswordError(t("password.error.mismatch"));
                     return;
                   }
                   setPasswordError(null);
@@ -525,7 +645,7 @@ export const SettingsScreen: React.FC = () => {
                 }}
               >
                 <Text style={[styles.actionText, { color: "#fff" }]}>
-                  Valider
+                  {t("common.confirm")}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -550,7 +670,7 @@ export const SettingsScreen: React.FC = () => {
             style={[styles.modalContainer, { backgroundColor: colors.card }]}
           >
             <Text style={[styles.modalTitle, { color: colors.text }]}>
-              Changer le code PIN
+              {t("pin.change.title")}
             </Text>
             <TextInput
               style={[
@@ -561,7 +681,7 @@ export const SettingsScreen: React.FC = () => {
                   color: colors.text,
                 },
               ]}
-              placeholder="PIN actuel"
+              placeholder={t("pin.current")}
               secureTextEntry
               keyboardType="numeric"
               value={currentPin}
@@ -577,7 +697,7 @@ export const SettingsScreen: React.FC = () => {
                   color: colors.text,
                 },
               ]}
-              placeholder="Nouveau PIN (5 chiffres)"
+              placeholder={t("pin.new.label")}
               secureTextEntry
               keyboardType="numeric"
               value={newPin}
@@ -593,7 +713,7 @@ export const SettingsScreen: React.FC = () => {
                   color: colors.text,
                 },
               ]}
-              placeholder="Confirmer le nouveau PIN"
+              placeholder={t("pin.confirm")}
               secureTextEntry
               keyboardType="numeric"
               value={confirmPin}
@@ -611,7 +731,7 @@ export const SettingsScreen: React.FC = () => {
                 onPress={() => setShowChangePinModal(false)}
               >
                 <Text style={[styles.actionText, { color: colors.text }]}>
-                  Annuler
+                  {t("common.cancel")}
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
@@ -623,11 +743,11 @@ export const SettingsScreen: React.FC = () => {
                   // Validation simple du PIN
                   const pinRegex = /^\d{5}$/;
                   if (!pinRegex.test(newPin)) {
-                    setPinError("Le PIN doit contenir 5 chiffres");
+                    setPinError(t("pin.error.length"));
                     return;
                   }
                   if (newPin !== confirmPin) {
-                    setPinError("Les PINs ne correspondent pas");
+                    setPinError(t("pin.error.mismatch"));
                     return;
                   }
                   setPinError(null);
@@ -639,7 +759,7 @@ export const SettingsScreen: React.FC = () => {
                 }}
               >
                 <Text style={[styles.actionText, { color: "#fff" }]}>
-                  Valider
+                  {t("common.confirm")}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -855,10 +975,18 @@ const styles = StyleSheet.create({
     justifyContent: "flex-end",
     gap: 12,
   },
+  modalActionsColumn: {
+    flexDirection: "column",
+    justifyContent: "flex-start",
+    gap: 12,
+  },
   actionButton: {
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: 10,
+  },
+  actionButtonBlock: {
+    alignSelf: "stretch",
   },
   cancelButton: {
     backgroundColor: "#F5F5F5",

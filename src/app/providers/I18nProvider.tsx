@@ -2240,6 +2240,199 @@ const TRANSLATIONS: Translations = {
     en: "3 days ago",
     zh: "三天前",
   },
+  // Profile screen
+  "profile.loginPrefix": { fr: "Login", en: "Login", zh: "登录" },
+  "profile.memberSince": {
+    fr: "Membre depuis Octobre 2025",
+    en: "Member since October 2025",
+    zh: "自 2025 年 10 月起成为会员",
+  },
+  "profile.section.personalInfo": {
+    fr: "Informations personnelles",
+    en: "Personal information",
+    zh: "个人信息",
+  },
+  "profile.action.edit": {
+    fr: "Modifier le profil",
+    en: "Edit profile",
+    zh: "编辑资料",
+  },
+  "profile.section.documents": { fr: "Documents", en: "Documents", zh: "文档" },
+  "profile.docs.statements": {
+    fr: "Relevés de compte",
+    en: "Account statements",
+    zh: "账户对账单",
+  },
+  "profile.docs.history": {
+    fr: "Historique des transactions",
+    en: "Transactions history",
+    zh: "交易历史",
+  },
+  "profile.docs.downloads": {
+    fr: "Téléchargements",
+    en: "Downloads",
+    zh: "下载",
+  },
+  "profile.actions.call": { fr: "Appeler", en: "Call", zh: "拨打电话" },
+  "profile.actions.email": { fr: "Email", en: "Email", zh: "电子邮件" },
+  // Transactions texts used in Profile
+  "transactions.history.title": {
+    fr: "Historique des transactions",
+    en: "Transactions history",
+    zh: "交易历史",
+  },
+  "transactions.filterByDate": {
+    fr: "Filtrer par date",
+    en: "Filter by date",
+    zh: "按日期筛选",
+  },
+  "transactions.exportPdf": {
+    fr: "Exporter PDF",
+    en: "Export PDF",
+    zh: "导出 PDF",
+  },
+  "transactions.dateFilter.info": {
+    fr: "La sélection de date sera disponible prochainement.",
+    en: "Date filter will be available soon.",
+    zh: "日期筛选功能即将推出。",
+  },
+  // Common
+  "common.info": { fr: "Informations", en: "Information", zh: "信息" },
+
+  "common.fetchError": {
+    fr: "Erreur de récupération",
+    en: "Retrieval error",
+    zh: "获取错误",
+  },
+  "common.networkError": {
+    fr: "Erreur réseau",
+    en: "Network error",
+    zh: "网络错误",
+  },
+  "common.missingCredentials": {
+    fr: "Identifiants manquants",
+    en: "Missing credentials",
+    zh: "缺少凭据",
+  },
+  // Profile labels
+  "profile.labels.email": { fr: "Email", en: "Email", zh: "邮箱" },
+  "profile.labels.phone": { fr: "Téléphone", en: "Phone", zh: "电话" },
+  "profile.labels.address": { fr: "Adresse", en: "Address", zh: "地址" },
+  // Profile edit modal
+  "profile.edit.modal.title": {
+    fr: "Modifier le profil",
+    en: "Edit profile",
+    zh: "编辑资料",
+  },
+  "profile.edit.modal.note": {
+    fr: "Pour modifier vos informations personnelles, veuillez contacter votre agence ou le service client.",
+    en: "To update your personal information, please contact your agency or customer support.",
+    zh: "如需更新个人信息，请联系您的网点或客服。",
+  },
+  // Logout
+  "logout.title": { fr: "Déconnexion", en: "Logout", zh: "退出登录" },
+  "logout.message": {
+    fr: "Êtes-vous sûr de vouloir vous déconnecter ?",
+    en: "Are you sure you want to log out?",
+    zh: "您确定要退出登录吗？",
+  },
+  "logout.button": { fr: "Se déconnecter", en: "Log out", zh: "退出登录" },
+  "logout.guest.title": {
+    fr: "Quitter le mode invité",
+    en: "Leave guest mode",
+    zh: "退出访客模式",
+  },
+  "logout.guest.message": {
+    fr: "Êtes-vous sûr de vouloir quitter le mode invité ? Cela effacera toutes les données temporaires.",
+    en: "Are you sure you want to leave guest mode? This will erase all temporary data.",
+    zh: "确定退出访客模式吗？这将清除所有临时数据。",
+  },
+  "logout.guest.confirm": { fr: "Quitter", en: "Leave", zh: "退出" },
+  "logout.guest.button": {
+    fr: "Quitter le mode invité",
+    en: "Leave guest mode",
+    zh: "退出访客模式",
+  },
+  // Settings (ensure presence) — déjà défini plus haut
+  // Logout modal
+  "logout.modal.title": {
+    fr: "Êtes-vous sûr de vouloir vous déconnecter ?",
+    en: "Are you sure you want to log out?",
+    zh: "您确定要退出登录吗？",
+  },
+  "logout.modal.erase": {
+    fr: "Se déconnecter et effacer",
+    en: "Log out and erase",
+    zh: "退出并清除",
+  },
+  // Guest restriction message
+  "guest.restrict.message": {
+    fr: "Veuillez vous connecter pour accéder à cette fonctionnalité.",
+    en: "Please sign in to access this feature.",
+    zh: "请登录以使用此功能。",
+  },
+  // Password change modal
+  "password.change.title": {
+    fr: "Changer le mot de passe",
+    en: "Change password",
+    zh: "更改密码",
+  },
+  "password.current": {
+    fr: "Mot de passe actuel",
+    en: "Current password",
+    zh: "当前密码",
+  },
+  "password.new": {
+    fr: "Nouveau mot de passe",
+    en: "New password",
+    zh: "新密码",
+  },
+  "password.confirm": {
+    fr: "Confirmer le nouveau mot de passe",
+    en: "Confirm new password",
+    zh: "确认新密码",
+  },
+  "password.error.length": {
+    fr: "Le mot de passe doit contenir au moins 6 caractères",
+    en: "Password must be at least 6 characters",
+    zh: "密码至少 6 个字符",
+  },
+  "password.error.mismatch": {
+    fr: "Les mots de passe ne correspondent pas",
+    en: "Passwords do not match",
+    zh: "两次密码不一致",
+  },
+  // PIN change modal
+  "pin.change.title": {
+    fr: "Changer le code PIN",
+    en: "Change PIN code",
+    zh: "更改PIN码",
+  },
+  "pin.current": {
+    fr: "PIN actuel",
+    en: "Current PIN",
+    zh: "当前PIN码",
+  },
+  "pin.new.label": {
+    fr: "Nouveau PIN (5 chiffres)",
+    en: "New PIN (5 digits)",
+    zh: "新 PIN（5 位）",
+  },
+  "pin.confirm": {
+    fr: "Confirmer le nouveau PIN",
+    en: "Confirm new PIN",
+    zh: "确认新 PIN",
+  },
+  "pin.error.length": {
+    fr: "Le PIN doit contenir 5 chiffres",
+    en: "PIN must be 5 digits",
+    zh: "PIN 必须为 5 位数字",
+  },
+  "pin.error.mismatch": {
+    fr: "Les PINs ne correspondent pas",
+    en: "PINs do not match",
+    zh: "两次 PIN 不一致",
+  },
 };
 
 interface I18nContextValue {

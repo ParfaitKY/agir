@@ -9,12 +9,14 @@ import {
   Modal,
   Linking,
   Alert,
+  Platform,
 } from "react-native";
 import * as Print from "expo-print";
 import * as Sharing from "expo-sharing";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { useAuth } from "../../../app/hooks/useAuth";
+import { useI18n } from "../../../app/providers/I18nProvider";
 import { useTheme, useThemeMode } from "../../../shared/styles/ThemeProvider";
 import { secureGetItem } from "../../../shared/utils/secureStorage";
 import { getDerniereTransaction } from "../../../services/compte/derniereTransaction";
@@ -25,6 +27,8 @@ const ProfileScreen: React.FC = () => {
   const { logout, user } = useAuth();
   const { colors } = useTheme();
   const { preference, isDark, setPreference } = useThemeMode();
+  const { t } = useI18n();
+  const { fetchClientInfo, clientData } = useClientByCompte();
   const [editVisible, setEditVisible] = useState(false);
   const [txVisible, setTxVisible] = useState(false);
   const [dateInfoVisible, setDateInfoVisible] = useState(false);
@@ -161,7 +165,7 @@ const ProfileScreen: React.FC = () => {
         const agency = (await secureGetItem("user_agency")) || "";
         const account = (await secureGetItem("user_account_number")) || "";
         if (!token || !clientId || !account) {
-          setTxError("Identifiants manquants");
+          setTxError(t("common.missingCredentials"));
           return;
         }
         const headers: any = {
@@ -178,8 +182,7 @@ const ProfileScreen: React.FC = () => {
         if (result?.error) {
           const err: any = result.error;
           const server = err?.response?.data;
-          const msg =
-            server?.message || err?.message || "Erreur de récupération";
+          const msg = server?.message || err?.message || t("common.fetchError");
           setTxError(msg);
           return;
         }
@@ -235,7 +238,7 @@ const ProfileScreen: React.FC = () => {
           { id, title, amount, date, type: isCredit ? "entree" : "sortie" },
         ]);
       } catch (e: any) {
-        setTxError(e?.message || "Erreur réseau");
+        setTxError(e?.message || t("common.networkError"));
       } finally {
         setTxLoading(false);
       }
@@ -247,66 +250,72 @@ const ProfileScreen: React.FC = () => {
     try {
       // Vérifier si nous sommes en mode invité
       const isGuestMode = user?.username === "invite";
+      if (Platform.OS === "web") {
+        await logout();
+        try {
+          (navigation as any).reset({
+            index: 0,
+            routes: [
+              { name: (isGuestMode ? "InitialSetup" : "PinLogin") as never },
+            ],
+          });
+        } catch (error) {
+          (navigation as any).navigate(
+            (isGuestMode ? "InitialSetup" : "PinLogin") as never
+          );
+        }
+        return;
+      }
 
       if (isGuestMode) {
-        // Confirmation spécifique pour le mode invité
-        Alert.alert(
-          "Quitter le mode invité",
-          "Êtes-vous sûr de vouloir quitter le mode invité ? Cela effacera toutes les données temporaires.",
-          [
-            { text: "Annuler", style: "cancel" },
-            {
-              text: "Quitter",
-              style: "destructive",
-              onPress: async () => {
-                console.log("=== GUEST LOGOUT CONFIRMED ===");
-                // Pour le mode invité : tout effacer et rediriger vers InitialSetupScreen
-                await logout(); // Efface les données d'authentification
+        Alert.alert(t("logout.guest.title"), t("logout.guest.message"), [
+          { text: t("common.cancel"), style: "cancel" },
+          {
+            text: t("logout.guest.confirm"),
+            style: "destructive",
+            onPress: async () => {
+              console.log("=== GUEST LOGOUT CONFIRMED ===");
+              // Pour le mode invité : tout effacer et rediriger vers InitialSetupScreen
+              await logout(); // Efface les données d'authentification
 
-                // Rediriger vers InitialSetupScreen
-                try {
-                  navigation.reset({
-                    index: 0,
-                    routes: [{ name: "InitialSetup" as never }],
-                  });
-                } catch (error) {
-                  // Fallback si reset n'est pas disponible
-                  console.log("Navigation reset failed, trying navigate...");
-                  navigation.navigate("InitialSetup" as never);
-                }
+              // Rediriger vers InitialSetupScreen
+              try {
+                navigation.reset({
+                  index: 0,
+                  routes: [{ name: "InitialSetup" as never }],
+                });
+              } catch (error) {
+                // Fallback si reset n'est pas disponible
+                console.log("Navigation reset failed, trying navigate...");
+                navigation.navigate("InitialSetup" as never);
+              }
 
-                console.log(
-                  "Guest user logged out and redirected to InitialSetupScreen"
-                );
-              },
+              console.log(
+                "Guest user logged out and redirected to InitialSetupScreen"
+              );
             },
-          ]
-        );
+          },
+        ]);
       } else {
-        // Pour les utilisateurs normaux : déconnexion standard avec confirmation
-        Alert.alert(
-          "Déconnexion",
-          "Êtes-vous sûr de vouloir vous déconnecter ?",
-          [
-            { text: "Annuler", style: "cancel" },
-            {
-              text: "Se déconnecter",
-              style: "destructive",
-              onPress: async () => {
-                await logout();
-                console.log("Regular user logged out");
-                try {
-                  (navigation as any).reset({
-                    index: 0,
-                    routes: [{ name: "PinLogin" }],
-                  });
-                } catch (error) {
-                  (navigation as any).navigate("PinLogin" as never);
-                }
-              },
+        Alert.alert(t("logout.title"), t("logout.message"), [
+          { text: t("common.cancel"), style: "cancel" },
+          {
+            text: t("settings.logout"),
+            style: "destructive",
+            onPress: async () => {
+              await logout();
+              console.log("Regular user logged out");
+              try {
+                (navigation as any).reset({
+                  index: 0,
+                  routes: [{ name: "PinLogin" }],
+                });
+              } catch (error) {
+                (navigation as any).navigate("PinLogin" as never);
+              }
             },
-          ]
-        );
+          },
+        ]);
       }
     } catch (error) {
       console.error("Error during logout:", error);
@@ -329,6 +338,7 @@ const ProfileScreen: React.FC = () => {
 
   // Génération HTML du reçu des transactions
   const generateTransactionsHtml = () => {
+    const titleTrans = t("transactions.history.title");
     const itemsHtml = txData
       .map((t) => {
         const isEntree = t.type === "entree";
@@ -358,7 +368,7 @@ const ProfileScreen: React.FC = () => {
         <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif; padding:20px;">
           <div style="text-align:center;margin-bottom:12px;">
             <div style="width:56px;height:6px;border-radius:3px;background:#EAEAEA;margin:0 auto 8px;"></div>
-            <h1 style="margin:0;font-size:26px;color:#000;">Historique des transactions</h1>
+            <h1 style="margin:0;font-size:26px;color:#000;">${titleTrans}</h1>
           </div>
           <div style="margin-top:10px;">
             ${itemsHtml}
@@ -416,7 +426,7 @@ const ProfileScreen: React.FC = () => {
             {displayName}
           </Text>
           <Text style={[styles.profileCode, { color: colors.text + "60" }]}>
-            Login: {loginCode || "—"}
+            {t("profile.loginPrefix")}: {loginCode || "—"}
           </Text>
           <View
             style={[
@@ -434,7 +444,7 @@ const ProfileScreen: React.FC = () => {
               color={colors.success}
             />
             <Text style={[styles.memberText, { color: colors.success }]}>
-              Membre depuis Octobre 2025
+              {t("profile.memberSince")}
             </Text>
           </View>
         </View>
@@ -456,7 +466,7 @@ const ProfileScreen: React.FC = () => {
             </View>
             <View style={styles.infoTexts}>
               <Text style={[styles.infoLabel, { color: colors.text + "60" }]}>
-                Email
+                {t("profile.labels.email")}
               </Text>
               <Text style={[styles.infoValue, { color: colors.text }]}>
                 {emailValue}
@@ -484,7 +494,7 @@ const ProfileScreen: React.FC = () => {
             </View>
             <View style={styles.infoTexts}>
               <Text style={[styles.infoLabel, { color: colors.text + "60" }]}>
-                Téléphone
+                {t("profile.labels.phone")}
               </Text>
               <Text style={[styles.infoValue, { color: colors.text }]}>
                 {phoneValue}
@@ -512,7 +522,7 @@ const ProfileScreen: React.FC = () => {
             </View>
             <View style={styles.infoTexts}>
               <Text style={[styles.infoLabel, { color: colors.text + "60" }]}>
-                Adresse
+                {t("profile.labels.address")}
               </Text>
               <Text style={[styles.infoValue, { color: colors.text }]}>
                 {addressValue}
@@ -524,7 +534,7 @@ const ProfileScreen: React.FC = () => {
         {/* Personal section with edit button */}
         <View style={styles.sectionBlock}>
           <Text style={[styles.sectionTitle, { color: colors.text + "80" }]}>
-            Informations personnelles
+            {t("profile.section.personalInfo")}
           </Text>
           <TouchableOpacity
             style={[styles.editRow, { backgroundColor: colors.card }]}
@@ -545,7 +555,7 @@ const ProfileScreen: React.FC = () => {
                 <Ionicons name="person" size={18} color={colors.primary} />
               </View>
               <Text style={[styles.editRowText, { color: colors.text }]}>
-                Modifier le profil
+                {t("profile.action.edit")}
               </Text>
             </View>
             <Ionicons
@@ -559,7 +569,7 @@ const ProfileScreen: React.FC = () => {
         {/* Documents section */}
         <View style={styles.sectionBlock}>
           <Text style={[styles.sectionTitle, { color: colors.text + "80" }]}>
-            Documents
+            {t("profile.section.documents")}
           </Text>
           <View style={[styles.docCard, { backgroundColor: colors.card }]}>
             <TouchableOpacity
@@ -585,7 +595,7 @@ const ProfileScreen: React.FC = () => {
                   />
                 </View>
                 <Text style={[styles.docTitle, { color: colors.text }]}>
-                  Relevés de compte
+                  {t("profile.docs.statements")}
                 </Text>
               </View>
               <Ionicons
@@ -620,7 +630,7 @@ const ProfileScreen: React.FC = () => {
                   />
                 </View>
                 <Text style={[styles.docTitle, { color: colors.text }]}>
-                  Historique des transactions
+                  {t("profile.docs.history")}
                 </Text>
               </View>
               <Ionicons
@@ -655,7 +665,7 @@ const ProfileScreen: React.FC = () => {
                   />
                 </View>
                 <Text style={[styles.docTitle, { color: colors.text }]}>
-                  Téléchargements
+                  {t("profile.docs.downloads")}
                 </Text>
               </View>
               <Ionicons
@@ -695,8 +705,8 @@ const ProfileScreen: React.FC = () => {
               </View>
               <Text style={[styles.logoutText, { color: colors.error }]}>
                 {user?.username === "invite"
-                  ? "Quitter le mode invité"
-                  : "Se déconnecter"}
+                  ? t("logout.guest.button")
+                  : t("settings.logout")}
               </Text>
             </View>
           </TouchableOpacity>
@@ -705,10 +715,10 @@ const ProfileScreen: React.FC = () => {
         {/* Version info */}
         <View style={styles.versionContainer}>
           <Text style={[styles.versionText, { color: colors.text + "60" }]}>
-            Version 1.0.0
+            {t("settings.version")} 1.0.0
           </Text>
           <Text style={[styles.copyrightText, { color: colors.text + "40" }]}>
-            © 2025 La Pepite EMF
+            {t("settings.copyright")}
           </Text>
         </View>
       </ScrollView>
@@ -745,13 +755,12 @@ const ProfileScreen: React.FC = () => {
               ]}
             />
             <Text style={[styles.modalTitle, { color: colors.text }]}>
-              Modifier le profil
+              {t("profile.edit.modal.title")}
             </Text>
             <Text
               style={[styles.modalText, { color: isDark ? "#ccc" : "#777" }]}
             >
-              Pour modifier vos informations personnelles, veuillez contacter
-              votre agence ou le service client.
+              {t("profile.edit.modal.note")}
             </Text>
             <View style={styles.actionsRow}>
               <TouchableOpacity
@@ -760,7 +769,9 @@ const ProfileScreen: React.FC = () => {
                 onPress={handleCall}
               >
                 <Ionicons name="call" size={20} color="#fff" />
-                <Text style={styles.actionTextLight}>Appeler</Text>
+                <Text style={styles.actionTextLight}>
+                  {t("profile.actions.call")}
+                </Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.actionBtn, { backgroundColor: colors.success }]}
@@ -768,7 +779,9 @@ const ProfileScreen: React.FC = () => {
                 onPress={handleEmail}
               >
                 <Ionicons name="mail" size={20} color="#fff" />
-                <Text style={styles.actionTextLight}>Email</Text>
+                <Text style={styles.actionTextLight}>
+                  {t("profile.actions.email")}
+                </Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -807,7 +820,7 @@ const ProfileScreen: React.FC = () => {
               ]}
             />
             <Text style={[styles.modalTitle, { color: colors.text }]}>
-              Historique des transactions
+              {t("transactions.history.title")}
             </Text>
 
             {/* Boutons d'action */}
@@ -824,7 +837,7 @@ const ProfileScreen: React.FC = () => {
                 <Text
                   style={[styles.actionTextPrimary, { color: colors.primary }]}
                 >
-                  Filtrer par date
+                  {t("transactions.filterByDate")}
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
@@ -836,13 +849,15 @@ const ProfileScreen: React.FC = () => {
                 onPress={handleExportTransactionsPdf}
               >
                 <Ionicons name="download" size={18} color="#fff" />
-                <Text style={styles.actionTextLight}>Exporter PDF</Text>
+                <Text style={styles.actionTextLight}>
+                  {t("transactions.exportPdf")}
+                </Text>
               </TouchableOpacity>
             </View>
 
             {txLoading && (
               <Text style={[styles.infoLabel, { color: colors.text }]}>
-                Chargement…
+                {t("analytics.loading")}
               </Text>
             )}
             {!!txError && (
@@ -938,12 +953,12 @@ const ProfileScreen: React.FC = () => {
             </TouchableOpacity>
             <View style={styles.modalHandle} />
             <Text style={[styles.modalTitle, { color: colors.text }]}>
-              Informations
+              {t("common.info")}
             </Text>
             <Text
               style={[styles.modalText, { color: isDark ? "#ccc" : "#777" }]}
             >
-              La sélection de date sera disponible prochainement.
+              {t("transactions.dateFilter.info")}
             </Text>
             <View style={styles.actionsRow}>
               <TouchableOpacity
@@ -952,7 +967,7 @@ const ProfileScreen: React.FC = () => {
                 onPress={() => setDateInfoVisible(false)}
               >
                 <Ionicons name="checkmark" size={20} color="#fff" />
-                <Text style={styles.actionTextLight}>Compris</Text>
+                <Text style={styles.actionTextLight}>{t("common.ok")}</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -1304,4 +1319,3 @@ const styles = StyleSheet.create({
 });
 
 export default ProfileScreen;
-const { fetchClientInfo, clientData } = useClientByCompte();

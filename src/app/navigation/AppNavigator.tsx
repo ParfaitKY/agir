@@ -239,6 +239,14 @@ export const AppNavigator: React.FC = () => {
   const { t, tText } = useI18n();
   const { colors } = useTheme();
   const isGuestMode = isAuthenticated && user?.username === "invite";
+  React.useEffect(() => {
+    try {
+      console.log(
+        "[nav] appNavigator",
+        JSON.stringify({ isAuthenticated, user, isGuestMode })
+      );
+    } catch {}
+  }, [isAuthenticated, user?.username]);
 
   return (
     <Stack.Navigator

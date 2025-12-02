@@ -12,7 +12,7 @@ import { useAuth } from "../../../app/hooks/useAuth";
 
 const SplashScreen: React.FC = () => {
   const navigation = useNavigation();
-  const { isAuthenticated, isConfigured, user } = useAuth() as any;
+  const { isAuthenticated, isConfigured, user, isLoading } = useAuth() as any;
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(0.94)).current;
@@ -50,28 +50,44 @@ const SplashScreen: React.FC = () => {
       })
     ).start();
 
-    // Redirection automatique
-    const isGuestMode = isAuthenticated && user?.username === "invite";
     let redirectTimeout: ReturnType<typeof setTimeout> | undefined;
-    if (isGuestMode) {
-      if ((navigation as any).replace) {
-        (navigation as any).replace("Main");
-      } else {
-        (navigation as any).navigate("Main");
-      }
-    } else {
-      redirectTimeout = setTimeout(() => {
-        const target = isAuthenticated
-          ? "Main"
-          : isConfigured
-          ? "PinLogin"
-          : "InitialSetup";
+    if (!isLoading) {
+      const isGuestMode = isAuthenticated && user?.username === "invite";
+      console.log(
+        "[splash] auth",
+        JSON.stringify({ isAuthenticated, isConfigured, user })
+      );
+      if (isGuestMode) {
+        const target = "Main";
+        console.log(
+          "[splash] navigate",
+          target,
+          "replace" in (navigation as any) ? "replace" : "navigate"
+        );
         if ((navigation as any).replace) {
           (navigation as any).replace(target);
         } else {
           (navigation as any).navigate(target);
         }
-      }, 2400);
+      } else {
+        redirectTimeout = setTimeout(() => {
+          const target = isAuthenticated
+            ? "Main"
+            : isConfigured
+            ? "PinLogin"
+            : "InitialSetup";
+          console.log(
+            "[splash] navigate",
+            target,
+            "replace" in (navigation as any) ? "replace" : "navigate"
+          );
+          if ((navigation as any).replace) {
+            (navigation as any).replace(target);
+          } else {
+            (navigation as any).navigate(target);
+          }
+        }, 2400);
+      }
     }
 
     return () => {
@@ -85,6 +101,7 @@ const SplashScreen: React.FC = () => {
     isAuthenticated,
     isConfigured,
     user?.username,
+    isLoading,
     navigation,
   ]);
 

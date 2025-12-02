@@ -220,8 +220,33 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       // Ne supprimer is_configured / pin_user QUE pour le mode invité ou si l'app n'est pas configurée
       const isGuest = user?.username === "invite";
       if (isGuest || !isConfigured) {
-        await secureDeleteItem("is_configured");
-        await secureDeleteItem("pin_user");
+        const GUEST_CLEAR_KEYS = [
+          "is_configured",
+          "pin_user",
+          "user_login",
+          "user_firstname",
+          "user_lastname",
+          "user_phone",
+          "user_address",
+          "user_account_number",
+          "user_agency",
+          "user_id",
+          "user_secret_key",
+          "access_data",
+          "client_id",
+          "solde_globale",
+          "compte_statistiques",
+          "analyse_derniere_transaction",
+        ];
+        for (const k of GUEST_CLEAR_KEYS) {
+          try { await secureDeleteItem(k); } catch {}
+        }
+        // Nettoyage total côté Web si possible
+        try {
+          if (typeof window !== "undefined") {
+            window.localStorage?.clear?.();
+          }
+        } catch {}
         setIsConfigured(false);
       }
 
@@ -230,7 +255,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       setUser(null);
 
       console.log("=== COMPLETE LOGOUT PERFORMED ===");
-      console.log("All authentication data cleared");
+      console.log("All authentication data cleared (guest deep clean if applicable)");
     } catch (error) {
       console.error("Error during logout:", error);
     } finally {
