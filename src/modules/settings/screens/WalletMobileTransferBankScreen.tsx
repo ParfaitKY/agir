@@ -11,9 +11,11 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../../../shared/styles/ThemeProvider";
+import { useI18n } from "../../../app/providers/I18nProvider";
 
 const WalletMobileTransferBankScreen: React.FC = () => {
   const { colors } = useTheme();
+  const { t } = useI18n();
   const [account, setAccount] = useState("");
   const [network, setNetwork] = useState("");
   const [phone, setPhone] = useState("");
@@ -36,10 +38,12 @@ const WalletMobileTransferBankScreen: React.FC = () => {
         ]}
       >
         <Text style={[styles.title, { color: colors.text }]}>
-          Mobile vers banque
+          {t("wallet.mobileToBank.title")}
         </Text>
 
-        <Text style={[styles.label, { color: colors.text }]}>Compte</Text>
+        <Text style={[styles.label, { color: colors.text }]}>
+          {t("common.account")}
+        </Text>
         <View
           style={[
             styles.inputRow,
@@ -48,7 +52,7 @@ const WalletMobileTransferBankScreen: React.FC = () => {
         >
           <TextInput
             style={[styles.inputField, { color: colors.text }]}
-            placeholder="Sélectionnez un compte"
+            placeholder={t("placeholders.selectAccount")}
             placeholderTextColor={colors.text + "60"}
             value={account}
             onChangeText={setAccount}
@@ -56,7 +60,9 @@ const WalletMobileTransferBankScreen: React.FC = () => {
           <Ionicons name="chevron-down" size={18} color={colors.border} />
         </View>
 
-        <Text style={[styles.label, { color: colors.text }]}>Réseau</Text>
+        <Text style={[styles.label, { color: colors.text }]}>
+          {t("common.network")}
+        </Text>
         <View
           style={[
             styles.inputRow,
@@ -65,7 +71,7 @@ const WalletMobileTransferBankScreen: React.FC = () => {
         >
           <TextInput
             style={[styles.inputField, { color: colors.text }]}
-            placeholder="Sélectionnez un réseau"
+            placeholder={t("placeholders.selectNetwork")}
             placeholderTextColor={colors.text + "60"}
             value={network}
             onChangeText={setNetwork}
@@ -73,7 +79,9 @@ const WalletMobileTransferBankScreen: React.FC = () => {
           <Ionicons name="chevron-down" size={18} color={colors.border} />
         </View>
 
-        <Text style={[styles.label, { color: colors.text }]}>Téléphone</Text>
+        <Text style={[styles.label, { color: colors.text }]}>
+          {t("common.phone")}
+        </Text>
         <View
           style={[
             styles.inputRow,
@@ -82,7 +90,7 @@ const WalletMobileTransferBankScreen: React.FC = () => {
         >
           <TextInput
             style={[styles.inputField, { color: colors.text }]}
-            placeholder="Sélectionnez un téléphone"
+            placeholder={t("placeholders.selectPhone")}
             placeholderTextColor={colors.text + "60"}
             keyboardType="phone-pad"
             value={phone}
@@ -91,7 +99,9 @@ const WalletMobileTransferBankScreen: React.FC = () => {
           <Ionicons name="chevron-down" size={18} color={colors.border} />
         </View>
 
-        <Text style={[styles.label, { color: colors.text }]}>Montant reçu</Text>
+        <Text style={[styles.label, { color: colors.text }]}>
+          {t("wallet.amountReceived")}
+        </Text>
         <TextInput
           style={[
             styles.input,
@@ -101,7 +111,9 @@ const WalletMobileTransferBankScreen: React.FC = () => {
               color: colors.text,
             },
           ]}
-          placeholder={`Minimum : ${MIN_AMOUNT} F CFA (obligatoire)`}
+          placeholder={`${t("placeholders.minimum")} : ${MIN_AMOUNT} F CFA (${t(
+            "common.required"
+          )})`}
           placeholderTextColor={colors.text + "60"}
           keyboardType="numeric"
           value={amount}
@@ -121,20 +133,20 @@ const WalletMobileTransferBankScreen: React.FC = () => {
               (v) => String(v).trim().length > 0
             );
             if (!hasAll) {
-              Alert.alert("Information", "Remplissez tous les champs");
+              Alert.alert(t("common.info"), t("common.fillAllFields"));
               return;
             }
             if (amt < MIN_AMOUNT) {
               Alert.alert(
-                "Information",
-                `Montant minimum : ${MIN_AMOUNT} F CFA`
+                t("common.info"),
+                `${t("placeholders.minimum")} : ${MIN_AMOUNT} F CFA`
               );
               return;
             }
             setShowModal(true);
           }}
         >
-          <Text style={styles.submitText}>VALIDER</Text>
+          <Text style={styles.submitText}>{t("common.validate")}</Text>
         </TouchableOpacity>
       </View>
 
@@ -147,16 +159,15 @@ const WalletMobileTransferBankScreen: React.FC = () => {
         <View style={styles.modalOverlay}>
           <View style={[styles.modalCard, { backgroundColor: colors.card }]}>
             <Text style={[styles.modalTitle, { color: colors.text }]}>
-              Vérification
+              {t("common.verification")}
             </Text>
             <Text style={[styles.modalSubtitle, { color: colors.text + "90" }]}>
-              Veuillez confirmer la transaction en renseignant le code de
-              validation reçu par sms et/ou par Email.
+              {t("wallet.verifyText")}
             </Text>
 
             <View style={styles.modalRow}>
               <Text style={[styles.modalLabel, { color: colors.text + "90" }]}>
-                Téléphone
+                {t("common.phone")}
               </Text>
               <Text style={[styles.modalValue, { color: colors.text }]}>
                 {phone}
@@ -165,7 +176,7 @@ const WalletMobileTransferBankScreen: React.FC = () => {
 
             <View style={styles.modalRow}>
               <Text style={[styles.modalLabel, { color: colors.text + "90" }]}>
-                Frais = 0 % + 0 FCFA
+                {t("wallet.feesZero")}
               </Text>
               <Text style={[styles.modalValue, { color: colors.text }]}>
                 0 F CFA
@@ -174,7 +185,7 @@ const WalletMobileTransferBankScreen: React.FC = () => {
 
             <View style={styles.modalRow}>
               <Text style={[styles.modalLabel, { color: colors.text + "90" }]}>
-                Montant envoyé
+                {t("wallet.amountSent")}
               </Text>
               <Text style={[styles.modalValue, { color: colors.text }]}>
                 {toNumber(amount)} F CFA
@@ -183,7 +194,7 @@ const WalletMobileTransferBankScreen: React.FC = () => {
 
             <View style={styles.modalRow}>
               <Text style={[styles.modalLabelBold, { color: colors.text }]}>
-                Montant reçu
+                {t("wallet.amountReceived")}
               </Text>
               <Text style={[styles.modalValueBold, { color: colors.text }]}>
                 {toNumber(amount)} F CFA
@@ -199,7 +210,9 @@ const WalletMobileTransferBankScreen: React.FC = () => {
                   color: colors.text,
                 },
               ]}
-              placeholder="Code de validation (obligatoire)"
+              placeholder={`${t("wallet.validationCode")} (${t(
+                "common.required"
+              )})`}
               placeholderTextColor={colors.text + "60"}
               value={otp}
               onChangeText={setOtp}
@@ -215,7 +228,7 @@ const WalletMobileTransferBankScreen: React.FC = () => {
               disabled={!otp.trim().length}
               onPress={() => setShowModal(false)}
             >
-              <Text style={styles.modalSubmitText}>TRANSFÉRER</Text>
+              <Text style={styles.modalSubmitText}>{t("wallet.transfer")}</Text>
             </TouchableOpacity>
           </View>
         </View>

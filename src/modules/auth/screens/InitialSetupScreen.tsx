@@ -22,7 +22,10 @@ import * as Crypto from "expo-crypto";
 import * as ScreenCapture from "expo-screen-capture";
 
 import { useI18n } from "../../../app/providers/I18nProvider";
-import { secureSetItem } from "../../../shared/utils/secureStorage";
+import {
+  secureSetItem,
+  secureGetItem,
+} from "../../../shared/utils/secureStorage";
 import { useAuth } from "../../../app/hooks/useAuth";
 import { useLogin } from "../../../domain/auth/useLogin";
 import useClientByCompte from "../../../domain/auth/useClientByCompte";
@@ -164,6 +167,73 @@ const InitialSetupScreen: React.FC = () => {
       setStep(2);
     }
   }, [route]);
+
+  useEffect(() => {
+    const run = async () => {
+      try {
+        const normalize = (r: any) => {
+          const d = r?.data ?? r;
+          if (Array.isArray(d)) return d[0] ?? {};
+          if (Array.isArray(d?.data)) return d.data[0] ?? {};
+          if (Array.isArray(d?.result)) return d.result[0] ?? {};
+          if (Array.isArray(d?.payload)) return d.payload[0] ?? {};
+          if (d?.data && typeof d.data === "object") return d.data;
+          return d ?? {};
+        };
+        const pick = (obj: any, patterns: string[]) => {
+          if (!obj) return undefined;
+          const keys = Object.keys(obj);
+          for (const p of patterns) {
+            const np = p.toLowerCase().replace(/_/g, "");
+            for (const k of keys) {
+              const nk = k.toLowerCase().replace(/_/g, "");
+              if (nk === np) return obj[k];
+            }
+          }
+          return undefined;
+        };
+
+        const storedAccess = await secureGetItem("access_data");
+        const block = normalize(
+          accessData || (storedAccess ? JSON.parse(storedAccess) : null)
+        );
+
+        const phoneCandidate =
+          pick(block, [
+            "CL_TELEPHONE",
+            "CL_TELEPHONECLIENT",
+            "TEL",
+            "PHONE",
+            "MOBILE",
+            "CONTACT",
+          ]) || "";
+        if (phoneCandidate) {
+          const phoneStr = String(phoneCandidate);
+          await secureSetItem("user_phone", phoneStr);
+          const userDataStr = await secureGetItem("user_data");
+          try {
+            const userDataObj = userDataStr ? JSON.parse(userDataStr) : {};
+            const merged = { ...userDataObj, phone: phoneStr };
+            await secureSetItem("user_data", JSON.stringify(merged));
+          } catch {}
+        }
+
+        const accCandidate =
+          pick(block, [
+            "OP_CODEOPERATEURGESTIONNAIRECOMPTEMOBILE",
+            "NUMCOMPTE",
+            "CO_CODECOMPTE",
+            "ACCOUNT_NUMBER",
+          ]) || "";
+        if (accCandidate) {
+          const sanitized = String(accCandidate).replace(/\D/g, "");
+          if (sanitized.length >= 8)
+            await secureSetItem("user_account_number", sanitized);
+        }
+      } catch {}
+    };
+    run();
+  }, [accessData]);
 
   // Fonction vérification compte
   const handleVerifyAccountNumber = async () => {

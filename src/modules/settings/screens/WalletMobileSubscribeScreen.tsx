@@ -9,9 +9,11 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../../../shared/styles/ThemeProvider";
+import { useI18n } from "../../../app/providers/I18nProvider";
 
 const WalletMobileSubscribeScreen: React.FC = () => {
   const { colors } = useTheme();
+  const { t } = useI18n();
   const [accountType, setAccountType] = useState("");
   const [country, setCountry] = useState("CÔTE D'IVOIRE");
   const [phone, setPhone] = useState("");
@@ -27,10 +29,12 @@ const WalletMobileSubscribeScreen: React.FC = () => {
         ]}
       >
         <Text style={[styles.title, { color: colors.text }]}>
-          Compte mobile
+          {t("wallet.mobile.accountTitle")}
         </Text>
 
-        <Text style={[styles.label, { color: colors.text }]}>Compte</Text>
+        <Text style={[styles.label, { color: colors.text }]}>
+          {t("common.account")}
+        </Text>
         <View
           style={[
             styles.inputRow,
@@ -39,7 +43,9 @@ const WalletMobileSubscribeScreen: React.FC = () => {
         >
           <TextInput
             style={[styles.inputField, { color: colors.text }]}
-            placeholder="Compte (obligatoire)"
+            placeholder={`${t("placeholders.account")} (${t(
+              "common.required"
+            )})`}
             placeholderTextColor={colors.text + "60"}
             value={accountType}
             onChangeText={setAccountType}
@@ -47,7 +53,9 @@ const WalletMobileSubscribeScreen: React.FC = () => {
           <Ionicons name="chevron-down" size={18} color={colors.border} />
         </View>
 
-        <Text style={[styles.label, { color: colors.text }]}>Pays</Text>
+        <Text style={[styles.label, { color: colors.text }]}>
+          {t("common.country")}
+        </Text>
         <TextInput
           style={[
             styles.input,
@@ -57,13 +65,15 @@ const WalletMobileSubscribeScreen: React.FC = () => {
               color: colors.text,
             },
           ]}
-          placeholder="Pays (obligatoire)"
+          placeholder={`${t("placeholders.country")} (${t("common.required")})`}
           placeholderTextColor={colors.text + "60"}
           value={country}
           onChangeText={setCountry}
         />
 
-        <Text style={[styles.label, { color: colors.text }]}>Téléphone</Text>
+        <Text style={[styles.label, { color: colors.text }]}>
+          {t("common.phone")}
+        </Text>
         <TextInput
           style={[
             styles.input,
@@ -74,13 +84,17 @@ const WalletMobileSubscribeScreen: React.FC = () => {
             },
           ]}
           keyboardType="phone-pad"
-          placeholder="Téléphone • Ex.: 01XXXXXXXX (obligatoire)"
+          placeholder={`${t("placeholders.phone")} • Ex.: 01XXXXXXXX (${t(
+            "common.required"
+          )})`}
           placeholderTextColor={colors.text + "60"}
           value={phone}
           onChangeText={setPhone}
         />
 
-        <Text style={[styles.label, { color: colors.text }]}>Email</Text>
+        <Text style={[styles.label, { color: colors.text }]}>
+          {t("profile.labels.email")}
+        </Text>
         <TextInput
           style={[
             styles.input,
@@ -92,13 +106,17 @@ const WalletMobileSubscribeScreen: React.FC = () => {
           ]}
           keyboardType="email-address"
           autoCapitalize="none"
-          placeholder="Email (obligatoire)"
+          placeholder={`${t("support.email.address.placeholder")} (${t(
+            "common.required"
+          )})`}
           placeholderTextColor={colors.text + "60"}
           value={email}
           onChangeText={setEmail}
         />
 
-        <Text style={[styles.label, { color: colors.text }]}>Localisation</Text>
+        <Text style={[styles.label, { color: colors.text }]}>
+          {t("common.location")}
+        </Text>
         <TextInput
           style={[
             styles.input,
@@ -108,7 +126,9 @@ const WalletMobileSubscribeScreen: React.FC = () => {
               color: colors.text,
             },
           ]}
-          placeholder="Localisation (obligatoire)"
+          placeholder={`${t("placeholders.location")} (${t(
+            "common.required"
+          )})`}
           placeholderTextColor={colors.text + "60"}
           value={location}
           onChangeText={setLocation}
@@ -118,7 +138,7 @@ const WalletMobileSubscribeScreen: React.FC = () => {
           style={[styles.submitBtn, { backgroundColor: "#E77A82" }]}
           activeOpacity={0.8}
         >
-          <Text style={styles.submitText}>VALIDER</Text>
+          <Text style={styles.submitText}>{t("common.validate")}</Text>
         </TouchableOpacity>
       </View>
     </ScrollView>

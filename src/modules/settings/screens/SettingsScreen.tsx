@@ -222,7 +222,7 @@ export const SettingsScreen: React.FC = () => {
         {
           icon: "moon-outline",
           iconColor: colors.primary,
-          title: "Mode sombre",
+          title: t("settings.darkMode"),
           onPress: () => setShowThemeModal(true),
           rightElement: (
             <View
@@ -235,10 +235,10 @@ export const SettingsScreen: React.FC = () => {
             >
               <Text style={{ color: colors.text, fontSize: 12 }}>
                 {preference === "system"
-                  ? "Système"
+                  ? t("theme.system")
                   : preference === "dark"
-                  ? "Sombre"
-                  : "Clair"}
+                  ? t("theme.dark")
+                  : t("theme.light")}
               </Text>
             </View>
           ),
@@ -791,12 +791,12 @@ export const SettingsScreen: React.FC = () => {
             style={[styles.modalContainer, { backgroundColor: colors.card }]}
           >
             <Text style={[styles.modalTitle, { color: colors.text }]}>
-              Choisir le thème
+              {t("theme.choose")}
             </Text>
             {[
-              { key: "light", label: "Clair" },
-              { key: "dark", label: "Sombre" },
-              { key: "system", label: "Suivre le système" },
+              { key: "light", label: t("theme.light") },
+              { key: "dark", label: t("theme.dark") },
+              { key: "system", label: t("theme.followSystem") },
             ].map((opt) => (
               <TouchableOpacity
                 key={opt.key}
@@ -846,7 +846,7 @@ export const SettingsScreen: React.FC = () => {
                 onPress={() => setShowThemeModal(false)}
               >
                 <Text style={[styles.actionText, { color: colors.text }]}>
-                  Fermer
+                  {t("common.close")}
                 </Text>
               </TouchableOpacity>
             </View>

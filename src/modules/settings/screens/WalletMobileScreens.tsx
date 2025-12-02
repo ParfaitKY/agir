@@ -34,10 +34,10 @@ const WalletMobileScreens: React.FC = () => {
             <Ionicons name="phone-portrait" size={32} color="#4CAF50" />
           </View>
           <Text style={[styles.cardTitle, { color: colors.text }]}>
-            Souscription
+            {t("wallet.mobile.subscribe.title")}
           </Text>
           <Text style={[styles.cardSubtitle, { color: colors.text + "80" }]}>
-            compte mobile
+            {t("wallet.mobile.subscribe.subtitle")}
           </Text>
         </TouchableOpacity>
 
@@ -52,9 +52,11 @@ const WalletMobileScreens: React.FC = () => {
           <View style={styles.iconWrap}>
             <Ionicons name="swap-horizontal" size={32} color="#1E88E5" />
           </View>
-          <Text style={[styles.cardTitle, { color: colors.text }]}>Compte</Text>
+          <Text style={[styles.cardTitle, { color: colors.text }]}>
+            {t("wallet.mobile.bankToMobile.title")}
+          </Text>
           <Text style={[styles.cardSubtitle, { color: colors.text + "80" }]}>
-            bancaire - mobile
+            {t("wallet.mobile.bankToMobile.subtitle")}
           </Text>
         </TouchableOpacity>
 
@@ -73,9 +75,11 @@ const WalletMobileScreens: React.FC = () => {
               color="#8D6E63"
             />
           </View>
-          <Text style={[styles.cardTitle, { color: colors.text }]}>Compte</Text>
+          <Text style={[styles.cardTitle, { color: colors.text }]}>
+            {t("wallet.mobile.mobileToBank.title")}
+          </Text>
           <Text style={[styles.cardSubtitle, { color: colors.text + "80" }]}>
-            mobile - bancaire
+            {t("wallet.mobile.mobileToBank.subtitle")}
           </Text>
         </TouchableOpacity>
 
@@ -95,10 +99,10 @@ const WalletMobileScreens: React.FC = () => {
             />
           </View>
           <Text style={[styles.cardTitle, { color: colors.text }]}>
-            Désouscription
+            {t("wallet.mobile.unsubscribe.title")}
           </Text>
           <Text style={[styles.cardSubtitle, { color: colors.text + "80" }]}>
-            compte mobile
+            {t("wallet.mobile.unsubscribe.subtitle")}
           </Text>
         </TouchableOpacity>
 
@@ -117,9 +121,11 @@ const WalletMobileScreens: React.FC = () => {
               color="#7E57C2"
             />
           </View>
-          <Text style={[styles.cardTitle, { color: colors.text }]}>Liste</Text>
+          <Text style={[styles.cardTitle, { color: colors.text }]}>
+            {t("wallet.mobile.operations.title")}
+          </Text>
           <Text style={[styles.cardSubtitle, { color: colors.text + "80" }]}>
-            des opérations mobile
+            {t("wallet.mobile.operations.subtitle")}
           </Text>
         </TouchableOpacity>
       </View>

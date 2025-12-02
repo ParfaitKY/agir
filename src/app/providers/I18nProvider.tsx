@@ -1111,6 +1111,7 @@ const TRANSLATIONS: Translations = {
     zh: "最近活动",
   },
   "dashboard.recent.seeAll": { fr: "Tout voir", en: "See all", zh: "查看全部" },
+  "dashboard.recent.seeLess": { fr: "Voir moins", en: "See less", zh: "收起" },
 
   // Beneficiaries page
   "beneficiaries.header.title": {
@@ -1200,6 +1201,7 @@ const TRANSLATIONS: Translations = {
   "common.confirm": { fr: "Confirmer", en: "Confirm", zh: "确认" },
   "common.ok": { fr: "OK", en: "OK", zh: "确定" },
   "common.success": { fr: "Succès", en: "Success", zh: "成功" },
+  "common.close": { fr: "Fermer", en: "Close", zh: "关闭" },
 
   // Products detail
   "products.detail.modal.confirm.prefix": {
@@ -1697,6 +1699,21 @@ const TRANSLATIONS: Translations = {
   "language.fr": { fr: "Français", en: "French", zh: "法语" },
   "language.en": { fr: "English", en: "English", zh: "英语" },
   "language.zh": { fr: "中文", en: "Chinese", zh: "中文" },
+
+  // Theme preferences
+  "theme.choose": {
+    fr: "Choisir le thème",
+    en: "Choose theme",
+    zh: "选择主题",
+  },
+  "theme.light": { fr: "Clair", en: "Light", zh: "浅色" },
+  "theme.dark": { fr: "Sombre", en: "Dark", zh: "深色" },
+  "theme.system": { fr: "Système", en: "System", zh: "跟随系统" },
+  "theme.followSystem": {
+    fr: "Suivre le système",
+    en: "Follow system",
+    zh: "跟随系统",
+  },
 
   // Products screen
   "products.header.title": {
@@ -2234,6 +2251,153 @@ const TRANSLATIONS: Translations = {
     zh: "您的新卡申请已记录",
   },
 
+  // Common additions
+  "common.account": { fr: "Compte", en: "Account", zh: "账户" },
+  "common.network": { fr: "Réseau", en: "Network", zh: "网络" },
+  "common.phone": { fr: "Téléphone", en: "Phone", zh: "电话" },
+  "common.required": { fr: "obligatoire", en: "required", zh: "必填" },
+  "common.validate": { fr: "VALIDER", en: "VALIDATE", zh: "验证" },
+  "common.verification": { fr: "Vérification", en: "Verification", zh: "验证" },
+  "common.fillAllFields": {
+    fr: "Veuillez remplir tous les champs",
+    en: "Please fill in all fields",
+    zh: "请填写所有字段",
+  },
+
+  // Placeholders
+  "placeholders.selectAccount": {
+    fr: "Sélectionnez un compte",
+    en: "Select an account",
+    zh: "选择账户",
+  },
+  "placeholders.selectNetwork": {
+    fr: "Sélectionnez un réseau",
+    en: "Select a network",
+    zh: "选择网络",
+  },
+  "placeholders.selectPhone": {
+    fr: "Sélectionnez un téléphone",
+    en: "Select a phone",
+    zh: "选择电话",
+  },
+  "placeholders.account": { fr: "Compte", en: "Account", zh: "账户" },
+  "placeholders.phone": { fr: "Téléphone", en: "Phone", zh: "电话" },
+  "placeholders.minimum": { fr: "Minimum", en: "Minimum", zh: "最低" },
+
+  // Wallet flows
+  "wallet.bankToMobile.title": {
+    fr: "Banque vers mobile",
+    en: "Bank to mobile",
+    zh: "银行到手机账户",
+  },
+  "wallet.mobileToBank.title": {
+    fr: "Mobile vers banque",
+    en: "Mobile to bank",
+    zh: "手机账户到银行",
+  },
+  "wallet.amountReceived": {
+    fr: "Montant reçu",
+    en: "Amount received",
+    zh: "收到金额",
+  },
+  "wallet.amountSent": {
+    fr: "Montant envoyé",
+    en: "Amount sent",
+    zh: "发送金额",
+  },
+  "wallet.validationCode": {
+    fr: "Code de validation",
+    en: "Validation code",
+    zh: "验证代码",
+  },
+  "wallet.transfer": { fr: "TRANSFÉRER", en: "TRANSFER", zh: "转账" },
+  "wallet.verifyText": {
+    fr: "Veuillez confirmer la transaction en renseignant le code de validation reçu par sms et/ou par Email.",
+    en: "Please confirm the transaction by entering the validation code received by SMS and/or Email.",
+    zh: "请输入通过短信或邮箱收到的验证码以确认交易。",
+  },
+  "wallet.feesZero": {
+    fr: "Frais = 0 % + 0 FCFA",
+    en: "Fees = 0% + 0 FCFA",
+    zh: "费用 = 0% + 0 FCFA",
+  },
+
+  // Wallet Mobile menu
+  "settings.walletMobile": {
+    fr: "Mon Wallet Mobile",
+    en: "My Mobile Wallet",
+    zh: "我的手机钱包",
+  },
+  "wallet.mobile.subscribe.title": {
+    fr: "Souscription",
+    en: "Subscription",
+    zh: "订阅",
+  },
+  "wallet.mobile.subscribe.subtitle": {
+    fr: "compte mobile",
+    en: "mobile account",
+    zh: "手机账户",
+  },
+  "wallet.mobile.bankToMobile.title": {
+    fr: "Compte",
+    en: "Account",
+    zh: "账户",
+  },
+  "wallet.mobile.bankToMobile.subtitle": {
+    fr: "bancaire - mobile",
+    en: "bank - mobile",
+    zh: "银行 - 手机账户",
+  },
+  "wallet.mobile.mobileToBank.title": {
+    fr: "Compte",
+    en: "Account",
+    zh: "账户",
+  },
+  "wallet.mobile.mobileToBank.subtitle": {
+    fr: "mobile - bancaire",
+    en: "mobile - bank",
+    zh: "手机账户 - 银行",
+  },
+  "wallet.mobile.unsubscribe.title": {
+    fr: "Désouscription",
+    en: "Unsubscribe",
+    zh: "取消订阅",
+  },
+  "wallet.mobile.unsubscribe.subtitle": {
+    fr: "compte mobile",
+    en: "mobile account",
+    zh: "手机账户",
+  },
+  "wallet.mobile.operations.title": {
+    fr: "Liste",
+    en: "List",
+    zh: "列表",
+  },
+  "wallet.mobile.operations.subtitle": {
+    fr: "des opérations mobile",
+    en: "mobile operations",
+    zh: "手机账户操作",
+  },
+
+  // Dates
+  "dates.start": { fr: "Date début", en: "Start date", zh: "开始日期" },
+  "dates.end": { fr: "Date fin", en: "End date", zh: "结束日期" },
+  "wallet.operations.welcome": {
+    fr: "Bienvenue, vous pouvez consulter les virements…",
+    en: "Welcome, you can view transfers…",
+    zh: "欢迎，您可以查看转账…",
+  },
+  "wallet.mobile.accountTitle": {
+    fr: "Compte mobile",
+    en: "Mobile account",
+    zh: "手机账户",
+  },
+
+  "common.country": { fr: "Pays", en: "Country", zh: "国家" },
+  "placeholders.country": { fr: "Pays", en: "Country", zh: "国家" },
+  "common.location": { fr: "Localisation", en: "Location", zh: "位置" },
+  "placeholders.location": { fr: "Localisation", en: "Location", zh: "位置" },
+
   // Dates (extended)
   "dashboard.date.3days": {
     fr: "Il y a 3 jours",
@@ -2494,6 +2658,7 @@ export const I18nProvider: React.FC<{ children: React.ReactNode }> = ({
       "Changer le code PIN": "settings.pin",
       "Changer le mot de passe": "settings.password",
       "Mon Wallet": "settings.wallet",
+      "Mon Wallet Mobile": "settings.walletMobile",
       "Gérer mes comptes": "settings.accounts",
       "Mes bénéficiaires": "settings.beneficiaries",
       "Mes produits": "settings.products",

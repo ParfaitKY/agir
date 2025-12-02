@@ -967,7 +967,7 @@ export const DashboardScreen: React.FC = () => {
               >
                 <Text style={[styles.seeAllText, { color: colors.primary }]}>
                   {showAllTransactions
-                    ? "Voir moins"
+                    ? t("dashboard.recent.seeLess")
                     : t("dashboard.recent.seeAll")}
                 </Text>
               </TouchableOpacity>
@@ -985,7 +985,9 @@ export const DashboardScreen: React.FC = () => {
             >
               {loadingTransaction && (
                 <View style={{ padding: 16 }}>
-                  <Text style={{ color: colors.text }}>Chargement…</Text>
+                  <Text style={{ color: colors.text }}>
+                    {t("analytics.loading")}
+                  </Text>
                 </View>
               )}
               {!!transactionError && (
@@ -1063,7 +1065,7 @@ export const DashboardScreen: React.FC = () => {
                 !derniereTransaction && (
                   <View style={{ padding: 16 }}>
                     <Text style={{ color: colors.text + "70" }}>
-                      Aucune transaction
+                      {t("transactions.empty.none")}
                     </Text>
                   </View>
                 )}

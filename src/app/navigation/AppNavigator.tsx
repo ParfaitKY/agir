@@ -347,7 +347,7 @@ export const AppNavigator: React.FC = () => {
             component={withGuestRestriction(BeneficiairesPage)}
             options={{
               headerShown: true,
-              title: "Beneficiaires",
+              title: tText("Bénéficiaires"),
               headerStyle: { backgroundColor: colors.card },
               headerTitleStyle: { color: colors.text },
               headerTintColor: colors.primary,
@@ -359,7 +359,7 @@ export const AppNavigator: React.FC = () => {
             component={withGuestRestriction(WalletScreens)}
             options={{
               headerShown: true,
-              title: "Mon Wallet",
+              title: tText("Mon Wallet"),
               headerStyle: { backgroundColor: colors.card },
               headerTitleStyle: { color: colors.text },
               headerTintColor: colors.primary,
@@ -370,7 +370,7 @@ export const AppNavigator: React.FC = () => {
             component={withGuestRestriction(WalletMobileScreens)}
             options={{
               headerShown: true,
-              title: "Mon Wallet Mobile",
+              title: tText("Mon Wallet Mobile"),
               headerStyle: { backgroundColor: colors.card },
               headerTitleStyle: { color: colors.text },
               headerTintColor: colors.primary,
@@ -381,7 +381,7 @@ export const AppNavigator: React.FC = () => {
             component={withGuestRestriction(WalletMobileSubscribeScreen)}
             options={{
               headerShown: true,
-              title: "Souscription",
+              title: t("wallet.mobile.subscribe.title"),
               headerStyle: { backgroundColor: colors.card },
               headerTitleStyle: { color: colors.text },
               headerTintColor: colors.primary,
@@ -392,7 +392,7 @@ export const AppNavigator: React.FC = () => {
             component={withGuestRestriction(WalletMobileTransferBankScreen)}
             options={{
               headerShown: true,
-              title: "Transfert",
+              title: t("wallet.mobileToBank.title"),
               headerStyle: { backgroundColor: colors.card },
               headerTitleStyle: { color: colors.text },
               headerTintColor: colors.primary,
@@ -403,7 +403,7 @@ export const AppNavigator: React.FC = () => {
             component={withGuestRestriction(WalletBankTransferMobileScreen)}
             options={{
               headerShown: true,
-              title: "Transfert",
+              title: t("wallet.bankToMobile.title"),
               headerStyle: { backgroundColor: colors.card },
               headerTitleStyle: { color: colors.text },
               headerTintColor: colors.primary,
@@ -414,7 +414,7 @@ export const AppNavigator: React.FC = () => {
             component={withGuestRestriction(WalletMobileUnsubscribeScreen)}
             options={{
               headerShown: true,
-              title: "Désouscription",
+              title: t("wallet.mobile.unsubscribe.title"),
               headerStyle: { backgroundColor: colors.card },
               headerTitleStyle: { color: colors.text },
               headerTintColor: colors.primary,
@@ -425,7 +425,7 @@ export const AppNavigator: React.FC = () => {
             component={withGuestRestriction(WalletMobileOperationsListScreen)}
             options={{
               headerShown: true,
-              title: "Liste des opérations",
+              title: t("wallet.mobile.operations.title"),
               headerStyle: { backgroundColor: colors.card },
               headerTitleStyle: { color: colors.text },
               headerTintColor: colors.primary,
@@ -448,7 +448,7 @@ export const AppNavigator: React.FC = () => {
             component={LanguageScreen}
             options={{
               headerShown: true,
-              title: "Langue / Language / 语言",
+              title: tText("Langue"),
               headerStyle: { backgroundColor: colors.card },
               headerTitleStyle: { color: colors.text },
               headerTintColor: colors.primary,

@@ -233,7 +233,6 @@ export const useClientByCompte = () => {
         return false;
       }
 
-      // ⚡ Stockage et génération automatique de client_id si nécessaire
       setClientData(info);
 
       const fullName = `${info.PRENOMCLIENT ?? info.firstName ?? ""} ${

@@ -9,9 +9,11 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../../../shared/styles/ThemeProvider";
+import { useI18n } from "../../../app/providers/I18nProvider";
 
 const WalletMobileUnsubscribeScreen: React.FC = () => {
   const { colors } = useTheme();
+  const { t } = useI18n();
   const [account, setAccount] = useState("");
   const [phone, setPhone] = useState("");
 
@@ -25,9 +27,13 @@ const WalletMobileUnsubscribeScreen: React.FC = () => {
           { backgroundColor: colors.card, shadowColor: colors.text },
         ]}
       >
-        <Text style={[styles.title, { color: colors.text }]}>Compte mobile</Text>
+        <Text style={[styles.title, { color: colors.text }]}>
+          {t("wallet.mobile.accountTitle")}
+        </Text>
 
-        <Text style={[styles.label, { color: colors.text }]}>Compte</Text>
+        <Text style={[styles.label, { color: colors.text }]}>
+          {t("common.account")}
+        </Text>
         <View
           style={[
             styles.inputRow,
@@ -36,7 +42,7 @@ const WalletMobileUnsubscribeScreen: React.FC = () => {
         >
           <TextInput
             style={[styles.inputField, { color: colors.text }]}
-            placeholder="Compte"
+            placeholder={t("placeholders.account")}
             placeholderTextColor={colors.text + "60"}
             value={account}
             onChangeText={setAccount}
@@ -44,7 +50,9 @@ const WalletMobileUnsubscribeScreen: React.FC = () => {
           <Ionicons name="chevron-down" size={18} color={colors.border} />
         </View>
 
-        <Text style={[styles.label, { color: colors.text }]}>Téléphone</Text>
+        <Text style={[styles.label, { color: colors.text }]}>
+          {t("common.phone")}
+        </Text>
         <View
           style={[
             styles.inputRow,
@@ -54,7 +62,7 @@ const WalletMobileUnsubscribeScreen: React.FC = () => {
           <TextInput
             style={[styles.inputField, { color: colors.text }]}
             keyboardType="phone-pad"
-            placeholder="Téléphone"
+            placeholder={t("placeholders.phone")}
             placeholderTextColor={colors.text + "60"}
             value={phone}
             onChangeText={setPhone}
@@ -67,7 +75,7 @@ const WalletMobileUnsubscribeScreen: React.FC = () => {
           activeOpacity={0.8}
           disabled={!canSubmit}
         >
-          <Text style={styles.submitText}>VALIDER</Text>
+          <Text style={styles.submitText}>{t("common.validate")}</Text>
         </TouchableOpacity>
       </View>
     </ScrollView>

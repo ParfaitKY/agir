@@ -98,9 +98,19 @@ export const useLogin = () => {
         ]) ||
         data?.email ||
         "";
+      const phone =
+        pick(block, [
+          "CL_TELEPHONE",
+          "CL_TELEPHONECLIENT",
+          "TEL",
+          "PHONE",
+          "MOBILE",
+          "CONTACT",
+        ]) || "";
       const id = data?.id || username || "";
-      const userData = { id, username, name, email };
+      const userData = { id, username, name, email, ...(phone ? { phone } : {}) };
       await secureSetItem("user_data", JSON.stringify(userData));
+      if (phone) await secureSetItem("user_phone", String(phone));
 
       setUserInfo({ token, user: userData });
       return true;

@@ -10,9 +10,11 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../../../shared/styles/ThemeProvider";
+import { useI18n } from "../../../app/providers/I18nProvider";
 
 const WalletMobileOperationsListScreen: React.FC = () => {
   const { colors } = useTheme();
+  const { t } = useI18n();
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
   const [pickerVisible, setPickerVisible] = useState(false);
@@ -62,7 +64,9 @@ const WalletMobileOperationsListScreen: React.FC = () => {
           { backgroundColor: colors.card, shadowColor: colors.text },
         ]}
       >
-        <Text style={[styles.label, { color: colors.text }]}>Date début</Text>
+        <Text style={[styles.label, { color: colors.text }]}>
+          {t("dates.start")}
+        </Text>
         <TouchableOpacity
           style={[
             styles.input,
@@ -80,11 +84,13 @@ const WalletMobileOperationsListScreen: React.FC = () => {
               textAlign: "center",
             }}
           >
-            {fromDate || "Date début (obligatoire)"}
+            {fromDate || `${t("dates.start")} (${t("common.required")})`}
           </Text>
         </TouchableOpacity>
 
-        <Text style={[styles.label, { color: colors.text }]}>Date fin</Text>
+        <Text style={[styles.label, { color: colors.text }]}>
+          {t("dates.end")}
+        </Text>
         <TouchableOpacity
           style={[
             styles.input,
@@ -102,7 +108,7 @@ const WalletMobileOperationsListScreen: React.FC = () => {
               textAlign: "center",
             }}
           >
-            {toDate || "Date fin (obligatoire)"}
+            {toDate || `${t("dates.end")} (${t("common.required")})`}
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -126,7 +132,7 @@ const WalletMobileOperationsListScreen: React.FC = () => {
             </View>
           </View>
           <Text style={styles.noticeText}>
-            Bienvenue, vous pouvez consulter les virements…
+            {t("wallet.operations.welcome")}
           </Text>
         </View>
       </View>
@@ -234,7 +240,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderRadius: 10,
     overflow: "hidden",
-    
   },
   noticeLeft: {
     width: 56,
