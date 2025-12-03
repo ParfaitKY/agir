@@ -201,6 +201,7 @@ export const TransferScreen: React.FC = () => {
                   style={styles.amountInput}
                   placeholder="0"
                   keyboardType="numeric"
+                  underlineColorAndroid="transparent"
                   value={amount}
                   onChangeText={(v) => setAmount(v.replace(/[^0-9.]/g, ""))}
                 />
@@ -252,6 +253,7 @@ export const TransferScreen: React.FC = () => {
                   style={styles.amountInput}
                   placeholder="0"
                   keyboardType="numeric"
+                  underlineColorAndroid="transparent"
                   value={amount}
                   onChangeText={(v) => setAmount(v.replace(/[^0-9.]/g, ""))}
                 />
@@ -477,6 +479,7 @@ const getStyles = (colors: any) =>
       shadowOffset: { width: 0, height: 4 },
       shadowRadius: 10,
       elevation: 2,
+      overflow: "hidden",
     },
     amountInput: {
       flex: 1,
@@ -484,6 +487,10 @@ const getStyles = (colors: any) =>
       fontWeight: "700",
       color: colors.text,
       paddingVertical: 0,
+      backgroundColor: "transparent",
+      borderWidth: 0,
+      outlineWidth: 0,
+      outlineColor: "transparent",
     },
     amountCurrency: {
       marginLeft: 12,

@@ -21,6 +21,7 @@ const WalletBankTransferMobileScreen: React.FC = () => {
   const [phone, setPhone] = useState("");
   const [amount, setAmount] = useState("");
   const [showModal, setShowModal] = useState(false);
+  const [networkPickerVisible, setNetworkPickerVisible] = useState(false);
   const [otp, setOtp] = useState("");
   const toNumber = (s: string) =>
     parseInt(String(s).replace(/[^0-9]/g, ""), 10) || 0;
@@ -69,14 +70,15 @@ const WalletBankTransferMobileScreen: React.FC = () => {
             { borderColor: colors.border, backgroundColor: colors.background },
           ]}
         >
-          <TextInput
-            style={[styles.inputField, { color: colors.text }]}
-            placeholder={t("placeholders.selectNetwork")}
-            placeholderTextColor={colors.text + "60"}
-            value={network}
-            onChangeText={setNetwork}
-          />
-          <Ionicons name="chevron-down" size={18} color={colors.border} />
+          <TouchableOpacity
+            style={styles.inputField}
+            activeOpacity={0.8}
+            onPress={() => setNetworkPickerVisible(true)}
+          >
+            <Text style={{ color: network ? colors.text : colors.text + "60" }}>
+              {network || t("placeholders.selectNetwork")}
+            </Text>
+          </TouchableOpacity>
         </View>
 
         <Text style={[styles.label, { color: colors.text }]}>
@@ -233,6 +235,54 @@ const WalletBankTransferMobileScreen: React.FC = () => {
           </View>
         </View>
       </Modal>
+
+      <Modal
+        visible={networkPickerVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setNetworkPickerVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalCard, { backgroundColor: colors.card }]}>
+            <Text style={[styles.modalTitle, { color: colors.text }]}>
+              {t("placeholders.selectNetwork")}
+            </Text>
+            {[
+              { key: "MTN", bg: "#F7D000", fg: "#000" },
+              { key: "MOOV", bg: "#00A651", fg: "#fff" },
+              { key: "ORANGE", bg: "#FF7900", fg: "#fff" },
+              { key: "WAVE", bg: "#1C64F2", fg: "#fff" },
+            ].map((opt) => (
+              <TouchableOpacity
+                key={opt.key}
+                style={styles.pickerOption}
+                onPress={() => {
+                  setNetwork(opt.key);
+                  setNetworkPickerVisible(false);
+                }}
+              >
+                <View style={[styles.networkLogo, { backgroundColor: opt.bg }]}>
+                  <Text style={[styles.networkLogoText, { color: opt.fg }]}>
+                    {opt.key}
+                  </Text>
+                </View>
+                <Text
+                  style={[styles.pickerOptionTitle, { color: colors.text }]}
+                >
+                  {opt.key}
+                </Text>
+                {network === opt.key && (
+                  <Ionicons
+                    name="checkmark-circle"
+                    size={20}
+                    color={colors.primary}
+                  />
+                )}
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+      </Modal>
     </ScrollView>
   );
 };
@@ -307,6 +357,31 @@ const styles = StyleSheet.create({
   },
   modalSubmitText: { color: "#fff", fontWeight: "700" },
   modalDivider: { borderTopWidth: 1, marginVertical: 12 },
+
+  actionButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 10,
+  },
+  actionText: { fontSize: 14, fontWeight: "600" },
+  pickerOption: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: "#F0F0F0",
+  },
+  networkLogo: {
+    width: 36,
+    height: 36,
+    borderRadius: 8,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 10,
+  },
+  networkLogoText: { fontSize: 12, fontWeight: "800" },
+  pickerOptionTitle: { fontSize: 15, fontWeight: "600" },
 });
 
 export default WalletBankTransferMobileScreen;

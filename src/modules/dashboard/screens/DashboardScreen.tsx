@@ -92,6 +92,7 @@ export const DashboardScreen: React.FC = () => {
   const [loginDisplay, setLoginDisplay] = useState("");
   const [clientIdDisplay, setClientIdDisplay] = useState("");
   const [accountNumberDisplay, setAccountNumberDisplay] = useState("");
+  const [phoneDisplay, setPhoneDisplay] = useState("");
   React.useEffect(() => {
     const run = async () => {
       const lg = (await secureGetItem("user_login")) || "";
@@ -100,6 +101,8 @@ export const DashboardScreen: React.FC = () => {
       setClientIdDisplay(cid);
       const acc = (await secureGetItem("user_account_number")) || "";
       setAccountNumberDisplay(acc);
+      const ph = (await secureGetItem("user_phone")) || "";
+      setPhoneDisplay(ph);
     };
     run();
   }, []);
@@ -119,6 +122,53 @@ export const DashboardScreen: React.FC = () => {
         .toUpperCase()
     : "";
   const fmt = (n: any) => new Intl.NumberFormat("fr-FR").format(Number(n || 0));
+  const [now, setNow] = useState(new Date());
+  React.useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 60000);
+    return () => clearInterval(id);
+  }, []);
+  const timeText = new Intl.DateTimeFormat("fr-FR", {
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(now);
+  const greetingText = (() => {
+    const h = now.getHours();
+    return h >= 5 && h < 12
+      ? "Bonjour"
+      : h >= 12 && h < 18
+      ? "Bon après-midi"
+      : h >= 18 && h < 23
+      ? "Bonsoir"
+      : "Bonne nuit";
+  })();
+  const hexToRgb = (hex: string) => {
+    const h = hex.replace("#", "");
+    const full =
+      h.length === 3
+        ? h
+            .split("")
+            .map((c) => c + c)
+            .join("")
+        : h;
+    const num = parseInt(full, 16);
+    return { r: (num >> 16) & 255, g: (num >> 8) & 255, b: num & 255 };
+  };
+  const getBrightness = (c: string) => {
+    try {
+      const { r, g, b } = hexToRgb(c);
+      return 0.299 * r + 0.587 * g + 0.114 * b;
+    } catch (_) {
+      return 255;
+    }
+  };
+  const headerTextColor =
+    getBrightness(colors.background) < 128 ? "#FFFFFFCC" : colors.background;
+  const helloFontSize = Math.round(
+    Math.max(20, Math.min(26, Dimensions.get("window").width * 0.06))
+  );
+  const timeFontSize = Math.round(
+    Math.max(12, Math.min(14, Dimensions.get("window").width * 0.04))
+  );
   const nombreComptes = Number(
     (compteStats?.NOMBRE_COMPTES ??
       (Array.isArray(compteStats?.COMPTES)
@@ -221,6 +271,39 @@ export const DashboardScreen: React.FC = () => {
       icon: "shield-checkmark-outline",
       iconColor: colors.primary,
       backgroundColor: colors.primary + "20",
+    },
+
+    {
+      id: 5,
+      title: "Change",
+      subtitle: "Taux avantageux",
+      icon: "swap-horizontal",
+      iconColor: colors.success,
+      backgroundColor: colors.success + "20",
+    },
+    {
+      id: 6,
+      title: "Epargne+",
+      subtitle: "Taux attractif",
+      icon: "trending-up-outline",
+      iconColor: "#FFFFFF",
+      backgroundColor: "#7C3AED20",
+    },
+    {
+      id: 7,
+      title: "Transfert Int.",
+      subtitle: "Monde entier",
+      icon: "earth-outline",
+      iconColor: "#FFFFFF",
+      backgroundColor: "rgba(255, 104, 23, 1)",
+    },
+    {
+      id: 8,
+      title: "Tontine",
+      subtitle: "Epargne groupe",
+      icon: "people-outline",
+      iconColor: "#FFFFFF",
+      backgroundColor: "#08564bff",
     },
   ];
 
@@ -361,25 +444,44 @@ export const DashboardScreen: React.FC = () => {
     </View>
   );
 
-  const renderServiceItem = ({ item }: { item: any }) => (
+  const renderServiceItem = ({ item, index }: { item: any; index: number }) => (
     <TouchableOpacity
       style={[
         styles.serviceCard,
-        { backgroundColor: colors.card, borderColor: colors.border },
+        {
+          backgroundColor: colors.card,
+          borderColor: colors.border,
+          marginRight: index === services.length - 1 ? 0 : 12,
+        },
       ]}
     >
       <View
-        style={[styles.serviceIcon, { backgroundColor: item.backgroundColor }]}
+        style={[
+          styles.serviceIcon,
+          {
+            backgroundColor: item.backgroundColor,
+            borderColor: colors.border,
+            borderWidth: 1,
+          },
+        ]}
       >
         <Ionicons name={item.icon as any} size={24} color={item.iconColor} />
       </View>
-      <Text style={[styles.serviceTitle, { color: colors.text }]}>
+      <Text
+        style={[styles.serviceTitle, { color: colors.text }]}
+        numberOfLines={1}
+        ellipsizeMode="tail"
+      >
         {tText(item.title)}
       </Text>
-      <Text style={[styles.serviceSubtitle, { color: colors.text + "70" }]}>
+      <Text
+        style={[styles.serviceSubtitle, { color: colors.text + "70" }]}
+        numberOfLines={1}
+        ellipsizeMode="tail"
+      >
         {tText(item.subtitle)}
       </Text>
-      <View style={{ marginTop: 6 }}>
+      <View style={{ marginTop: "auto" }}>
         <Ionicons name="chevron-forward" size={16} color={colors.text} />
       </View>
     </TouchableOpacity>
@@ -395,13 +497,23 @@ export const DashboardScreen: React.FC = () => {
         ]}
       >
         <View>
-          <Text style={[styles.time, { color: colors.background }]}>17:36</Text>
-          <Text style={[styles.hello, { color: colors.background }]}>
-            {t("dashboard.greeting")}
+          <Text
+            style={[
+              styles.time,
+              { color: headerTextColor, fontSize: timeFontSize },
+            ]}
+          >
+            {timeText}
           </Text>
           <Text
-            style={{ color: colors.background, fontSize: 12, marginTop: 4 }}
+            style={[
+              styles.hello,
+              { color: headerTextColor, fontSize: helloFontSize },
+            ]}
           >
+            {tText(greetingText)}
+          </Text>
+          <Text style={{ color: headerTextColor, fontSize: 12, marginTop: 4 }}>
             {isGuestMode
               ? "MODE INVITÉ"
               : isAuthenticated
@@ -417,23 +529,31 @@ export const DashboardScreen: React.FC = () => {
               setShowQrModal(true);
             }}
           >
-            <Ionicons
-              name="qr-code-outline"
-              size={22}
-              color={colors.background}
-            />
+            <View
+              style={[styles.headerIconBg, { borderColor: headerTextColor }]}
+            >
+              <Ionicons
+                name="qr-code-outline"
+                size={22}
+                color={headerTextColor}
+              />
+            </View>
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.iconBtn}
             onPress={() => handleGuestRestriction("les notifications")}
           >
-            <Ionicons
-              name="notifications-outline"
-              size={22}
-              color={colors.background}
-            />
+            <View
+              style={[styles.headerIconBg, { borderColor: headerTextColor }]}
+            >
+              <Ionicons
+                name="notifications-outline"
+                size={22}
+                color={headerTextColor}
+              />
+            </View>
             <View style={[styles.badge, { backgroundColor: colors.error }]}>
-              <Text style={[styles.badgeText, { color: colors.background }]}>
+              <Text style={[styles.badgeText, { color: headerTextColor }]}>
                 5
               </Text>
             </View>
@@ -486,7 +606,7 @@ export const DashboardScreen: React.FC = () => {
                 ]}
               >
                 <QRCode
-                  value={loginDisplay || displayName || ""}
+                  value={phoneDisplay || loginDisplay || displayName || ""}
                   size={220}
                   backgroundColor={colors.background}
                   color={colors.text}
@@ -584,7 +704,7 @@ export const DashboardScreen: React.FC = () => {
                       {t("dashboard.qr.phone")}
                     </Text>
                     <Text style={[styles.qrInfoValue, { color: colors.text }]}>
-                      {accountNumberDisplay || ""}
+                      {phoneDisplay || ""}
                     </Text>
                   </View>
                 </View>
@@ -763,9 +883,19 @@ export const DashboardScreen: React.FC = () => {
 
         {/* Actions rapides - EXISTANT */}
         <View style={[styles.section, { marginTop: 15, marginBottom: 2 }]}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>
-            {t("dashboard.actions.quick")}
-          </Text>
+          <View style={styles.sectionHeader}>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>
+              {t("dashboard.actions.quick")}
+            </Text>
+            <View
+              style={[
+                styles.sectionHeaderIconBg,
+                { borderColor: colors.border, backgroundColor: colors.card },
+              ]}
+            >
+              <Ionicons name="flash-outline" size={18} color={colors.warning} />
+            </View>
+          </View>
           <View style={styles.quickActions}>
             <TouchableOpacity
               style={[
@@ -780,7 +910,11 @@ export const DashboardScreen: React.FC = () => {
               <View
                 style={[
                   styles.quickActionIcon,
-                  { backgroundColor: colors.card },
+                  {
+                    backgroundColor: colors.card,
+                    borderColor: colors.border,
+                    borderWidth: 1,
+                  },
                 ]}
               >
                 <Ionicons
@@ -811,7 +945,11 @@ export const DashboardScreen: React.FC = () => {
               <View
                 style={[
                   styles.quickActionIcon,
-                  { backgroundColor: colors.card },
+                  {
+                    backgroundColor: colors.card,
+                    borderColor: colors.border,
+                    borderWidth: 1,
+                  },
                 ]}
               >
                 <Ionicons
@@ -842,7 +980,11 @@ export const DashboardScreen: React.FC = () => {
               <View
                 style={[
                   styles.quickActionIcon,
-                  { backgroundColor: colors.card },
+                  {
+                    backgroundColor: colors.card,
+                    borderColor: colors.border,
+                    borderWidth: 1,
+                  },
                 ]}
               >
                 <Ionicons
@@ -873,7 +1015,11 @@ export const DashboardScreen: React.FC = () => {
               <View
                 style={[
                   styles.quickActionIcon,
-                  { backgroundColor: colors.card },
+                  {
+                    backgroundColor: colors.card,
+                    borderColor: colors.border,
+                    borderWidth: 1,
+                  },
                 ]}
               >
                 <Ionicons
@@ -900,6 +1046,14 @@ export const DashboardScreen: React.FC = () => {
             <Text style={[styles.sectionTitle, { color: colors.text }]}>
               {t("dashboard.offers.title")}
             </Text>
+            <View
+              style={[
+                styles.sectionHeaderIconBg,
+                { borderColor: colors.border, backgroundColor: colors.card },
+              ]}
+            >
+              <Ionicons name="gift-outline" size={18} color={colors.primary} />
+            </View>
           </View>
           <FlatList
             data={offers}
@@ -936,9 +1090,23 @@ export const DashboardScreen: React.FC = () => {
 
         {/* NOUVELLE SECTION : Nos services avec défilement horizontal */}
         <View style={[styles.section, { marginTop: 18, marginBottom: 8 }]}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>
-            {t("dashboard.services.title")}
-          </Text>
+          <View style={styles.sectionHeader}>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>
+              {t("dashboard.services.title")}
+            </Text>
+            <View
+              style={[
+                styles.sectionHeaderIconBg,
+                { borderColor: colors.border, backgroundColor: colors.card },
+              ]}
+            >
+              <Ionicons
+                name="rocket-outline"
+                size={18}
+                color={colors.primary}
+              />
+            </View>
+          </View>
           <FlatList
             ref={servicesScrollRef}
             data={services}
@@ -1006,7 +1174,11 @@ export const DashboardScreen: React.FC = () => {
                         <View
                           style={[
                             styles.transactionIcon,
-                            { backgroundColor: colors.card },
+                            {
+                              backgroundColor: colors.card,
+                              borderColor: colors.border,
+                              borderWidth: 1,
+                            },
                           ]}
                         >
                           <Ionicons
@@ -1125,6 +1297,14 @@ const styles = StyleSheet.create({
     marginLeft: 15,
     position: "relative",
   },
+  headerIconBg: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 1,
+  },
   badge: {
     position: "absolute",
     top: -5,
@@ -1232,6 +1412,14 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     marginBottom: 10, // Espacement réduit
+  },
+  sectionHeaderIconBg: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 1,
   },
   sectionTitle: {
     marginBottom: 15,
@@ -1373,7 +1561,7 @@ const styles = StyleSheet.create({
   },
   // NOUVEAUX STYLES : Nos services avec défilement horizontal
   servicesContainer: {
-    paddingRight: 20,
+    paddingRight: 0,
   },
   serviceCard: {
     backgroundColor: "#fff",
@@ -1389,6 +1577,7 @@ const styles = StyleSheet.create({
     elevation: 3,
     borderWidth: 1,
     borderColor: "#F0F0F0",
+    minHeight: 150,
   },
   serviceIcon: {
     width: 50,
