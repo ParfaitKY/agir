@@ -12,5 +12,8 @@ export const ENDPOINTS = {
   SOLDE: "/compte/solde",
   SOLDE_GLOBALE: "/compte/soldeglobale",
   VIREMENT: "/compte/virementcompteacompte",
+  BLOQUE_COMPTE: "/compte/blocages-compte",
+  DERNIERE_OPERATIONS_CLIENT: "/compte/derniere-operations-client",
+
 };
 

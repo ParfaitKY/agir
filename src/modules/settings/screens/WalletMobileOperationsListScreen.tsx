@@ -7,6 +7,7 @@ import {
   TextInput,
   TouchableOpacity,
   Modal,
+  Alert,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../../../shared/styles/ThemeProvider";
@@ -71,7 +72,7 @@ const WalletMobileOperationsListScreen: React.FC = () => {
           style={[
             styles.input,
             {
-              borderColor: colors.border,
+              borderColor: fromDate ? colors.border : colors.error,
               backgroundColor: colors.background,
             },
           ]}
@@ -95,7 +96,7 @@ const WalletMobileOperationsListScreen: React.FC = () => {
           style={[
             styles.input,
             {
-              borderColor: colors.border,
+              borderColor: toDate ? colors.border : colors.error,
               backgroundColor: colors.background,
             },
           ]}
@@ -114,6 +115,12 @@ const WalletMobileOperationsListScreen: React.FC = () => {
         <TouchableOpacity
           style={[styles.searchBtn, { backgroundColor: "#E77A82" }]}
           activeOpacity={0.8}
+          onPress={() => {
+            if (!fromDate || !toDate) {
+              Alert.alert(t("common.info"), t("common.requiredFields"));
+              return;
+            }
+          }}
         >
           <Ionicons name="search" size={22} color="#fff" />
         </TouchableOpacity>

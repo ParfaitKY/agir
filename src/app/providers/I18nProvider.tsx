@@ -2462,6 +2462,11 @@ const TRANSLATIONS: Translations = {
   },
   // Common
   "common.info": { fr: "Informations", en: "Information", zh: "信息" },
+  "common.requiredFields": {
+    fr: "Les champs sont obligatoires",
+    en: "Fields are required",
+    zh: "所有字段为必填",
+  },
 
   "common.fetchError": {
     fr: "Erreur de récupération",
