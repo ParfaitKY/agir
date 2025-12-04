@@ -21,9 +21,8 @@ import { secureGetItem } from "../../../shared/utils/secureStorage";
 import QRCode from "react-native-qrcode-svg";
 
 import { useSoldeGlobale } from "../../../domain/compte/useSoldeGlobale";
-import { useDerniereTransaction } from "../../../domain/compte/useDerniereTransaction";
-import { useAnalyseDerniereTransaction } from "../../../domain/compte/useAnalyseDerniereTransaction";
 import { useCompteStatistiques } from "../../../domain/compte/useCompteStatistiques";
+import { useDernieresOperationsClient } from "../../../domain/compte/useDernieresOperationsClient";
 
 export const DashboardScreen: React.FC = () => {
   const servicesScrollRef = useRef<FlatList>(null);
@@ -43,49 +42,24 @@ export const DashboardScreen: React.FC = () => {
     fetchData: fetchSolde,
   } = useSoldeGlobale();
   const {
-    data: derniereTransaction,
-    isLoading: loadingTransaction,
-    error: transactionError,
-    fetchData: fetchTransaction,
-  } = useDerniereTransaction();
-  const {
-    data: analyse,
-    isLoading: loadingAnalyse,
-    error: analyseError,
-    fetchData: fetchAnalyse,
-  } = useAnalyseDerniereTransaction(50);
-  const {
     data: compteStats,
     isLoading: loadingCompteStats,
     error: compteStatsError,
     fetchData: fetchCompteStats,
   } = useCompteStatistiques();
-  const sensFort = analyse?.SENS_FORT;
-  const percentStrong = analyse?.POURCENTAGE_SENS_FORT;
-  const isUp = sensFort === "CREDIT";
-  const isDown = sensFort === "DEBIT";
-  const trendIcon = isUp
-    ? ("trending-up-outline" as const)
-    : isDown
-    ? ("trending-down-outline" as const)
-    : ("remove-outline" as const);
-  const trendColor = isUp
-    ? colors.success
-    : isDown
-    ? colors.error
-    : colors.text;
-  const percentDisplay =
-    percentStrong !== undefined && percentStrong !== null
-      ? `${isUp ? "+" : isDown ? "-" : ""}${percentStrong}%`
-      : "0%";
+  const {
+    operations: recentOps,
+    isLoading: loadingRecent,
+    error: recentError,
+    fetchData: fetchRecent,
+  } = useDernieresOperationsClient(10);
   React.useEffect(() => {
     if (!isAuthenticated) return;
     const isGuestMode = isAuthenticated && user?.username === "invite";
     if (isGuestMode) return;
     fetchSolde();
-    fetchTransaction();
-    fetchAnalyse();
     fetchCompteStats();
+    fetchRecent();
   }, [isAuthenticated, user?.username]);
   // Détection du mode invité (username === "invite")
   const isGuestMode = isAuthenticated && user?.username === "invite";
@@ -797,33 +771,6 @@ export const DashboardScreen: React.FC = () => {
                   "dashboard.balance.activeAccountsLabel"
                 )}`}</Text>
                 <View style={{ flexDirection: "row", alignItems: "center" }}>
-                  {loadingAnalyse ? (
-                    <Text style={[styles.percent, { color: colors.text }]}>
-                      Chargement…
-                    </Text>
-                  ) : analyseError ? (
-                    <Text style={[styles.percent, { color: colors.error }]}>
-                      –
-                    </Text>
-                  ) : (
-                    <View
-                      style={{ flexDirection: "row", alignItems: "center" }}
-                    >
-                      <Ionicons
-                        name={trendIcon as any}
-                        size={16}
-                        color={trendColor}
-                      />
-                      <Text
-                        style={[
-                          styles.percent,
-                          { color: trendColor, marginLeft: 4 },
-                        ]}
-                      >
-                        {percentDisplay}
-                      </Text>
-                    </View>
-                  )}
                   <TouchableOpacity
                     onPress={() => navigation.navigate("Analytics" as never)}
                     style={{ marginLeft: 8 }}
@@ -1151,96 +1098,112 @@ export const DashboardScreen: React.FC = () => {
                 },
               ]}
             >
-              {loadingTransaction && (
+              {loadingRecent && (
                 <View style={{ padding: 16 }}>
                   <Text style={{ color: colors.text }}>
                     {t("analytics.loading")}
                   </Text>
                 </View>
               )}
-              {!!transactionError && (
+              {!!recentError && (
                 <View style={{ padding: 16 }}>
                   <Text style={{ color: colors.error }}>
-                    {transactionError}
+                    {String(recentError)}
                   </Text>
                 </View>
               )}
-              {!loadingTransaction &&
-                !transactionError &&
-                derniereTransaction && (
-                  <View>
-                    <View style={styles.transactionItem}>
-                      <View style={styles.transactionLeft}>
-                        <View
-                          style={[
-                            styles.transactionIcon,
-                            {
-                              backgroundColor: colors.card,
-                              borderColor: colors.border,
-                              borderWidth: 1,
-                            },
-                          ]}
-                        >
-                          <Ionicons
-                            name={"swap-horizontal" as any}
-                            size={20}
-                            color={colors.primary}
-                          />
-                        </View>
-                        <View style={styles.transactionInfo}>
-                          <Text
-                            style={[
-                              styles.transactionType,
-                              { color: colors.text },
-                            ]}
-                          >
-                            {String(
-                              derniereTransaction?.type ||
-                                derniereTransaction?.TYPE ||
-                                derniereTransaction?.label ||
-                                "Dernière transaction"
-                            )}
-                          </Text>
-                          <Text
-                            style={[
-                              styles.transactionDate,
-                              { color: colors.text + "60" },
-                            ]}
-                          >
-                            {String(
-                              derniereTransaction?.date ||
-                                derniereTransaction?.DATE ||
-                                derniereTransaction?.createdAt ||
-                                ""
-                            )}
-                          </Text>
-                        </View>
-                      </View>
-                      <Text
+              {!loadingRecent && !recentError && (
+                <View>
+                  {(showAllTransactions
+                    ? recentOps.filter((op) => {
+                        const label = String(op.MC_LIBELLEOPERATION || "")
+                          .normalize("NFD")
+                          .replace(/[\u0300-\u036f]/g, "")
+                          .toUpperCase();
+                        return (
+                          label.includes("VIREMENT") ||
+                          label.includes("DECLASSEMENT")
+                        );
+                      })
+                    : recentOps
+                        .filter((op) => {
+                          const label = String(op.MC_LIBELLEOPERATION || "")
+                            .normalize("NFD")
+                            .replace(/[\u0300-\u036f]/g, "")
+                            .toUpperCase();
+                          return (
+                            label.includes("VIREMENT") ||
+                            label.includes("DECLASSEMENT")
+                          );
+                        })
+                        .slice(0, 3)
+                  ).map((op, i) => {
+                    const type = String(op.TypeOperation || "").toUpperCase();
+                    const isCredit = type === "CREDIT";
+                    const amt = isCredit
+                      ? op.MC_MONTANTCREDIT
+                      : op.MC_MONTANTDEBIT;
+                    const baseColor = isCredit ? colors.success : colors.error;
+                    const amountColor = baseColor + "CC";
+                    const label = String(op.MC_LIBELLEOPERATION || "");
+                    return (
+                      <View
+                        key={`op-${i}`}
                         style={[
-                          styles.transactionAmount,
-                          { color: colors.text },
+                          styles.activityItem,
+                          { borderColor: colors.border, borderBottomWidth: 1 },
                         ]}
                       >
-                        {String(
-                          derniereTransaction?.montant ||
-                            derniereTransaction?.amount ||
-                            derniereTransaction?.AMOUNT ||
-                            "0"
-                        )}
+                        <View
+                          style={[
+                            styles.activityBullet,
+                            { backgroundColor: baseColor },
+                          ]}
+                        />
+                        <Text
+                          numberOfLines={1}
+                          style={[styles.activityLabel, { color: colors.text }]}
+                        >
+                          {label}
+                        </Text>
+                        <Text
+                          style={[
+                            styles.activityAmount,
+                            { color: amountColor },
+                          ]}
+                        >
+                          {new Intl.NumberFormat("fr-FR").format(
+                            Number(amt || 0)
+                          )}
+                        </Text>
+                      </View>
+                    );
+                  })}
+                  {recentOps.filter((op) => {
+                    const label = String(op.MC_LIBELLEOPERATION || "")
+                      .normalize("NFD")
+                      .replace(/[\u0300-\u036f]/g, "")
+                      .toUpperCase();
+                    return (
+                      label.includes("VIREMENT") ||
+                      label.includes("DECLASSEMENT")
+                    );
+                  }).length === 0 && (
+                    <View style={{ padding: 16 }}>
+                      <Text style={{ color: colors.text + "70" }}>
+                        {t("transactions.empty.none")}
                       </Text>
                     </View>
-                  </View>
-                )}
-              {!loadingTransaction &&
-                !transactionError &&
-                !derniereTransaction && (
-                  <View style={{ padding: 16 }}>
-                    <Text style={{ color: colors.text + "70" }}>
-                      {t("transactions.empty.none")}
-                    </Text>
-                  </View>
-                )}
+                  )}
+                  {(!recentOps || recentOps.length === 0) && (
+                    <View style={{ padding: 16 }}>
+                      <Text style={{ color: colors.text + "70" }}>
+                        {t("transactions.empty.none")}
+                      </Text>
+                    </View>
+                  )}
+                </View>
+              )}
             </View>
           </View>
         )}
@@ -1651,6 +1614,30 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "700",
     marginLeft: 8,
+  },
+  activityItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 12,
+    paddingHorizontal: 4,
+    marginVertical: 0,
+  },
+  activityBullet: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    marginRight: 10,
+  },
+  activityLabel: {
+    flex: 1,
+    fontSize: 14,
+    fontWeight: "500",
+    letterSpacing: 0.2,
+  },
+  activityAmount: {
+    fontSize: 15,
+    fontWeight: "600",
+    marginLeft: 12,
   },
   separator: {
     height: 1,

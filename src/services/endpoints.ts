@@ -1,4 +1,5 @@
-export const BASE_URL = "https://zenithmobilereact-serveur-peyrie-test.app.mgdigitalplus.com/api";
+export const BASE_URL =
+  "https://zenithmobilereact-serveur-peyrie-test.app.mgdigitalplus.com/api";
 
 export const ENDPOINTS = {
   LOGIN: "/auth/login",
@@ -13,7 +14,5 @@ export const ENDPOINTS = {
   SOLDE_GLOBALE: "/compte/soldeglobale",
   VIREMENT: "/compte/virementcompteacompte",
   BLOQUE_COMPTE: "/compte/blocages-compte",
-  DERNIERE_OPERATIONS_CLIENT: "/compte/derniere-operations-client",
-
+  DERNIERES_OPERATIONS_CLIENT: "/compte/dernieres-operations-client",
 };
-
