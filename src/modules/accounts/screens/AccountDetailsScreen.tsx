@@ -5,17 +5,26 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  Modal,
+  TextInput,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { useI18n } from "../../../app/providers/I18nProvider";
 import { useTheme } from "../../../shared/styles/ThemeProvider";
+import { useBlocagesCompte } from "../../../domain/compte/useBlocagesCompte";
+import { useDernieresOperationsClient } from "../../../domain/compte/useDernieresOperationsClient";
 
 export const AccountDetailsScreen: React.FC = () => {
   const navigation = useNavigation();
   const route = useRoute() as any;
   const { t, tText } = useI18n();
   const { colors } = useTheme();
+  const [showBlockModal, setShowBlockModal] = React.useState(false);
+  const [blockDate, setBlockDate] = React.useState(
+    new Date().toISOString().slice(0, 10)
+  );
+  const [blockTiers, setBlockTiers] = React.useState("");
   const accountRaw = route?.params?.account ?? {};
   const fmt = (n: any) => new Intl.NumberFormat("fr-FR").format(Number(n || 0));
   const type = String(accountRaw.CO_INTITULECOMPTE ?? accountRaw.type ?? "");
@@ -42,39 +51,59 @@ export const AccountDetailsScreen: React.FC = () => {
   const color = String(accountRaw.color ?? colors.primary);
   const categoriesRaw = route?.params?.categories ?? null;
   const limitsRaw = route?.params?.limits ?? null;
-  const categories = Array.isArray(categoriesRaw)
+  const {
+    operations: ops,
+    isLoading: loadingOps,
+    fetchData: fetchOps,
+  } = useDernieresOperationsClient(10);
+  React.useEffect(() => {
+    fetchOps();
+  }, []);
+  const palette = [
+    "#2196F3",
+    "#00C853",
+    "#FFC400",
+    "#26A69A",
+    "#FF7043",
+    "#9C27B0",
+    "#607D8B",
+  ];
+  const opsForClientDebit = (ops || []).filter((op: any) => {
+    const type = String(op.TypeOperation || "").toUpperCase();
+    return type === "DEBIT";
+  });
+  const groupedBySchema: Record<string, number> = {};
+  for (const op of opsForClientDebit) {
+    const code = String(
+      op.TS_CODETYPESCHEMACOMPTABLE || t("accounts.category.other")
+    );
+    const amtRaw =
+      typeof op.MC_MONTANTDEBIT === "string"
+        ? Number(op.MC_MONTANTDEBIT)
+        : Number(op.MC_MONTANTDEBIT || 0);
+    const amt = isNaN(amtRaw) ? 0 : amtRaw;
+    groupedBySchema[code] = (groupedBySchema[code] || 0) + amt;
+  }
+  const entries = Object.entries(groupedBySchema);
+  const totalDebit = entries.reduce((sum, [, total]) => sum + (total || 0), 0);
+  const categoriesDynamic = entries.map(([code, total], idx) => ({
+    label: String(code || t("accounts.category.other")),
+    color: palette[idx % palette.length],
+    amount: `${fmt(Number(total || 0))} ${currency}`,
+    percent: `${
+      totalDebit > 0 ? Math.round(((total || 0) / totalDebit) * 100) : 0
+    }%`,
+  }));
+  const categories = categoriesDynamic.length
+    ? categoriesDynamic
+    : Array.isArray(categoriesRaw)
     ? categoriesRaw.map((c: any) => ({
         label: String(c?.label ?? ""),
         color: String(c?.color ?? colors.primary),
         amount: `${fmt(Number(c?.amount ?? 0))} ${currency}`,
         percent: `${Math.round(Number(c?.percent ?? 0))}%`,
       }))
-    : [
-        {
-          label: t("accounts.category.food"),
-          color: "#2196F3",
-          amount: `35 000 ${currency}`,
-          percent: "40%",
-        },
-        {
-          label: t("accounts.category.transport"),
-          color: "#00C853",
-          amount: `25 000 ${currency}`,
-          percent: "28%",
-        },
-        {
-          label: t("accounts.category.leisure"),
-          color: "#FFC400",
-          amount: `15 000 ${currency}`,
-          percent: "17%",
-        },
-        {
-          label: t("accounts.category.other"),
-          color: "#26A69A",
-          amount: `12 500 ${currency}`,
-          percent: "15%",
-        },
-      ];
+    : [];
   const dailyUsed = Number(limitsRaw?.dailyWithdrawalUsed ?? 25000);
   const dailyLimit = Number(limitsRaw?.dailyWithdrawalLimit ?? 50000);
   const monthlyUsed = Number(limitsRaw?.monthlyTransferUsed ?? 87500);
@@ -89,6 +118,50 @@ export const AccountDetailsScreen: React.FC = () => {
       : 0;
 
   const styles = getStyles(colors);
+  const {
+    blockedCount,
+    blockedList,
+    blockedAmountTotal,
+    isBlocked,
+    loading: loadingBlocks,
+    error: errorBlocks,
+    fetchData: fetchBlocks,
+  } = useBlocagesCompte();
+  React.useEffect(() => {
+    const accountId = String(
+      accountRaw.CO_CODECOMPTE ?? accountRaw.NUMEROCOMPTE ?? ""
+    );
+    if (accountId) fetchBlocks(accountId);
+  }, [accountRaw?.CO_CODECOMPTE, accountRaw?.NUMEROCOMPTE]);
+  const formatAmt = (n: any) => `${fmt(Number(n || 0))} ${currency}`;
+  const displayItem = (it: any) => {
+    const type = String(
+      it?.type ||
+        it?.TYPE ||
+        it?.MC_LIBELLEOPERATION ||
+        it?.JO_CODEJOURNAL ||
+        ""
+    );
+    const date = String(
+      it?.date ||
+        it?.BL_DATEJOURNEE ||
+        it?.MC_DATEPIECE ||
+        it?.created_at ||
+        it?.DATE ||
+        ""
+    );
+    const desc = String(
+      it?.description || it?.DESC || it?.CO_DESCRIPTION || ""
+    );
+    const amtRaw =
+      it?.montant ??
+      it?.montantBlocage ??
+      it?.MONTANTBLOQUE ??
+      it?.MC_MONTANTDEBIT ??
+      0;
+    const amount = formatAmt(amtRaw);
+    return { type, date, desc, amount };
+  };
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       {/* Blue account card */}
@@ -125,6 +198,12 @@ export const AccountDetailsScreen: React.FC = () => {
               {t("accounts.details.secured")}
             </Text>
           </View>
+          {isBlocked && (
+            <View style={styles.secureRow}>
+              <Ionicons name="lock-closed" size={14} color="#fff" />
+              <Text style={styles.secureText}>{tText("Bloqué")}</Text>
+            </View>
+          )}
         </View>
       </View>
 
@@ -163,6 +242,8 @@ export const AccountDetailsScreen: React.FC = () => {
                 });
               } else if (item.icon === "document-text-outline") {
                 (navigation as any).navigate("Statements");
+              } else if (item.icon === "lock-closed-outline") {
+                setShowBlockModal(true);
               }
             }}
           >
@@ -174,6 +255,95 @@ export const AccountDetailsScreen: React.FC = () => {
         ))}
       </View>
 
+      <Modal visible={showBlockModal} transparent animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View
+            style={[
+              styles.modalCard,
+              { backgroundColor: colors.card, borderColor: colors.border },
+            ]}
+          >
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>
+              {" "}
+              {tText("Bloquer le solde")}
+            </Text>
+            <Text style={{ color: colors.text + "70", marginBottom: 8 }}>
+              {tText("Renseignez les champs requis")}
+            </Text>
+            <Text style={[styles.limitLabel, { marginBottom: 4 }]}>
+              {tText("Date de journée (YYYY-MM-DD)")}
+            </Text>
+            <TextInput
+              value={blockDate}
+              onChangeText={setBlockDate}
+              placeholder={new Date().toISOString().slice(0, 10)}
+              placeholderTextColor={colors.text + "50"}
+              style={[
+                styles.input,
+                { borderColor: colors.border, color: colors.text },
+              ]}
+            />
+            <Text
+              style={[styles.limitLabel, { marginTop: 10, marginBottom: 4 }]}
+            >
+              {tText("ID tiers (optionnel)")}
+            </Text>
+            <TextInput
+              value={blockTiers}
+              onChangeText={setBlockTiers}
+              placeholder={tText("ID tiers")}
+              placeholderTextColor={colors.text + "50"}
+              style={[
+                styles.input,
+                { borderColor: colors.border, color: colors.text },
+              ]}
+            />
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "flex-end",
+                marginTop: 14,
+                gap: 10,
+              }}
+            >
+              <TouchableOpacity
+                style={[
+                  styles.chip,
+                  { backgroundColor: colors.card, borderColor: colors.border },
+                ]}
+                onPress={() => setShowBlockModal(false)}
+              >
+                <Text style={[styles.chipText, { color: colors.text }]}>
+                  {tText("Annuler")}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[
+                  styles.roundActionBtn,
+                  { backgroundColor: colors.primary },
+                ]}
+                onPress={() => {
+                  const accountId = String(
+                    accountRaw.CO_CODECOMPTE ?? accountRaw.NUMEROCOMPTE ?? ""
+                  );
+                  if (accountId) {
+                    fetchBlocks(
+                      accountId,
+                      blockDate || undefined,
+                      blockTiers || ""
+                    );
+                  }
+                  setShowBlockModal(false);
+                }}
+                activeOpacity={0.85}
+              >
+                <Ionicons name="lock-closed" size={18} color="#fff" />
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
       {/* Stats of the month */}
       <View style={styles.statsRow}>
         <View style={styles.statBox}>
@@ -184,9 +354,9 @@ export const AccountDetailsScreen: React.FC = () => {
           <Text style={styles.statLabel}>{tText("Solde")}</Text>
         </View>
         <View style={styles.statBox}>
-          <Ionicons name="arrow-up" size={16} color={colors.error} />
+          <Ionicons name="lock-closed" size={16} color={colors.error} />
           <Text style={[styles.statValue, { color: colors.error }]}>
-            {fmt(blockedNum)}
+            {fmt(blockedAmountTotal || blockedNum)}
           </Text>
           <Text style={styles.statLabel}>{tText("Bloqué")}</Text>
         </View>
@@ -262,6 +432,76 @@ export const AccountDetailsScreen: React.FC = () => {
               ]}
             />
           </View>
+        </View>
+      </View>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>{tText("Blocages du compte")}</Text>
+        <View style={styles.limitBox}>
+          {loadingBlocks && (
+            <Text style={styles.limitAmount}>{tText("Chargement…")}</Text>
+          )}
+          {!!errorBlocks && (
+            <Text style={[styles.limitAmount, { color: colors.error }]}>
+              {String(errorBlocks)}
+            </Text>
+          )}
+          {!loadingBlocks && !errorBlocks && blockedCount === 0 && (
+            <View>
+              <Text style={styles.limitLabel}>
+                {tText("Aucun blocage actif sur ce compte.")}
+              </Text>
+              <Text style={styles.limitAmount}>
+                {tText("Solde bloqué :")} {formatAmt(0)}
+              </Text>
+            </View>
+          )}
+          {!loadingBlocks && !errorBlocks && blockedCount > 0 && (
+            <View>
+              <View style={styles.limitHeaderRow}>
+                <Text style={styles.limitLabel}>
+                  {tText("État du compte :")}
+                </Text>
+                <View style={styles.statusPill}>
+                  <Text style={styles.statusPillText}>
+                    {tText("Compte bloqué")}
+                  </Text>
+                </View>
+              </View>
+              <Text style={styles.limitAmount}>
+                {tText("Total bloqué :")} {formatAmt(blockedAmountTotal)}
+              </Text>
+              <View style={[styles.categoryCard, { marginTop: 12 }]}>
+                {(blockedList || []).map((it, idx, arr) => {
+                  const d = displayItem(it);
+                  return (
+                    <React.Fragment key={`bl-${idx}`}>
+                      <View style={styles.categoryRow}>
+                        <View
+                          style={[
+                            styles.dot,
+                            { backgroundColor: colors.warning },
+                          ]}
+                        />
+                        <Text style={styles.categoryLabel}>
+                          {String(d.type || tText("Blocage"))}
+                        </Text>
+                        <View style={styles.categoryRight}>
+                          <Text style={styles.categoryAmount}>{d.amount}</Text>
+                          <Text style={styles.categoryPercent}>
+                            {String(d.date || "")}
+                          </Text>
+                        </View>
+                      </View>
+                      {!!d.desc && idx < arr.length - 1 && (
+                        <View style={styles.categoryDivider} />
+                      )}
+                    </React.Fragment>
+                  );
+                })}
+              </View>
+            </View>
+          )}
         </View>
       </View>
 
@@ -523,6 +763,54 @@ const getStyles = (colors: any) =>
       paddingVertical: 6,
     },
     statusPillText: { color: colors.success, fontSize: 13, fontWeight: "700" },
+    modalOverlay: {
+      flex: 1,
+      backgroundColor: "rgba(0,0,0,0.3)",
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    modalCard: {
+      width: "90%",
+      borderRadius: 16,
+      padding: 16,
+      borderWidth: 1,
+      shadowColor: colors.border,
+      shadowOpacity: 0.08,
+      shadowOffset: { width: 0, height: 2 },
+      shadowRadius: 8,
+      elevation: 3,
+    },
+    input: {
+      borderWidth: 1,
+      borderRadius: 8,
+      paddingHorizontal: 12,
+      paddingVertical: 10,
+      backgroundColor: colors.background,
+    },
+    chip: {
+      borderRadius: 20,
+      paddingVertical: 8,
+      paddingHorizontal: 14,
+      borderWidth: 1,
+      flexDirection: "row",
+      alignItems: "center",
+    },
+    chipText: {
+      fontSize: 13,
+      fontWeight: "600",
+    },
+    roundActionBtn: {
+      width: 44,
+      height: 44,
+      borderRadius: 22,
+      justifyContent: "center",
+      alignItems: "center",
+      shadowColor: colors.border,
+      shadowOpacity: 0.12,
+      shadowOffset: { width: 0, height: 4 },
+      shadowRadius: 10,
+      elevation: 4,
+    },
   });
 
 export default AccountDetailsScreen;

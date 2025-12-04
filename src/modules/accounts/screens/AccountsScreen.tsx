@@ -28,6 +28,10 @@ export const AccountsScreen: React.FC = () => {
   React.useEffect(() => {
     fetchData();
   }, []);
+  React.useEffect(() => {
+    const unsub = (navigation as any).addListener("focus", () => fetchData());
+    return unsub;
+  }, [navigation]);
 
   const stats = [
     {
@@ -72,14 +76,16 @@ export const AccountsScreen: React.FC = () => {
     return {
       id: c.id ?? idx,
       type,
+      CO_CODECOMPTE: String(c.CO_CODECOMPTE ?? ""),
       number: String(c.NUMEROCOMPTE ?? ""),
       balance: String(c.SOLDE ?? c.SOLDE_GLOBAL ?? 0),
       blocked: Number(c.MONTANTBLOQUE ?? 0),
       currency: "XAF",
-      progress:
-        typeof c.POURCENTAGE_SOLDE === "number"
-          ? Math.max(0, Math.min(1, c.POURCENTAGE_SOLDE / 100))
-          : 0,
+      progress: (() => {
+        const g = Number(compteStats?.SOLDE_GLOBAL ?? 0);
+        const b = Number(c.SOLDE ?? c.SOLDE_GLOBAL ?? 0);
+        return g > 0 ? Math.max(0, Math.min(1, b / g)) : 0;
+      })(),
       active: !c.CO_DATECLOTURE || String(c.CO_DATECLOTURE).includes("1900"),
       color,
     } as any;
@@ -308,6 +314,31 @@ export const AccountsScreen: React.FC = () => {
                 >
                   {a.active ? t("accounts.status.active") : tText("Clôturé")}
                 </Text>
+                {Number(a.blocked) > 0 && (
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      marginLeft: 8,
+                    }}
+                  >
+                    <Ionicons
+                      name="lock-closed"
+                      size={14}
+                      color={colors.warning}
+                    />
+                    <Text
+                      style={{
+                        color: colors.warning,
+                        fontSize: 12,
+                        fontWeight: "700",
+                        marginLeft: 4,
+                      }}
+                    >
+                      {tText("Bloqué")}
+                    </Text>
+                  </View>
+                )}
               </View>
             </View>
 
@@ -328,6 +359,32 @@ export const AccountsScreen: React.FC = () => {
                     {a.currency}
                   </Text>
                 </Text>
+                {Number(a.blocked) > 0 && (
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      marginTop: 6,
+                    }}
+                  >
+                    <Ionicons
+                      name="lock-closed"
+                      size={14}
+                      color={colors.warning}
+                    />
+                    <Text
+                      style={{
+                        marginLeft: 6,
+                        color: colors.warning,
+                        fontWeight: "700",
+                      }}
+                    >
+                      {tText("Bloqué:")}{" "}
+                      {new Intl.NumberFormat("fr-FR").format(Number(a.blocked))}{" "}
+                      {a.currency}
+                    </Text>
+                  </View>
+                )}
               </View>
               <TouchableOpacity
                 style={[styles.roundActionBtn, { backgroundColor: a.color }]}
@@ -351,7 +408,9 @@ export const AccountsScreen: React.FC = () => {
                 style={[
                   styles.progressFill,
                   {
-                    width: `${Math.round(a.progress * 100)}%`,
+                    width: `${Math.round(
+                      (parseAmount(a.balance) / portfolioTotal) * 100
+                    )}%`,
                     backgroundColor: a.color,
                   },
                 ]}
