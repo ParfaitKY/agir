@@ -1054,6 +1054,11 @@ const TRANSLATIONS: Translations = {
     en: "Total available balance",
     zh: "可用总余额",
   },
+  "dashboard.balance.activeAccountLabel": {
+    fr: "compte actif",
+    en: "active account",
+    zh: "个活跃账户",
+  },
   "dashboard.balance.activeAccountsLabel": {
     fr: "comptes actifs",
     en: "active accounts",
@@ -2256,6 +2261,7 @@ const TRANSLATIONS: Translations = {
   "common.network": { fr: "Réseau", en: "Network", zh: "网络" },
   "common.phone": { fr: "Téléphone", en: "Phone", zh: "电话" },
   "common.required": { fr: "obligatoire", en: "required", zh: "必填" },
+  "common.select": { fr: "Sélectionner", en: "Select", zh: "选择" },
   "common.validate": { fr: "VALIDER", en: "VALIDATE", zh: "验证" },
   "common.verification": { fr: "Vérification", en: "Verification", zh: "验证" },
   "common.fillAllFields": {

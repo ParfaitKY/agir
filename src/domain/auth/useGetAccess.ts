@@ -16,8 +16,9 @@ export const useGetAccess = () => {
       const secret = await secureGetItem("user_secret_key");
       const login = await secureGetItem("user_login");
       if (!clientId || !token || !secret) {
-        setError("Informations d’accès manquantes");
-        return false;
+        const msg = "Informations d’accès manquantes";
+        setError(msg);
+        return { success: false, error: msg };
       }
       const headers = {
         Authorization: `Bearer ${token}`,
@@ -43,15 +44,16 @@ export const useGetAccess = () => {
           err?.message ||
           "Échec de récupération des accès";
         setError(msg);
-        return false;
+        return { success: false, error: msg };
       }
       const data: any = result?.data;
       setAccessData(data);
       await secureSetItem("access_data", JSON.stringify(data));
-      return true;
+      return { success: true };
     } catch (e: any) {
-      setError(e?.message || "Erreur réseau");
-      return false;
+      const msg = e?.message || "Erreur réseau";
+      setError(msg);
+      return { success: false, error: msg };
     } finally {
       setIsLoading(false);
     }

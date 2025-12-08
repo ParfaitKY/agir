@@ -53,10 +53,16 @@ export const SettingsScreen: React.FC = () => {
   const [newPassword, setNewPassword] = React.useState("");
   const [confirmPassword, setConfirmPassword] = React.useState("");
   const [passwordError, setPasswordError] = React.useState<string | null>(null);
+  const [showCurrentPassword, setShowCurrentPassword] = React.useState(false);
+  const [showNewPassword, setShowNewPassword] = React.useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = React.useState(false);
   const [currentPin, setCurrentPin] = React.useState("");
   const [newPin, setNewPin] = React.useState("");
   const [confirmPin, setConfirmPin] = React.useState("");
   const [pinError, setPinError] = React.useState<string | null>(null);
+  const [showCurrentPin, setShowCurrentPin] = React.useState(false);
+  const [showNewPin, setShowNewPin] = React.useState(false);
+  const [showConfirmPin, setShowConfirmPin] = React.useState(false);
   const [showLogoutModal, setShowLogoutModal] = React.useState(false);
   const [logoutProcessing, setLogoutProcessing] = React.useState<
     "normal" | "forget" | null
@@ -165,7 +171,7 @@ export const SettingsScreen: React.FC = () => {
         {
           icon: "phone-portrait-outline",
           iconColor: colors.primary,
-          title: "Mon Wallet Mobile",
+          title: "Souscriptions Mobile",
           onPress: () => (navigation as any).navigate("WalletMobileScreens"),
           showChevron: true,
           isRestricted: true,
@@ -571,48 +577,92 @@ export const SettingsScreen: React.FC = () => {
             <Text style={[styles.modalTitle, { color: colors.text }]}>
               {t("password.change.title")}
             </Text>
-            <TextInput
+            <View
               style={[
-                styles.input,
+                styles.inputContainer,
                 {
                   borderColor: colors.border,
                   backgroundColor: colors.background,
-                  color: colors.text,
                 },
               ]}
-              placeholder={t("password.current")}
-              secureTextEntry
-              value={currentPassword}
-              onChangeText={setCurrentPassword}
-            />
-            <TextInput
+            >
+              <TextInput
+                style={[styles.inputField, { color: colors.text }]}
+                placeholder={t("password.current")}
+                secureTextEntry={!showCurrentPassword}
+                value={currentPassword}
+                onChangeText={setCurrentPassword}
+                placeholderTextColor={colors.text + "80"}
+              />
+              <TouchableOpacity
+                onPress={() => setShowCurrentPassword(!showCurrentPassword)}
+                style={styles.eyeIcon}
+              >
+                <Ionicons
+                  name={showCurrentPassword ? "eye-off-outline" : "eye-outline"}
+                  size={20}
+                  color={colors.text}
+                />
+              </TouchableOpacity>
+            </View>
+
+            <View
               style={[
-                styles.input,
+                styles.inputContainer,
                 {
                   borderColor: colors.border,
                   backgroundColor: colors.background,
-                  color: colors.text,
                 },
               ]}
-              placeholder={t("password.new")}
-              secureTextEntry
-              value={newPassword}
-              onChangeText={setNewPassword}
-            />
-            <TextInput
+            >
+              <TextInput
+                style={[styles.inputField, { color: colors.text }]}
+                placeholder={t("password.new")}
+                secureTextEntry={!showNewPassword}
+                value={newPassword}
+                onChangeText={setNewPassword}
+                placeholderTextColor={colors.text + "80"}
+              />
+              <TouchableOpacity
+                onPress={() => setShowNewPassword(!showNewPassword)}
+                style={styles.eyeIcon}
+              >
+                <Ionicons
+                  name={showNewPassword ? "eye-off-outline" : "eye-outline"}
+                  size={20}
+                  color={colors.text}
+                />
+              </TouchableOpacity>
+            </View>
+
+            <View
               style={[
-                styles.input,
+                styles.inputContainer,
                 {
                   borderColor: colors.border,
                   backgroundColor: colors.background,
-                  color: colors.text,
                 },
               ]}
-              placeholder={t("password.confirm")}
-              secureTextEntry
-              value={confirmPassword}
-              onChangeText={setConfirmPassword}
-            />
+            >
+              <TextInput
+                style={[styles.inputField, { color: colors.text }]}
+                placeholder={t("password.confirm")}
+                secureTextEntry={!showConfirmPassword}
+                value={confirmPassword}
+                onChangeText={setConfirmPassword}
+                placeholderTextColor={colors.text + "80"}
+              />
+              <TouchableOpacity
+                onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+                style={styles.eyeIcon}
+              >
+                <Ionicons
+                  name={showConfirmPassword ? "eye-off-outline" : "eye-outline"}
+                  size={20}
+                  color={colors.text}
+                />
+              </TouchableOpacity>
+            </View>
             {passwordError && (
               <Text style={[styles.errorText, { color: colors.error }]}>
                 {passwordError}
@@ -680,54 +730,98 @@ export const SettingsScreen: React.FC = () => {
             <Text style={[styles.modalTitle, { color: colors.text }]}>
               {t("pin.change.title")}
             </Text>
-            <TextInput
+            <View
               style={[
-                styles.input,
+                styles.inputContainer,
                 {
                   borderColor: colors.border,
                   backgroundColor: colors.background,
-                  color: colors.text,
                 },
               ]}
-              placeholder={t("pin.current")}
-              secureTextEntry
-              keyboardType="numeric"
-              value={currentPin}
-              onChangeText={setCurrentPin}
-              maxLength={5}
-            />
-            <TextInput
+            >
+              <TextInput
+                style={[styles.inputField, { color: colors.text }]}
+                placeholder={t("pin.current")}
+                secureTextEntry={!showCurrentPin}
+                keyboardType="numeric"
+                value={currentPin}
+                onChangeText={setCurrentPin}
+                maxLength={5}
+                placeholderTextColor={colors.text + "80"}
+              />
+              <TouchableOpacity
+                onPress={() => setShowCurrentPin(!showCurrentPin)}
+                style={styles.eyeIcon}
+              >
+                <Ionicons
+                  name={showCurrentPin ? "eye-off-outline" : "eye-outline"}
+                  size={20}
+                  color={colors.text}
+                />
+              </TouchableOpacity>
+            </View>
+
+            <View
               style={[
-                styles.input,
+                styles.inputContainer,
                 {
                   borderColor: colors.border,
                   backgroundColor: colors.background,
-                  color: colors.text,
                 },
               ]}
-              placeholder={t("pin.new.label")}
-              secureTextEntry
-              keyboardType="numeric"
-              value={newPin}
-              onChangeText={setNewPin}
-              maxLength={5}
-            />
-            <TextInput
+            >
+              <TextInput
+                style={[styles.inputField, { color: colors.text }]}
+                placeholder={t("pin.new.label")}
+                secureTextEntry={!showNewPin}
+                keyboardType="numeric"
+                value={newPin}
+                onChangeText={setNewPin}
+                maxLength={5}
+                placeholderTextColor={colors.text + "80"}
+              />
+              <TouchableOpacity
+                onPress={() => setShowNewPin(!showNewPin)}
+                style={styles.eyeIcon}
+              >
+                <Ionicons
+                  name={showNewPin ? "eye-off-outline" : "eye-outline"}
+                  size={20}
+                  color={colors.text}
+                />
+              </TouchableOpacity>
+            </View>
+
+            <View
               style={[
-                styles.input,
+                styles.inputContainer,
                 {
                   borderColor: colors.border,
                   backgroundColor: colors.background,
-                  color: colors.text,
                 },
               ]}
-              placeholder={t("pin.confirm")}
-              secureTextEntry
-              keyboardType="numeric"
-              value={confirmPin}
-              onChangeText={setConfirmPin}
-              maxLength={5}
-            />
+            >
+              <TextInput
+                style={[styles.inputField, { color: colors.text }]}
+                placeholder={t("pin.confirm")}
+                secureTextEntry={!showConfirmPin}
+                keyboardType="numeric"
+                value={confirmPin}
+                onChangeText={setConfirmPin}
+                maxLength={5}
+                placeholderTextColor={colors.text + "80"}
+              />
+              <TouchableOpacity
+                onPress={() => setShowConfirmPin(!showConfirmPin)}
+                style={styles.eyeIcon}
+              >
+                <Ionicons
+                  name={showConfirmPin ? "eye-off-outline" : "eye-outline"}
+                  size={20}
+                  color={colors.text}
+                />
+              </TouchableOpacity>
+            </View>
             {pinError && (
               <Text style={[styles.errorText, { color: colors.error }]}>
                 {pinError}
@@ -972,6 +1066,24 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     marginBottom: 10,
     backgroundColor: "#FAFAFA",
+  },
+  inputContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    height: 44,
+    borderWidth: 1,
+    borderColor: "#E0E0E0",
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    marginBottom: 10,
+    backgroundColor: "#FAFAFA",
+  },
+  inputField: {
+    flex: 1,
+    height: "100%",
+  },
+  eyeIcon: {
+    padding: 4,
   },
   errorText: {
     color: "#e74c3c",

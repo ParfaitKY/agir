@@ -8,27 +8,109 @@ import {
   TouchableOpacity,
   Modal,
   Alert,
+  FlatList,
+  ActivityIndicator,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../../../shared/styles/ThemeProvider";
 import { useI18n } from "../../../app/providers/I18nProvider";
+import { useWalletBankToMobileLogic } from "../../../domain/wallet/useWalletBankToMobileLogic";
 
 const WalletBankTransferMobileScreen: React.FC = () => {
   const { colors } = useTheme();
   const { t } = useI18n();
-  const [account, setAccount] = useState("");
-  const [network, setNetwork] = useState("");
-  const [phone, setPhone] = useState("");
-  const [amount, setAmount] = useState("");
-  const [showModal, setShowModal] = useState(false);
-  const [networkPickerVisible, setNetworkPickerVisible] = useState(false);
-  const [otp, setOtp] = useState("");
+
+  const {
+    loading,
+    calculatingFees,
+    submitting,
+    phones,
+    accounts,
+    networks,
+    form,
+    fees,
+    balance,
+    showTokenModal,
+    otp,
+    setForm,
+    setOtp,
+    setShowTokenModal,
+    handleSubmit,
+    confirmTransaction,
+  } = useWalletBankToMobileLogic();
+
+  const [pickerVisible, setPickerVisible] = useState<{
+    type: "account" | "network" | "phone" | null;
+  }>({ type: null });
+
   const toNumber = (s: string) =>
     parseInt(String(s).replace(/[^0-9]/g, ""), 10) || 0;
-  const MIN_AMOUNT = 300;
+  const MIN_AMOUNT = 500;
+
   const canSubmit =
-    [account, network, phone].every((v) => String(v).trim().length > 0) &&
-    toNumber(amount) >= MIN_AMOUNT;
+    !!form.account &&
+    !!form.networkCode &&
+    !!form.phoneId &&
+    toNumber(form.amount) >= MIN_AMOUNT;
+
+  const getDisplayValue = (type: "account" | "network" | "phone") => {
+    if (type === "account") {
+      const found = accounts.find((a) => a.CO_CODECOMPTE === form.account);
+      return found ? found.NUMEROCOMPTE : "";
+    }
+    if (type === "network") {
+      const found = networks.find((n) => n.IN_CODESERVICE === form.networkCode);
+      return found ? found.IN_LIBELLE : "";
+    }
+    if (type === "phone") {
+      return form.phoneNum;
+    }
+    return "";
+  };
+
+  const renderPickerItem = ({ item }: { item: any }) => {
+    let label = "";
+    let value = "";
+
+    if (pickerVisible.type === "account") {
+      label = item.NUMEROCOMPTE;
+      value = item.CO_CODECOMPTE;
+    } else if (pickerVisible.type === "network") {
+      label = item.IN_LIBELLE;
+      value = item.IN_CODESERVICE;
+    } else if (pickerVisible.type === "phone") {
+      label = item.SO_TELEPHONE;
+      value = item.SO_CODESOUSCRIPTION;
+    }
+
+    return (
+      <TouchableOpacity
+        style={[styles.pickerItem, { borderBottomColor: colors.border }]}
+        onPress={() => {
+          if (pickerVisible.type === "account") {
+            setForm((f) => ({ ...f, account: value }));
+          } else if (pickerVisible.type === "network") {
+            setForm((f) => ({
+              ...f,
+              networkCode: value,
+              networkAbbr: item.IN_ABREVIATIONSERVICE,
+            }));
+          } else if (pickerVisible.type === "phone") {
+            setForm((f) => ({
+              ...f,
+              phoneId: value,
+              phoneNum: item.SO_TELEPHONE,
+            }));
+          }
+          setPickerVisible({ type: null });
+        }}
+      >
+        <Text style={[styles.pickerItemText, { color: colors.text }]}>
+          {label}
+        </Text>
+      </TouchableOpacity>
+    );
+  };
 
   return (
     <ScrollView style={[styles.screen, { backgroundColor: colors.background }]}>
@@ -42,65 +124,80 @@ const WalletBankTransferMobileScreen: React.FC = () => {
           {t("wallet.bankToMobile.title")}
         </Text>
 
-        <Text style={[styles.label, { color: colors.text }]}>
-          {t("common.account")}
-        </Text>
-        <View
-          style={[
-            styles.inputRow,
-            { borderColor: colors.border, backgroundColor: colors.background },
-          ]}
-        >
-          <TextInput
-            style={[styles.inputField, { color: colors.text }]}
-            placeholder={t("placeholders.selectAccount")}
-            placeholderTextColor={colors.text + "60"}
-            value={account}
-            onChangeText={setAccount}
-          />
-          <Ionicons name="chevron-down" size={18} color={colors.border} />
-        </View>
-
-        <Text style={[styles.label, { color: colors.text }]}>
-          {t("common.network")}
-        </Text>
-        <View
-          style={[
-            styles.inputRow,
-            { borderColor: colors.border, backgroundColor: colors.background },
-          ]}
-        >
-          <TouchableOpacity
-            style={styles.inputField}
-            activeOpacity={0.8}
-            onPress={() => setNetworkPickerVisible(true)}
-          >
-            <Text style={{ color: network ? colors.text : colors.text + "60" }}>
-              {network || t("placeholders.selectNetwork")}
-            </Text>
-          </TouchableOpacity>
-        </View>
-
+        {/* Phones (Load First) */}
         <Text style={[styles.label, { color: colors.text }]}>
           {t("common.phone")}
         </Text>
-        <View
+        <TouchableOpacity
           style={[
             styles.inputRow,
             { borderColor: colors.border, backgroundColor: colors.background },
           ]}
+          onPress={() => setPickerVisible({ type: "phone" })}
         >
-          <TextInput
-            style={[styles.inputField, { color: colors.text }]}
-            placeholder={t("placeholders.selectPhone")}
-            keyboardType="phone-pad"
-            placeholderTextColor={colors.text + "60"}
-            value={phone}
-            onChangeText={setPhone}
-          />
+          <Text
+            style={[
+              styles.inputText,
+              { color: form.phoneId ? colors.text : colors.text + "60" },
+            ]}
+          >
+            {getDisplayValue("phone") || t("placeholders.selectPhone")}
+          </Text>
           <Ionicons name="chevron-down" size={18} color={colors.border} />
-        </View>
+        </TouchableOpacity>
 
+        {/* Accounts */}
+        <Text style={[styles.label, { color: colors.text }]}>
+          {t("common.account")}
+        </Text>
+        <TouchableOpacity
+          style={[
+            styles.inputRow,
+            { borderColor: colors.border, backgroundColor: colors.background },
+          ]}
+          onPress={() => setPickerVisible({ type: "account" })}
+        >
+          <Text
+            style={[
+              styles.inputText,
+              { color: form.account ? colors.text : colors.text + "60" },
+            ]}
+          >
+            {getDisplayValue("account") || t("placeholders.selectAccount")}
+          </Text>
+          <Ionicons name="chevron-down" size={18} color={colors.border} />
+        </TouchableOpacity>
+        {!!form.account && (
+          <Text
+            style={{ fontSize: 12, color: colors.primary, marginBottom: 10 }}
+          >
+            Solde disponible: {balance} F CFA
+          </Text>
+        )}
+
+        {/* Networks */}
+        <Text style={[styles.label, { color: colors.text }]}>
+          {t("common.network")}
+        </Text>
+        <TouchableOpacity
+          style={[
+            styles.inputRow,
+            { borderColor: colors.border, backgroundColor: colors.background },
+          ]}
+          onPress={() => setPickerVisible({ type: "network" })}
+        >
+          <Text
+            style={[
+              styles.inputText,
+              { color: form.networkCode ? colors.text : colors.text + "60" },
+            ]}
+          >
+            {getDisplayValue("network") || t("placeholders.selectNetwork")}
+          </Text>
+          <Ionicons name="chevron-down" size={18} color={colors.border} />
+        </TouchableOpacity>
+
+        {/* Amount */}
         <Text style={[styles.label, { color: colors.text }]}>
           {t("wallet.amountReceived")}
         </Text>
@@ -118,45 +215,109 @@ const WalletBankTransferMobileScreen: React.FC = () => {
           )})`}
           placeholderTextColor={colors.text + "60"}
           keyboardType="numeric"
-          value={amount}
-          onChangeText={(text) => setAmount(String(toNumber(text)))}
+          value={form.amount}
+          onChangeText={(text) =>
+            setForm((f) => ({ ...f, amount: String(toNumber(text)) }))
+          }
         />
+
+        {/* Fees Display */}
+        {calculatingFees ? (
+          <ActivityIndicator
+            size="small"
+            color={colors.primary}
+            style={{ marginBottom: 10 }}
+          />
+        ) : fees ? (
+          <View
+            style={[
+              styles.feesContainer,
+              { backgroundColor: colors.background },
+            ]}
+          >
+            <Text style={{ color: colors.text }}>
+              Frais: {fees.commission} F CFA
+            </Text>
+            <Text style={{ color: colors.text, fontWeight: "bold" }}>
+              Total débité: {fees.total} F CFA
+            </Text>
+          </View>
+        ) : null}
 
         <TouchableOpacity
           style={[
             styles.submitBtn,
-            { backgroundColor: canSubmit ? "#E77A82" : colors.border },
+            { backgroundColor: canSubmit ? colors.primary : colors.border },
           ]}
           activeOpacity={0.8}
-          disabled={!canSubmit}
-          onPress={() => {
-            const amt = toNumber(amount);
-            const hasAll = [account, network, phone].every(
-              (v) => String(v).trim().length > 0
-            );
-            if (!hasAll) {
-              Alert.alert(t("common.info"), t("common.fillAllFields"));
-              return;
-            }
-            if (amt < MIN_AMOUNT) {
-              Alert.alert(
-                t("common.info"),
-                `${t("placeholders.minimum")} : ${MIN_AMOUNT} F CFA`
-              );
-              return;
-            }
-            setShowModal(true);
-          }}
+          disabled={!canSubmit || loading || submitting}
+          onPress={handleSubmit}
         >
-          <Text style={styles.submitText}>{t("common.validate")}</Text>
+          {loading || submitting ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text style={styles.submitText}>{t("common.validate")}</Text>
+          )}
         </TouchableOpacity>
       </View>
 
+      {/* Picker Modal */}
       <Modal
-        visible={showModal}
+        visible={!!pickerVisible.type}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setPickerVisible({ type: null })}
+      >
+        <View style={styles.modalOverlay}>
+          <View
+            style={[
+              styles.modalCard,
+              { backgroundColor: colors.card, width: "90%", maxHeight: "70%" },
+            ]}
+          >
+            <Text style={[styles.modalTitle, { color: colors.text }]}>
+              {t("common.select")}
+            </Text>
+            <FlatList
+              data={
+                pickerVisible.type === "account"
+                  ? accounts
+                  : pickerVisible.type === "network"
+                  ? networks
+                  : pickerVisible.type === "phone"
+                  ? phones
+                  : []
+              }
+              keyExtractor={(item, index) => index.toString()}
+              renderItem={renderPickerItem}
+              ListEmptyComponent={
+                <Text
+                  style={{
+                    padding: 20,
+                    textAlign: "center",
+                    color: colors.text,
+                  }}
+                >
+                  {loading ? "Chargement..." : "Aucune donnée disponible"}
+                </Text>
+              }
+            />
+            <TouchableOpacity
+              style={[styles.closeBtn, { backgroundColor: colors.border }]}
+              onPress={() => setPickerVisible({ type: null })}
+            >
+              <Text style={{ color: colors.text }}>Fermer</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* OTP Modal */}
+      <Modal
+        visible={showTokenModal}
         transparent
         animationType="fade"
-        onRequestClose={() => setShowModal(false)}
+        onRequestClose={() => setShowTokenModal(false)}
       >
         <View style={styles.modalOverlay}>
           <View style={[styles.modalCard, { backgroundColor: colors.card }]}>
@@ -164,44 +325,8 @@ const WalletBankTransferMobileScreen: React.FC = () => {
               {t("common.verification")}
             </Text>
             <Text style={[styles.modalSubtitle, { color: colors.text + "90" }]}>
-              {t("wallet.verifyText")}
+              Un code de validation a été envoyé par SMS/Email.
             </Text>
-
-            <View style={styles.modalRow}>
-              <Text style={[styles.modalLabel, { color: colors.text + "90" }]}>
-                {t("common.phone")}
-              </Text>
-              <Text style={[styles.modalValue, { color: colors.text }]}>
-                {phone}
-              </Text>
-            </View>
-
-            <View style={styles.modalRow}>
-              <Text style={[styles.modalLabel, { color: colors.text + "90" }]}>
-                {t("wallet.feesZero")}
-              </Text>
-              <Text style={[styles.modalValue, { color: colors.text }]}>
-                0 F CFA
-              </Text>
-            </View>
-
-            <View style={styles.modalRow}>
-              <Text style={[styles.modalLabel, { color: colors.text + "90" }]}>
-                {t("wallet.amountSent")}
-              </Text>
-              <Text style={[styles.modalValue, { color: colors.text }]}>
-                {toNumber(amount)} F CFA
-              </Text>
-            </View>
-
-            <View style={styles.modalRow}>
-              <Text style={[styles.modalLabelBold, { color: colors.text }]}>
-                {t("wallet.amountReceived")}
-              </Text>
-              <Text style={[styles.modalValueBold, { color: colors.text }]}>
-                {toNumber(amount)} F CFA
-              </Text>
-            </View>
 
             <TextInput
               style={[
@@ -212,9 +337,7 @@ const WalletBankTransferMobileScreen: React.FC = () => {
                   color: colors.text,
                 },
               ]}
-              placeholder={`${t("wallet.validationCode")} (${t(
-                "common.required"
-              )})`}
+              placeholder={t("wallet.validationCode")}
               placeholderTextColor={colors.text + "60"}
               value={otp}
               onChangeText={setOtp}
@@ -225,61 +348,22 @@ const WalletBankTransferMobileScreen: React.FC = () => {
             />
 
             <TouchableOpacity
-              style={[styles.modalSubmitBtn, { backgroundColor: "#E77A82" }]}
+              style={[
+                styles.modalSubmitBtn,
+                { backgroundColor: colors.primary },
+              ]}
               activeOpacity={0.8}
-              disabled={!otp.trim().length}
-              onPress={() => setShowModal(false)}
+              disabled={!otp.trim()}
+              onPress={confirmTransaction}
             >
-              <Text style={styles.modalSubmitText}>{t("wallet.transfer")}</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
-
-      <Modal
-        visible={networkPickerVisible}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setNetworkPickerVisible(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={[styles.modalCard, { backgroundColor: colors.card }]}>
-            <Text style={[styles.modalTitle, { color: colors.text }]}>
-              {t("placeholders.selectNetwork")}
-            </Text>
-            {[
-              { key: "MTN", bg: "#F7D000", fg: "#000" },
-              { key: "MOOV", bg: "#00A651", fg: "#fff" },
-              { key: "ORANGE", bg: "#FF7900", fg: "#fff" },
-              { key: "WAVE", bg: "#1C64F2", fg: "#fff" },
-            ].map((opt) => (
-              <TouchableOpacity
-                key={opt.key}
-                style={styles.pickerOption}
-                onPress={() => {
-                  setNetwork(opt.key);
-                  setNetworkPickerVisible(false);
-                }}
-              >
-                <View style={[styles.networkLogo, { backgroundColor: opt.bg }]}>
-                  <Text style={[styles.networkLogoText, { color: opt.fg }]}>
-                    {opt.key}
-                  </Text>
-                </View>
-                <Text
-                  style={[styles.pickerOptionTitle, { color: colors.text }]}
-                >
-                  {opt.key}
+              {submitting ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <Text style={styles.modalSubmitText}>
+                  {t("common.validate")}
                 </Text>
-                {network === opt.key && (
-                  <Ionicons
-                    name="checkmark-circle"
-                    size={20}
-                    color={colors.primary}
-                  />
-                )}
-              </TouchableOpacity>
-            ))}
+              )}
+            </TouchableOpacity>
           </View>
         </View>
       </Modal>
@@ -309,7 +393,7 @@ const styles = StyleSheet.create({
     height: 44,
     marginBottom: 12,
   },
-  inputField: { flex: 1 },
+  inputText: { flex: 1 },
   input: {
     borderWidth: 1,
     borderRadius: 10,
@@ -327,27 +411,18 @@ const styles = StyleSheet.create({
   submitText: { color: "#fff", fontWeight: "700" },
   modalOverlay: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.15)",
+    backgroundColor: "rgba(0,0,0,0.5)",
     justifyContent: "center",
+    alignItems: "center",
   },
   modalCard: {
     borderRadius: 16,
     padding: 16,
-    alignSelf: "center",
-    marginHorizontal: 16,
+    width: "85%",
+    maxWidth: 400,
   },
   modalTitle: { fontSize: 18, fontWeight: "700", marginBottom: 6 },
   modalSubtitle: { fontSize: 13, marginBottom: 16 },
-  modalRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 10,
-  },
-  modalLabel: { fontSize: 13 },
-  modalValue: { fontSize: 13, fontWeight: "600" },
-  modalLabelBold: { fontSize: 14, fontWeight: "700" },
-  modalValueBold: { fontSize: 14, fontWeight: "700" },
   modalSubmitBtn: {
     marginTop: 14,
     height: 48,
@@ -357,31 +432,24 @@ const styles = StyleSheet.create({
   },
   modalSubmitText: { color: "#fff", fontWeight: "700" },
   modalDivider: { borderTopWidth: 1, marginVertical: 12 },
-
-  actionButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 10,
-  },
-  actionText: { fontSize: 14, fontWeight: "600" },
-  pickerOption: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingVertical: 12,
+  pickerItem: {
+    padding: 15,
     borderBottomWidth: 1,
-    borderBottomColor: "#F0F0F0",
   },
-  networkLogo: {
-    width: 36,
-    height: 36,
-    borderRadius: 8,
+  pickerItemText: {
+    fontSize: 16,
+  },
+  closeBtn: {
+    marginTop: 10,
+    padding: 10,
     alignItems: "center",
-    justifyContent: "center",
-    marginRight: 10,
+    borderRadius: 8,
   },
-  networkLogoText: { fontSize: 12, fontWeight: "800" },
-  pickerOptionTitle: { fontSize: 15, fontWeight: "600" },
+  feesContainer: {
+    padding: 10,
+    borderRadius: 8,
+    marginBottom: 10,
+  },
 });
 
 export default WalletBankTransferMobileScreen;

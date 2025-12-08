@@ -321,6 +321,28 @@ const InitialSetupScreen: React.FC = () => {
       setPinError("Tous les champs sont requis.");
       return;
     }
+
+    // Vérification du login avec la base de données
+    const dbLogin = clientData?.login || "";
+    // On compare de manière insensible à la casse
+    if (
+      dbLogin &&
+      loginReadonly.trim().toUpperCase() !== dbLogin.trim().toUpperCase()
+    ) {
+      setPinError("Login incorrect");
+      return;
+    }
+
+    // Suppression de la vérification locale de la clé secrète car dbSecret peut être hashé
+    // On laisse le serveur valider via getAccess()
+    /*
+    const dbSecret = clientData?.secret_key;
+    if (dbSecret && secretKey.trim() !== dbSecret.trim()) {
+      setPinError("Clé secrète incorrecte");
+      return;
+    }
+    */
+
     if (newPin.length < 5) {
       setPinError("Le code PIN doit contenir au moins 5 chiffres.");
       return;
@@ -335,20 +357,17 @@ const InitialSetupScreen: React.FC = () => {
     }
     try {
       setSavingPin(true);
+      const cleanLogin = loginReadonly.trim();
+      const cleanSecret = secretKey.trim();
+
       const hashedUserPin = await Crypto.digestStringAsync(
         Crypto.CryptoDigestAlgorithm.SHA256,
         newPin
       );
-      await secureSetItem("pin_user", hashedUserPin);
-      await secureSetItem("user_firstname", firstName);
-      await secureSetItem("user_lastname", lastName);
-      await secureSetItem("user_login", loginReadonly);
-      await secureSetItem("user_secret_key", secretKey);
-      await secureSetItem("is_configured", "true");
 
       const loginPayload = {
         LG_CODELANGUE: "FR",
-        SL_LOGIN: loginReadonly,
+        SL_LOGIN: cleanLogin,
         SL_MOTPASSE: newPin,
         TYPEOPERATEUR: "01",
         TYPEOPERATION: "01",
@@ -356,8 +375,38 @@ const InitialSetupScreen: React.FC = () => {
         TERMINALUUID: "",
       } as any;
 
-      await loginUser(loginPayload);
+      const result = await loginUser(loginPayload);
+      if (!result?.success) {
+        let errorMsg = result?.error || "Login ou PIN incorrect";
+        // Si l'erreur mentionne login/mot de passe, on affiche le message spécifique demandé
+        if (
+          errorMsg.toLowerCase().includes("login") ||
+          errorMsg.toLowerCase().includes("passe") ||
+          errorMsg.toLowerCase().includes("incorrect")
+        ) {
+          errorMsg = "Login ou PIN incorrect";
+        }
+        setPinError(errorMsg);
+        return;
+      }
+
+      await secureSetItem("pin_user", hashedUserPin);
+      await secureSetItem("user_firstname", firstName);
+      await secureSetItem("user_lastname", lastName);
+      // user_login est sauvegardé par loginUser avec la valeur retournée par le serveur
+      await secureSetItem("user_secret_key", cleanSecret);
+
+      /*
+      const accessResult = await getAccess();
+      if (!accessResult?.success) {
+        // Affiche l'erreur retournée par le serveur ou un message par défaut
+        setPinError(accessResult?.error || "Clé secrète incorrecte");
+        return;
+      }
+      */
       await getAccess();
+
+      await secureSetItem("is_configured", "true");
       markConfigured && (await markConfigured(true));
       navigation.replace("PinLogin");
     } catch (e) {
@@ -417,6 +466,7 @@ const InitialSetupScreen: React.FC = () => {
                   placeholderTextColor={palette.textSub}
                   autoCapitalize="characters"
                 />
+
                 {verifyError && (
                   <Text
                     style={[
@@ -627,21 +677,34 @@ const InitialSetupScreen: React.FC = () => {
                 >
                   3 caractères minimum
                 </Text>
-                <TextInput
-                  value={secretKey}
-                  onChangeText={setSecretKey}
-                  style={[
-                    styles.input,
-                    {
-                      borderColor: palette.border,
-                      backgroundColor: isDark ? "#111827" : "#FFFFFF",
-                      color: palette.textMain,
-                    },
-                  ]}
-                  secureTextEntry={!showSecretKey}
-                  placeholder="3 caractères minimum"
-                  placeholderTextColor={palette.textSub}
-                />
+                <View style={styles.inputContainer}>
+                  <TextInput
+                    value={secretKey}
+                    onChangeText={setSecretKey}
+                    style={[
+                      styles.input,
+                      {
+                        borderColor: palette.border,
+                        backgroundColor: isDark ? "#111827" : "#FFFFFF",
+                        color: palette.textMain,
+                        paddingRight: 36,
+                      },
+                    ]}
+                    secureTextEntry={!showSecretKey}
+                    placeholder="3 caractères minimum"
+                    placeholderTextColor={palette.textSub}
+                  />
+                  <TouchableOpacity
+                    onPress={() => setShowSecretKey((v) => !v)}
+                    style={styles.iconOverlay}
+                  >
+                    <MaterialIcons
+                      name={showSecretKey ? "visibility" : "visibility-off"}
+                      size={20}
+                      color={palette.primary}
+                    />
+                  </TouchableOpacity>
+                </View>
 
                 {pinError && (
                   <Text

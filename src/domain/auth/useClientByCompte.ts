@@ -14,6 +14,7 @@ export type ClientInfo = {
   NUMCOMPTE?: string;
   phone?: string;
   address?: string;
+  secret_key?: string;
   raw?: any;
 };
 //01/0/2025
@@ -114,10 +115,8 @@ export const useClientByCompte = () => {
       source?.LOGIN ??
       source?.login ??
       source?.LOGINCLIENT ??
-      source?.NUMCOMPTE ??
-      source?.compte ??
-      source?.ACCOUNT_NUMBER ??
-      source?.CO_CODECOMPTE;
+      source?.SL_LOGIN ??
+      source?.UT_LOGIN;
 
     const agency = source?.AGENCE ?? source?.agency;
 
@@ -165,6 +164,20 @@ export const useClientByCompte = () => {
         "LOCATION",
       ]);
 
+    const secret_key =
+      source?.CLE_SECRETE ??
+      source?.SECRET_KEY ??
+      source?.CL_CLE_SECRETE ??
+      source?.CLE ??
+      source?.KEY ??
+      pickKeyValue(source, [
+        "CLE_SECRETE",
+        "SECRET_KEY",
+        "CL_CLE_SECRETE",
+        "CLE",
+        "KEY",
+      ]);
+
     // ✅ Ici on génère un client_id si l'API ne le renvoie pas
     const IDCLIENT =
       source?.IDCLIENT ??
@@ -188,6 +201,7 @@ export const useClientByCompte = () => {
       NUMCOMPTE,
       phone,
       address,
+      secret_key,
       raw,
     };
   };

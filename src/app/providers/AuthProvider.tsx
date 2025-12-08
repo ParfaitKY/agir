@@ -7,6 +7,7 @@ import {
   secureSetItem,
   secureDeleteItem,
 } from "../../shared/utils/secureStorage";
+import { on } from "../../shared/utils/eventBus";
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -48,6 +49,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   useEffect(() => {
     checkAuthStatus();
   }, []);
+
+  useEffect(() => {
+    const unsub = on("auth:expired", async () => {
+      try {
+        await logout();
+      } catch {}
+    });
+    return () => {
+      unsub();
+    };
+  }, [isAuthenticated]);
 
   const checkAuthStatus = async () => {
     try {

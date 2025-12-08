@@ -25,19 +25,28 @@ export const useLogin = () => {
       const result: any = await loginApi(payload);
 
       if (result?.error) {
+        // Si result.error est déjà une chaîne (cas géré dans services/auth/login.ts)
+        if (typeof result.error === "string") {
+          const msg = result.error;
+          setError(msg);
+          return { success: false, error: msg };
+        }
+
+        // Sinon, on tente d'extraire le message d'erreur de l'objet
         const err: any = result.error;
         const msg =
           err?.response?.data?.message || err?.message || "Échec de connexion";
         setError(msg);
-        return false;
+        return { success: false, error: msg };
       }
 
       const data: any = result?.data;
       const token = data?.token || data?.jwt || data?.access_token;
 
       if (!token) {
-        setError("Token absent dans la réponse");
-        return false;
+        const msg = "Token absent dans la réponse";
+        setError(msg);
+        return { success: false, error: msg };
       }
 
       // Stockage sécurisé du token
@@ -108,15 +117,34 @@ export const useLogin = () => {
           "CONTACT",
         ]) || "";
       const id = data?.id || username || "";
-      const userData = { id, username, name, email, ...(phone ? { phone } : {}) };
+      const userData = {
+        id,
+        username,
+        name,
+        email,
+        ...(phone ? { phone } : {}),
+      };
       await secureSetItem("user_data", JSON.stringify(userData));
       if (phone) await secureSetItem("user_phone", String(phone));
 
+      const clientId =
+        block?.IDCLIENT ||
+        block?.CLIENT_ID ||
+        pick(block, ["IDCLIENT", "CLIENT_ID", "CODECLIENT"]) ||
+        data?.id;
+
+      if (clientId) {
+        await secureSetItem("client_id", String(clientId));
+      }
+
+      await secureSetItem("user_login", username);
+
       setUserInfo({ token, user: userData });
-      return true;
+      return { success: true };
     } catch (e: any) {
-      setError(e?.response?.data?.message || e?.message || "Erreur réseau");
-      return false;
+      const msg = e?.response?.data?.message || e?.message || "Erreur réseau";
+      setError(msg);
+      return { success: false, error: msg };
     } finally {
       setIsLoading(false);
     }

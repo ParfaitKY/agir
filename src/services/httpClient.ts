@@ -1,6 +1,7 @@
 import axios, { AxiosInstance, AxiosResponse } from "axios";
 import { secureGetItem } from "../shared/utils/secureStorage";
 import { BASE_URL } from "./endpoints";
+import { emit } from "../shared/utils/eventBus";
 
 export type AuthHeaders = Record<string, string>;
 
@@ -53,6 +54,16 @@ httpClient.interceptors.response.use(
       data: error?.response?.data,
       message: error?.message,
     });
+    try {
+      const status = error?.response?.status;
+      const msg = String(
+        error?.response?.data?.message || error?.message || ""
+      ).toLowerCase();
+      const tokenIssue = /token/.test(msg) && /(expir|invalid|expire)/.test(msg);
+      if (status === 401 || status === 403 || tokenIssue) {
+        emit("auth:expired", { status, msg });
+      }
+    } catch {}
     return Promise.reject(error);
   }
 );

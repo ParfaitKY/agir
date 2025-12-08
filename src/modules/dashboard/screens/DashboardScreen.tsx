@@ -260,135 +260,27 @@ export const DashboardScreen: React.FC = () => {
       title: "Epargne+",
       subtitle: "Taux attractif",
       icon: "trending-up-outline",
-      iconColor: "#FFFFFF",
-      backgroundColor: "#7C3AED20",
+      iconColor: colors.primary,
+      backgroundColor: colors.primary + "20",
     },
     {
       id: 7,
       title: "Transfert Int.",
       subtitle: "Monde entier",
       icon: "earth-outline",
-      iconColor: "#FFFFFF",
-      backgroundColor: "rgba(255, 104, 23, 1)",
+      iconColor: colors.primary,
+      backgroundColor: colors.primary + "20",
     },
     {
       id: 8,
       title: "Tontine",
       subtitle: "Epargne groupe",
       icon: "people-outline",
-      iconColor: "#FFFFFF",
-      backgroundColor: "#08564bff",
+      iconColor: colors.primary,
+      backgroundColor: colors.primary + "20",
     },
   ];
 
-  const allTransactions = [
-    {
-      id: 1,
-      type: "Virement reçu",
-      amount: "+50 000",
-      date: "Aujourd'hui",
-      amountColor: colors.success,
-      icon: "arrow-down-circle",
-      iconColor: colors.success,
-    },
-    {
-      id: 2,
-      type: "Retrait ATM",
-      amount: "-25 000",
-      date: "Hier",
-      amountColor: colors.error,
-      icon: "cash-outline",
-      iconColor: colors.error,
-    },
-    {
-      id: 3,
-      type: "Paiement facture",
-      amount: "-15 000",
-      date: "Il y a 2 jours",
-      amountColor: colors.error,
-      icon: "document-text-outline",
-      iconColor: colors.error,
-    },
-    {
-      id: 4,
-      type: "Achat en ligne",
-      amount: "-8 500",
-      date: "Il y a 3 jours",
-      amountColor: colors.error,
-      icon: "cart-outline",
-      iconColor: colors.error,
-    },
-    {
-      id: 5,
-      type: "Remboursement",
-      amount: "+12 000",
-      date: "Il y a 4 jours",
-      amountColor: colors.success,
-      icon: "return-up-back-outline",
-      iconColor: colors.success,
-    },
-    {
-      id: 6,
-      type: "Frais bancaires",
-      amount: "-1 200",
-      date: "Il y a 5 jours",
-      amountColor: colors.error,
-      icon: "card-outline",
-      iconColor: colors.error,
-    },
-    {
-      id: 7,
-      type: "Virement sortant",
-      amount: "-75 000",
-      date: "Il y a 6 jours",
-      amountColor: colors.error,
-      icon: "arrow-up-circle",
-      iconColor: colors.error,
-    },
-    {
-      id: 8,
-      type: "Intérêts épargne",
-      amount: "+3 500",
-      date: "Il y a 7 jours",
-      amountColor: colors.success,
-      icon: "trending-up-outline",
-      iconColor: colors.success,
-    },
-    {
-      id: 9,
-      type: "Paiement mobile",
-      amount: "-5 000",
-      date: "Il y a 8 jours",
-      amountColor: colors.error,
-      icon: "phone-portrait-outline",
-      iconColor: colors.error,
-    },
-    {
-      id: 10,
-      type: "Commission",
-      amount: "-500",
-      date: "Il y a 9 jours",
-      amountColor: colors.error,
-      icon: "receipt-outline",
-      iconColor: colors.error,
-    },
-    {
-      id: 11,
-      type: "Bonus fidélité",
-      amount: "+2 000",
-      date: "Il y a 10 jours",
-      amountColor: colors.success,
-      icon: "gift-outline",
-      iconColor: colors.success,
-    },
-  ];
-
-  // Afficher seulement 3 transactions par défaut, ou toutes si "Voir tout" est activé
-  const transactions = showAllTransactions
-    ? allTransactions
-    : allTransactions.slice(0, 3);
-
-  // Rendu d'une offre pour la pagination horizontale
   const renderOfferItem = ({ item, index }: { item: any; index: number }) => (
     <View
       style={[
@@ -768,7 +660,9 @@ export const DashboardScreen: React.FC = () => {
                 <Text
                   style={[styles.subText, { color: colors.text }]}
                 >{`💼 ${nombreComptes} ${t(
-                  "dashboard.balance.activeAccountsLabel"
+                  nombreComptes > 1
+                    ? "dashboard.balance.activeAccountsLabel"
+                    : "dashboard.balance.activeAccountLabel"
                 )}`}</Text>
                 <View style={{ flexDirection: "row", alignItems: "center" }}>
                   <TouchableOpacity
@@ -840,7 +734,7 @@ export const DashboardScreen: React.FC = () => {
                 { borderColor: colors.border, backgroundColor: colors.card },
               ]}
             >
-              <Ionicons name="flash-outline" size={18} color={colors.warning} />
+              <Ionicons name="flash-outline" size={18} color={colors.primary} />
             </View>
           </View>
           <View style={styles.quickActions}>
