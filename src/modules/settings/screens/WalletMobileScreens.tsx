@@ -47,48 +47,6 @@ const WalletMobileScreens: React.FC = () => {
             { backgroundColor: colors.card, shadowColor: colors.text },
           ]}
           activeOpacity={0.8}
-          onPress={() => navigation.navigate("WalletBankTransferMobile")}
-        >
-          <View style={styles.iconWrap}>
-            <Ionicons name="swap-horizontal" size={32} color="#1E88E5" />
-          </View>
-          <Text style={[styles.cardTitle, { color: colors.text }]}>
-            {t("wallet.mobile.bankToMobile.title")}
-          </Text>
-          <Text style={[styles.cardSubtitle, { color: colors.text + "80" }]}>
-            {t("wallet.mobile.bankToMobile.subtitle")}
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[
-            styles.card,
-            { backgroundColor: colors.card, shadowColor: colors.text },
-          ]}
-          activeOpacity={0.8}
-          onPress={() => navigation.navigate("WalletMobileTransferBank")}
-        >
-          <View style={styles.iconWrap}>
-            <MaterialCommunityIcons
-              name="arrow-left-right"
-              size={32}
-              color="#8D6E63"
-            />
-          </View>
-          <Text style={[styles.cardTitle, { color: colors.text }]}>
-            {t("wallet.mobile.mobileToBank.title")}
-          </Text>
-          <Text style={[styles.cardSubtitle, { color: colors.text + "80" }]}>
-            {t("wallet.mobile.mobileToBank.subtitle")}
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[
-            styles.card,
-            { backgroundColor: colors.card, shadowColor: colors.text },
-          ]}
-          activeOpacity={0.8}
           onPress={() => navigation.navigate("WalletMobileUnsubscribe")}
         >
           <View style={styles.iconWrap}>

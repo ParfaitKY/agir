@@ -2291,16 +2291,6 @@ const TRANSLATIONS: Translations = {
   "placeholders.minimum": { fr: "Minimum", en: "Minimum", zh: "最低" },
 
   // Wallet flows
-  "wallet.bankToMobile.title": {
-    fr: "Banque vers mobile",
-    en: "Bank to mobile",
-    zh: "银行到手机账户",
-  },
-  "wallet.mobileToBank.title": {
-    fr: "Mobile vers banque",
-    en: "Mobile to bank",
-    zh: "手机账户到银行",
-  },
   "wallet.amountReceived": {
     fr: "Montant reçu",
     en: "Amount received",
@@ -2343,26 +2333,6 @@ const TRANSLATIONS: Translations = {
     fr: "compte mobile",
     en: "mobile account",
     zh: "手机账户",
-  },
-  "wallet.mobile.bankToMobile.title": {
-    fr: "Compte",
-    en: "Account",
-    zh: "账户",
-  },
-  "wallet.mobile.bankToMobile.subtitle": {
-    fr: "bancaire - mobile",
-    en: "bank - mobile",
-    zh: "银行 - 手机账户",
-  },
-  "wallet.mobile.mobileToBank.title": {
-    fr: "Compte",
-    en: "Account",
-    zh: "账户",
-  },
-  "wallet.mobile.mobileToBank.subtitle": {
-    fr: "mobile - bancaire",
-    en: "mobile - bank",
-    zh: "手机账户 - 银行",
   },
   "wallet.mobile.unsubscribe.title": {
     fr: "Désouscription",

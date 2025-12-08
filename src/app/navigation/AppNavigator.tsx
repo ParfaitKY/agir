@@ -30,10 +30,8 @@ import { useI18n } from "../providers/I18nProvider";
 import WalletScreens from "../../modules/settings/screens/WalletScreens";
 import WalletMobileScreens from "../../modules/settings/screens/WalletMobileScreens";
 import WalletMobileSubscribeScreen from "../../modules/settings/screens/WalletMobileSubscribeScreen";
-import WalletMobileTransferBankScreen from "../../modules/settings/screens/WalletMobileTransferBankScreen";
 import WalletMobileUnsubscribeScreen from "../../modules/settings/screens/WalletMobileUnsubscribeScreen";
 import WalletMobileOperationsListScreen from "../../modules/settings/screens/WalletMobileOperationsListScreen";
-import WalletBankTransferMobileScreen from "../../modules/settings/screens/WalletBankTransferMobileScreen";
 import PrivacyPolicyScreen from "../../modules/settings/screens/PrivacyPolicyScreen";
 import EmailSupportScreen from "../../modules/settings/screens/EmailSupportScreen";
 import AboutAppScreen from "../../modules/settings/screens/AboutAppScreen";
@@ -382,28 +380,6 @@ export const AppNavigator: React.FC = () => {
             options={{
               headerShown: true,
               title: t("wallet.mobile.subscribe.title"),
-              headerStyle: { backgroundColor: colors.card },
-              headerTitleStyle: { color: colors.text },
-              headerTintColor: colors.primary,
-            }}
-          />
-          <Stack.Screen
-            name="WalletMobileTransferBank"
-            component={withGuestRestriction(WalletMobileTransferBankScreen)}
-            options={{
-              headerShown: true,
-              title: t("wallet.mobileToBank.title"),
-              headerStyle: { backgroundColor: colors.card },
-              headerTitleStyle: { color: colors.text },
-              headerTintColor: colors.primary,
-            }}
-          />
-          <Stack.Screen
-            name="WalletBankTransferMobile"
-            component={withGuestRestriction(WalletBankTransferMobileScreen)}
-            options={{
-              headerShown: true,
-              title: t("wallet.bankToMobile.title"),
               headerStyle: { backgroundColor: colors.card },
               headerTitleStyle: { color: colors.text },
               headerTintColor: colors.primary,
