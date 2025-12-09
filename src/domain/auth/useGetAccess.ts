@@ -28,9 +28,13 @@ export const useGetAccess = () => {
       const body = {
         LG_CODELANGUE: "FR",
         CLIENT_ID: clientId,
-        SL_LOGIN: login,
+        IDCLIENT: clientId,
+        SL_LOGIN: login ? login.toUpperCase() : "",
         CLE_SECRETE: secret,
         CODECRYPTAGE: "Y}@128eVIXfoi7",
+        TYPEOPERATEUR: "01",
+        TYPEOPERATION: "01",
+        TERMINALUUID: "",
       } as any;
       const result: any = await getAccessApi(body, headers);
       if (result?.error) {

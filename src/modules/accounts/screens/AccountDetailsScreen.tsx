@@ -104,9 +104,9 @@ export const AccountDetailsScreen: React.FC = () => {
         percent: `${Math.round(Number(c?.percent ?? 0))}%`,
       }))
     : [];
-  const dailyUsed = Number(limitsRaw?.dailyWithdrawalUsed ?? 25000);
+  const dailyUsed = Number(limitsRaw?.dailyWithdrawalUsed ?? 0);
   const dailyLimit = Number(limitsRaw?.dailyWithdrawalLimit ?? 50000);
-  const monthlyUsed = Number(limitsRaw?.monthlyTransferUsed ?? 87500);
+  const monthlyUsed = Number(limitsRaw?.monthlyTransferUsed ?? 0);
   const monthlyLimit = Number(limitsRaw?.monthlyTransferLimit ?? 200000);
   const dailyPct =
     dailyLimit > 0
@@ -635,16 +635,18 @@ const getStyles = (colors: any) =>
 
     statsRow: {
       flexDirection: "row",
-      justifyContent: "space-between",
       paddingHorizontal: 16,
       marginTop: 18,
+      gap: 10,
     },
     statBox: {
       backgroundColor: colors.card,
       borderRadius: 14,
-      padding: 14,
-      width: "32%",
+      paddingVertical: 14,
+      paddingHorizontal: 4,
+      flex: 1,
       alignItems: "center",
+      justifyContent: "center",
       shadowColor: colors.border,
       shadowOpacity: 0.06,
       shadowOffset: { width: 0, height: 2 },
@@ -653,8 +655,14 @@ const getStyles = (colors: any) =>
       borderWidth: 1,
       borderColor: colors.border,
     },
-    statValue: { fontSize: 16, fontWeight: "700" },
-    statLabel: { fontSize: 12, color: colors.text, opacity: 0.7, marginTop: 6 },
+    statValue: { fontSize: 15, fontWeight: "700", textAlign: "center" },
+    statLabel: {
+      fontSize: 11,
+      color: colors.text,
+      opacity: 0.7,
+      marginTop: 6,
+      textAlign: "center",
+    },
 
     section: { paddingHorizontal: 16, marginTop: 18 },
     sectionHeaderRow: {
@@ -663,7 +671,7 @@ const getStyles = (colors: any) =>
       alignItems: "center",
       marginBottom: 10,
     },
-    sectionTitle: { fontSize: 16, fontWeight: "700", color: colors.text },
+    sectionTitle: { fontSize: 16, fontWeight: "700", color: colors.text,marginBottom: 10 },
     link: { fontSize: 12, color: colors.primary },
 
     categoryCard: {

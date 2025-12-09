@@ -351,10 +351,12 @@ const InitialSetupScreen: React.FC = () => {
       setPinError("Le code PIN et sa confirmation ne correspondent pas.");
       return;
     }
+
     if (secretKey.length < 3) {
       setPinError("La clé secrète doit contenir au moins 3 caractères.");
       return;
     }
+
     try {
       setSavingPin(true);
       const cleanLogin = loginReadonly.trim();
@@ -367,12 +369,13 @@ const InitialSetupScreen: React.FC = () => {
 
       const loginPayload = {
         LG_CODELANGUE: "FR",
-        SL_LOGIN: cleanLogin,
+        SL_LOGIN: cleanLogin.toUpperCase(),
         SL_MOTPASSE: newPin,
         TYPEOPERATEUR: "01",
         TYPEOPERATION: "01",
         CODECRYPTAGE: "Y}@128eVIXfoi7",
         TERMINALUUID: "",
+        CLIENT_ID: clientId,
       } as any;
 
       const result = await loginUser(loginPayload);
@@ -396,15 +399,7 @@ const InitialSetupScreen: React.FC = () => {
       // user_login est sauvegardé par loginUser avec la valeur retournée par le serveur
       await secureSetItem("user_secret_key", cleanSecret);
 
-      /*
-      const accessResult = await getAccess();
-      if (!accessResult?.success) {
-        // Affiche l'erreur retournée par le serveur ou un message par défaut
-        setPinError(accessResult?.error || "Clé secrète incorrecte");
-        return;
-      }
-      */
-      await getAccess();
+     
 
       await secureSetItem("is_configured", "true");
       markConfigured && (await markConfigured(true));
@@ -608,7 +603,8 @@ const InitialSetupScreen: React.FC = () => {
                     style={[
                       styles.input,
                       {
-                        borderColor: palette.border,
+                        borderColor:
+                          newPin.length === 5 ? "#4CAF50" : palette.border,
                         backgroundColor: isDark ? "#111827" : "#FFFFFF",
                         color: palette.textMain,
                         paddingRight: 36,
@@ -642,7 +638,10 @@ const InitialSetupScreen: React.FC = () => {
                     style={[
                       styles.input,
                       {
-                        borderColor: palette.border,
+                        borderColor:
+                          confirmPin.length === 5 && confirmPin === newPin
+                            ? "#4CAF50"
+                            : palette.border,
                         backgroundColor: isDark ? "#111827" : "#FFFFFF",
                         color: palette.textMain,
                         paddingRight: 36,

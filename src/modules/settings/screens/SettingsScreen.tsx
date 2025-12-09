@@ -734,7 +734,8 @@ export const SettingsScreen: React.FC = () => {
               style={[
                 styles.inputContainer,
                 {
-                  borderColor: colors.border,
+                  borderColor:
+                    currentPin.length === 5 ? "#4CAF50" : colors.border,
                   backgroundColor: colors.background,
                 },
               ]}
@@ -749,6 +750,14 @@ export const SettingsScreen: React.FC = () => {
                 maxLength={5}
                 placeholderTextColor={colors.text + "80"}
               />
+              {currentPin.length === 5 && (
+                <Ionicons
+                  name="checkmark-circle"
+                  size={20}
+                  color="#4CAF50"
+                  style={{ marginRight: 8 }}
+                />
+              )}
               <TouchableOpacity
                 onPress={() => setShowCurrentPin(!showCurrentPin)}
                 style={styles.eyeIcon}
@@ -765,7 +774,7 @@ export const SettingsScreen: React.FC = () => {
               style={[
                 styles.inputContainer,
                 {
-                  borderColor: colors.border,
+                  borderColor: newPin.length === 5 ? "#4CAF50" : colors.border,
                   backgroundColor: colors.background,
                 },
               ]}
@@ -780,6 +789,14 @@ export const SettingsScreen: React.FC = () => {
                 maxLength={5}
                 placeholderTextColor={colors.text + "80"}
               />
+              {newPin.length === 5 && (
+                <Ionicons
+                  name="checkmark-circle"
+                  size={20}
+                  color="#4CAF50"
+                  style={{ marginRight: 8 }}
+                />
+              )}
               <TouchableOpacity
                 onPress={() => setShowNewPin(!showNewPin)}
                 style={styles.eyeIcon}
@@ -796,7 +813,10 @@ export const SettingsScreen: React.FC = () => {
               style={[
                 styles.inputContainer,
                 {
-                  borderColor: colors.border,
+                  borderColor:
+                    confirmPin.length === 5 && confirmPin === newPin
+                      ? "#4CAF50"
+                      : colors.border,
                   backgroundColor: colors.background,
                 },
               ]}
@@ -811,6 +831,14 @@ export const SettingsScreen: React.FC = () => {
                 maxLength={5}
                 placeholderTextColor={colors.text + "80"}
               />
+              {confirmPin.length === 5 && confirmPin === newPin && (
+                <Ionicons
+                  name="checkmark-circle"
+                  size={20}
+                  color="#4CAF50"
+                  style={{ marginRight: 8 }}
+                />
+              )}
               <TouchableOpacity
                 onPress={() => setShowConfirmPin(!showConfirmPin)}
                 style={styles.eyeIcon}
