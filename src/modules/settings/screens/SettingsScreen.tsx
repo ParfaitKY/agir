@@ -150,7 +150,7 @@ export const SettingsScreen: React.FC = () => {
         {
           icon: "key-outline",
           iconColor: colors.primary,
-          title: "Changer le mot de passe",
+          title: "Changer le code secret",
           onPress: () => setShowChangePasswordModal(true),
           showChevron: true,
           isRestricted: true,
@@ -575,7 +575,7 @@ export const SettingsScreen: React.FC = () => {
             style={[styles.modalContainer, { backgroundColor: colors.card }]}
           >
             <Text style={[styles.modalTitle, { color: colors.text }]}>
-              {t("password.change.title")}
+              Changer la clé secrète
             </Text>
             <View
               style={[
@@ -588,7 +588,7 @@ export const SettingsScreen: React.FC = () => {
             >
               <TextInput
                 style={[styles.inputField, { color: colors.text }]}
-                placeholder={t("password.current")}
+                placeholder="Clé secrète actuelle"
                 secureTextEntry={!showCurrentPassword}
                 value={currentPassword}
                 onChangeText={setCurrentPassword}
@@ -617,7 +617,7 @@ export const SettingsScreen: React.FC = () => {
             >
               <TextInput
                 style={[styles.inputField, { color: colors.text }]}
-                placeholder={t("password.new")}
+                placeholder="Nouvelle clé secrète"
                 secureTextEntry={!showNewPassword}
                 value={newPassword}
                 onChangeText={setNewPassword}
@@ -646,7 +646,7 @@ export const SettingsScreen: React.FC = () => {
             >
               <TextInput
                 style={[styles.inputField, { color: colors.text }]}
-                placeholder={t("password.confirm")}
+                placeholder="Confirmer la clé secrète"
                 secureTextEntry={!showConfirmPassword}
                 value={confirmPassword}
                 onChangeText={setConfirmPassword}
@@ -674,7 +674,7 @@ export const SettingsScreen: React.FC = () => {
                 onPress={() => setShowChangePasswordModal(false)}
               >
                 <Text style={[styles.actionText, { color: colors.text }]}>
-                  {t("common.cancel")}
+                  Annuler
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
@@ -683,16 +683,12 @@ export const SettingsScreen: React.FC = () => {
                   { backgroundColor: colors.primary },
                 ]}
                 onPress={() => {
-                  if (newPassword.length < 6) {
-                    setPasswordError(t("password.error.length"));
-                    return;
-                  }
                   if (newPassword !== confirmPassword) {
-                    setPasswordError(t("password.error.mismatch"));
+                    setPasswordError("Les clés ne correspondent pas");
                     return;
                   }
                   setPasswordError(null);
-                  console.log("Change password", {
+                  console.log("Change secret key", {
                     currentPassword,
                     newPassword,
                   });
@@ -703,7 +699,7 @@ export const SettingsScreen: React.FC = () => {
                 }}
               >
                 <Text style={[styles.actionText, { color: "#fff" }]}>
-                  {t("common.confirm")}
+                  Confirmer
                 </Text>
               </TouchableOpacity>
             </View>

@@ -2065,6 +2065,11 @@ const TRANSLATIONS: Translations = {
     en: "Wallet number (e.g., 077 xx xx xx)",
     zh: "钱包号码（如：077 xx xx xx）",
   },
+  "wallet.form.walletDest.label": {
+    fr: "Wallet destinataire",
+    en: "Destination wallet",
+    zh: "收款钱包",
+  },
   "wallet.form.bankDest.label": {
     fr: "Compte bancaire destinataire",
     en: "Destination bank account",
@@ -2074,6 +2079,11 @@ const TRANSLATIONS: Translations = {
     fr: "Ex: SGBCI, NSIA, Ecobank",
     en: "e.g., SGBCI, NSIA, Ecobank",
     zh: "例如：SGBCI、NSIA、Ecobank",
+  },
+  "wallet.form.bankSource.label": {
+    fr: "Compte bancaire source",
+    en: "Source bank account",
+    zh: "来源银行账户",
   },
   "wallet.form.amount.label": { fr: "Montant", en: "Amount", zh: "金额" },
   "common.currency.xaf": { fr: "XAF", en: "XAF", zh: "XAF" },

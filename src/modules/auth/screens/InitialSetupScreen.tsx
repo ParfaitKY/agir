@@ -399,8 +399,6 @@ const InitialSetupScreen: React.FC = () => {
       // user_login est sauvegardé par loginUser avec la valeur retournée par le serveur
       await secureSetItem("user_secret_key", cleanSecret);
 
-     
-
       await secureSetItem("is_configured", "true");
       markConfigured && (await markConfigured(true));
       navigation.replace("PinLogin");
@@ -460,7 +458,22 @@ const InitialSetupScreen: React.FC = () => {
                   ]}
                   placeholderTextColor={palette.textSub}
                   autoCapitalize="characters"
+                  editable={!loadingVerify && !isLoading}
                 />
+                {(loadingVerify || isLoading) && (
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      marginTop: 8,
+                    }}
+                  >
+                    <ActivityIndicator color={palette.primary} />
+                    <Text style={{ marginLeft: 8, color: palette.textSub }}>
+                      Chargement du numéro de compte…
+                    </Text>
+                  </View>
+                )}
 
                 {verifyError && (
                   <Text

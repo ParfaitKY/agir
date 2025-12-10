@@ -229,7 +229,7 @@ const WalletScreens: React.FC = () => {
           ) : (
             <>
               <Text style={[styles.label, { color: colors.text }]}>
-                {t("wallet.form.bankDest.label")}
+                {t("wallet.form.bankSource.label")}
               </Text>
               <TextInput
                 style={[
@@ -247,7 +247,7 @@ const WalletScreens: React.FC = () => {
               />
 
               <Text style={[styles.label, { color: colors.text }]}>
-                {t("wallet.form.walletSource.label")}
+                {t("wallet.form.walletDest.label")}
               </Text>
               <TextInput
                 style={[
