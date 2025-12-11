@@ -55,6 +55,8 @@ const InitialSetupScreen: React.FC = () => {
   const [verifyError, setVerifyError] = useState<string | null>(null);
   const [verifySuccess, setVerifySuccess] = useState(false);
   const [loadingVerify, setLoadingVerify] = useState(false);
+  const [otpProcessing, setOtpProcessing] = useState(false);
+  const [verifiedAccount, setVerifiedAccount] = useState("");
 
   // Informations utilisateur
   const [firstName, setFirstName] = useState("");
@@ -128,7 +130,7 @@ const InitialSetupScreen: React.FC = () => {
 
   // Lorsque clientData est récupéré
   useEffect(() => {
-    if (step === 1 && clientData) {
+    if (step === 1 && clientData && !otpProcessing) {
       const ln = clientData.NOMCLIENT ?? clientData.lastName ?? "";
       const fn = clientData.PRENOMCLIENT ?? clientData.firstName ?? "";
       setLastName(ln);
@@ -144,12 +146,16 @@ const InitialSetupScreen: React.FC = () => {
       (navigation as any).navigate("OtpVerify", {
         phone,
         onSuccess: () => {
-          setStep(2);
           setVerifySuccess(false);
+          setOtpProcessing(true);
+          setTimeout(() => {
+            setOtpProcessing(false);
+            setStep(2);
+          }, 2000);
         },
       });
     }
-  }, [clientData, step]);
+  }, [clientData, step, otpProcessing]);
 
   useEffect(() => {
     const params = (route as any)?.params || {};
@@ -255,13 +261,14 @@ const InitialSetupScreen: React.FC = () => {
       );
       return;
     }
+    setVerifiedAccount(accountNumber);
     setVerifySuccess(true);
   };
 
   useEffect(() => {
     if (autoVerifyRef.current) clearTimeout(autoVerifyRef.current);
     const num = accountNumber.trim();
-    if (step === 1 && num.length >= 8) {
+    if (step === 1 && num.length >= 8 && num !== verifiedAccount) {
       autoVerifyRef.current = setTimeout(() => {
         if (loadingVerify || isLoading) return;
         handleVerifyAccountNumber();
@@ -270,7 +277,7 @@ const InitialSetupScreen: React.FC = () => {
     return () => {
       if (autoVerifyRef.current) clearTimeout(autoVerifyRef.current);
     };
-  }, [accountNumber, step, loadingVerify, isLoading]);
+  }, [accountNumber, step, loadingVerify, isLoading, verifiedAccount]);
 
   // Fonction mode invité
   const handleGuestMode = async () => {
@@ -442,7 +449,29 @@ const InitialSetupScreen: React.FC = () => {
               transform: [{ translateY: slideAnim }],
             }}
           >
-            {step === 1 ? (
+            {otpProcessing ? (
+              <View
+                style={[
+                  styles.card,
+                  {
+                    backgroundColor: palette.card,
+                    alignItems: "center",
+                    paddingVertical: 40,
+                  },
+                ]}
+              >
+                <ActivityIndicator size="large" color={palette.primary} />
+                <Text
+                  style={{
+                    marginTop: 16,
+                    color: palette.textMain,
+                    fontWeight: "600",
+                  }}
+                >
+                  Validation en cours...
+                </Text>
+              </View>
+            ) : step === 1 ? (
               <View style={[styles.card, { backgroundColor: palette.card }]}>
                 <Text style={[styles.label, { color: palette.textMain }]}>
                   Numéro de compte
