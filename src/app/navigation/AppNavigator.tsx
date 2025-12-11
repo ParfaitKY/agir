@@ -42,6 +42,7 @@ import SplashScreen from "../../modules/auth/screens/SplashScreen";
 import InitialSetupScreen from "../../modules/auth/screens/InitialSetupScreen";
 import PinLoginScreen from "../../modules/auth/screens/PinLoginScreen";
 import PasswordRecoveryScreen from "../../modules/auth/screens/PasswordRecoveryScreen";
+import OtpVerifyScreen from "../../modules/auth/screens/OtpVerifyScreen";
 import { useTheme } from "../../shared/styles/ThemeProvider";
 import { AnalyticsScreen } from "../../modules/analytics/screens/AnalyticsScreen";
 
@@ -260,6 +261,7 @@ export const AppNavigator: React.FC = () => {
       {/* Écran Splash affiché au démarrage, redirige vers Main ou Login */}
       <Stack.Screen name="Splash" component={SplashScreen} />
       <Stack.Screen name="InitialSetup" component={InitialSetupScreen} />
+      <Stack.Screen name="OtpVerify" component={OtpVerifyScreen} />
       {!isGuestMode && (
         <Stack.Screen name="PinLogin" component={PinLoginScreen} />
       )}

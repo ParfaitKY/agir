@@ -140,12 +140,16 @@ const InitialSetupScreen: React.FC = () => {
         secureSetItem("client_id", cidStr);
       }
       setVerifySuccess(true);
-      setTimeout(() => {
-        setStep(2);
-        setVerifySuccess(false);
-      }, 300);
+      const phone = String(clientData?.phone || "+225 07 ***** 12");
+      (navigation as any).navigate("OtpVerify", {
+        phone,
+        onSuccess: () => {
+          setStep(2);
+          setVerifySuccess(false);
+        },
+      });
     }
-  }, [clientData]);
+  }, [clientData, step]);
 
   useEffect(() => {
     const params = (route as any)?.params || {};
