@@ -79,6 +79,7 @@ const OtpVerifyScreen: React.FC = () => {
       <View style={styles.headerRow}>
         <TouchableOpacity
           style={styles.headerBackBtn}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           onPress={() => navigation.goBack()}
         >
           <Ionicons name="arrow-back" size={24} color={colors.text} />
@@ -89,121 +90,112 @@ const OtpVerifyScreen: React.FC = () => {
       </View>
 
       <View style={styles.content}>
+        <View style={styles.lockCircle}>
+          <View style={[styles.lockInner, { backgroundColor: colors.primary }]}>
+            <Ionicons name="lock-closed" size={22} color="#fff" />
+          </View>
+        </View>
+        <Text style={[styles.title, { color: colors.text }]}>
+          Connexion en cours
+        </Text>
+        <Text style={[styles.subtitle, { color: colors.text + "80" }]}>
+          {"Code reçu automatiquement.\nVous pouvez valider."}
+        </Text>
+
+        <Text style={[styles.fieldLabel, { color: colors.text }]}>
+          Numéro de compte
+        </Text>
         <View
           style={[
-            styles.card,
-            { backgroundColor: colors.card, borderColor: colors.border },
+            styles.accountInput,
+            {
+              borderColor: colors.border,
+              backgroundColor: colors.background,
+            },
           ]}
         >
-          <View style={styles.lockCircle}>
-            <View
-              style={[styles.lockInner, { backgroundColor: colors.primary }]}
-            >
-              <Ionicons name="lock-closed" size={22} color="#fff" />
-            </View>
-          </View>
-          <Text style={[styles.title, { color: colors.text }]}>
-            Connexion en cours
+          <Text style={[styles.accountText, { color: colors.text + "88" }]}>
+            {accountMasked || "FR76 •••• •••• 3790"}
           </Text>
-          <Text style={[styles.subtitle, { color: colors.text + "80" }]}>
-            Code reçu automatiquement. Vous pouvez valider.
-          </Text>
+          <Ionicons name="lock-closed" size={18} color={colors.text + "70"} />
+        </View>
 
+        <View style={styles.otpHeaderRow}>
           <Text style={[styles.fieldLabel, { color: colors.text }]}>
-            Numéro de compte
+            Code OTP
           </Text>
           <View
             style={[
-              styles.accountInput,
-              {
-                borderColor: colors.border,
-                backgroundColor: colors.background,
-              },
+              styles.detectPill,
+              { backgroundColor: colors.success + "18" },
             ]}
           >
-            <Text style={[styles.accountText, { color: colors.text + "88" }]}>
-              {accountMasked || "FR76 •••• •••• 3790"}
+            <Ionicons name="checkmark-done" size={16} color={colors.success} />
+            <Text style={[styles.detectText, { color: colors.success }]}>
+              Détecté
             </Text>
-            <Ionicons name="lock-closed" size={18} color={colors.text + "70"} />
           </View>
+        </View>
 
-          <View style={styles.otpHeaderRow}>
-            <Text style={[styles.fieldLabel, { color: colors.text }]}>
-              Code OTP
-            </Text>
+        <View style={styles.otpRow}>
+          {Array.from({ length: 3 }).map((_, i) => (
             <View
+              key={`otp-a-${i}`}
               style={[
-                styles.detectPill,
-                { backgroundColor: colors.success + "18" },
+                styles.otpItem,
+                {
+                  borderColor: colors.primary,
+                  backgroundColor: colors.background,
+                  ...(i === active
+                    ? { shadowOpacity: 0.1, shadowRadius: 6 }
+                    : {}),
+                },
               ]}
             >
-              <Ionicons
-                name="checkmark-done"
-                size={16}
-                color={colors.success}
+              <TextInput
+                ref={(r) => (inputs.current[i] = r as any)}
+                value={values[i]}
+                onChangeText={(t) => handleChange(i, t)}
+                onKeyPress={(e) => handleKeyPress(i, e)}
+                keyboardType="number-pad"
+                maxLength={1}
+                style={[styles.otpInput, { color: colors.text }]}
+                selectionColor={colors.primary}
               />
-              <Text style={[styles.detectText, { color: colors.success }]}>
-                Détecté
-              </Text>
             </View>
-          </View>
+          ))}
+          <Text style={[styles.dash, { color: colors.text + "70" }]}>-</Text>
+          {Array.from({ length: 3 }).map((_, j) => (
+            <View
+              key={`otp-b-${j}`}
+              style={[
+                styles.otpItem,
+                {
+                  borderColor: colors.primary,
+                  backgroundColor: colors.background,
+                  ...(j + 3 === active
+                    ? { shadowOpacity: 0.1, shadowRadius: 6 }
+                    : {}),
+                },
+              ]}
+            >
+              <TextInput
+                ref={(r) => (inputs.current[j + 3] = r as any)}
+                value={values[j + 3]}
+                onChangeText={(t) => handleChange(j + 3, t)}
+                onKeyPress={(e) => handleKeyPress(j + 3, e)}
+                keyboardType="number-pad"
+                maxLength={1}
+                style={[styles.otpInput, { color: colors.text }]}
+                selectionColor={colors.primary}
+              />
+            </View>
+          ))}
+        </View>
 
-          <View style={styles.otpRow}>
-            {Array.from({ length: 3 }).map((_, i) => (
-              <View
-                key={`otp-a-${i}`}
-                style={[
-                  styles.otpItem,
-                  {
-                    borderColor: colors.primary,
-                    backgroundColor: colors.background,
-                    ...(i === active
-                      ? { shadowOpacity: 0.1, shadowRadius: 6 }
-                      : {}),
-                  },
-                ]}
-              >
-                <TextInput
-                  ref={(r) => (inputs.current[i] = r as any)}
-                  value={values[i]}
-                  onChangeText={(t) => handleChange(i, t)}
-                  onKeyPress={(e) => handleKeyPress(i, e)}
-                  keyboardType="number-pad"
-                  maxLength={1}
-                  style={[styles.otpInput, { color: colors.text }]}
-                  selectionColor={colors.primary}
-                />
-              </View>
-            ))}
-            <Text style={[styles.dash, { color: colors.text + "70" }]}>-</Text>
-            {Array.from({ length: 3 }).map((_, j) => (
-              <View
-                key={`otp-b-${j}`}
-                style={[
-                  styles.otpItem,
-                  {
-                    borderColor: colors.primary,
-                    backgroundColor: colors.background,
-                    ...(j + 3 === active
-                      ? { shadowOpacity: 0.1, shadowRadius: 6 }
-                      : {}),
-                  },
-                ]}
-              >
-                <TextInput
-                  ref={(r) => (inputs.current[j + 3] = r as any)}
-                  value={values[j + 3]}
-                  onChangeText={(t) => handleChange(j + 3, t)}
-                  onKeyPress={(e) => handleKeyPress(j + 3, e)}
-                  keyboardType="number-pad"
-                  maxLength={1}
-                  style={[styles.otpInput, { color: colors.text }]}
-                  selectionColor={colors.primary}
-                />
-              </View>
-            ))}
-          </View>
+        <View style={styles.spacer} />
 
+        <View style={styles.footer}>
           <TouchableOpacity
             style={[
               styles.submitBtn,
@@ -220,7 +212,7 @@ const OtpVerifyScreen: React.FC = () => {
             }}
           >
             <View style={styles.submitInnerRow}>
-              <Text style={[styles.submitText, { color: colors.background }]}>
+              <Text style={[styles.submitText, { color: "#fff" }]}>
                 Valider
               </Text>
               <Ionicons
@@ -231,30 +223,31 @@ const OtpVerifyScreen: React.FC = () => {
               />
             </View>
           </TouchableOpacity>
-        </View>
-        <TouchableOpacity
-          onPress={() => navigation.goBack()}
-          style={{ marginTop: 16 }}
-        >
-          <Text
-            style={{
-              color: colors.text + "80",
-              fontWeight: "600",
-              textAlign: "center",
-            }}
+
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            style={{ marginTop: 16 }}
           >
-            Ce n'est pas moi ? Annuler
-          </Text>
-        </TouchableOpacity>
-        <View style={styles.securityRow}>
-          <Ionicons
-            name="shield-checkmark"
-            size={16}
-            color={colors.text + "60"}
-          />
-          <Text style={[styles.securityText, { color: colors.text + "60" }]}>
-            Connexion sécurisée par la banque
-          </Text>
+            <Text
+              style={{
+                color: colors.text + "80",
+                fontWeight: "600",
+                textAlign: "center",
+              }}
+            >
+              Ce n'est pas moi ? Annuler
+            </Text>
+          </TouchableOpacity>
+          <View style={styles.securityRow}>
+            <Ionicons
+              name="shield-checkmark"
+              size={16}
+              color={colors.text + "60"}
+            />
+            <Text style={[styles.securityText, { color: colors.text + "60" }]}>
+              Connexion sécurisée par la banque
+            </Text>
+          </View>
         </View>
       </View>
     </SafeAreaView>
@@ -269,10 +262,22 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
+    height: 56,
   },
-  headerBackBtn: { position: "absolute", left: 16, top: 8 },
-  headerTitle: { fontSize: 16, fontWeight: "700", marginLeft: 12 },
-  content: { paddingHorizontal: 20, paddingTop: 8 },
+  headerBackBtn: {
+    position: "absolute",
+    left: 16,
+    top: 14,
+    padding: 6,
+    borderRadius: 20,
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    marginLeft: 12,
+    letterSpacing: 0.2,
+  },
+  content: { paddingHorizontal: 20, paddingTop: 8, marginTop: 28, flex: 1 },
   card: {
     borderRadius: 16,
     padding: 20,
@@ -298,7 +303,7 @@ const styles = StyleSheet.create({
   },
 
   title: { fontSize: 24, fontWeight: "800", marginTop: 6, textAlign: "center" },
-  subtitle: { fontSize: 13, marginTop: 6, textAlign: "center" },
+  subtitle: { fontSize: 17, marginTop: 6, textAlign: "center" },
   fieldLabel: { fontSize: 13, fontWeight: "600", marginTop: 16 },
   accountInput: {
     flexDirection: "row",
@@ -364,6 +369,8 @@ const styles = StyleSheet.create({
   submitInnerRow: { flexDirection: "row", alignItems: "center" },
   submitText: { fontSize: 16, fontWeight: "700" },
 
+  spacer: { flex: 1 },
+  footer: { paddingBottom: 35 },
   securityRow: {
     flexDirection: "row",
     alignItems: "center",
