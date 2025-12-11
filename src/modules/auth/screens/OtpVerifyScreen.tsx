@@ -31,7 +31,7 @@ const OtpVerifyScreen: React.FC = () => {
         if (acc) {
           const s = String(acc).replace(/\s+/g, "");
           const tail = s.slice(-4);
-          const masked = `•••• •••• ${tail}`;
+          const masked = `•••• •••• •••• •••• ${tail}`;
           setAccountMasked(masked);
         }
       } catch {}
@@ -73,9 +73,7 @@ const OtpVerifyScreen: React.FC = () => {
   // pas de renvoi de code ni minuterie dans ce rendu
 
   return (
-    <SafeAreaView
-      style={[styles.screen, { backgroundColor: colors.background }]}
-    >
+    <SafeAreaView style={[styles.screen, { backgroundColor: "#121212" }]}>
       <View style={styles.headerRow}>
         <TouchableOpacity
           style={styles.headerBackBtn}
@@ -91,8 +89,17 @@ const OtpVerifyScreen: React.FC = () => {
 
       <View style={styles.content}>
         <View style={styles.lockCircle}>
-          <View style={[styles.lockInner, { backgroundColor: colors.primary }]}>
-            <Ionicons name="lock-closed" size={22} color="#fff" />
+          <View
+            style={[
+              styles.lockInner,
+              {
+                backgroundColor: colors.primary + "65",
+                borderColor: colors.primary + "66",
+                borderWidth: 1,
+              },
+            ]}
+          >
+            <Ionicons name="lock-closed" size={22} color="#FFFF" />
           </View>
         </View>
         <Text style={[styles.title, { color: colors.text }]}>
@@ -115,9 +122,9 @@ const OtpVerifyScreen: React.FC = () => {
           ]}
         >
           <Text style={[styles.accountText, { color: colors.text + "88" }]}>
-            {accountMasked || "FR76 •••• •••• 3790"}
+            {accountMasked || "FR76 •••• •••• ••••  3790"}
           </Text>
-          <Ionicons name="lock-closed" size={18} color={colors.text + "70"} />
+          <Ionicons name="lock-closed" size={22} color={colors.text + "70"} />
         </View>
 
         <View style={styles.otpHeaderRow}>
@@ -219,14 +226,19 @@ const OtpVerifyScreen: React.FC = () => {
                 name="arrow-forward"
                 size={18}
                 color="#fff"
-                style={{ marginLeft: 8 }}
+                style={{ marginLeft: 12 }}
               />
             </View>
           </TouchableOpacity>
 
           <TouchableOpacity
-            onPress={() => navigation.goBack()}
-            style={{ marginTop: 16 }}
+            onPress={() => {
+              try {
+                (route as any)?.params?.onCancel?.();
+              } catch {}
+              navigation.goBack();
+            }}
+            style={{ marginTop: 20 }}
           >
             <Text
               style={{
@@ -302,9 +314,9 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
 
-  title: { fontSize: 24, fontWeight: "800", marginTop: 6, textAlign: "center" },
+  title: { fontSize: 26, fontWeight: "800", marginTop: 6, textAlign: "center" },
   subtitle: { fontSize: 17, marginTop: 6, textAlign: "center" },
-  fieldLabel: { fontSize: 13, fontWeight: "600", marginTop: 16 },
+  fieldLabel: { fontSize: 16, fontWeight: "600", marginTop: 45 },
   accountInput: {
     flexDirection: "row",
     alignItems: "center",
@@ -376,7 +388,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     gap: 8,
-    marginTop: 10,
+    marginTop: 20,
   },
   securityText: { fontSize: 12, fontWeight: "600" },
 });

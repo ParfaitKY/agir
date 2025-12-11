@@ -153,6 +153,12 @@ const InitialSetupScreen: React.FC = () => {
             setStep(2);
           }, 2000);
         },
+        onCancel: () => {
+          setVerifySuccess(false);
+          setVerifiedAccount("");
+          setAccountNumber("");
+          setStep(1);
+        },
       });
     }
   }, [clientData, step, otpProcessing]);
