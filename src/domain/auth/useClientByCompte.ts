@@ -224,9 +224,33 @@ export const useClientByCompte = () => {
         device_id = `${Platform.OS}-${t}-${rand}`.toUpperCase();
         await secureSetItem("device_id", device_id);
       }
-      const os = `${Platform.OS} ${Platform.Version}`;
-      const brand = "Unknown";
-      const model = "Unknown";
+      let os = `${Platform.OS} ${Platform.Version}`;
+      let brand = "Unknown";
+      let model = "Unknown";
+
+      try {
+        const Device: any = await import("expo-device");
+        const osName = Device?.osName;
+        const osVersion = Device?.osVersion;
+        const devBrand = Device?.brand;
+        const devModel =
+          Device?.modelName ?? Device?.modelId ?? Device?.deviceName;
+
+        if (osName || osVersion) {
+          os = `${osName ?? Platform.OS} ${osVersion ?? Platform.Version}`;
+        }
+        if (devBrand) brand = String(devBrand);
+        if (devModel) model = String(devModel);
+      } catch (_) {}
+
+      if (Platform.OS === "web") {
+        const ua =
+          (globalThis as any)?.navigator?.userAgent ??
+          (globalThis as any)?.navigator?.appVersion ??
+          "";
+        if (brand === "Unknown") brand = "Web";
+        if (model === "Unknown" && ua) model = ua;
+      }
       const headers: any = { "X-NO-AUTH": "true" };
       const result = await clientByCompte(
         {
