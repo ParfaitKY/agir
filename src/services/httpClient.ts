@@ -21,8 +21,13 @@ export const httpClient: AxiosInstance = axios.create({
 
 httpClient.interceptors.request.use(async (config) => {
   try {
+    const noAuth =
+      (config.headers as any)?.["X-NO-AUTH"] === "true" ||
+      String(config.url || "").includes("/auth/client-by-compte") ||
+      String(config.url || "").includes("/auth/silent-otp") ||
+      String(config.url || "").includes("/auth/verify-otp");
     const token = await secureGetItem("auth_token");
-    if (token) {
+    if (token && !noAuth) {
       config.headers = config.headers || {};
       (config.headers as any)["Authorization"] = `Bearer ${token}`;
     }

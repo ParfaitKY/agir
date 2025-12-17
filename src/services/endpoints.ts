@@ -4,6 +4,8 @@ export const BASE_URL =
 export const ENDPOINTS = {
   LOGIN: "/auth/login",
   CLIENT_BY_COMPTE: "/auth/client-by-compte",
+  SILENT_OTP: "/auth/silent-otp",
+  VERIFY_OTP: "/auth/verify-otp",
   UPDATE_LOGIN: "/auth/update-login",
   GET_ACCESS: "/auth/get-access",
   COMPTE_LIST: "/compte/comptes",

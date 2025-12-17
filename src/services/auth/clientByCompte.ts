@@ -3,6 +3,11 @@ import { ENDPOINTS } from "../endpoints";
 
 export type ClientByComptePayload = {
   numero_compte: string;
+  device_id?: string;
+  brand?: string;
+  model?: string;
+  os?: string;
+  code_cryptage?: string;
 };
 
 export const clientByCompte = (

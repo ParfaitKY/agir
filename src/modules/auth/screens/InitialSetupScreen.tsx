@@ -143,23 +143,30 @@ const InitialSetupScreen: React.FC = () => {
       }
       setVerifySuccess(true);
       const phone = String(clientData?.phone || "+225 07 ***** 12");
-      (navigation as any).navigate("OtpVerify", {
-        phone,
-        onSuccess: () => {
-          setVerifySuccess(false);
-          setOtpProcessing(true);
-          setTimeout(() => {
-            setOtpProcessing(false);
-            setStep(2);
-          }, 2000);
-        },
-        onCancel: () => {
-          setVerifySuccess(false);
-          setVerifiedAccount("");
-          setAccountNumber("");
-          setStep(1);
-        },
-      });
+      const go = async () => {
+        const accStored = await secureGetItem("user_account_number");
+        const dev = await secureGetItem("device_id");
+        (navigation as any).navigate("OtpVerify", {
+          phone,
+          numero_compte: accStored || accountNumber,
+          device_id: dev || "",
+          onSuccess: () => {
+            setVerifySuccess(false);
+            setOtpProcessing(true);
+            setTimeout(() => {
+              setOtpProcessing(false);
+              setStep(2);
+            }, 2000);
+          },
+          onCancel: () => {
+            setVerifySuccess(false);
+            setVerifiedAccount("");
+            setAccountNumber("");
+            setStep(1);
+          },
+        });
+      };
+      go();
     }
   }, [clientData, step, otpProcessing]);
 

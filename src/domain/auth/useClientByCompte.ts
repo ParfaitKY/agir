@@ -1,6 +1,7 @@
 import { useState, useCallback } from "react";
 import { clientByCompte } from "../../services/auth/clientByCompte";
 import { secureSetItem, secureGetItem } from "../../shared/utils/secureStorage";
+import { Platform } from "react-native";
 
 export type ClientInfo = {
   id?: string;
@@ -216,17 +217,28 @@ export const useClientByCompte = () => {
         return false;
       }
 
-      const token = await secureGetItem("auth_token");
-      const clientId = await secureGetItem("client_id");
-      const login = await secureGetItem("user_login");
-      const headers: any = token
-        ? {
-            Authorization: `Bearer ${token}`,
-            ...(clientId ? { "X-CLIENT-ID": clientId } : {}),
-            ...(login ? { "X-LOGIN": login } : {}),
-          }
-        : {};
-      const result = await clientByCompte({ numero_compte }, headers);
+      let device_id = await secureGetItem("device_id");
+      if (!device_id) {
+        const rand = Math.random().toString(36).slice(2);
+        const t = Date.now().toString(36);
+        device_id = `${Platform.OS}-${t}-${rand}`.toUpperCase();
+        await secureSetItem("device_id", device_id);
+      }
+      const os = `${Platform.OS} ${Platform.Version}`;
+      const brand = "Unknown";
+      const model = "Unknown";
+      const headers: any = { "X-NO-AUTH": "true" };
+      const result = await clientByCompte(
+        {
+          numero_compte,
+          device_id,
+          brand,
+          model,
+          os,
+          code_cryptage: "Y}@128eVIXfoi7",
+        },
+        headers
+      );
 
       if (result.error) {
         const err: any = result.error;

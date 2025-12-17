@@ -10,26 +10,50 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { useTheme } from "../../../shared/styles/ThemeProvider";
-import { secureGetItem } from "../../../shared/utils/secureStorage";
+import { secureGetItem, secureSetItem } from "../../../shared/utils/secureStorage";
+import { Platform, ActivityIndicator } from "react-native";
+import { silentOtp } from "../../../services/auth/silentOtp";
+import { verifyOtp as verifyOtpService } from "../../../services/auth/verifyOtp";
 
 const OtpVerifyScreen: React.FC = () => {
   const navigation = useNavigation<any>();
   const { colors } = useTheme();
   const route = useRoute<any>();
   const [accountMasked, setAccountMasked] = useState("");
+  const [numeroCompte, setNumeroCompte] = useState<string>("");
+  const [deviceId, setDeviceId] = useState<string>("");
+  const [loadingSilent, setLoadingSilent] = useState<boolean>(false);
+  const [silentOk, setSilentOk] = useState<boolean>(false);
+  const [verifyError, setVerifyError] = useState<string>("");
 
   const DIGITS = 6;
   const [values, setValues] = useState<string[]>(Array(DIGITS).fill(""));
   const [active, setActive] = useState(0);
   const inputs = useRef<TextInput[]>([]);
-  const DEFAULT_CODE = "123456";
+  const ENCRYPT_CODE = "Y}@128eVIXfoi7";
 
   useEffect(() => {
     (async () => {
       try {
-        const acc = await secureGetItem("user_account_number");
+        const accParam = (route as any)?.params?.numero_compte;
+        const acc = accParam || (await secureGetItem("user_account_number"));
+        const devParam = (route as any)?.params?.device_id;
+        let dev = devParam || (await secureGetItem("device_id"));
+        if (!dev) {
+          const rand = Math.random().toString(36).slice(2);
+          const t = Date.now().toString(36);
+          dev = `${Platform.OS}-${t}-${rand}`.toUpperCase();
+          await secureSetItem("device_id", dev);
+        }
         if (acc) {
-          const s = String(acc).replace(/\s+/g, "");
+          setNumeroCompte(String(acc));
+        }
+        if (dev) {
+          setDeviceId(dev);
+        }
+        const accForMask = acc || "";
+        if (acc) {
+          const s = String(accForMask).replace(/\s+/g, "");
           const tail = s.slice(-4);
           const masked = `•••• •••• •••• •••• ${tail}`;
           setAccountMasked(masked);
@@ -38,7 +62,47 @@ const OtpVerifyScreen: React.FC = () => {
     })();
   }, []);
 
-  // pas de timer nécessaire selon le design
+  useEffect(() => {
+    const runSilent = async () => {
+      if (!numeroCompte || !deviceId) return;
+      setLoadingSilent(true);
+      setSilentOk(false);
+      try {
+        const { data, error } = await silentOtp(
+          {
+            numero_compte: numeroCompte,
+            device_id: deviceId,
+            code_cryptage: ENCRYPT_CODE,
+          },
+          { "X-NO-AUTH": "true" }
+        );
+        if (error) {
+          setSilentOk(false);
+          return;
+        }
+        const otp =
+          (data as any)?.otp_code ||
+          (data as any)?.otp ||
+          (data as any)?.token ||
+          (data as any)?.code ||
+          "";
+        if (typeof otp === "string" && otp.length >= DIGITS) {
+          const first6 = otp.slice(0, DIGITS);
+          const arr = first6.split("");
+          setValues(arr);
+          setActive(DIGITS - 1);
+          setSilentOk(true);
+        } else {
+          setSilentOk(false);
+        }
+      } catch {
+        setSilentOk(false);
+      } finally {
+        setLoadingSilent(false);
+      }
+    };
+    runSilent();
+  }, [numeroCompte, deviceId]);
 
   useEffect(() => {
     inputs.current[active]?.focus?.();
@@ -70,7 +134,34 @@ const OtpVerifyScreen: React.FC = () => {
   const code = values.join("");
   const canSubmit = code.length === DIGITS;
 
-  // pas de renvoi de code ni minuterie dans ce rendu
+  const verifyOtp = async () => {
+    setVerifyError("");
+    try {
+      const { data, error } = await verifyOtpService(
+        {
+          numero_compte: numeroCompte,
+          device_id: deviceId,
+          otp_code: code,
+          code_cryptage: ENCRYPT_CODE,
+        },
+        { "X-NO-AUTH": "true" }
+      );
+      if (error) {
+        const errMsg =
+          (error as any)?.response?.data?.message ||
+          (error as any)?.message ||
+          "Échec de la validation du code.";
+        setVerifyError(errMsg);
+        return;
+      }
+      try {
+        (route as any)?.params?.onSuccess?.();
+      } catch {}
+      navigation.goBack();
+    } catch {
+      setVerifyError("Échec de la validation du code.");
+    }
+  };
 
   return (
     <SafeAreaView style={[styles.screen, { backgroundColor: "#121212" }]}>
@@ -106,7 +197,11 @@ const OtpVerifyScreen: React.FC = () => {
           Connexion en cours
         </Text>
         <Text style={[styles.subtitle, { color: colors.text + "80" }]}>
-          {"Code reçu automatiquement.\nVous pouvez valider."}
+          {loadingSilent
+            ? "Patientez, détection du code…"
+            : silentOk
+            ? "Code reçu automatiquement.\nVous pouvez valider."
+            : "Saisissez le code reçu."}
         </Text>
 
         <Text style={[styles.fieldLabel, { color: colors.text }]}>
@@ -134,12 +229,25 @@ const OtpVerifyScreen: React.FC = () => {
           <View
             style={[
               styles.detectPill,
-              { backgroundColor: colors.success + "18" },
+              { backgroundColor: (silentOk ? colors.success : colors.primary) + "18" },
             ]}
           >
-            <Ionicons name="checkmark-done" size={16} color={colors.success} />
-            <Text style={[styles.detectText, { color: colors.success }]}>
-              Détecté
+            {loadingSilent ? (
+              <ActivityIndicator size="small" color={colors.primary} />
+            ) : (
+              <Ionicons
+                name={silentOk ? "checkmark-done" : "time"}
+                size={16}
+                color={silentOk ? colors.success : colors.primary}
+              />
+            )}
+            <Text
+              style={[
+                styles.detectText,
+                { color: silentOk ? colors.success : colors.primary },
+              ]}
+            >
+              {loadingSilent ? "Détection…" : silentOk ? "Détecté" : "En attente"}
             </Text>
           </View>
         </View>
@@ -209,14 +317,7 @@ const OtpVerifyScreen: React.FC = () => {
               { backgroundColor: colors.primary, opacity: canSubmit ? 1 : 0.6 },
             ]}
             disabled={!canSubmit}
-            onPress={() => {
-              if (code === DEFAULT_CODE) {
-                try {
-                  (route as any)?.params?.onSuccess?.();
-                } catch {}
-                navigation.goBack();
-              }
-            }}
+            onPress={verifyOtp}
           >
             <View style={styles.submitInnerRow}>
               <Text style={[styles.submitText, { color: "#fff" }]}>
@@ -230,6 +331,19 @@ const OtpVerifyScreen: React.FC = () => {
               />
             </View>
           </TouchableOpacity>
+
+          {!!verifyError && (
+            <Text
+              style={{
+                color: colors.error || "#ff4d4f",
+                marginTop: 10,
+                textAlign: "center",
+                fontWeight: "600",
+              }}
+            >
+              {verifyError}
+            </Text>
+          )}
 
           <TouchableOpacity
             onPress={() => {
