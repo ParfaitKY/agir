@@ -8,12 +8,14 @@ export type ClientInfo = {
   IDCLIENT?: string;
   NOMCLIENT?: string;
   PRENOMCLIENT?: string;
+  fullName?: string;
   lastName?: string;
   firstName?: string;
   login?: string;
   agency?: string;
   NUMCOMPTE?: string;
   phone?: string;
+  email?: string;
   address?: string;
   secret_key?: string;
   raw?: any;
@@ -127,6 +129,22 @@ export const useClientByCompte = () => {
       source?.ACCOUNT_NUMBER ??
       source?.CO_CODECOMPTE;
 
+    const email =
+      source?.EMAIL ??
+      source?.MAIL ??
+      source?.EMAILCLIENT ??
+      source?.CL_EMAIL ??
+      source?.EMAIL_ADDRESS ??
+      source?.ADR_EMAIL ??
+      pickKeyValue(source, [
+        "EMAIL",
+        "MAIL",
+        "EMAILCLIENT",
+        "CL_EMAIL",
+        "EMAIL_ADDRESS",
+        "ADR_EMAIL",
+      ]);
+
     const phone =
       source?.CL_TELEPHONECLIENT ??
       source?.CONTACTCLIENT ??
@@ -189,18 +207,23 @@ export const useClientByCompte = () => {
 
     const NOMCLIENT = lastName;
     const PRENOMCLIENT = firstName;
+    const fullName =
+      `${firstName ?? ""} ${lastName ?? ""}`.trim() ||
+      (typeof combined === "string" ? combined : undefined);
 
     return {
       id,
       IDCLIENT,
       NOMCLIENT,
       PRENOMCLIENT,
+      fullName,
       lastName,
       firstName,
       login,
       agency,
       NUMCOMPTE,
       phone,
+      email,
       address,
       secret_key,
       raw,
@@ -285,15 +308,18 @@ export const useClientByCompte = () => {
 
       setClientData(info);
 
-      const fullName = `${info.PRENOMCLIENT ?? info.firstName ?? ""} ${
-        info.NOMCLIENT ?? info.lastName ?? ""
-      }`.trim();
+      const fullName =
+        info.fullName ||
+        `${info.PRENOMCLIENT ?? info.firstName ?? ""} ${
+          info.NOMCLIENT ?? info.lastName ?? ""
+        }`.trim();
 
       const userData = {
         id: info.IDCLIENT ?? numero_compte,
         username: info.login ?? numero_compte,
+        login: info.login ?? numero_compte,
         name: fullName,
-        email: "",
+        email: info.email ?? "",
       };
       await secureSetItem("user_data", JSON.stringify(userData));
       if (info.firstName) await secureSetItem("user_firstname", info.firstName);
@@ -308,6 +334,7 @@ export const useClientByCompte = () => {
         await secureSetItem("user_agency", sanitizedAgency);
       }
       if (info.phone) await secureSetItem("user_phone", String(info.phone));
+      if (info.email) await secureSetItem("user_email", String(info.email));
       if (info.address)
         await secureSetItem("user_address", String(info.address));
 
