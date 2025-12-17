@@ -276,8 +276,8 @@ export const useClientByCompte = () => {
       if (info.lastName) await secureSetItem("user_lastname", info.lastName);
       await secureSetItem("user_login", info.login ?? numero_compte);
       const rawAccount = info.NUMCOMPTE ?? numero_compte;
-      const sanitizedAccount = String(rawAccount).replace(/\D/g, "");
-      await secureSetItem("user_account_number", sanitizedAccount);
+      const normalizedAccount = String(rawAccount).trim().toUpperCase();
+      await secureSetItem("user_account_number", normalizedAccount);
       await secureSetItem("user_id", info.IDCLIENT ?? numero_compte);
       if (info.agency) {
         const sanitizedAgency = String(info.agency).replace(/\D/g, "");

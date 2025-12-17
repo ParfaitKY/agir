@@ -24,6 +24,7 @@ const OtpVerifyScreen: React.FC = () => {
   const [deviceId, setDeviceId] = useState<string>("");
   const [loadingSilent, setLoadingSilent] = useState<boolean>(false);
   const [silentOk, setSilentOk] = useState<boolean>(false);
+  const [requiresManual, setRequiresManual] = useState<boolean>(false);
   const [verifyError, setVerifyError] = useState<string>("");
 
   const DIGITS = 6;
@@ -67,6 +68,7 @@ const OtpVerifyScreen: React.FC = () => {
       if (!numeroCompte || !deviceId) return;
       setLoadingSilent(true);
       setSilentOk(false);
+      setRequiresManual(false);
       try {
         const { data, error } = await silentOtp(
           {
@@ -80,6 +82,10 @@ const OtpVerifyScreen: React.FC = () => {
           setSilentOk(false);
           return;
         }
+        const manual =
+          (data as any)?.requires_manual_input === true ||
+          (data as any)?.auto_fill === false;
+        setRequiresManual(Boolean(manual));
         const otp =
           (data as any)?.otp_code ||
           (data as any)?.otp ||
@@ -229,25 +235,52 @@ const OtpVerifyScreen: React.FC = () => {
           <View
             style={[
               styles.detectPill,
-              { backgroundColor: (silentOk ? colors.success : colors.primary) + "18" },
+              {
+                backgroundColor:
+                  (silentOk
+                    ? colors.success
+                    : requiresManual
+                    ? colors.warning || "#EAB308"
+                    : colors.primary) + "18",
+              },
             ]}
           >
             {loadingSilent ? (
               <ActivityIndicator size="small" color={colors.primary} />
             ) : (
               <Ionicons
-                name={silentOk ? "checkmark-done" : "time"}
+                name={
+                  silentOk ? "checkmark-done" : requiresManual ? "alert" : "time"
+                }
                 size={16}
-                color={silentOk ? colors.success : colors.primary}
+                color={
+                  silentOk
+                    ? colors.success
+                    : requiresManual
+                    ? colors.warning || "#EAB308"
+                    : colors.primary
+                }
               />
             )}
             <Text
               style={[
                 styles.detectText,
-                { color: silentOk ? colors.success : colors.primary },
+                {
+                  color: silentOk
+                    ? colors.success
+                    : requiresManual
+                    ? colors.warning || "#EAB308"
+                    : colors.primary,
+                },
               ]}
             >
-              {loadingSilent ? "Détection…" : silentOk ? "Détecté" : "En attente"}
+              {loadingSilent
+                ? "Détection…"
+                : silentOk
+                ? "Détecté"
+                : requiresManual
+                ? "Saisie manuelle"
+                : "En attente"}
             </Text>
           </View>
         </View>

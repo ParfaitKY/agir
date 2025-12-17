@@ -1,5 +1,6 @@
-import { httpClient, handleRequest, AuthHeaders } from "../httpClient";
+import { handleRequest, AuthHeaders } from "../httpClient";
 import { ENDPOINTS } from "../endpoints";
+import { httpClientOtp } from "../otpClient";
 
 export type VerifyOtpPayload = {
   numero_compte: string;
@@ -9,6 +10,5 @@ export type VerifyOtpPayload = {
 };
 
 export const verifyOtp = (body: VerifyOtpPayload, headers: AuthHeaders = {}) => {
-  return handleRequest(httpClient.post(ENDPOINTS.VERIFY_OTP, body, { headers }));
+  return handleRequest(httpClientOtp.post(ENDPOINTS.VERIFY_OTP, body, { headers }));
 };
-

@@ -1,5 +1,6 @@
-import { httpClient, handleRequest, AuthHeaders } from "../httpClient";
+import { handleRequest, AuthHeaders } from "../httpClient";
 import { ENDPOINTS } from "../endpoints";
+import { httpClientOtp } from "../otpClient";
 
 export type SilentOtpPayload = {
   numero_compte: string;
@@ -8,6 +9,5 @@ export type SilentOtpPayload = {
 };
 
 export const silentOtp = (body: SilentOtpPayload, headers: AuthHeaders = {}) => {
-  return handleRequest(httpClient.post(ENDPOINTS.SILENT_OTP, body, { headers }));
+  return handleRequest(httpClientOtp.post(ENDPOINTS.SILENT_OTP, body, { headers }));
 };
-
