@@ -95,6 +95,23 @@ const InitialSetupScreen: React.FC = () => {
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(20)).current;
 
+  // AUTO-REDIRECT ON MOUNT
+  // Si l'utilisateur arrive ici mais qu'il est déjà configuré (ex: retour arrière mal géré),
+  // on le redirige immédiatement vers le PIN.
+  useEffect(() => {
+    const checkConfig = async () => {
+      try {
+        const conf = await secureGetItem("is_configured");
+        const pin = await secureGetItem("pin_user");
+        if (conf === "true" && pin) {
+          console.log("[InitialSetup] Already configured -> Redirect PinLogin");
+          navigation.replace("PinLogin");
+        }
+      } catch {}
+    };
+    checkConfig();
+  }, []);
+
   useEffect(() => {
     Animated.parallel([
       Animated.timing(fadeAnim, {
