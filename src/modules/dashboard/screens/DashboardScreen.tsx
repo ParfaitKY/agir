@@ -381,10 +381,10 @@ export const DashboardScreen: React.FC = () => {
           </Text>
           <Text style={{ color: headerTextColor, fontSize: 12, marginTop: 4 }}>
             {isGuestMode
-              ? "MODE INVITÉ"
+              ? t("dashboard.status.guest")
               : isAuthenticated
-              ? "CONNECTÉ"
-              : "NON CONNECTÉ"}
+              ? t("dashboard.status.connected")
+              : t("dashboard.status.disconnected")}
           </Text>
         </View>
         <View style={styles.headerIcons}>
@@ -645,7 +645,7 @@ export const DashboardScreen: React.FC = () => {
                 {isBalanceHidden
                   ? "••••••••"
                   : loadingSolde
-                  ? "Chargement…"
+                  ? t("dashboard.loading")
                   : soldeError
                   ? "–"
                   : `${fmt(

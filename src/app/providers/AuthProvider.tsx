@@ -224,14 +224,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const logout = async () => {
     setIsLoading(true);
     try {
-      // Supprimer TOUTES les données d'authentification
+      // 1. Suppression des données de session (Token + UserData en mémoire)
       await secureDeleteItem("auth_token");
       await secureDeleteItem("user_data");
 
-      // Préserver la configuration pour les utilisateurs déjà inscrits
-      // Ne supprimer is_configured / pin_user QUE pour le mode invité ou si l'app n'est pas configurée
+      // 2. Vérification robuste de la configuration
+      // On lit directement le storage pour éviter les problèmes d'état React obsolète
+      const storedConfig = await secureGetItem("is_configured");
       const isGuest = user?.username === "invite";
-      if (isGuest || !isConfigured) {
+
+      // Si c'est un invité OU que l'app n'est pas configurée, on nettoie tout
+      if (isGuest || storedConfig !== "true") {
         const GUEST_CLEAR_KEYS = [
           "is_configured",
           "pin_user",
@@ -253,21 +256,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         for (const k of GUEST_CLEAR_KEYS) {
           try { await secureDeleteItem(k); } catch {}
         }
-        // Nettoyage total côté Web si possible
         try {
           if (typeof window !== "undefined") {
             window.localStorage?.clear?.();
           }
         } catch {}
         setIsConfigured(false);
+      } else {
+        // Sinon (Mode Connecté standard), on GARDE is_configured et pin_user
+        // On s'assure que l'état reflète bien la configuration
+        setIsConfigured(true);
       }
 
-      // Réinitialiser l'état d'authentification
+      // 3. Réinitialisation de l'état d'authentification
       setIsAuthenticated(false);
       setUser(null);
 
-      console.log("=== COMPLETE LOGOUT PERFORMED ===");
-      console.log("All authentication data cleared (guest deep clean if applicable)");
+      console.log("=== LOGOUT PERFORMED ===");
+      console.log(storedConfig === "true" ? "Soft Logout (Pin preserved)" : "Hard Logout (Data wiped)");
     } catch (error) {
       console.error("Error during logout:", error);
     } finally {

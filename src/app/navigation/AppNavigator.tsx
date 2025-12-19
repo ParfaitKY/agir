@@ -240,18 +240,35 @@ const MainTabs = () => {
 };
 
 export const AppNavigator: React.FC = () => {
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated, user, isConfigured } = useAuth();
   const { t, tText } = useI18n();
   const { colors } = useTheme();
   const isGuestMode = isAuthenticated && user?.username === "invite";
+  const navigation = useNavigation<any>();
+
   React.useEffect(() => {
     try {
       console.log(
         "[nav] appNavigator",
-        JSON.stringify({ isAuthenticated, user, isGuestMode })
+        JSON.stringify({ isAuthenticated, user, isGuestMode, isConfigured })
       );
+      // Redirection automatique vers PinLogin si déconnecté mais configuré
+      if (!isAuthenticated && isConfigured && !isGuestMode) {
+        // On utilise un setTimeout pour laisser le temps au state de se propager
+        // et éviter les conflits de navigation pendant le rendu
+        setTimeout(() => {
+          // On vérifie si on peut naviguer vers PinLogin
+          // Note: PinLogin est toujours monté dans le Stack (voir plus bas)
+          if (navigation && navigation.reset) {
+             navigation.reset({
+              index: 0,
+              routes: [{ name: "PinLogin" }],
+            });
+          }
+        }, 100);
+      }
     } catch {}
-  }, [isAuthenticated, user?.username]);
+  }, [isAuthenticated, user?.username, isConfigured]);
 
   return (
     <Stack.Navigator

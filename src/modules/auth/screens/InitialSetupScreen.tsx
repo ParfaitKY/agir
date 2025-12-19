@@ -128,47 +128,11 @@ const InitialSetupScreen: React.FC = () => {
     };
   }, []);
 
-  // Lorsque clientData est récupéré
+  // Suppression de l'effet de navigation automatique
   useEffect(() => {
-    if (step === 1 && clientData && !otpProcessing) {
-      const ln = clientData.NOMCLIENT ?? clientData.lastName ?? "";
-      const fn = clientData.PRENOMCLIENT ?? clientData.firstName ?? "";
-      setLastName(ln);
-      setFirstName(fn);
-      const cid = clientData.IDCLIENT ?? clientData.id;
-      if (cid) {
-        const cidStr = String(cid);
-        setClientId(cidStr);
-        secureSetItem("client_id", cidStr);
-      }
-      setVerifySuccess(true);
-      const phone = String(clientData?.phone || "+225 07 ***** 12");
-      const go = async () => {
-        const accStored = await secureGetItem("user_account_number");
-        const dev = await secureGetItem("device_id");
-        (navigation as any).navigate("OtpVerify", {
-          phone,
-          numero_compte: accStored || accountNumber,
-          device_id: dev || "",
-          onSuccess: () => {
-            setVerifySuccess(false);
-            setOtpProcessing(true);
-            setTimeout(() => {
-              setOtpProcessing(false);
-              setStep(2);
-            }, 2000);
-          },
-          onCancel: () => {
-            setVerifySuccess(false);
-            setVerifiedAccount("");
-            setAccountNumber("");
-            setStep(1);
-          },
-        });
-      };
-      go();
-    }
-  }, [clientData, step, otpProcessing]);
+    // Ce bloc est volontairement vidé pour casser la boucle infinie.
+    // La navigation est gérée directement dans handleVerifyAccountNumber.
+  }, []);
 
   useEffect(() => {
     const params = (route as any)?.params || {};
@@ -262,20 +226,53 @@ const InitialSetupScreen: React.FC = () => {
   const handleVerifyAccountNumber = async () => {
     setVerifyError(null);
     if (!accountNumber || accountNumber.length < 8) {
-      setVerifyError("Le numéro de compte doit contenir au moins 8 chiffres.");
+      setVerifyError(t("initial.error.accountLength"));
       return;
     }
     setLoadingVerify(true);
-    const ok = await fetchClientInfo({ NUMCOMPTE: accountNumber });
+    const info = await fetchClientInfo({ NUMCOMPTE: accountNumber });
     setLoadingVerify(false);
-    if (!ok) {
+    if (!info) {
       setVerifyError(
-        fetchError || "Erreur lors de la vérification. Réessayez."
+        fetchError || t("initial.error.verification")
       );
       return;
     }
     setVerifiedAccount(accountNumber);
     setVerifySuccess(true);
+
+    const ln = info.NOMCLIENT ?? info.lastName ?? "";
+    const fn = info.PRENOMCLIENT ?? info.firstName ?? "";
+    setLastName(ln);
+    setFirstName(fn);
+    const cid = info.IDCLIENT ?? info.id;
+    if (cid) {
+      const cidStr = String(cid);
+      setClientId(cidStr);
+      secureSetItem("client_id", cidStr);
+    }
+    const phone = String(info.phone || "+225 07 ***** 12");
+    const accStored = await secureGetItem("user_account_number");
+    const dev = await secureGetItem("device_id");
+    (navigation as any).navigate("OtpVerify", {
+      phone,
+      numero_compte: accStored || accountNumber,
+      device_id: dev || "",
+      onSuccess: () => {
+        setVerifySuccess(false);
+        setOtpProcessing(true);
+        setTimeout(() => {
+          setOtpProcessing(false);
+          setStep(2);
+        }, 2000);
+      },
+      onCancel: () => {
+        setVerifySuccess(false);
+        setVerifiedAccount("");
+        setAccountNumber("");
+        setStep(1);
+      },
+    });
   };
 
   useEffect(() => {
@@ -391,27 +388,28 @@ const InitialSetupScreen: React.FC = () => {
         newPin
       );
 
+      const deviceId = (await secureGetItem("device_id")) || "";
       const loginPayload = {
         LG_CODELANGUE: "FR",
-        SL_LOGIN: cleanLogin.toUpperCase(),
+        SL_LOGIN: cleanLogin,
         SL_MOTPASSE: newPin,
         TYPEOPERATEUR: "01",
         TYPEOPERATION: "01",
         CODECRYPTAGE: "Y}@128eVIXfoi7",
-        TERMINALUUID: "",
+        TERMINALUUID: deviceId,
         CLIENT_ID: clientId,
       } as any;
 
       const result = await loginUser(loginPayload);
       if (!result?.success) {
-        let errorMsg = result?.error || "Login ou PIN incorrect";
+        let errorMsg = result?.error || t("initial.error.loginOrPin");
         // Si l'erreur mentionne login/mot de passe, on affiche le message spécifique demandé
         if (
           errorMsg.toLowerCase().includes("login") ||
           errorMsg.toLowerCase().includes("passe") ||
           errorMsg.toLowerCase().includes("incorrect")
         ) {
-          errorMsg = "Login ou PIN incorrect";
+          errorMsg = t("initial.error.loginOrPin");
         }
         setPinError(errorMsg);
         return;
@@ -427,7 +425,7 @@ const InitialSetupScreen: React.FC = () => {
       markConfigured && (await markConfigured(true));
       navigation.replace("PinLogin");
     } catch (e) {
-      setPinError("Échec de l'enregistrement. Réessayez.");
+      setPinError(t("initial.error.saveFailed"));
     } finally {
       setSavingPin(false);
     }
@@ -481,13 +479,13 @@ const InitialSetupScreen: React.FC = () => {
                     fontWeight: "600",
                   }}
                 >
-                  Validation en cours...
+                  {t("initial.status.validating")}
                 </Text>
               </View>
             ) : step === 1 ? (
               <View style={[styles.card, { backgroundColor: palette.card }]}>
                 <Text style={[styles.label, { color: palette.textMain }]}>
-                  Numéro de compte
+                  {t("initial.labels.accountNumber")}
                 </Text>
                 <TextInput
                   ref={accountNumberRef}
@@ -516,7 +514,7 @@ const InitialSetupScreen: React.FC = () => {
                   >
                     <ActivityIndicator color={palette.primary} />
                     <Text style={{ marginLeft: 8, color: palette.textSub }}>
-                      Chargement du numéro de compte…
+                      {t("initial.status.loadingAccount")}
                     </Text>
                   </View>
                 )}
@@ -544,7 +542,7 @@ const InitialSetupScreen: React.FC = () => {
                     {loadingVerify ? (
                       <ActivityIndicator color="#FFF" />
                     ) : (
-                      <Text style={styles.buttonText}>Vérifier</Text>
+                      <Text style={styles.buttonText}>{t("initial.actions.verify")}</Text>
                     )}
                   </TouchableOpacity>
                 )}
@@ -565,16 +563,17 @@ const InitialSetupScreen: React.FC = () => {
                       { color: isDark ? "#E5E7EB" : "#0F172A" },
                     ]}
                   >
-                    Mode invité
+                    {t("initial.guestMode")}
                   </Text>
                 </TouchableOpacity>
               </View>
             ) : (
               <View style={[styles.card, { backgroundColor: palette.card }]}>
                 <Text style={[styles.label, { color: palette.textMain }]}>
-                  Nom
+                  {t("initial.labels.lastName")}
                 </Text>
                 <TextInput
+                  ref={lastNameRef}
                   value={lastName}
                   onChangeText={setLastName}
                   style={[
@@ -589,7 +588,7 @@ const InitialSetupScreen: React.FC = () => {
                   editable={!hasPrefilledParams}
                 />
                 <Text style={[styles.label, { color: palette.textMain }]}>
-                  Prénom
+                  {t("initial.labels.firstName")}
                 </Text>
                 <TextInput
                   value={firstName}
@@ -606,7 +605,7 @@ const InitialSetupScreen: React.FC = () => {
                   editable={!hasPrefilledParams}
                 />
                 <Text style={[styles.label, { color: palette.textMain }]}>
-                  Login
+                  {t("initial.labels.login")}
                 </Text>
                 <TextInput
                   value={loginReadonly}
@@ -620,12 +619,12 @@ const InitialSetupScreen: React.FC = () => {
                     },
                   ]}
                   placeholderTextColor={palette.textSub}
-                  placeholder="Entrez votre login"
+                  placeholder={t("initial.placeholders.login")}
                   editable={!hasPrefilledParams}
                 />
 
                 <Text style={[styles.label, { color: palette.textMain }]}>
-                  Nouveau PIN
+                  {t("initial.labels.pin")}
                 </Text>
                 <View style={styles.pinHintRow}>
                   {Array.from({ length: 5 }).map((_, i) => (
@@ -653,7 +652,7 @@ const InitialSetupScreen: React.FC = () => {
                     { color: palette.textMain, fontWeight: "600" },
                   ]}
                 >
-                  5 chiffres requis
+                  {t("initial.hint.min5")}
                 </Text>
                 <View style={styles.inputContainer}>
                   <TextInput
@@ -688,7 +687,7 @@ const InitialSetupScreen: React.FC = () => {
                 </View>
 
                 <Text style={[styles.label, { color: palette.textMain }]}>
-                  Confirmer PIN
+                  {t("initial.labels.pinConfirm")}
                 </Text>
                 <View style={styles.inputContainer}>
                   <TextInput

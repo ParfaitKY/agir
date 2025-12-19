@@ -21,6 +21,159 @@ const STORAGE_KEY = "app_language";
 
 // Dictionnaire minimal — peut être étendu progressivement
 const TRANSLATIONS: Translations = {
+  "initial.status.validating": {
+    fr: "Validation en cours...",
+    en: "Validating...",
+    zh: "验证中...",
+  },
+  "initial.status.loadingAccount": {
+    fr: "Chargement du numéro de compte…",
+    en: "Loading account number...",
+    zh: "正在加载账户号码...",
+  },
+  "initial.error.accountLength": {
+    fr: "Le numéro de compte doit contenir au moins 8 chiffres.",
+    en: "Account number must be at least 8 digits.",
+    zh: "账号必须至少包含8位数字。",
+  },
+  "initial.error.verification": {
+    fr: "Erreur lors de la vérification. Réessayez.",
+    en: "Verification error. Please try again.",
+    zh: "验证错误。请重试。",
+  },
+  "initial.error.guestMode": {
+    fr: "Impossible d’activer le mode invité.",
+    en: "Unable to activate guest mode.",
+    zh: "无法激活访客模式。",
+  },
+  "initial.error.allFields": {
+    fr: "Tous les champs sont requis.",
+    en: "All fields are required.",
+    zh: "所有字段均为必填项。",
+  },
+  "initial.error.loginIncorrect": {
+    fr: "Login incorrect",
+    en: "Incorrect login",
+    zh: "登录名不正确",
+  },
+  "initial.error.secretIncorrect": {
+    fr: "Clé secrète incorrecte",
+    en: "Incorrect secret key",
+    zh: "密钥不正确",
+  },
+  "initial.error.pinLength": {
+    fr: "Le code PIN doit contenir au moins 5 chiffres.",
+    en: "PIN must be at least 5 digits.",
+    zh: "PIN码必须至少包含5位数字。",
+  },
+  "initial.error.pinMismatch": {
+    fr: "Le code PIN et sa confirmation ne correspondent pas.",
+    en: "PIN and confirmation do not match.",
+    zh: "PIN码与确认不匹配。",
+  },
+  "initial.error.secretLength": {
+    fr: "La clé secrète doit contenir au moins 3 caractères.",
+    en: "Secret key must be at least 3 characters.",
+    zh: "密钥必须至少包含3个字符。",
+  },
+  "initial.error.loginOrPin": {
+    fr: "Login ou PIN incorrect",
+    en: "Incorrect Login or PIN",
+    zh: "登录名或PIN码不正确",
+  },
+  "initial.error.saveFailed": {
+    fr: "Échec de l'enregistrement. Réessayez.",
+    en: "Save failed. Please try again.",
+    zh: "保存失败。请重试。",
+  },
+  
+  // API Errors
+  "api.error.invalidAccount": {
+    fr: "Numéro de compte invalide",
+    en: "Invalid account number",
+    zh: "账号无效",
+  },
+  "api.error.fetchFailed": {
+    fr: "Impossible de récupérer le client",
+    en: "Unable to fetch client",
+    zh: "无法获取客户信息",
+  },
+  "api.error.emptyResponse": {
+    fr: "Réponse API vide",
+    en: "Empty API response",
+    zh: "API响应为空",
+  },
+  "api.error.clientNotFound": {
+    fr: "Client introuvable ou données manquantes",
+    en: "Client not found or missing data",
+    zh: "未找到客户或数据缺失",
+  },
+  "api.error.network": {
+    fr: "Erreur réseau",
+    en: "Network error",
+    zh: "网络错误",
+  },
+
+  // Dashboard Strings
+  "dashboard.status.guest": {
+    fr: "MODE INVITÉ",
+    en: "GUEST MODE",
+    zh: "访客模式",
+  },
+  "dashboard.status.connected": {
+    fr: "CONNECTÉ",
+    en: "CONNECTED",
+    zh: "已连接",
+  },
+  "dashboard.status.disconnected": {
+    fr: "NON CONNECTÉ",
+    en: "NOT CONNECTED",
+    zh: "未连接",
+  },
+  "dashboard.alert.guest.title": {
+    fr: "Connexion requise",
+    en: "Login required",
+    zh: "需要登录",
+  },
+  "dashboard.alert.guest.message": {
+    fr: "Veuillez vous connecter pour accéder à cette fonctionnalité.",
+    en: "Please log in to access this feature.",
+    zh: "请登录以访问此功能。",
+  },
+  "dashboard.alert.login": { fr: "Se connecter", en: "Log in", zh: "登录" },
+  "dashboard.user.default": { fr: "Utilisateur", en: "User", zh: "用户" },
+  "dashboard.loading": { fr: "Chargement…", en: "Loading…", zh: "加载中…" },
+
+  // Services
+  "services.change.title": { fr: "Change", en: "Exchange", zh: "兑换" },
+  "services.change.subtitle": {
+    fr: "Taux avantageux",
+    en: "Best rates",
+    zh: "最优惠汇率",
+  },
+  "services.savingsPlus.title": { fr: "Epargne+", en: "Savings+", zh: "储蓄+" },
+  "services.savingsPlus.subtitle": {
+    fr: "Taux attractif",
+    en: "Attractive rate",
+    zh: "有吸引力的利率",
+  },
+  "services.transferInt.title": {
+    fr: "Transfert Int.",
+    en: "Int. Transfer",
+    zh: "国际转账",
+  },
+  "services.transferInt.subtitle": {
+    fr: "Monde entier",
+    en: "Worldwide",
+    zh: "全球",
+  },
+  "services.tontine.title": { fr: "Tontine", en: "Tontine", zh: "互助金" },
+  "services.tontine.subtitle": {
+    fr: "Epargne groupe",
+    en: "Group savings",
+    zh: "团体储蓄",
+  },
+
   // Initial setup
   "initial.title.verify": {
     fr: "Bienvenue ! Vérifions votre identité",
@@ -142,6 +295,11 @@ const TRANSLATIONS: Translations = {
     fr: "Minimum 4 chiffres",
     en: "Minimum 4 digits",
     zh: "至少 4 位",
+  },
+  "initial.hint.min5": {
+    fr: "5 chiffres requis",
+    en: "5 digits required",
+    zh: "需要 5 位数字",
   },
   "initial.hint.min3": {
     fr: "Minimum 3 caractères",
@@ -2725,6 +2883,18 @@ export const I18nProvider: React.FC<{ children: React.ReactNode }> = ({
       "Compte Chèque": "accounts.type.checking",
       "Compte Épargne": "accounts.type.savings",
       "Compte Courant": "accounts.type.current",
+
+      // Services & Dashboard mappings
+      "Change": "services.change.title",
+      "Taux avantageux": "services.change.subtitle",
+      "Epargne+": "services.savingsPlus.title",
+      "Taux attractif": "services.savingsPlus.subtitle",
+      "Transfert Int.": "services.transferInt.title",
+      "Monde entier": "services.transferInt.subtitle",
+      "Tontine": "services.tontine.title",
+      "Epargne groupe": "services.tontine.subtitle",
+      "Utilisateur": "dashboard.user.default",
+      "Chargement…": "dashboard.loading",
     };
     const key = map[text];
     return key ? t(key) : text;

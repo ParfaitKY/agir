@@ -6,6 +6,8 @@ export type DernieresOperationsClientBody = {
   DateDebut: string;
   DateFin: string;
   CodeCryptage: string;
+  AG_CODEAGENCE?: string;
+  CO_CODECOMPTE?: string;
 };
 
 export type OperationItem = {

@@ -2,6 +2,7 @@ import { useState, useCallback } from "react";
 import { clientByCompte } from "../../services/auth/clientByCompte";
 import { secureSetItem, secureGetItem } from "../../shared/utils/secureStorage";
 import { Platform } from "react-native";
+import { useI18n } from "../../app/providers/I18nProvider";
 
 export type ClientInfo = {
   id?: string;
@@ -24,6 +25,7 @@ export type ClientInfo = {
 type FetchPayload = { NUMCOMPTE: string };
 
 export const useClientByCompte = () => {
+  const { t } = useI18n();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [clientData, setClientData] = useState<ClientInfo | null>(null);
@@ -290,19 +292,19 @@ export const useClientByCompte = () => {
       if (result.error) {
         const err: any = result.error;
         const serverMsg = err?.response?.data?.message || err?.message;
-        setError(serverMsg || "Impossible de récupérer le client");
+        setError(serverMsg || t("api.error.fetchFailed"));
         return false;
       }
 
       if (!result.data) {
-        setError("Réponse API vide");
+        setError(t("api.error.emptyResponse"));
         return false;
       }
 
       const info = extractClientInfo(result.data);
 
       if (!info) {
-        setError("Client introuvable ou données manquantes");
+        setError(t("api.error.clientNotFound"));
         return false;
       }
 
@@ -314,17 +316,23 @@ export const useClientByCompte = () => {
           info.NOMCLIENT ?? info.lastName ?? ""
         }`.trim();
 
-      const userData = {
-        id: info.IDCLIENT ?? numero_compte,
-        username: info.login ?? numero_compte,
-        login: info.login ?? numero_compte,
-        name: fullName,
-        email: info.email ?? "",
+      const prevStr = await secureGetItem("user_data");
+      let prev: any = {};
+      try {
+        prev = prevStr ? JSON.parse(prevStr) : {};
+      } catch {}
+      const userDataMerged = {
+        id: prev?.id ?? info.IDCLIENT ?? numero_compte,
+        username: prev?.username ?? info.login ?? numero_compte,
+        login: prev?.login ?? info.login ?? numero_compte,
+        name: prev?.name ?? fullName,
+        email: prev?.email ?? info.email ?? "",
+        ...(prev?.phone ? { phone: prev.phone } : {}),
       };
-      await secureSetItem("user_data", JSON.stringify(userData));
+      await secureSetItem("user_data", JSON.stringify(userDataMerged));
       if (info.firstName) await secureSetItem("user_firstname", info.firstName);
       if (info.lastName) await secureSetItem("user_lastname", info.lastName);
-      await secureSetItem("user_login", info.login ?? numero_compte);
+      if (info.login) await secureSetItem("user_login", info.login);
       const rawAccount = info.NUMCOMPTE ?? numero_compte;
       const normalizedAccount = String(rawAccount).trim().toUpperCase();
       await secureSetItem("user_account_number", normalizedAccount);
@@ -338,11 +346,11 @@ export const useClientByCompte = () => {
       if (info.address)
         await secureSetItem("user_address", String(info.address));
 
-      return true;
+      return info;
     } catch (e) {
       const msg = (e as any)?.message ?? "Erreur réseau";
       setError(msg);
-      return false;
+      return null;
     } finally {
       setIsLoading(false);
     }
