@@ -2611,6 +2611,50 @@ const TRANSLATIONS: Translations = {
     en: "Fields are required",
     zh: "所有字段为必填",
   },
+  "common.retry": { fr: "Réessayer", en: "Retry", zh: "重试" },
+  "common.refresh": { fr: "Actualiser", en: "Refresh", zh: "刷新" },
+  
+  // Error / Empty States
+  "state.error.title": {
+    fr: "Oups, une erreur est survenue",
+    en: "Oops, something went wrong",
+    zh: "哎呀，出错了",
+  },
+  "state.error.message": {
+    fr: "Quelque chose s'est mal passé. Veuillez réessayer.",
+    en: "Something went wrong. Please try again.",
+    zh: "发生错误。请重试。",
+  },
+  "state.offline.title": {
+    fr: "Pas de connexion internet",
+    en: "No internet connection",
+    zh: "无网络连接",
+  },
+  "state.offline.message": {
+    fr: "Vérifiez votre connexion et réessayez.",
+    en: "Check your connection and try again.",
+    zh: "请检查您的连接并重试。",
+  },
+  "state.empty.title": {
+    fr: "Aucune donnée",
+    en: "No data",
+    zh: "暂无数据",
+  },
+  "state.empty.message": {
+    fr: "Il n'y a rien à afficher pour le moment.",
+    en: "There is nothing to display at the moment.",
+    zh: "暂时没有内容显示。",
+  },
+  "state.search.title": {
+    fr: "Aucun résultat",
+    en: "No results",
+    zh: "无结果",
+  },
+  "state.search.message": {
+    fr: "Essayez avec d'autres mots-clés.",
+    en: "Try with different keywords.",
+    zh: "请尝试其他关键词。",
+  },
 
   "common.fetchError": {
     fr: "Erreur de récupération",

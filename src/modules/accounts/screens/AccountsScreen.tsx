@@ -11,6 +11,7 @@ import { useNavigation } from "@react-navigation/native";
 import { useI18n } from "../../../app/providers/I18nProvider";
 import { useTheme } from "../../../shared/styles/ThemeProvider";
 import { useCompteStatistiques } from "../../../domain/compte/useCompteStatistiques";
+import { EmptyState } from "../../../shared/components/EmptyState";
 
 export const AccountsScreen: React.FC = () => {
   const navigation = useNavigation();
@@ -228,14 +229,19 @@ export const AccountsScreen: React.FC = () => {
         </View>
       )}
       {!!error && (
-        <View style={{ padding: 16 }}>
-          <Text style={{ color: colors.error }}>{error}</Text>
-        </View>
+        <EmptyState
+          type="error"
+          message={String(error)}
+          onRetry={fetchData}
+          style={{ marginTop: 20 }}
+        />
       )}
       {!isLoading && !error && accounts.length === 0 && (
-        <View style={{ padding: 16 }}>
-          <Text style={{ color: colors.text + "70" }}>Aucun compte</Text>
-        </View>
+        <EmptyState
+          type="empty"
+          message="Aucun compte trouvé"
+          style={{ marginTop: 20 }}
+        />
       )}
       {(accounts || [])
         .filter((a) =>

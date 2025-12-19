@@ -250,9 +250,7 @@ const InitialSetupScreen: React.FC = () => {
     const info = await fetchClientInfo({ NUMCOMPTE: accountNumber });
     setLoadingVerify(false);
     if (!info) {
-      setVerifyError(
-        fetchError || t("initial.error.verification")
-      );
+      setVerifyError(fetchError || t("initial.error.verification"));
       return;
     }
     setVerifiedAccount(accountNumber);
@@ -559,7 +557,9 @@ const InitialSetupScreen: React.FC = () => {
                     {loadingVerify ? (
                       <ActivityIndicator color="#FFF" />
                     ) : (
-                      <Text style={styles.buttonText}>{t("initial.actions.verify")}</Text>
+                      <Text style={styles.buttonText}>
+                        {t("initial.actions.verify")}
+                      </Text>
                     )}
                   </TouchableOpacity>
                 )}

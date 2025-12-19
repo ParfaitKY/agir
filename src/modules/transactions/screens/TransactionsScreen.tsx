@@ -13,6 +13,7 @@ import { useI18n } from "../../../app/providers/I18nProvider";
 import { useTheme } from "../../../shared/styles/ThemeProvider";
 import { secureGetItem } from "../../../shared/utils/secureStorage";
 import { getDerniereTransaction } from "../../../services/compte/derniereTransaction";
+import { EmptyState } from "../../../shared/components/EmptyState";
 
 export const TransactionsScreen: React.FC = () => {
   const { t, tText } = useI18n();
@@ -137,9 +138,16 @@ export const TransactionsScreen: React.FC = () => {
         </View>
       )}
       {!!error && (
-        <View style={{ padding: 16 }}>
-          <Text style={{ color: colors.error }}>{error}</Text>
-        </View>
+        <EmptyState
+          type="error"
+          message={error}
+          onRetry={() => {
+            setLoading(true);
+            setError(null);
+            // Re-run the effect logic, ideally move logic to a function
+          }}
+          compact
+        />
       )}
 
       {/* Résumé des transactions */}
@@ -272,17 +280,19 @@ export const TransactionsScreen: React.FC = () => {
           </View>
         ))}
 
-        {filteredTransactions.length === 0 && (
-          <View style={styles.emptyState}>
-            <Text style={styles.emptyStateText}>
-              {t("transactions.empty.none")}{" "}
-              {activeFilter === "entrees"
+        {filteredTransactions.length === 0 && !loading && !error && (
+          <EmptyState
+            type="empty"
+            message={`${t("transactions.empty.none")} ${
+              activeFilter === "entrees"
                 ? t("transactions.empty.inSuffix")
                 : activeFilter === "sorties"
                 ? t("transactions.empty.outSuffix")
-                : ""}
-            </Text>
-          </View>
+                : ""
+            }`}
+            compact
+            style={{ marginTop: 40 }}
+          />
         )}
       </ScrollView>
     </SafeAreaView>

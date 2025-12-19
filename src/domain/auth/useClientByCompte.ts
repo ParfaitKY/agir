@@ -264,17 +264,44 @@ export const useClientByCompte = () => {
         if (osName || osVersion) {
           os = `${osName ?? Platform.OS} ${osVersion ?? Platform.Version}`;
         }
+        // Force l'affichage exact de la marque et du modèle
         if (devBrand) brand = String(devBrand);
         if (devModel) model = String(devModel);
-      } catch (_) {}
 
+        console.log("[Device Info] Captured:", { brand, model, os });
+      } catch (err) {
+        console.warn("[Device Info] Error capturing device info:", err);
+      }
+
+      // Logique spécifique pour le Web / Simulateur Web
       if (Platform.OS === "web") {
-        const ua =
-          (globalThis as any)?.navigator?.userAgent ??
-          (globalThis as any)?.navigator?.appVersion ??
-          "";
-        if (brand === "Unknown") brand = "Web";
-        if (model === "Unknown" && ua) model = ua;
+        const ua = (globalThis as any)?.navigator?.userAgent || "";
+
+        // Détection basique pour Windows/Mac/Linux sur Web
+        if (ua.includes("Windows")) {
+          os = "Windows";
+          brand = "PC";
+          model = "Windows PC";
+        } else if (ua.includes("Macintosh") || ua.includes("Mac OS")) {
+          os = "macOS";
+          brand = "Apple";
+          model = "Mac";
+        } else if (ua.includes("Linux")) {
+          os = "Linux";
+          brand = "PC";
+          model = "Linux PC";
+        } else if (ua.includes("Android")) {
+          os = "Android (Web)";
+          brand = "Mobile";
+          model = "Android Browser";
+        } else if (ua.includes("iPhone") || ua.includes("iPad")) {
+          os = "iOS (Web)";
+          brand = "Apple";
+          model = "iPhone/iPad Browser";
+        } else {
+          brand = "Web Browser";
+          model = ua; // Fallback sur le UserAgent complet si inconnu
+        }
       }
       const headers: any = { "X-NO-AUTH": "true" };
       const result = await clientByCompte(

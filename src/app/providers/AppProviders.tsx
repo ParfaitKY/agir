@@ -7,6 +7,7 @@ import {
 } from "@react-navigation/native";
 import { AuthProvider } from "../providers/AuthProvider";
 import { I18nProvider } from "./I18nProvider";
+import { NetworkProvider } from "./NetworkProvider";
 import {
   ThemeProvider,
   useTheme,
@@ -55,9 +56,11 @@ export const AppProviders: React.FC<AppProvidersProps> = ({ children }) => {
   return (
     <ThemeProvider>
       <I18nProvider>
-        <AuthProvider>
-          <ThemedNavigation>{children}</ThemedNavigation>
-        </AuthProvider>
+        <NetworkProvider>
+          <AuthProvider>
+            <ThemedNavigation>{children}</ThemedNavigation>
+          </AuthProvider>
+        </NetworkProvider>
       </I18nProvider>
     </ThemeProvider>
   );

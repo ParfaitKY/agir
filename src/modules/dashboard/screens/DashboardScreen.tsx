@@ -20,6 +20,7 @@ import { useAuth } from "../../../app/hooks/useAuth";
 import { secureGetItem } from "../../../shared/utils/secureStorage";
 import QRCode from "react-native-qrcode-svg";
 
+import { EmptyState } from "../../../shared/components/EmptyState";
 import { useSoldeGlobale } from "../../../domain/compte/useSoldeGlobale";
 import { useCompteStatistiques } from "../../../domain/compte/useCompteStatistiques";
 import { useDernieresOperationsClient } from "../../../domain/compte/useDernieresOperationsClient";
@@ -1000,11 +1001,13 @@ export const DashboardScreen: React.FC = () => {
                 </View>
               )}
               {!!recentError && (
-                <View style={{ padding: 16 }}>
-                  <Text style={{ color: colors.error }}>
-                    {String(recentError)}
-                  </Text>
-                </View>
+                <EmptyState
+                  type="error"
+                  message={String(recentError)}
+                  onRetry={fetchRecent}
+                  compact
+                  style={{ paddingVertical: 20 }}
+                />
               )}
               {!loadingRecent && !recentError && (
                 <View>
@@ -1073,28 +1076,32 @@ export const DashboardScreen: React.FC = () => {
                       </View>
                     );
                   })}
-                  {recentOps.filter((op) => {
-                    const label = String(op.MC_LIBELLEOPERATION || "")
-                      .normalize("NFD")
-                      .replace(/[\u0300-\u036f]/g, "")
-                      .toUpperCase();
-                    return (
-                      label.includes("VIREMENT") ||
-                      label.includes("DECLASSEMENT")
-                    );
-                  }).length === 0 && (
-                    <View style={{ padding: 16 }}>
-                      <Text style={{ color: colors.text + "70" }}>
-                        {t("transactions.empty.none")}
-                      </Text>
-                    </View>
-                  )}
-                  {(!recentOps || recentOps.length === 0) && (
-                    <View style={{ padding: 16 }}>
-                      <Text style={{ color: colors.text + "70" }}>
-                        {t("transactions.empty.none")}
-                      </Text>
-                    </View>
+
+                  {!recentOps || recentOps.length === 0 ? (
+                    <EmptyState
+                      type="empty"
+                      message={t("transactions.empty.none")}
+                      compact
+                      style={{ paddingVertical: 20 }}
+                    />
+                  ) : (
+                    recentOps.filter((op) => {
+                      const label = String(op.MC_LIBELLEOPERATION || "")
+                        .normalize("NFD")
+                        .replace(/[\u0300-\u036f]/g, "")
+                        .toUpperCase();
+                      return (
+                        label.includes("VIREMENT") ||
+                        label.includes("DECLASSEMENT")
+                      );
+                    }).length === 0 && (
+                      <EmptyState
+                        type="empty"
+                        message={t("transactions.empty.none")}
+                        compact
+                        style={{ paddingVertical: 20 }}
+                      />
+                    )
                   )}
                 </View>
               )}

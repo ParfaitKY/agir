@@ -13,6 +13,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useI18n } from "../../../app/providers/I18nProvider";
 import { useTheme } from "../../../shared/styles/ThemeProvider";
+import { EmptyState } from "../../../shared/components/EmptyState";
 
 export const CardsScreen: React.FC = () => {
   const { t } = useI18n();
@@ -367,94 +368,108 @@ export const CardsScreen: React.FC = () => {
       </View>
 
       {/* Cartes - Carrousel horizontal */}
-      <FlatList
-        horizontal
-        pagingEnabled
-        data={cards}
-        keyExtractor={(item) => String(item.id)}
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{ paddingHorizontal: 16 }}
-        onViewableItemsChanged={onViewableItemsChanged}
-        viewabilityConfig={viewabilityConfigRef.current}
-        renderItem={({ item, index }) => {
-          const darkBg = isDarkHex(item.bg);
-          const cardTextColor = darkBg ? "#FFFFFF" : colors.text;
-          const cardSubColor = darkBg ? "#EDEDED" : colors.text;
-          const statusTextColor = darkBg ? "#EDEDED" : colors.text;
-          return (
-            <View
-              style={[
-                styles.paymentCard,
-                {
-                  width: cardWidth,
-                  backgroundColor: item.bg,
-                  marginRight: index === cards.length - 1 ? 0 : 10,
-                  marginLeft: index === 0 ? 2 : 0,
-                },
-              ]}
-            >
-              <View style={styles.paymentCardTopRow}>
-                <View style={styles.bankChip}>
-                  <Text style={styles.bankChipText}>{item.bank}</Text>
+      {cards.length > 0 ? (
+        <FlatList
+          horizontal
+          pagingEnabled
+          data={cards}
+          keyExtractor={(item) => String(item.id)}
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{ paddingHorizontal: 16 }}
+          onViewableItemsChanged={onViewableItemsChanged}
+          viewabilityConfig={viewabilityConfigRef.current}
+          renderItem={({ item, index }) => {
+            const darkBg = isDarkHex(item.bg);
+            const cardTextColor = darkBg ? "#FFFFFF" : colors.text;
+            const cardSubColor = darkBg ? "#EDEDED" : colors.text;
+            const statusTextColor = darkBg ? "#EDEDED" : colors.text;
+            return (
+              <View
+                style={[
+                  styles.paymentCard,
+                  {
+                    width: cardWidth,
+                    backgroundColor: item.bg,
+                    marginRight: index === cards.length - 1 ? 0 : 10,
+                    marginLeft: index === 0 ? 2 : 0,
+                  },
+                ]}
+              >
+                <View style={styles.paymentCardTopRow}>
+                  <View style={styles.bankChip}>
+                    <Text style={styles.bankChipText}>{item.bank}</Text>
+                  </View>
+                  <View
+                    style={[
+                      styles.statusPill,
+                      { backgroundColor: item.statusBg },
+                    ]}
+                  >
+                    <View style={styles.statusDot} />
+                    <Text
+                      style={[styles.statusText, { color: statusTextColor }]}
+                    >
+                      {t("cards.card.status.active")}
+                    </Text>
+                  </View>
                 </View>
-                <View
-                  style={[
-                    styles.statusPill,
-                    { backgroundColor: item.statusBg },
-                  ]}
-                >
-                  <View style={styles.statusDot} />
-                  <Text style={[styles.statusText, { color: statusTextColor }]}>
-                    {t("cards.card.status.active")}
+
+                <View style={styles.cardBody}>
+                  <View style={styles.cardIconCircle}>
+                    <Ionicons
+                      name="hardware-chip-outline"
+                      size={26}
+                      color="#EDEDED"
+                    />
+                  </View>
+                  <Text style={[styles.cardNumber, { color: cardTextColor }]}>
+                    {item.number}
                   </Text>
-                </View>
-              </View>
 
-              <View style={styles.cardBody}>
-                <View style={styles.cardIconCircle}>
-                  <Ionicons
-                    name="hardware-chip-outline"
-                    size={26}
-                    color="#EDEDED"
-                  />
-                </View>
-                <Text style={[styles.cardNumber, { color: cardTextColor }]}>
-                  {item.number}
-                </Text>
-
-                <View style={styles.cardMetaRow}>
-                  <View style={{ flex: 1 }}>
-                    <Text style={[styles.metaLabel, { color: cardSubColor }]}>
-                      {t("cards.card.meta.holderLabel")}
-                    </Text>
-                    <Text style={[styles.metaValue, { color: cardTextColor }]}>
-                      {item.holder}
-                    </Text>
-                  </View>
-                  <View style={{ width: 140 }}>
-                    <Text style={[styles.metaLabel, { color: cardSubColor }]}>
-                      {t("cards.card.meta.expiryLabel")}
-                    </Text>
-                    <Text style={[styles.metaValue, { color: cardTextColor }]}>
-                      {item.expiry}
-                    </Text>
+                  <View style={styles.cardMetaRow}>
+                    <View style={{ flex: 1 }}>
+                      <Text style={[styles.metaLabel, { color: cardSubColor }]}>
+                        {t("cards.card.meta.holderLabel")}
+                      </Text>
+                      <Text
+                        style={[styles.metaValue, { color: cardTextColor }]}
+                      >
+                        {item.holder}
+                      </Text>
+                    </View>
+                    <View style={{ width: 140 }}>
+                      <Text style={[styles.metaLabel, { color: cardSubColor }]}>
+                        {t("cards.card.meta.expiryLabel")}
+                      </Text>
+                      <Text
+                        style={[styles.metaValue, { color: cardTextColor }]}
+                      >
+                        {item.expiry}
+                      </Text>
+                    </View>
                   </View>
                 </View>
               </View>
-            </View>
-          );
-        }}
-        onMomentumScrollEnd={(e) => {
-          const x = e.nativeEvent.contentOffset.x;
-          const index = Math.round(x / cardWidth);
-          setActiveIndex(index);
-        }}
-        getItemLayout={(data, index) => ({
-          length: cardWidth,
-          offset: cardWidth * index,
-          index,
-        })}
-      />
+            );
+          }}
+          onMomentumScrollEnd={(e) => {
+            const x = e.nativeEvent.contentOffset.x;
+            const index = Math.round(x / cardWidth);
+            setActiveIndex(index);
+          }}
+          getItemLayout={(data, index) => ({
+            length: cardWidth,
+            offset: cardWidth * index,
+            index,
+          })}
+        />
+      ) : (
+        <EmptyState
+          type="empty"
+          message="Aucune carte disponible"
+          style={{ paddingVertical: 40 }}
+        />
+      )}
 
       {/* Indicateur pagination */}
       <View style={styles.paginationRow}>
@@ -662,23 +677,32 @@ export const CardsScreen: React.FC = () => {
           <Text style={styles.sectionLink}>{t("cards.recent.seeAll")}</Text>
         </TouchableOpacity>
       </View>
-      {transactions.map((t) => (
-        <View key={t.id} style={styles.txCard}>
-          <View style={[styles.txIconBg, { backgroundColor: t.iconBg }]}>
-            <Ionicons name={t.icon as any} size={20} color="#FF3B30" />
+      {transactions.length > 0 ? (
+        transactions.map((t) => (
+          <View key={t.id} style={styles.txCard}>
+            <View style={[styles.txIconBg, { backgroundColor: t.iconBg }]}>
+              <Ionicons name={t.icon as any} size={20} color="#FF3B30" />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.txTitle}>{t.name}</Text>
+              <Text style={styles.txSub}>{t.time}</Text>
+            </View>
+            <View style={{ alignItems: "flex-end" }}>
+              <Text style={styles.txAmount}>
+                {t.amount.toLocaleString("fr-FR")}{" "}
+              </Text>
+              <Text style={styles.txCurrency}>XAF</Text>
+            </View>
           </View>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.txTitle}>{t.name}</Text>
-            <Text style={styles.txSub}>{t.time}</Text>
-          </View>
-          <View style={{ alignItems: "flex-end" }}>
-            <Text style={styles.txAmount}>
-              {t.amount.toLocaleString("fr-FR")}{" "}
-            </Text>
-            <Text style={styles.txCurrency}>XAF</Text>
-          </View>
-        </View>
-      ))}
+        ))
+      ) : (
+        <EmptyState
+          type="empty"
+          message={t("transactions.empty.none")}
+          compact
+          style={{ paddingVertical: 20 }}
+        />
+      )}
 
       {/* Bandeau sécurité */}
       <View style={styles.securityBanner}>
