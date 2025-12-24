@@ -45,6 +45,8 @@ import PasswordRecoveryScreen from "../../modules/auth/screens/PasswordRecoveryS
 import OtpVerifyScreen from "../../modules/auth/screens/OtpVerifyScreen";
 import { useTheme } from "../../shared/styles/ThemeProvider";
 import { AnalyticsScreen } from "../../modules/analytics/screens/AnalyticsScreen";
+import { CreditSimulatorScreen } from "../../modules/credits/screens/CreditSimulatorScreen";
+import { CreditRequestScreen } from "../../modules/credits/screens/CreditRequestScreen";
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -260,7 +262,7 @@ export const AppNavigator: React.FC = () => {
           // On vérifie si on peut naviguer vers PinLogin
           // Note: PinLogin est toujours monté dans le Stack (voir plus bas)
           if (navigation && navigation.reset) {
-             navigation.reset({
+            navigation.reset({
               index: 0,
               routes: [{ name: "PinLogin" }],
             });
@@ -368,6 +370,32 @@ export const AppNavigator: React.FC = () => {
               headerStyle: { backgroundColor: colors.card },
               headerTitleStyle: { color: colors.text },
               headerTintColor: colors.primary,
+            }}
+          />
+
+          <Stack.Screen
+            name="CreditSimulator"
+            component={withGuestRestriction(CreditSimulatorScreen)}
+            options={{
+              headerShown: true,
+              title: t("credit.simulator.title"),
+              headerStyle: { backgroundColor: colors.card },
+              headerTitleStyle: { color: colors.text },
+              headerTintColor: colors.primary,
+              headerTitleAlign: "center",
+            }}
+          />
+
+          <Stack.Screen
+            name="CreditRequest"
+            component={withGuestRestriction(CreditRequestScreen)}
+            options={{
+              headerShown: true,
+              title: t("credit.request.title"),
+              headerStyle: { backgroundColor: colors.card },
+              headerTitleStyle: { color: colors.text },
+              headerTintColor: colors.primary,
+              headerTitleAlign: "center",
             }}
           />
 

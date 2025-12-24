@@ -86,7 +86,7 @@ const TRANSLATIONS: Translations = {
     en: "Save failed. Please try again.",
     zh: "保存失败。请重试。",
   },
-  
+
   // API Errors
   "api.error.invalidAccount": {
     fr: "Numéro de compte invalide",
@@ -1083,6 +1083,7 @@ const TRANSLATIONS: Translations = {
   "accounts.filters.checking": { fr: "Chèque", en: "Checking", zh: "支票" },
   "accounts.filters.savings": { fr: "Épargne", en: "Savings", zh: "储蓄" },
   "accounts.filters.current": { fr: "Courant", en: "Current", zh: "活期" },
+  "accounts.filters.credit": { fr: "Crédit", en: "Credit", zh: "信贷" },
   "accounts.type.checking": {
     fr: "Compte Chèque",
     en: "Checking Account",
@@ -1258,6 +1259,178 @@ const TRANSLATIONS: Translations = {
   },
   "dashboard.quick.cards": { fr: "Mes cartes", en: "My cards", zh: "我的卡片" },
   "dashboard.quick.cards.subtitle": { fr: "Consulter", en: "View", zh: "查看" },
+  "dashboard.quick.creditRequest": {
+    fr: "Demande crédit",
+    en: "Credit request",
+    zh: "信用申请",
+  },
+  "dashboard.quick.creditRequest.subtitle": {
+    fr: "Souscrire",
+    en: "Subscribe",
+    zh: "订阅",
+  },
+  "dashboard.quick.creditSimulator": {
+    fr: "Simulateur de crédit",
+    en: "Credit Simulator",
+    zh: "信用模拟器",
+  },
+  "dashboard.quick.creditSimulator.subtitle": {
+    fr: "Estimer",
+    en: "Estimate",
+    zh: "估算",
+  },
+  // Credit Simulator
+  "credit.simulator.title": {
+    fr: "Simulateur de crédit",
+    en: "Credit Simulator",
+    zh: "信用模拟器",
+  },
+  "credit.simulator.amount": {
+    fr: "Montant crédit",
+    en: "Credit amount",
+    zh: "贷款金额",
+  },
+  "credit.simulator.duration": {
+    fr: "Durée (mois)",
+    en: "Duration (months)",
+    zh: "期限（月）",
+  },
+  "credit.simulator.rate": {
+    fr: "Taux d'intérêt (%)",
+    en: "Interest rate (%)",
+    zh: "利率 (%)",
+  },
+  "credit.simulator.mandatory": {
+    fr: "(obligatoire)",
+    en: "(mandatory)",
+    zh: "(必填)",
+  },
+  "credit.simulator.validate": {
+    fr: "VALIDER",
+    en: "VALIDATE",
+    zh: "验证",
+  },
+  "credit.simulator.result": {
+    fr: "Résultat de la simulation",
+    en: "Simulation result",
+    zh: "模拟结果",
+  },
+  "credit.simulator.monthlyPayment": {
+    fr: "Mensualité estimée",
+    en: "Estimated monthly payment",
+    zh: "预计月供",
+  },
+  "credit.simulator.totalCost": {
+    fr: "Coût total",
+    en: "Total cost",
+    zh: "总成本",
+  },
+  // Credit Request
+  "credit.request.title": {
+    fr: "Demande de crédit",
+    en: "Credit Request",
+    zh: "信用申请",
+  },
+  "credit.request.type": {
+    fr: "Type",
+    en: "Type",
+    zh: "类型",
+  },
+  "credit.request.nature": {
+    fr: "Nature de crédit",
+    en: "Credit nature",
+    zh: "信用性质",
+  },
+  "credit.request.product": {
+    fr: "Produit",
+    en: "Product",
+    zh: "产品",
+  },
+  "credit.request.activity": {
+    fr: "Activité",
+    en: "Activity",
+    zh: "活动",
+  },
+  "credit.request.object": {
+    fr: "Objet",
+    en: "Object",
+    zh: "对象",
+  },
+  "credit.request.descActivity": {
+    fr: "Description activité",
+    en: "Activity description",
+    zh: "活动描述",
+  },
+  "credit.request.amount": {
+    fr: "Montant",
+    en: "Amount",
+    zh: "金额",
+  },
+  "credit.request.periodicity": {
+    fr: "Périodicité",
+    en: "Periodicity",
+    zh: "周期",
+  },
+  "credit.request.duration": {
+    fr: "Durée (mois)",
+    en: "Duration (months)",
+    zh: "期限（月）",
+  },
+  "credit.request.deferred": {
+    fr: "Différé (mois)",
+    en: "Deferred (months)",
+    zh: "递延（月）",
+  },
+  "credit.request.country": {
+    fr: "Pays de résidence",
+    en: "Country of residence",
+    zh: "居住国家",
+  },
+  "credit.request.birthCountry": {
+    fr: "Pays de naissance",
+    en: "Country of birth",
+    zh: "出生国家",
+  },
+  "credit.request.idType": {
+    fr: "Type de pièce",
+    en: "ID Type",
+    zh: "证件类型",
+  },
+  "credit.request.idNumber": {
+    fr: "Numéro de pièce d'identité",
+    en: "ID Number",
+    zh: "证件号码",
+  },
+  "credit.request.city": {
+    fr: "Ville",
+    en: "City",
+    zh: "城市",
+  },
+  "credit.request.commune": {
+    fr: "Commune",
+    en: "Commune",
+    zh: "公社",
+  },
+  "credit.request.location": {
+    fr: "Localisation",
+    en: "Location",
+    zh: "位置",
+  },
+  "credit.request.next": {
+    fr: "SUIVANT",
+    en: "NEXT",
+    zh: "下一步",
+  },
+  "credit.request.previous": {
+    fr: "PRÉCÉDENT",
+    en: "PREVIOUS",
+    zh: "上一步",
+  },
+  "credit.request.finish": {
+    fr: "TERMINER",
+    en: "FINISH",
+    zh: "完成",
+  },
   "dashboard.offers.title": {
     fr: "Offres spéciales",
     en: "Special offers",
@@ -2613,7 +2786,7 @@ const TRANSLATIONS: Translations = {
   },
   "common.retry": { fr: "Réessayer", en: "Retry", zh: "重试" },
   "common.refresh": { fr: "Actualiser", en: "Refresh", zh: "刷新" },
-  
+
   // Error / Empty States
   "state.error.title": {
     fr: "Oups, une erreur est survenue",
@@ -2929,15 +3102,15 @@ export const I18nProvider: React.FC<{ children: React.ReactNode }> = ({
       "Compte Courant": "accounts.type.current",
 
       // Services & Dashboard mappings
-      "Change": "services.change.title",
+      Change: "services.change.title",
       "Taux avantageux": "services.change.subtitle",
       "Epargne+": "services.savingsPlus.title",
       "Taux attractif": "services.savingsPlus.subtitle",
       "Transfert Int.": "services.transferInt.title",
       "Monde entier": "services.transferInt.subtitle",
-      "Tontine": "services.tontine.title",
+      Tontine: "services.tontine.title",
       "Epargne groupe": "services.tontine.subtitle",
-      "Utilisateur": "dashboard.user.default",
+      Utilisateur: "dashboard.user.default",
       "Chargement…": "dashboard.loading",
     };
     const key = map[text];

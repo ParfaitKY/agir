@@ -879,6 +879,79 @@ export const DashboardScreen: React.FC = () => {
                 {t("dashboard.quick.cards.subtitle")}
               </Text>
             </TouchableOpacity>
+
+            {/* NOUVELLES CARTES */}
+            <TouchableOpacity
+              style={[
+                styles.quickActionCard,
+                { backgroundColor: colors.card, borderColor: colors.border },
+              ]}
+              onPress={() => {
+                if (handleGuestRestriction("la demande de crédit")) return;
+                navigation.navigate("CreditRequest" as never);
+              }}
+            >
+              <View
+                style={[
+                  styles.quickActionIcon,
+                  {
+                    backgroundColor: colors.card,
+                    borderColor: colors.border,
+                    borderWidth: 1,
+                  },
+                ]}
+              >
+                <Ionicons
+                  name="document-text-outline"
+                  size={24}
+                  color={colors.primary}
+                />
+              </View>
+              <Text style={[styles.quickActionTitle, { color: colors.text }]}>
+                {t("dashboard.quick.creditRequest")}
+              </Text>
+              <Text
+                style={[styles.quickActionSubtitle, { color: colors.primary }]}
+              >
+                {t("dashboard.quick.creditRequest.subtitle")}
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                styles.quickActionCard,
+                { backgroundColor: colors.card, borderColor: colors.border },
+              ]}
+              onPress={() => {
+                if (handleGuestRestriction("le simulateur de crédit")) return;
+                navigation.navigate("CreditSimulator" as never);
+              }}
+            >
+              <View
+                style={[
+                  styles.quickActionIcon,
+                  {
+                    backgroundColor: colors.card,
+                    borderColor: colors.border,
+                    borderWidth: 1,
+                  },
+                ]}
+              >
+                <Ionicons
+                  name="calculator-outline"
+                  size={24}
+                  color={colors.warning}
+                />
+              </View>
+              <Text style={[styles.quickActionTitle, { color: colors.text }]}>
+                {t("dashboard.quick.creditSimulator")}
+              </Text>
+              <Text
+                style={[styles.quickActionSubtitle, { color: colors.primary }]}
+              >
+                {t("dashboard.quick.creditSimulator.subtitle")}
+              </Text>
+            </TouchableOpacity>
           </View>
         </View>
 

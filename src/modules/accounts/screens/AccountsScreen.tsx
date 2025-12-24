@@ -16,7 +16,7 @@ import { EmptyState } from "../../../shared/components/EmptyState";
 export const AccountsScreen: React.FC = () => {
   const navigation = useNavigation();
   const [filter, setFilter] = useState<
-    "tous" | "cheque" | "epargne" | "courant"
+    "tous" | "cheque" | "epargne" | "courant" | "credit"
   >("tous");
   const { t, tText } = useI18n();
   const { colors } = useTheme();
@@ -121,7 +121,7 @@ export const AccountsScreen: React.FC = () => {
   );
 
   const renderFilter = (
-    key: "tous" | "cheque" | "epargne" | "courant",
+    key: "tous" | "cheque" | "epargne" | "courant" | "credit",
     label: string,
     icon?: any
   ) => (
@@ -219,6 +219,7 @@ export const AccountsScreen: React.FC = () => {
             t("accounts.filters.current"),
             "briefcase-outline"
           )}
+          {renderFilter("credit", t("accounts.filters.credit"), "cash-outline")}
         </ScrollView>
       </View>
 
@@ -244,15 +245,15 @@ export const AccountsScreen: React.FC = () => {
         />
       )}
       {(accounts || [])
-        .filter((a) =>
-          filter === "tous"
-            ? true
-            : filter === "cheque"
-            ? a.type.toUpperCase().includes("CHEQUE")
-            : filter === "epargne"
-            ? a.type.toUpperCase().includes("EPARGNE")
-            : a.type.toUpperCase().includes("COURANT")
-        )
+        .filter((a) => {
+          const type = a.type.toUpperCase();
+          if (filter === "cheque") return type.includes("CHEQUE");
+          if (filter === "epargne") return type.includes("EPARGNE");
+          if (filter === "courant") return type.includes("COURANT");
+          if (filter === "credit")
+            return type.includes("CREDIT") || type.includes("PRET");
+          return true;
+        })
         .map((a) => (
           <TouchableOpacity
             key={a.id}

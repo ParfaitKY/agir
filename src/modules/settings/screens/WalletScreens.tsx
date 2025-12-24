@@ -99,12 +99,29 @@ const WalletScreens: React.FC = () => {
                   transferType === "walletToBank"
                     ? colors.primary
                     : colors.card,
+                borderColor:
+                  transferType === "walletToBank"
+                    ? colors.primary
+                    : colors.border,
+                borderWidth: 1,
               },
             ]}
             onPress={() => setTransferType("walletToBank")}
           >
+            <View style={{ marginBottom: 8 }}>
+              <Ionicons
+                name="arrow-up-circle-outline"
+                size={28}
+                color={
+                  transferType === "walletToBank"
+                    ? colors.background
+                    : colors.primary
+                }
+              />
+            </View>
             <Text
               style={{
+                fontWeight: "bold",
                 color:
                   transferType === "walletToBank"
                     ? colors.background
@@ -133,19 +150,32 @@ const WalletScreens: React.FC = () => {
               styles.typeBtn,
               transferType === "bankToWallet" && [
                 styles.typeBtnActive,
-                { backgroundColor: colors.primary },
+                { backgroundColor: "#4CAF50" }, // Vert pour Bank to Wallet (Entrée)
               ],
               {
                 backgroundColor:
-                  transferType === "bankToWallet"
-                    ? colors.primary
-                    : colors.card,
+                  transferType === "bankToWallet" ? "#4CAF50" : colors.card,
+                borderColor:
+                  transferType === "bankToWallet" ? "#4CAF50" : colors.border,
+                borderWidth: 1,
               },
             ]}
             onPress={() => setTransferType("bankToWallet")}
           >
+            <View style={{ marginBottom: 8 }}>
+              <Ionicons
+                name="arrow-down-circle-outline"
+                size={28}
+                color={
+                  transferType === "bankToWallet"
+                    ? colors.background
+                    : "#4CAF50"
+                }
+              />
+            </View>
             <Text
               style={{
+                fontWeight: "bold",
                 color:
                   transferType === "bankToWallet"
                     ? colors.background
