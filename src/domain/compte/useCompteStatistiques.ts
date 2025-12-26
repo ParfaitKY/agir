@@ -20,6 +20,8 @@ type CompteItem = {
   SOLDE?: number;
   SOLDE_GLOBAL?: number;
   id?: number;
+  duration?: string;
+  nextDueDate?: string;
 };
 
 export type CompteStatsData = {
@@ -69,7 +71,26 @@ export const useCompteStatistiques = () => {
         return false;
       }
       const payload = result?.data;
-      const stats: CompteStatsData | null = payload?.data ?? null;
+      let stats: CompteStatsData | null = payload?.data ?? null;
+
+      // Merge local credits (Simulation)
+      try {
+        const localCreditsStr = await secureGetItem("local_credit_accounts");
+        if (localCreditsStr) {
+          const localCredits = JSON.parse(localCreditsStr);
+          if (Array.isArray(localCredits) && localCredits.length > 0) {
+            if (!stats) stats = { COMPTES: [], SOLDE_GLOBAL: 0, NOMBRE_COMPTES: 0 };
+            if (!stats.COMPTES) stats.COMPTES = [];
+            
+            stats.COMPTES = [...stats.COMPTES, ...localCredits];
+            stats.SOLDE_GLOBAL = (Number(stats.SOLDE_GLOBAL) || 0) + localCredits.reduce((acc: number, c: any) => acc + (Number(c.SOLDE) || 0), 0);
+            stats.NOMBRE_COMPTES = (Number(stats.NOMBRE_COMPTES) || 0) + localCredits.length;
+          }
+        }
+      } catch (e) {
+        console.warn("Failed to load local credits", e);
+      }
+
       setData(stats);
       await secureSetItem("compte_statistiques", JSON.stringify(stats ?? payload));
       return true;

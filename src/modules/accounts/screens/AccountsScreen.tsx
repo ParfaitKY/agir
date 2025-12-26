@@ -5,6 +5,7 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  Modal,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
@@ -18,6 +19,7 @@ export const AccountsScreen: React.FC = () => {
   const [filter, setFilter] = useState<
     "tous" | "cheque" | "epargne" | "courant" | "credit"
   >("tous");
+  const [expandedId, setExpandedId] = useState<number | null>(null);
   const { t, tText } = useI18n();
   const { colors } = useTheme();
   const {
@@ -89,6 +91,8 @@ export const AccountsScreen: React.FC = () => {
       })(),
       active: !c.CO_DATECLOTURE || String(c.CO_DATECLOTURE).includes("1900"),
       color,
+      duration: c.duration || "24 mois", // Default mock if not present
+      nextDueDate: c.nextDueDate || "15/05/2024", // Default mock if not present
     } as any;
   });
 
@@ -113,7 +117,13 @@ export const AccountsScreen: React.FC = () => {
           color={s.iconColor || colors.text}
         />
       </View>
-      <Text style={[styles.statValue, { color: colors.text }]}>{s.label}</Text>
+      <Text
+        style={[styles.statValue, { color: colors.text }]}
+        adjustsFontSizeToFit
+        numberOfLines={1}
+      >
+        {s.label}
+      </Text>
       <Text style={[styles.statSub, { color: colors.text + "70" }]}>
         {s.sub}
       </Text>
@@ -251,184 +261,267 @@ export const AccountsScreen: React.FC = () => {
           if (filter === "epargne") return type.includes("EPARGNE");
           if (filter === "courant") return type.includes("COURANT");
           if (filter === "credit")
-            return type.includes("CREDIT") || type.includes("PRET");
+            return (
+              type.includes("CREDIT") ||
+              type.includes("PRET") ||
+              type.includes("CRÉDIT")
+            );
           return true;
         })
-        .map((a) => (
-          <TouchableOpacity
-            key={a.id}
-            style={[
-              styles.accountCard,
-              { backgroundColor: colors.card, borderColor: colors.border },
-            ]}
-            activeOpacity={0.85}
-            onPress={() => {
-              // Ouvrir l'écran de détails pour tout type de compte
-              (navigation as any).navigate("AccountDetails", {
-                account: a,
-                sharePct: Math.round(
-                  (parseAmount(a.balance) / portfolioTotal) * 100
-                ),
-                total: portfolioTotal,
-              });
-            }}
-          >
-            <View style={styles.accountTop}>
-              <View
-                style={[
-                  styles.accountIcon,
-                  { backgroundColor: colors.background },
-                ]}
-              >
-                <Ionicons
-                  name={
-                    (a.type.includes("Courant") ? "briefcase" : "wallet") as any
-                  }
-                  size={22}
-                  color={a.color}
-                />
-              </View>
-              <View style={styles.accountInfo}>
-                <Text style={[styles.accountType, { color: colors.text }]}>
-                  {tText(a.type)}
-                </Text>
-                <Text
-                  style={[styles.accountNumber, { color: colors.text + "70" }]}
-                >
-                  {a.number}
-                </Text>
-              </View>
-              <View
-                style={[
-                  styles.statusPill,
-                  {
-                    backgroundColor: a.active
-                      ? colors.success + "15"
-                      : colors.error + "15",
-                  },
-                ]}
-              >
-                <Ionicons
-                  name={a.active ? "checkmark-circle" : "close-circle"}
-                  size={14}
-                  color={a.active ? colors.success : colors.error}
-                />
-                <Text
+        .map((a) => {
+          const isCredit =
+            a.type.toUpperCase().includes("CREDIT") ||
+            a.type.toUpperCase().includes("PRET") ||
+            a.type.toUpperCase().includes("CRÉDIT");
+          return (
+            <TouchableOpacity
+              key={a.id}
+              style={[
+                styles.accountCard,
+                { backgroundColor: colors.card, borderColor: colors.border },
+              ]}
+              activeOpacity={0.85}
+              onPress={() => {
+                if (isCredit) {
+                  setExpandedId(expandedId === a.id ? null : a.id);
+                } else {
+                  // Ouvrir l'écran de détails pour tout type de compte
+                  (navigation as any).navigate("AccountDetails", {
+                    account: a,
+                    sharePct: Math.round(
+                      (parseAmount(a.balance) / portfolioTotal) * 100
+                    ),
+                    total: portfolioTotal,
+                  });
+                }
+              }}
+            >
+              <View style={styles.accountTop}>
+                <View
                   style={[
-                    styles.statusText,
-                    { color: a.active ? colors.success : colors.error },
+                    styles.accountIcon,
+                    { backgroundColor: colors.background },
                   ]}
                 >
-                  {a.active ? t("accounts.status.active") : tText("Clôturé")}
-                </Text>
-                {Number(a.blocked) > 0 && (
-                  <View
-                    style={{
-                      flexDirection: "row",
-                      alignItems: "center",
-                      marginLeft: 8,
-                    }}
+                  <Ionicons
+                    name={
+                      (a.type.includes("Courant")
+                        ? "briefcase"
+                        : "wallet") as any
+                    }
+                    size={22}
+                    color={a.color}
+                  />
+                </View>
+                <View style={styles.accountInfo}>
+                  <Text style={[styles.accountType, { color: colors.text }]}>
+                    {tText(a.type)}
+                  </Text>
+                  <Text
+                    style={[
+                      styles.accountNumber,
+                      { color: colors.text + "70" },
+                    ]}
                   >
-                    <Ionicons
-                      name="lock-closed"
-                      size={14}
-                      color={colors.warning}
-                    />
-                    <Text
+                    {a.number}
+                  </Text>
+                </View>
+                <View
+                  style={[
+                    styles.statusPill,
+                    {
+                      backgroundColor: a.active
+                        ? colors.success + "15"
+                        : colors.error + "15",
+                    },
+                  ]}
+                >
+                  <Ionicons
+                    name={a.active ? "checkmark-circle" : "close-circle"}
+                    size={14}
+                    color={a.active ? colors.success : colors.error}
+                  />
+                  <Text
+                    style={[
+                      styles.statusText,
+                      { color: a.active ? colors.success : colors.error },
+                    ]}
+                  >
+                    {a.active ? t("accounts.status.active") : tText("Clôturé")}
+                  </Text>
+                  {Number(a.blocked) > 0 && (
+                    <View
                       style={{
-                        color: colors.warning,
-                        fontSize: 12,
-                        fontWeight: "700",
-                        marginLeft: 4,
+                        flexDirection: "row",
+                        alignItems: "center",
+                        marginLeft: 8,
                       }}
                     >
-                      {tText("Bloqué")}
+                      <Ionicons
+                        name="lock-closed"
+                        size={14}
+                        color={colors.warning}
+                      />
+                      <Text
+                        style={{
+                          color: colors.warning,
+                          fontSize: 12,
+                          fontWeight: "700",
+                          marginLeft: 4,
+                        }}
+                      >
+                        {tText("Bloqué")}
+                      </Text>
+                    </View>
+                  )}
+                </View>
+              </View>
+
+              <View style={styles.accountBalanceRow}>
+                <View>
+                  <Text
+                    style={[styles.balanceLabel, { color: colors.text + "70" }]}
+                  >
+                    {isCredit
+                      ? "Solde à rembourser"
+                      : t("accounts.balance.available")}
+                  </Text>
+                  <Text style={[styles.balanceValue, { color: colors.text }]}>
+                    {new Intl.NumberFormat("fr-FR").format(
+                      parseAmount(a.balance)
+                    )}{" "}
+                    <Text
+                      style={[
+                        styles.balanceCurrency,
+                        { color: colors.primary },
+                      ]}
+                    >
+                      {a.currency}
+                    </Text>
+                  </Text>
+                  {Number(a.blocked) > 0 && (
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        alignItems: "center",
+                        marginTop: 6,
+                      }}
+                    >
+                      <Ionicons
+                        name="lock-closed"
+                        size={14}
+                        color={colors.warning}
+                      />
+                      <Text
+                        style={{
+                          marginLeft: 6,
+                          color: colors.warning,
+                          fontWeight: "700",
+                        }}
+                      >
+                        {tText("Bloqué:")}{" "}
+                        {new Intl.NumberFormat("fr-FR").format(
+                          Number(a.blocked)
+                        )}{" "}
+                        {a.currency}
+                      </Text>
+                    </View>
+                  )}
+                </View>
+                <TouchableOpacity
+                  style={[styles.roundActionBtn, { backgroundColor: a.color }]}
+                  onPress={() =>
+                    (navigation as any).navigate("Transfer", { account: a })
+                  }
+                  activeOpacity={0.85}
+                >
+                  <Ionicons name="swap-horizontal" size={20} color="#fff" />
+                </TouchableOpacity>
+              </View>
+
+              <View style={styles.progressBarWrapper}>
+                <View
+                  style={[
+                    styles.progressTrack,
+                    { backgroundColor: colors.border },
+                  ]}
+                />
+                <View
+                  style={[
+                    styles.progressFill,
+                    {
+                      width: `${Math.round(
+                        (parseAmount(a.balance) / portfolioTotal) * 100
+                      )}%`,
+                      backgroundColor: a.color,
+                    },
+                  ]}
+                />
+              </View>
+              <Text
+                style={[styles.progressText, { color: colors.text + "70" }]}
+              >
+                {isCredit
+                  ? `Crédit accordé: ${new Intl.NumberFormat("fr-FR").format(
+                      parseAmount(a.balance)
+                    )} ${a.currency}`
+                  : `${Math.round(
+                      (parseAmount(a.balance) / portfolioTotal) * 100
+                    )}% du portfolio`}
+              </Text>
+
+              {isCredit && expandedId === a.id && (
+                <View
+                  style={{
+                    marginTop: 16,
+                    paddingTop: 16,
+                    borderTopWidth: 1,
+                    borderTopColor: colors.border,
+                  }}
+                >
+                  <View style={styles.modalRow}>
+                    <Text
+                      style={[styles.modalLabel, { color: colors.text + "90" }]}
+                    >
+                      Durée du crédit
+                    </Text>
+                    <Text style={[styles.modalValue, { color: colors.text }]}>
+                      {a.duration}
                     </Text>
                   </View>
-                )}
-              </View>
-            </View>
-
-            <View style={styles.accountBalanceRow}>
-              <View>
-                <Text
-                  style={[styles.balanceLabel, { color: colors.text + "70" }]}
-                >
-                  {t("accounts.balance.available")}
-                </Text>
-                <Text style={[styles.balanceValue, { color: colors.text }]}>
-                  {new Intl.NumberFormat("fr-FR").format(
-                    parseAmount(a.balance)
-                  )}{" "}
-                  <Text
-                    style={[styles.balanceCurrency, { color: colors.primary }]}
-                  >
-                    {a.currency}
-                  </Text>
-                </Text>
-                {Number(a.blocked) > 0 && (
-                  <View
-                    style={{
-                      flexDirection: "row",
-                      alignItems: "center",
-                      marginTop: 6,
-                    }}
-                  >
-                    <Ionicons
-                      name="lock-closed"
-                      size={14}
-                      color={colors.warning}
-                    />
+                  <View style={styles.modalRow}>
                     <Text
-                      style={{
-                        marginLeft: 6,
-                        color: colors.warning,
-                        fontWeight: "700",
-                      }}
+                      style={[styles.modalLabel, { color: colors.text + "90" }]}
                     >
-                      {tText("Bloqué:")}{" "}
-                      {new Intl.NumberFormat("fr-FR").format(Number(a.blocked))}{" "}
+                      Prochaine échéance
+                    </Text>
+                    <Text style={[styles.modalValue, { color: colors.text }]}>
+                      {a.nextDueDate}
+                    </Text>
+                  </View>
+                  <View style={styles.modalRow}>
+                    <Text
+                      style={[styles.modalLabel, { color: colors.text + "90" }]}
+                    >
+                      Montant restant
+                    </Text>
+                    <Text
+                      style={[
+                        styles.modalValue,
+                        { color: colors.primary, fontWeight: "bold" },
+                      ]}
+                    >
+                      {new Intl.NumberFormat("fr-FR").format(
+                        parseAmount(a.balance)
+                      )}{" "}
                       {a.currency}
                     </Text>
                   </View>
-                )}
-              </View>
-              <TouchableOpacity
-                style={[styles.roundActionBtn, { backgroundColor: a.color }]}
-                onPress={() =>
-                  (navigation as any).navigate("Transfer", { account: a })
-                }
-                activeOpacity={0.85}
-              >
-                <Ionicons name="swap-horizontal" size={20} color="#fff" />
-              </TouchableOpacity>
-            </View>
-
-            <View style={styles.progressBarWrapper}>
-              <View
-                style={[
-                  styles.progressTrack,
-                  { backgroundColor: colors.border },
-                ]}
-              />
-              <View
-                style={[
-                  styles.progressFill,
-                  {
-                    width: `${Math.round(
-                      (parseAmount(a.balance) / portfolioTotal) * 100
-                    )}%`,
-                    backgroundColor: a.color,
-                  },
-                ]}
-              />
-            </View>
-            <Text style={[styles.progressText, { color: colors.text + "70" }]}>
-              {Math.round((parseAmount(a.balance) / portfolioTotal) * 100)}% du
-              portfolio
-            </Text>
-          </TouchableOpacity>
-        ))}
+                </View>
+              )}
+            </TouchableOpacity>
+          );
+        })}
 
       {/* Floating add button */}
       <View style={styles.bottomSpacer} />
@@ -446,6 +539,47 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#F8F9FB", // Sera remplacé par le thème
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "flex-end",
+  },
+  modalContent: {
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    padding: 20,
+    minHeight: 250,
+  },
+  modalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 20,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+  },
+  modalBody: {
+    gap: 15,
+  },
+  modalRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: 5,
+  },
+  modalLabel: {
+    fontSize: 16,
+  },
+  modalValue: {
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  divider: {
+    height: 1,
+    width: "100%",
   },
   scrollContent: {
     paddingBottom: 120,
@@ -529,6 +663,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "700",
     color: "#1A1A1A", // Sera remplacé par le thème
+    textAlign: "center",
   },
   statSub: {
     fontSize: 12,

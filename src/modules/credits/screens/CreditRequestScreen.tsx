@@ -17,6 +17,10 @@ import { useTheme } from "../../../shared/styles/ThemeProvider";
 import { useI18n } from "../../../app/providers/I18nProvider";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import {
+  secureGetItem,
+  secureSetItem,
+} from "../../../shared/utils/secureStorage";
 
 // Composant Helper pour les sélecteurs (Dropdowns)
 const FormPicker = ({
@@ -126,6 +130,7 @@ export const CreditRequestScreen: React.FC = () => {
   const insets = useSafeAreaInsets();
 
   const [step, setStep] = useState(1);
+  const [successModalVisible, setSuccessModalVisible] = useState(false);
   const [activeLoan, setActiveLoan] = useState<{
     amount: number;
     duration: number; // mois
@@ -202,26 +207,61 @@ export const CreditRequestScreen: React.FC = () => {
     setStep(1);
   };
 
-  const handleFinish = () => {
-    if (
-      !periodicity ||
-      !duration ||
-      !deferred ||
-      !country ||
-      !birthCountry ||
-      !idType ||
-      !idNumber ||
-      !city ||
-      !commune ||
-      !location
-    ) {
-      Alert.alert(t("common.error"), t("common.fillAllFields"));
-      return;
+  const handleFinish = async () => {
+    try {
+      const missingFields = [];
+      if (!periodicity) missingFields.push(t("credit.request.periodicity"));
+      if (!duration) missingFields.push(t("credit.request.duration"));
+      if (!deferred) missingFields.push(t("credit.request.deferred"));
+      if (!country) missingFields.push(t("credit.request.country"));
+      if (!birthCountry) missingFields.push(t("credit.request.birthCountry"));
+      if (!idType) missingFields.push(t("credit.request.idType"));
+      if (!idNumber) missingFields.push(t("credit.request.idNumber"));
+      if (!city) missingFields.push(t("credit.request.city"));
+      if (!commune) missingFields.push(t("credit.request.commune"));
+      if (!location) missingFields.push(t("credit.request.location"));
+
+      if (missingFields.length > 0) {
+        Alert.alert(
+          t("common.error"),
+          `${t("common.fillAllFields")}\n\n${missingFields.join(", ")}`
+        );
+        return;
+      }
+
+      // Create a simulated credit account
+      const nextMonth = new Date();
+      nextMonth.setMonth(nextMonth.getMonth() + 1);
+
+      const newCreditAccount = {
+        id: Date.now(),
+        CO_CODECOMPTE: "CREDIT-" + Date.now(),
+        CO_INTITULECOMPTE: "Compte Credit",
+        NUMEROCOMPTE: "CR-" + Math.floor(Math.random() * 1000000000),
+        SOLDE: parseFloat(amount) || 0,
+        MONTANTBLOQUE: 0,
+        PD_LIBELLE: "Crédit Consommation",
+        CO_DATECLOTURE: "1900-01-01",
+        type: "CREDIT",
+        // Extra info for modal
+        duration: duration + " mois",
+        nextDueDate: nextMonth.toLocaleDateString("fr-FR"),
+      };
+
+      // Save to local storage
+      const existingStr = await secureGetItem("local_credit_accounts");
+      const existing = existingStr ? JSON.parse(existingStr) : [];
+      existing.push(newCreditAccount);
+      await secureSetItem("local_credit_accounts", JSON.stringify(existing));
+
+      setSuccessModalVisible(true);
+    } catch (e: any) {
+      console.error("Erreur handleFinish", e);
+      Alert.alert(
+        "Erreur",
+        "Une erreur est survenue lors de la soumission: " + e.message
+      );
     }
-    // Submit logic here
-    Alert.alert("Succès", "Demande de crédit soumise avec succès", [
-      { text: "OK", onPress: () => navigation.goBack() },
-    ]);
   };
 
   if (activeLoan) {
@@ -729,6 +769,32 @@ export const CreditRequestScreen: React.FC = () => {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
+
+      <Modal
+        visible={successModalVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => {}}
+      >
+        <View style={styles.successModalOverlay}>
+          <View style={styles.successModalContent}>
+            <View style={styles.successIconContainer}>
+              <Ionicons name="checkmark-circle" size={60} color="#4CAF50" />
+            </View>
+            <Text style={styles.successTitle}>Succès</Text>
+            <Text style={styles.successMessage}>demande de credit envoyée</Text>
+            <TouchableOpacity
+              style={styles.successButton}
+              onPress={() => {
+                setSuccessModalVisible(false);
+                navigation.goBack();
+              }}
+            >
+              <Text style={styles.successButtonText}>OK</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -736,6 +802,53 @@ export const CreditRequestScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  successModalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.6)",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
+  },
+  successModalContent: {
+    backgroundColor: "#fff",
+    borderRadius: 20,
+    padding: 30,
+    alignItems: "center",
+    width: "85%",
+    elevation: 5,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+  },
+  successIconContainer: {
+    marginBottom: 20,
+  },
+  successTitle: {
+    fontSize: 22,
+    fontWeight: "bold",
+    color: "#333",
+    marginBottom: 10,
+  },
+  successMessage: {
+    fontSize: 16,
+    color: "#666",
+    textAlign: "center",
+    marginBottom: 25,
+  },
+  successButton: {
+    backgroundColor: "#4CAF50",
+    paddingVertical: 12,
+    paddingHorizontal: 40,
+    borderRadius: 25,
+    width: "100%",
+  },
+  successButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "bold",
+    textAlign: "center",
   },
   scrollContent: {
     padding: 20,
