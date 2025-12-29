@@ -53,21 +53,8 @@ export const CreditSimulatorScreen: React.FC = () => {
       Alert.alert(t("common.error"), t("common.fillAllFields"));
       return;
     }
-
-    // Formule mensualité : M = P * [i(1 + i)^n] / [(1 + i)^n – 1]
-    // i = taux mensuel = r / 12 / 100
-    const i = r / 12 / 100;
-
-    let monthlyPayment = 0;
-    let totalCost = 0;
-
-    if (i === 0) {
-      monthlyPayment = P / n;
-      totalCost = P;
-    } else {
-      monthlyPayment = (P * i * Math.pow(1 + i, n)) / (Math.pow(1 + i, n) - 1);
-      totalCost = monthlyPayment * n;
-    }
+    const totalCost = P * (1 + (r / 100) * n);
+    const monthlyPayment = totalCost / n;
 
     setResult({
       monthly: Math.round(monthlyPayment),
@@ -85,17 +72,23 @@ export const CreditSimulatorScreen: React.FC = () => {
           <View
             style={[
               styles.card,
-              { backgroundColor: colors.card, shadowColor: "#000" },
+              { backgroundColor: colors.card, borderColor: colors.border },
             ]}
           >
             {/* Montant */}
             <View
-              style={[styles.inputContainer, { borderColor: colors.border }]}
+              style={[
+                styles.inputContainer,
+                {
+                  borderColor: colors.border,
+                  backgroundColor: colors.background,
+                },
+              ]}
             >
               <TextInput
                 style={[styles.input, { color: colors.text }]}
                 placeholder={t("credit.simulator.amount")}
-                placeholderTextColor={colors.text + "80"}
+                placeholderTextColor={colors.text + "60"}
                 keyboardType="numeric"
                 value={amount}
                 onChangeText={setAmount}
@@ -107,12 +100,18 @@ export const CreditSimulatorScreen: React.FC = () => {
 
             {/* Durée */}
             <View
-              style={[styles.inputContainer, { borderColor: colors.border }]}
+              style={[
+                styles.inputContainer,
+                {
+                  borderColor: colors.border,
+                  backgroundColor: colors.background,
+                },
+              ]}
             >
               <TextInput
                 style={[styles.input, { color: colors.text }]}
                 placeholder={t("credit.simulator.duration")}
-                placeholderTextColor={colors.text + "80"}
+                placeholderTextColor={colors.text + "60"}
                 keyboardType="numeric"
                 value={duration}
                 onChangeText={setDuration}
@@ -124,12 +123,18 @@ export const CreditSimulatorScreen: React.FC = () => {
 
             {/* Taux */}
             <View
-              style={[styles.inputContainer, { borderColor: colors.border }]}
+              style={[
+                styles.inputContainer,
+                {
+                  borderColor: colors.border,
+                  backgroundColor: colors.background,
+                },
+              ]}
             >
               <TextInput
                 style={[styles.input, { color: colors.text }]}
                 placeholder={t("credit.simulator.rate")}
-                placeholderTextColor={colors.text + "80"}
+                placeholderTextColor={colors.text + "60"}
                 keyboardType="numeric"
                 value={rate}
                 onChangeText={setRate}

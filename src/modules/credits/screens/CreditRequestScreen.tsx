@@ -41,32 +41,25 @@ const FormPicker = ({
   const { colors } = useTheme();
   const [modalVisible, setModalVisible] = useState(false);
 
-  // Force colors for Light Theme look on the white card
-  const labelColor = "#333333";
-  const inputBg = "#FFFFFF";
-  const borderColor = "#E0E0E0";
-  const textColor = "#000000";
-  const placeholderColor = "#9E9E9E";
-
   return (
     <View style={styles.fieldGroup}>
-      <Text style={[styles.label, { color: labelColor }]}>{label}</Text>
+      <Text style={[styles.label, { color: colors.text }]}>{label}</Text>
       <TouchableOpacity
         style={[
           styles.pickerButton,
-          { borderColor: borderColor, backgroundColor: inputBg },
+          { borderColor: colors.border, backgroundColor: colors.background },
         ]}
         onPress={() => setModalVisible(true)}
       >
         <Text
           style={[
             styles.pickerText,
-            { color: value ? textColor : placeholderColor },
+            { color: value ? colors.text : colors.text + "60" },
           ]}
         >
           {value || placeholder || "Sélectionner"}
         </Text>
-        <Ionicons name="chevron-down" size={20} color={placeholderColor} />
+        <Ionicons name="chevron-down" size={20} color={colors.text + "60"} />
       </TouchableOpacity>
       {required && !value && (
         <Text style={[styles.mandatoryOverlay, { color: colors.error }]}>
@@ -81,15 +74,15 @@ const FormPicker = ({
         onRequestClose={() => setModalVisible(false)}
       >
         <View style={styles.modalOverlay}>
-          <View style={[styles.modalContent, { backgroundColor: "#fff" }]}>
+          <View style={[styles.modalContent, { backgroundColor: colors.card }]}>
             <View
-              style={[styles.modalHeader, { borderBottomColor: borderColor }]}
+              style={[styles.modalHeader, { borderBottomColor: colors.border }]}
             >
-              <Text style={[styles.modalTitle, { color: textColor }]}>
+              <Text style={[styles.modalTitle, { color: colors.text }]}>
                 {label}
               </Text>
               <TouchableOpacity onPress={() => setModalVisible(false)}>
-                <Ionicons name="close" size={24} color={textColor} />
+                <Ionicons name="close" size={24} color={colors.text} />
               </TouchableOpacity>
             </View>
             <FlatList
@@ -97,13 +90,16 @@ const FormPicker = ({
               keyExtractor={(item) => item}
               renderItem={({ item }) => (
                 <TouchableOpacity
-                  style={[styles.modalItem, { borderBottomColor: borderColor }]}
+                  style={[
+                    styles.modalItem,
+                    { borderBottomColor: colors.border },
+                  ]}
                   onPress={() => {
                     onSelect(item);
                     setModalVisible(false);
                   }}
                 >
-                  <Text style={[styles.modalItemText, { color: textColor }]}>
+                  <Text style={[styles.modalItemText, { color: colors.text }]}>
                     {item}
                   </Text>
                   {value === item && (
@@ -138,11 +134,55 @@ export const CreditRequestScreen: React.FC = () => {
     dueDate: string;
   } | null>(null);
 
-  // Simuler un prêt en cours (à remplacer par un appel API réel)
+  // New states for dashboard view
+  const [viewMode, setViewMode] = useState<"history" | "form">("history");
+  const [historyFilter, setHistoryFilter] = useState<
+    "PENDING" | "APPROVED" | "REJECTED"
+  >("PENDING");
+  const [requests, setRequests] = useState<any[]>([]);
+
+  // Load requests on mount
   React.useEffect(() => {
-    // Exemple : setActiveLoan({ amount: 5000000, duration: 24, remainingPayments: 12, dueDate: "15/05/2024" });
-    setActiveLoan(null);
+    loadRequests();
   }, []);
+
+  const loadRequests = async () => {
+    try {
+      const stored = await secureGetItem("local_credit_requests");
+      let data = stored ? JSON.parse(stored) : [];
+
+      // Seed some fake data if empty for demo
+      if (data.length === 0) {
+        data = [
+          {
+            id: "mock-1",
+            amount: 1500000,
+            date: "2024-05-10",
+            status: "PENDING",
+            type: "Consommation",
+          },
+          {
+            id: "mock-2",
+            amount: 5000000,
+            date: "2024-04-01",
+            status: "APPROVED",
+            type: "Immobilier",
+          },
+          {
+            id: "mock-3",
+            amount: 200000,
+            date: "2024-03-15",
+            status: "REJECTED",
+            type: "Consommation",
+          },
+        ];
+        await secureSetItem("local_credit_requests", JSON.stringify(data));
+      }
+      setRequests(data);
+    } catch (e) {
+      console.error("Failed to load requests", e);
+    }
+  };
 
   // Define colors for consistent Light Theme on the white card
   const labelColor = "#333333";
@@ -248,11 +288,27 @@ export const CreditRequestScreen: React.FC = () => {
         nextDueDate: nextMonth.toLocaleDateString("fr-FR"),
       };
 
-      // Save to local storage
+      // Save to local storage (Accounts)
       const existingStr = await secureGetItem("local_credit_accounts");
       const existing = existingStr ? JSON.parse(existingStr) : [];
       existing.push(newCreditAccount);
       await secureSetItem("local_credit_accounts", JSON.stringify(existing));
+
+      // Save to requests history
+      const newRequest = {
+        id: Date.now(),
+        amount: parseFloat(amount) || 0,
+        date: new Date().toISOString().split("T")[0],
+        status: "APPROVED", // Auto-approved for demo
+        type: nature || "Consommation",
+      };
+      const reqStr = await secureGetItem("local_credit_requests");
+      const reqs = reqStr ? JSON.parse(reqStr) : [];
+      reqs.push(newRequest);
+      await secureSetItem("local_credit_requests", JSON.stringify(reqs));
+
+      // Refresh list
+      loadRequests();
 
       setSuccessModalVisible(true);
     } catch (e: any) {
@@ -264,141 +320,186 @@ export const CreditRequestScreen: React.FC = () => {
     }
   };
 
-  if (activeLoan) {
+  if (viewMode === "history") {
+    const filteredRequests = requests.filter((r) => r.status === historyFilter);
+
     return (
-      <View
-        style={[styles.container, { backgroundColor: "#F5F5F5", padding: 20 }]}
-      >
-        <View
-          style={[
-            styles.card,
-            {
-              backgroundColor: "#fff",
-              alignItems: "center",
-              justifyContent: "center",
-              height: "100%",
-            },
-          ]}
-        >
-          <Ionicons
-            name="information-circle-outline"
-            size={64}
-            color={colors.primary}
-            style={{ marginBottom: 20 }}
-          />
-          <Text
-            style={{
-              fontSize: 22,
-              fontWeight: "bold",
-              color: labelColor,
-              marginBottom: 20,
-            }}
-          >
-            Prêt en cours
-          </Text>
-
-          <View style={{ width: "100%", paddingHorizontal: 20 }}>
-            <View
-              style={{
-                flexDirection: "row",
-                justifyContent: "space-between",
-                marginBottom: 15,
-                paddingBottom: 10,
-                borderBottomWidth: 1,
-                borderBottomColor: borderColor,
-              }}
-            >
-              <Text style={{ fontSize: 16, color: "#666" }}>Montant</Text>
-              <Text
-                style={{ fontSize: 16, fontWeight: "bold", color: textColor }}
-              >
-                {activeLoan.amount.toLocaleString("fr-FR")} XAF
-              </Text>
-            </View>
-            <View
-              style={{
-                flexDirection: "row",
-                justifyContent: "space-between",
-                marginBottom: 15,
-                paddingBottom: 10,
-                borderBottomWidth: 1,
-                borderBottomColor: borderColor,
-              }}
-            >
-              <Text style={{ fontSize: 16, color: "#666" }}>Durée</Text>
-              <Text
-                style={{ fontSize: 16, fontWeight: "bold", color: textColor }}
-              >
-                {activeLoan.duration} mois
-              </Text>
-            </View>
-            <View
-              style={{
-                flexDirection: "row",
-                justifyContent: "space-between",
-                marginBottom: 15,
-                paddingBottom: 10,
-                borderBottomWidth: 1,
-                borderBottomColor: borderColor,
-              }}
-            >
-              <Text style={{ fontSize: 16, color: "#666" }}>
-                Paiements restants
-              </Text>
-              <Text
-                style={{ fontSize: 16, fontWeight: "bold", color: textColor }}
-              >
-                {activeLoan.remainingPayments}
-              </Text>
-            </View>
-            <View
-              style={{
-                flexDirection: "row",
-                justifyContent: "space-between",
-                marginBottom: 15,
-                paddingBottom: 10,
-                borderBottomWidth: 1,
-                borderBottomColor: borderColor,
-              }}
-            >
-              <Text style={{ fontSize: 16, color: "#666" }}>
-                Date d'échéance
-              </Text>
-              <Text
-                style={{ fontSize: 16, fontWeight: "bold", color: textColor }}
-              >
-                {activeLoan.dueDate}
-              </Text>
-            </View>
-          </View>
-
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
+        <View style={[styles.headerTabs, { backgroundColor: colors.card }]}>
           <TouchableOpacity
             style={[
-              styles.button,
-              { backgroundColor: colors.primary, marginTop: 30, width: "100%" },
+              styles.headerTab,
+              historyFilter === "PENDING" && {
+                borderBottomColor: colors.primary,
+              },
             ]}
-            onPress={() => navigation.goBack()}
+            onPress={() => setHistoryFilter("PENDING")}
           >
-            <Text style={styles.buttonText}>Retour</Text>
+            <Text
+              style={[
+                styles.headerTabText,
+                { color: colors.text + "90" },
+                historyFilter === "PENDING" && {
+                  color: colors.primary,
+                  fontWeight: "bold",
+                },
+              ]}
+            >
+              En cours
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[
+              styles.headerTab,
+              historyFilter === "APPROVED" && {
+                borderBottomColor: colors.primary,
+              },
+            ]}
+            onPress={() => setHistoryFilter("APPROVED")}
+          >
+            <Text
+              style={[
+                styles.headerTabText,
+                { color: colors.text + "90" },
+                historyFilter === "APPROVED" && {
+                  color: colors.primary,
+                  fontWeight: "bold",
+                },
+              ]}
+            >
+              Validées
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[
+              styles.headerTab,
+              historyFilter === "REJECTED" && {
+                borderBottomColor: colors.primary,
+              },
+            ]}
+            onPress={() => setHistoryFilter("REJECTED")}
+          >
+            <Text
+              style={[
+                styles.headerTabText,
+                { color: colors.text + "90" },
+                historyFilter === "REJECTED" && {
+                  color: colors.primary,
+                  fontWeight: "bold",
+                },
+              ]}
+            >
+              Rejetées
+            </Text>
           </TouchableOpacity>
         </View>
+
+        <FlatList
+          data={filteredRequests}
+          keyExtractor={(item) => String(item.id)}
+          contentContainerStyle={{ padding: 20, paddingBottom: 100 }}
+          ListEmptyComponent={
+            <View style={{ alignItems: "center", marginTop: 50 }}>
+              <Ionicons
+                name="file-tray-outline"
+                size={64}
+                color={colors.text + "40"}
+              />
+              <Text style={{ color: colors.text + "60", marginTop: 10 }}>
+                Aucune demande
+              </Text>
+            </View>
+          }
+          renderItem={({ item }) => (
+            <View
+              style={[styles.requestCard, { backgroundColor: colors.card }]}
+            >
+              <View style={styles.requestHeader}>
+                <Text style={[styles.requestType, { color: colors.text }]}>
+                  {item.type}
+                </Text>
+                <View
+                  style={[
+                    styles.statusBadge,
+                    item.status === "APPROVED"
+                      ? { backgroundColor: colors.success + "15" }
+                      : item.status === "REJECTED"
+                      ? { backgroundColor: colors.error + "15" }
+                      : { backgroundColor: colors.primary + "15" },
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.statusText,
+                      item.status === "APPROVED"
+                        ? { color: colors.success }
+                        : item.status === "REJECTED"
+                        ? { color: colors.error }
+                        : { color: colors.primary },
+                    ]}
+                  >
+                    {item.status === "APPROVED"
+                      ? "Validée"
+                      : item.status === "REJECTED"
+                      ? "Rejetée"
+                      : "En cours"}
+                  </Text>
+                </View>
+              </View>
+              <Text style={[styles.requestAmount, { color: colors.primary }]}>
+                {new Intl.NumberFormat("fr-FR").format(item.amount)} XAF
+              </Text>
+              <Text style={[styles.requestDate, { color: colors.text + "80" }]}>
+                Demandé le {item.date}
+              </Text>
+            </View>
+          )}
+        />
+
+        <TouchableOpacity
+          style={[styles.fab, { backgroundColor: colors.primary }]}
+          onPress={() => {
+            setStep(1);
+            setViewMode("form");
+          }}
+        >
+          <Ionicons name="add" size={24} color="#fff" />
+          <Text style={{ color: "#fff", fontWeight: "bold", marginLeft: 8 }}>
+            NOUVELLE DEMANDE
+          </Text>
+        </TouchableOpacity>
       </View>
     );
   }
 
+  // Form View
   return (
-    <View style={[styles.container, { backgroundColor: "#F5F5F5" }]}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={{ flex: 1 }}
       >
+        <View style={{ padding: 16 }}>
+          <TouchableOpacity
+            onPress={() => setViewMode("history")}
+            style={{ flexDirection: "row", alignItems: "center" }}
+          >
+            <Ionicons name="arrow-back" size={24} color={colors.text} />
+            <Text style={{ marginLeft: 8, fontSize: 16, color: colors.text }}>
+              Retour aux demandes
+            </Text>
+          </TouchableOpacity>
+        </View>
+
         <ScrollView contentContainerStyle={styles.scrollContent}>
           {/* Stepper */}
           <View style={styles.stepperContainer}>
             <View
               style={[
                 styles.stepCircle,
-                { backgroundColor: step >= 1 ? "#8BC34A" : "#BDBDBD" },
+                {
+                  backgroundColor: step >= 1 ? colors.primary : colors.border,
+                },
               ]}
             >
               {step > 1 ? (
@@ -410,20 +511,24 @@ export const CreditRequestScreen: React.FC = () => {
             <View
               style={[
                 styles.stepLine,
-                { backgroundColor: step >= 2 ? "#8BC34A" : "#E0E0E0" },
+                {
+                  backgroundColor: step >= 2 ? colors.primary : colors.border,
+                },
               ]}
             />
             <View
               style={[
                 styles.stepCircle,
-                { backgroundColor: step >= 2 ? "#8BC34A" : "#BDBDBD" },
+                {
+                  backgroundColor: step >= 2 ? colors.primary : colors.border,
+                },
               ]}
             >
               <Text style={styles.stepText}>2</Text>
             </View>
           </View>
 
-          <View style={[styles.card, { backgroundColor: "#fff" }]}>
+          <View style={[styles.card, { backgroundColor: colors.card }]}>
             {step === 1 && (
               <>
                 <FormPicker
@@ -462,13 +567,13 @@ export const CreditRequestScreen: React.FC = () => {
                     style={[
                       styles.input,
                       {
-                        borderColor: borderColor,
-                        color: textColor,
-                        backgroundColor: inputBg,
+                        borderColor: colors.border,
+                        color: colors.text,
+                        backgroundColor: colors.background,
                       },
                     ]}
                     placeholder={t("credit.request.descActivity")}
-                    placeholderTextColor={placeholderColor}
+                    placeholderTextColor={colors.text + "60"}
                     value={descActivity}
                     onChangeText={setDescActivity}
                   />
@@ -487,13 +592,13 @@ export const CreditRequestScreen: React.FC = () => {
                     style={[
                       styles.input,
                       {
-                        borderColor: borderColor,
-                        color: textColor,
-                        backgroundColor: inputBg,
+                        borderColor: colors.border,
+                        color: colors.text,
+                        backgroundColor: colors.background,
                       },
                     ]}
                     placeholder={t("credit.request.amount")}
-                    placeholderTextColor={placeholderColor}
+                    placeholderTextColor={colors.text + "60"}
                     keyboardType="numeric"
                     value={amount}
                     onChangeText={setAmount}
@@ -509,7 +614,7 @@ export const CreditRequestScreen: React.FC = () => {
                 </View>
 
                 <TouchableOpacity
-                  style={[styles.button, { backgroundColor: "#2196F3" }]} // Strong Blue for Next
+                  style={[styles.button, { backgroundColor: colors.primary }]}
                   onPress={handleNext}
                 >
                   <Text style={styles.buttonText}>
@@ -533,13 +638,13 @@ export const CreditRequestScreen: React.FC = () => {
                     style={[
                       styles.input,
                       {
-                        borderColor: borderColor,
-                        color: textColor,
-                        backgroundColor: inputBg,
+                        borderColor: colors.border,
+                        color: colors.text,
+                        backgroundColor: colors.background,
                       },
                     ]}
                     placeholder={t("credit.request.duration")}
-                    placeholderTextColor={placeholderColor}
+                    placeholderTextColor={colors.text + "60"}
                     keyboardType="numeric"
                     value={duration}
                     onChangeText={setDuration}
@@ -559,13 +664,13 @@ export const CreditRequestScreen: React.FC = () => {
                     style={[
                       styles.input,
                       {
-                        borderColor: borderColor,
-                        color: textColor,
-                        backgroundColor: inputBg,
+                        borderColor: colors.border,
+                        color: colors.text,
+                        backgroundColor: colors.background,
                       },
                     ]}
                     placeholder={t("credit.request.deferred")}
-                    placeholderTextColor={placeholderColor}
+                    placeholderTextColor={colors.text + "60"}
                     keyboardType="numeric"
                     value={deferred}
                     onChangeText={setDeferred}
@@ -620,13 +725,13 @@ export const CreditRequestScreen: React.FC = () => {
                     style={[
                       styles.input,
                       {
-                        borderColor: borderColor,
-                        color: textColor,
-                        backgroundColor: inputBg,
+                        borderColor: colors.border,
+                        color: colors.text,
+                        backgroundColor: colors.background,
                       },
                     ]}
                     placeholder={t("credit.request.idNumber")}
-                    placeholderTextColor={placeholderColor}
+                    placeholderTextColor={colors.text + "60"}
                     value={idNumber}
                     onChangeText={setIdNumber}
                   />
@@ -641,17 +746,15 @@ export const CreditRequestScreen: React.FC = () => {
                 </View>
 
                 <View style={styles.fieldGroup}>
-                  <Text style={[styles.label, { color: labelColor }]}>
+                  <Text style={[styles.label, { color: colors.text }]}>
                     {t("credit.request.city")}
                   </Text>
-                  {/* Using text input for now as per image looks like select but lets stick to simple mock if no data */}
-                  {/* Image shows dropdown arrow, so keeping FormPicker logic but maybe mocked */}
                   <TouchableOpacity
                     style={[
                       styles.pickerButton,
                       {
-                        borderColor: borderColor,
-                        backgroundColor: inputBg,
+                        borderColor: colors.border,
+                        backgroundColor: colors.background,
                       },
                     ]}
                     onPress={() => setCity(city ? "" : "ABIDJAN")} // Toggle mock
@@ -659,7 +762,7 @@ export const CreditRequestScreen: React.FC = () => {
                     <Text
                       style={[
                         styles.pickerText,
-                        { color: city ? textColor : placeholderColor },
+                        { color: city ? colors.text : colors.text + "60" },
                       ]}
                     >
                       {city || t("credit.request.city")}
@@ -667,7 +770,7 @@ export const CreditRequestScreen: React.FC = () => {
                     <Ionicons
                       name="chevron-down"
                       size={20}
-                      color={placeholderColor}
+                      color={colors.text + "60"}
                     />
                   </TouchableOpacity>
                   <Text
@@ -678,15 +781,15 @@ export const CreditRequestScreen: React.FC = () => {
                 </View>
 
                 <View style={styles.fieldGroup}>
-                  <Text style={[styles.label, { color: labelColor }]}>
+                  <Text style={[styles.label, { color: colors.text }]}>
                     {t("credit.request.commune")}
                   </Text>
                   <TouchableOpacity
                     style={[
                       styles.pickerButton,
                       {
-                        borderColor: borderColor,
-                        backgroundColor: inputBg,
+                        borderColor: colors.border,
+                        backgroundColor: colors.background,
                       },
                     ]}
                     onPress={() => setCommune(commune ? "" : "COCODY")} // Toggle mock
@@ -694,7 +797,7 @@ export const CreditRequestScreen: React.FC = () => {
                     <Text
                       style={[
                         styles.pickerText,
-                        { color: commune ? textColor : placeholderColor },
+                        { color: commune ? colors.text : colors.text + "60" },
                       ]}
                     >
                       {commune || t("credit.request.commune")}
@@ -702,7 +805,7 @@ export const CreditRequestScreen: React.FC = () => {
                     <Ionicons
                       name="chevron-down"
                       size={20}
-                      color={placeholderColor}
+                      color={colors.text + "60"}
                     />
                   </TouchableOpacity>
                   <Text
@@ -717,13 +820,13 @@ export const CreditRequestScreen: React.FC = () => {
                     style={[
                       styles.input,
                       {
-                        borderColor: borderColor,
-                        color: textColor,
-                        backgroundColor: inputBg,
+                        borderColor: colors.border,
+                        color: colors.text,
+                        backgroundColor: colors.background,
                       },
                     ]}
                     placeholder={t("credit.request.location")}
-                    placeholderTextColor={placeholderColor}
+                    placeholderTextColor={colors.text + "60"}
                     value={location}
                     onChangeText={setLocation}
                   />
@@ -742,11 +845,11 @@ export const CreditRequestScreen: React.FC = () => {
                     style={[
                       styles.button,
                       styles.prevButton,
-                      { backgroundColor: "#757575" }, // Solid Grey for Previous
+                      { backgroundColor: colors.border },
                     ]}
                     onPress={handlePrevious}
                   >
-                    <Text style={styles.buttonText}>
+                    <Text style={[styles.buttonText, { color: colors.text }]}>
                       {t("credit.request.previous")}
                     </Text>
                   </TouchableOpacity>
@@ -755,7 +858,7 @@ export const CreditRequestScreen: React.FC = () => {
                     style={[
                       styles.button,
                       styles.nextButton,
-                      { backgroundColor: "#E53935" }, // Strong Red for Finish
+                      { backgroundColor: colors.primary },
                     ]}
                     onPress={handleFinish}
                   >
@@ -991,5 +1094,90 @@ const styles = StyleSheet.create({
   },
   modalItemText: {
     fontSize: 16,
+  },
+  headerTabs: {
+    flexDirection: "row",
+    backgroundColor: "#fff",
+    elevation: 2,
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 4,
+  },
+  headerTab: {
+    flex: 1,
+    paddingVertical: 16,
+    alignItems: "center",
+    borderBottomWidth: 3,
+    borderBottomColor: "transparent",
+  },
+  headerTabActive: {
+    borderBottomColor: "#E53935",
+  },
+  headerTabText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#757575",
+  },
+  headerTabTextActive: {
+    color: "#E53935",
+    fontWeight: "bold",
+  },
+  requestCard: {
+    backgroundColor: "#fff",
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 12,
+    elevation: 2,
+    shadowColor: "#000",
+    shadowOpacity: 0.05,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 4,
+  },
+  requestHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  requestType: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#333",
+  },
+  statusBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  statusText: {
+    fontSize: 12,
+    fontWeight: "bold",
+  },
+  requestAmount: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#E53935",
+    marginBottom: 4,
+  },
+  requestDate: {
+    fontSize: 12,
+    color: "#999",
+  },
+  fab: {
+    position: "absolute",
+    bottom: 24,
+    right: 24,
+    backgroundColor: "#E53935",
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 30,
+    elevation: 6,
+    shadowColor: "#000",
+    shadowOpacity: 0.3,
+    shadowOffset: { width: 0, height: 4 },
+    shadowRadius: 6,
   },
 });
