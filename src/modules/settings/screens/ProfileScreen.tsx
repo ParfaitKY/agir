@@ -45,7 +45,7 @@ const ProfileScreen: React.FC = () => {
     const login =
       (await secureGetItem("user_login")) || (user as any)?.username || "";
     const email = (user as any)?.email || "";
-    let phone = (await secureGetItem("user_phone")) || "";
+    let phone = (user as any)?.phone || (await secureGetItem("user_phone")) || "";
     let address = (await secureGetItem("user_address")) || "";
     if (!phone || !address) {
       const access = await secureGetItem("access_data");
@@ -323,12 +323,12 @@ const ProfileScreen: React.FC = () => {
   };
 
   const handleCall = () => {
-    const phone = "+24177683855";
+    const phone = "+2250707070707";
     Linking.openURL(`tel:${phone}`);
   };
 
   const handleEmail = () => {
-    const email = "support@lapeyrie-emf.com";
+    const email = "support@cedaici.com";
     const subject = encodeURIComponent("Demande de modification de profil");
     const body = encodeURIComponent(
       "Bonjour,\n\nJe souhaite mettre à jour mes informations personnelles. Pourriez-vous m'indiquer la procédure ?\n\nMerci."

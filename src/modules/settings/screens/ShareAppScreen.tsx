@@ -19,7 +19,7 @@ const ShareAppScreen: React.FC = () => {
   const { t } = useI18n();
   const { colors } = useTheme();
 
-  const appUrl = "https://lapeyrie-emf.ga/app";
+  const appUrl = "https://cedaici.com/app";
   const shareMessage = `${t("share.message")}\n${t(
     "share.download"
   )} : ${appUrl}`;
@@ -98,7 +98,7 @@ const ShareAppScreen: React.FC = () => {
 
   const shareEmail = async () => {
     const mailUrl = `mailto:?subject=${encodeURIComponent(
-      "LA PEYRIE EMF"
+      "CEDAICI SA"
     )}&body=${encodeURIComponent(shareMessage)}`;
     const can = await Linking.canOpenURL(mailUrl);
     if (!can) {
@@ -125,7 +125,9 @@ const ShareAppScreen: React.FC = () => {
   };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+    <SafeAreaView
+      style={[styles.container, { backgroundColor: colors.background }]}
+    >
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
@@ -136,22 +138,34 @@ const ShareAppScreen: React.FC = () => {
             { opacity: fadeAnim, transform: [{ scale: scaleAnim }] },
           ]}
         >
-          <View style={[styles.logoCircle, { backgroundColor: colors.primary + "20", borderColor: colors.primary + "40" }]}>
+          <View
+            style={[
+              styles.logoCircle,
+              {
+                backgroundColor: colors.primary + "20",
+                borderColor: colors.primary + "40",
+              },
+            ]}
+          >
             <Image
-              source={{ uri: "https://lapeyrie-emf.ga/logo.png" }}
+              source={require("../../../../assets/cedaici-transparent.png")}
               style={styles.logo}
               resizeMode="contain"
             />
           </View>
-          <Text style={[styles.title, { color: colors.text }]}>{t("share.title")}</Text>
-          <Text style={[styles.subtitle, { color: colors.text + "80" }]}>{t("share.subtitle")}</Text>
+          <Text style={[styles.title, { color: colors.text }]}>
+            {t("share.title")}
+          </Text>
+          <Text style={[styles.subtitle, { color: colors.text + "80" }]}>
+            {t("share.subtitle")}
+          </Text>
         </Animated.View>
 
         <Animated.View
           style={[
             styles.card,
             { opacity: fadeButtons, transform: [{ scale: scaleButtons }] },
-            { backgroundColor: colors.card, borderColor: colors.border }
+            { backgroundColor: colors.card, borderColor: colors.border },
           ]}
         >
           <View style={styles.buttonsGrid}>
@@ -170,7 +184,11 @@ const ShareAppScreen: React.FC = () => {
               onPress={shareMessenger}
               activeOpacity={0.85}
             >
-              <Ionicons name="chatbubbles-outline" size={20} color={colors.card} />
+              <Ionicons
+                name="chatbubbles-outline"
+                size={20}
+                color={colors.card}
+              />
               <Text style={[styles.shareBtnText, { color: colors.card }]}>
                 {t("share.action.messenger")}
               </Text>
@@ -181,7 +199,9 @@ const ShareAppScreen: React.FC = () => {
               activeOpacity={0.85}
             >
               <Ionicons name="mail-outline" size={20} color={colors.card} />
-              <Text style={[styles.shareBtnText, { color: colors.card }]}>{t("share.action.email")}</Text>
+              <Text style={[styles.shareBtnText, { color: colors.card }]}>
+                {t("share.action.email")}
+              </Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.shareBtn, { backgroundColor: "#10B981" }]}
@@ -189,7 +209,9 @@ const ShareAppScreen: React.FC = () => {
               activeOpacity={0.85}
             >
               <Ionicons name="chatbox-outline" size={20} color={colors.card} />
-              <Text style={[styles.shareBtnText, { color: colors.card }]}>{t("share.action.sms")}</Text>
+              <Text style={[styles.shareBtnText, { color: colors.card }]}>
+                {t("share.action.sms")}
+              </Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.shareBtn, { backgroundColor: colors.text + "80" }]}
@@ -197,7 +219,9 @@ const ShareAppScreen: React.FC = () => {
               activeOpacity={0.85}
             >
               <Ionicons name="link-outline" size={20} color={colors.card} />
-              <Text style={[styles.shareBtnText, { color: colors.card }]}>{t("share.action.copy")}</Text>
+              <Text style={[styles.shareBtnText, { color: colors.card }]}>
+                {t("share.action.copy")}
+              </Text>
             </TouchableOpacity>
           </View>
         </Animated.View>

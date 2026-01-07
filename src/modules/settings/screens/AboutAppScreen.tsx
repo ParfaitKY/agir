@@ -76,36 +76,65 @@ const AboutAppScreen: React.FC = () => {
   }, []);
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+    <SafeAreaView
+      style={[styles.container, { backgroundColor: colors.background }]}
+    >
       <ScrollView contentContainerStyle={styles.content}>
         {/* Hero */}
         <View style={styles.hero}>
           <Animated.Image
-            source={{ uri: "https://lapeyrie-emf.ga/logo.png" }}
+            source={require("../../../../assets/cedaici-transparent.png")}
             style={[styles.heroLogo, { transform: [{ scale: logoScale }] }]}
             resizeMode="contain"
           />
-          <Text style={[styles.heroTitle, { color: colors.text }]}>{t("about.hero.title")}</Text>
-          <Text style={[styles.heroSubtitle, { color: colors.text + "80" }]}>{t("about.hero.subtitle")}</Text>
+          <Text style={[styles.heroTitle, { color: colors.text }]}>
+            {t("about.hero.title")}
+          </Text>
+          <Text style={[styles.heroSubtitle, { color: colors.text + "80" }]}>
+            {t("about.hero.subtitle")}
+          </Text>
         </View>
 
         {/* Présentation */}
-        <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
+        <View
+          style={[
+            styles.card,
+            { backgroundColor: colors.card, borderColor: colors.border },
+          ]}
+        >
           <Text style={[styles.sectionTitle, { color: colors.text }]}>
             {t("about.presentation.title")}
           </Text>
-          <Text style={[styles.sectionText, { color: colors.text + "90" }]}>{t("about.presentation.p1")}</Text>
-          <Text style={[styles.sectionText, { color: colors.text + "90" }]}>{t("about.presentation.p2")}</Text>
+          <Text style={[styles.sectionText, { color: colors.text + "90" }]}>
+            {t("about.presentation.p1")}
+          </Text>
+          <Text style={[styles.sectionText, { color: colors.text + "90" }]}>
+            {t("about.presentation.p2")}
+          </Text>
         </View>
 
         {/* Nouvelle Gouvernance 2025 */}
-        <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>{t("about.governance.title")}</Text>
-          <Text style={[styles.sectionText, { color: colors.text + "90" }]}>{t("about.governance.p1")}</Text>
+        <View
+          style={[
+            styles.card,
+            { backgroundColor: colors.card, borderColor: colors.border },
+          ]}
+        >
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>
+            {t("about.governance.title")}
+          </Text>
+          <Text style={[styles.sectionText, { color: colors.text + "90" }]}>
+            {t("about.governance.p1")}
+          </Text>
         </View>
 
         {/* Nos Engagements */}
-        <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
+        <View
+          style={[
+            styles.card,
+            { backgroundColor: colors.card, borderColor: colors.border },
+          ]}
+        >
           <Text style={[styles.sectionTitle, { color: colors.text }]}>
             {t("about.commitments.title")}
           </Text>
@@ -117,15 +146,26 @@ const AboutAppScreen: React.FC = () => {
             "about.commitments.item5",
           ].map((key, idx) => (
             <View key={idx} style={styles.bulletRow}>
-              <Text style={[styles.bullet, { color: colors.text + "60" }]}>•</Text>
-              <Text style={[styles.sectionText, { color: colors.text + "90" }]}>{t(key)}</Text>
+              <Text style={[styles.bullet, { color: colors.text + "60" }]}>
+                •
+              </Text>
+              <Text style={[styles.sectionText, { color: colors.text + "90" }]}>
+                {t(key)}
+              </Text>
             </View>
           ))}
         </View>
 
         {/* Informations Clés */}
-        <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>{t("about.info.title")}</Text>
+        <View
+          style={[
+            styles.card,
+            { backgroundColor: colors.card, borderColor: colors.border },
+          ]}
+        >
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>
+            {t("about.info.title")}
+          </Text>
           <View style={styles.infoGrid}>
             {[
               {
@@ -153,49 +193,109 @@ const AboutAppScreen: React.FC = () => {
                 hint: t("about.info.availability.hint"),
               },
             ].map((info, i) => (
-              <View key={i} style={[styles.infoItem, { backgroundColor: colors.card, borderColor: colors.border }]}>
+              <View
+                key={i}
+                style={[
+                  styles.infoItem,
+                  { backgroundColor: colors.card, borderColor: colors.border },
+                ]}
+              >
                 <View style={styles.infoHeader}>
-                  <View style={[styles.infoIconWrap, { backgroundColor: colors.primary + "20" }]}>
+                  <View
+                    style={[
+                      styles.infoIconWrap,
+                      { backgroundColor: colors.primary + "20" },
+                    ]}
+                  >
                     <Ionicons
                       name={info.icon as any}
                       size={18}
                       color={colors.primary}
                     />
                   </View>
-                  <Text style={[styles.infoValue, { color: colors.text }]}>{info.value}</Text>
+                  <Text style={[styles.infoValue, { color: colors.text }]}>
+                    {info.value}
+                  </Text>
                 </View>
-                <Text style={[styles.infoLabel, { color: colors.text + "80" }]}>{info.label}</Text>
-                <Text style={[styles.infoHint, { color: colors.text + "60" }]}>{info.hint}</Text>
+                <Text style={[styles.infoLabel, { color: colors.text + "80" }]}>
+                  {info.label}
+                </Text>
+                <Text style={[styles.infoHint, { color: colors.text + "60" }]}>
+                  {info.hint}
+                </Text>
               </View>
             ))}
           </View>
         </View>
 
         {/* Notre Engagement Social */}
-        <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>{t("about.social.title")}</Text>
-          <Text style={[styles.sectionText, { color: colors.text + "90" }]}>{t("about.social.p1")}</Text>
+        <View
+          style={[
+            styles.card,
+            { backgroundColor: colors.card, borderColor: colors.border },
+          ]}
+        >
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>
+            {t("about.social.title")}
+          </Text>
+          <Text style={[styles.sectionText, { color: colors.text + "90" }]}>
+            {t("about.social.p1")}
+          </Text>
         </View>
 
         {/* Mission, Vision, Valeurs */}
-        <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>{t("about.mission.title")}</Text>
-          <Text style={[styles.sectionText, { color: colors.text + "90" }]}>{t("about.mission.p1")}</Text>
+        <View
+          style={[
+            styles.card,
+            { backgroundColor: colors.card, borderColor: colors.border },
+          ]}
+        >
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>
+            {t("about.mission.title")}
+          </Text>
+          <Text style={[styles.sectionText, { color: colors.text + "90" }]}>
+            {t("about.mission.p1")}
+          </Text>
         </View>
 
-        <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>{t("about.vision.title")}</Text>
-          <Text style={[styles.sectionText, { color: colors.text + "90" }]}>{t("about.vision.p1")}</Text>
+        <View
+          style={[
+            styles.card,
+            { backgroundColor: colors.card, borderColor: colors.border },
+          ]}
+        >
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>
+            {t("about.vision.title")}
+          </Text>
+          <Text style={[styles.sectionText, { color: colors.text + "90" }]}>
+            {t("about.vision.p1")}
+          </Text>
         </View>
 
-        <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>{t("about.values.title")}</Text>
-          <Text style={[styles.sectionText, { color: colors.text + "90" }]}>{t("about.values.p1")}</Text>
+        <View
+          style={[
+            styles.card,
+            { backgroundColor: colors.card, borderColor: colors.border },
+          ]}
+        >
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>
+            {t("about.values.title")}
+          </Text>
+          <Text style={[styles.sectionText, { color: colors.text + "90" }]}>
+            {t("about.values.p1")}
+          </Text>
         </View>
 
         {/* Nous contacter */}
-        <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>{t("about.contact.title")}</Text>
+        <View
+          style={[
+            styles.card,
+            { backgroundColor: colors.card, borderColor: colors.border },
+          ]}
+        >
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>
+            {t("about.contact.title")}
+          </Text>
           <View style={{ gap: 12 }}>
             {[
               {
@@ -231,12 +331,27 @@ const AboutAppScreen: React.FC = () => {
                   },
                 ]}
               >
-                <View style={[styles.contactIconWrap, { backgroundColor: colors.primary + "20" }]}>
-                  <Ionicons name={item.icon as any} size={20} color={colors.primary} />
+                <View
+                  style={[
+                    styles.contactIconWrap,
+                    { backgroundColor: colors.primary + "20" },
+                  ]}
+                >
+                  <Ionicons
+                    name={item.icon as any}
+                    size={20}
+                    color={colors.primary}
+                  />
                 </View>
                 <View style={{ flex: 1 }}>
-                  <Text style={[styles.contactTitle, { color: colors.text }]}>{item.title}</Text>
-                  <Text style={[styles.contactText, { color: colors.text + "80" }]}>{item.text}</Text>
+                  <Text style={[styles.contactTitle, { color: colors.text }]}>
+                    {item.title}
+                  </Text>
+                  <Text
+                    style={[styles.contactText, { color: colors.text + "80" }]}
+                  >
+                    {item.text}
+                  </Text>
                 </View>
               </Animated.View>
             ))}

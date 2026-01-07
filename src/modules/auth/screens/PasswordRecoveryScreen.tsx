@@ -127,11 +127,7 @@ const PasswordRecoveryScreen: React.FC = () => {
       <View style={[styles.header, { backgroundColor: colors.card }]}>
         <View style={styles.logoBox}>
           <Image
-            source={
-              logoError
-                ? require("../../../../assets/icon.png")
-                : { uri: "https://lapeyrie-emf.ga/logo.png" }
-            }
+            source={require("../../../../assets/cedaici-transparent.png")}
             style={styles.logo}
             resizeMode="contain"
             onError={() => setLogoError(true)}

@@ -122,9 +122,9 @@ const SplashScreen: React.FC = () => {
           }}
         >
           <Image
-            source={require("../../../../assets/splashscreen.jpg")}
+            source={require("../../../../assets/cedaici-transparent.png")}
             style={styles.image}
-            resizeMode="cover"
+            resizeMode="contain"
           />
           {/* Spinner overlay centré */}
           <View style={styles.spinnerOverlay} pointerEvents="none">
@@ -139,7 +139,7 @@ const SplashScreen: React.FC = () => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#FFFFFF" }, // ou bleu LA PEYRIE EMF
+  container: { flex: 1, backgroundColor: "#FFFFFF" }, // ou bleu CEDAICI SA
   center: {
     flex: 1,
   },
@@ -151,7 +151,8 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     alignItems: "center",
-    justifyContent: "center",
+    justifyContent: "flex-end",
+    paddingBottom: 100,
   },
   spinner: {
     width: 54,

@@ -8,6 +8,7 @@ import {
   secureDeleteItem,
 } from "../../shared/utils/secureStorage";
 import { on } from "../../shared/utils/eventBus";
+import { useVerifyTokenV2 } from "../../domain/auth/useVerifyTokenV2";
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -45,6 +46,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const [isConfigured, setIsConfigured] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const { verifyToken } = useVerifyTokenV2();
 
   useEffect(() => {
     checkAuthStatus();
@@ -63,9 +65,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const checkAuthStatus = async () => {
     try {
+      const configured = await secureGetItem("is_configured");
+
+      // Step 2: Verify Initial Token (V2 Requirement)
+      // "lorsque l’utilisateur s’est déjà connecte ... il faut toujour verifirer le authtoken"
+      if (configured === "true") {
+        const isValid = await verifyToken();
+        if (!isValid) {
+          console.log("Initial Token Invalid -> Hard Reset");
+          await secureDeleteItem("is_configured"); // Force hard logout logic
+          await logout();
+          return;
+        }
+      }
+
       const token = await secureGetItem("auth_token");
       const userData = await secureGetItem("user_data");
-      const configured = await secureGetItem("is_configured");
 
       if (token && userData) {
         setIsAuthenticated(true);
@@ -163,10 +178,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           "E_MAIL",
         ]) ||
         data?.email ||
+        (await secureGetItem("user_email")) ||
         "";
-      const name = `${fn} ${ln}`.trim() || data?.name || username;
-      const finalUser: User = { id: username, username, name, email } as User;
-      await secureSetItem("user_data", JSON.stringify(finalUser));
       const phone =
         pick(block, [
           "TELEPHONE",
@@ -175,7 +188,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           "MOBILE",
           "GSM",
           "CONTACT",
-        ]) || "";
+        ]) ||
+        (await secureGetItem("user_phone")) ||
+        "";
+
+      const name = `${fn} ${ln}`.trim() || data?.name || username;
+      const finalUser: User = {
+        id: username,
+        username,
+        name,
+        email,
+        phone,
+      } as User;
+      await secureSetItem("user_data", JSON.stringify(finalUser));
+
       const address =
         pick(block, [
           "ADRESSE",
@@ -254,7 +280,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           "analyse_derniere_transaction",
         ];
         for (const k of GUEST_CLEAR_KEYS) {
-          try { await secureDeleteItem(k); } catch {}
+          try {
+            await secureDeleteItem(k);
+          } catch {}
         }
         try {
           if (typeof window !== "undefined") {
@@ -273,7 +301,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       setUser(null);
 
       console.log("=== LOGOUT PERFORMED ===");
-      console.log(storedConfig === "true" ? "Soft Logout (Pin preserved)" : "Hard Logout (Data wiped)");
+      console.log(
+        storedConfig === "true"
+          ? "Soft Logout (Pin preserved)"
+          : "Hard Logout (Data wiped)"
+      );
     } catch (error) {
       console.error("Error during logout:", error);
     } finally {

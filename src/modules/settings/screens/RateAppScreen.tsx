@@ -89,7 +89,7 @@ const RateAppScreen: React.FC = () => {
         >
           <View style={[styles.logoCircle, { backgroundColor: colors.card, borderColor: colors.border }]}>
             <Image
-              source={{ uri: "https://lapeyrie-emf.ga/logo.png" }}
+              source={require("../../../../assets/cedaici-transparent.png")}
               style={styles.logo}
               resizeMode="contain"
             />

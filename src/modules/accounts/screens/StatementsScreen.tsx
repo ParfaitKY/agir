@@ -53,9 +53,9 @@ export const StatementsScreen: React.FC = () => {
 
   const generateHtml = async (item: { month: string; range: string }) => {
     const company = {
-      name: "LA PEYRIE EMF",
-      city: "Libreville, Gabon",
-      phone: "+241 XX XX XX XX",
+      name: "CEDAICI SA",
+      city: "Abidjan, Côte d'Ivoire",
+      phone: "+225 27 22 22 22 22",
     };
     const number = (await secureGetItem("user_account_number")) || "";
     const fn = (await secureGetItem("user_firstname")) || "";

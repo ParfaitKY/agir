@@ -71,7 +71,7 @@ const EmailSupportScreen: React.FC = () => {
       return;
     }
 
-    const to = "info@lapeyrie-emf.ga";
+    const to = "info.vallon@cedaici.com";
     const finalSubject =
       subject || `[${motifs.find((m) => m.key === motif)?.label}]`;
     const finalBody = body || t("support.email.body.default");

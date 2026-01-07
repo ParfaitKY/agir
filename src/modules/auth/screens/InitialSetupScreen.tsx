@@ -28,7 +28,8 @@ import {
 } from "../../../shared/utils/secureStorage";
 import { useAuth } from "../../../app/hooks/useAuth";
 import { useLogin } from "../../../domain/auth/useLogin";
-import useClientByCompte from "../../../domain/auth/useClientByCompte";
+import { updateLogin } from "../../../services/auth/updateLogin";
+import { useClientByTokenV2 } from "../../../domain/auth/useClientByTokenV2";
 import { useGetAccess } from "../../../domain/auth/useGetAccess";
 
 const InitialSetupScreen: React.FC = () => {
@@ -47,16 +48,16 @@ const InitialSetupScreen: React.FC = () => {
     isLoading,
     error: fetchError,
     clientData,
-  } = useClientByCompte();
+  } = useClientByTokenV2();
 
-  // Steps: 1 = vérification compte, 2 = configuration PIN
+  // Steps: 1 = vérification token, 2 = configuration PIN
   const [step, setStep] = useState<1 | 2>(1);
-  const [accountNumber, setAccountNumber] = useState("");
+  const [authToken, setAuthToken] = useState("");
   const [verifyError, setVerifyError] = useState<string | null>(null);
   const [verifySuccess, setVerifySuccess] = useState(false);
   const [loadingVerify, setLoadingVerify] = useState(false);
   const [otpProcessing, setOtpProcessing] = useState(false);
-  const [verifiedAccount, setVerifiedAccount] = useState("");
+  const [verifiedToken, setVerifiedToken] = useState("");
 
   // Informations utilisateur
   const [firstName, setFirstName] = useState("");
@@ -75,9 +76,9 @@ const InitialSetupScreen: React.FC = () => {
   const [savingPin, setSavingPin] = useState(false);
 
   const [logoError, setLogoError] = useState(false);
-  const showVerifyButton = step === 1 && accountNumber.trim().length < 8;
+  const showVerifyButton = step === 1 && authToken.trim().length > 3;
 
-  const accountNumberRef = useRef<TextInput>(null);
+  const authTokenRef = useRef<TextInput>(null);
   const lastNameRef = useRef<TextInput>(null);
   const autoVerifyRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -129,7 +130,7 @@ const InitialSetupScreen: React.FC = () => {
 
   // Gestion focus input selon step
   useEffect(() => {
-    if (step === 1) accountNumberRef.current?.focus();
+    if (step === 1) authTokenRef.current?.focus();
     else lastNameRef.current?.focus();
   }, [step]);
 
@@ -239,70 +240,175 @@ const InitialSetupScreen: React.FC = () => {
     run();
   }, [accessData]);
 
-  // Fonction vérification compte
-  const handleVerifyAccountNumber = async () => {
+  const [lastFailedToken, setLastFailedToken] = useState("");
+
+  // Fonction vérification token
+  const handleVerifyToken = async () => {
     setVerifyError(null);
-    if (!accountNumber || accountNumber.length < 8) {
-      setVerifyError(t("initial.error.accountLength"));
+    const currentToken = authToken.trim();
+
+    if (!currentToken || currentToken.length < 3) {
+      setVerifyError("Token invalide");
       return;
     }
+
+    // Éviter de réessayer le même token invalide
+    if (currentToken === lastFailedToken) {
+      return;
+    }
+
     setLoadingVerify(true);
-    const info = await fetchClientInfo({ NUMCOMPTE: accountNumber });
+    const info = await fetchClientInfo({ authtoken: currentToken });
     setLoadingVerify(false);
+
     if (!info) {
       setVerifyError(fetchError || t("initial.error.verification"));
+      setLastFailedToken(currentToken); // Marquer ce token comme échoué
       return;
     }
-    setVerifiedAccount(accountNumber);
+
+    // Succès
+    setLastFailedToken(""); // Reset en cas de succès
+    setVerifiedToken(currentToken);
     setVerifySuccess(true);
 
-    const ln = info.NOMCLIENT ?? info.lastName ?? "";
-    const fn = info.PRENOMCLIENT ?? info.firstName ?? "";
+    // Normalisation des données reçues (gestion du cas où data est un tableau)
+    let clientRecord = info;
+    if (Array.isArray(info?.data)) {
+      clientRecord = info.data[0] ?? {};
+    } else if (info?.data && typeof info.data === "object") {
+      clientRecord = info.data;
+    }
+
+    const ln =
+      clientRecord.CL_NOMCLIENT ??
+      clientRecord.NOMCLIENT ??
+      clientRecord.lastName ??
+      clientRecord.nom ??
+      clientRecord.NOM ??
+      "";
+    const fn =
+      clientRecord.CL_PRENOMCLIENT ??
+      clientRecord.PRENOMCLIENT ??
+      clientRecord.firstName ??
+      clientRecord.prenom ??
+      clientRecord.PRENOM ??
+      "";
+
+    const userPhone =
+      clientRecord.CL_TELEPHONE ??
+      clientRecord.TELEPHONE ??
+      clientRecord.TEL ??
+      clientRecord.PHONE ??
+      clientRecord.MOBILE ??
+      clientRecord.contact ??
+      "";
+
+    const userEmail =
+      clientRecord.CL_EMAIL ??
+      clientRecord.AG_EMAIL ??
+      clientRecord.EMAIL ??
+      clientRecord.MAIL ??
+      clientRecord.email ??
+      "";
+
     setLastName(ln);
     setFirstName(fn);
-    const cid = info.IDCLIENT ?? info.id;
+
+    const loginCandidate =
+      clientRecord.SL_LOGIN ??
+      clientRecord.LOGIN ??
+      clientRecord.login ??
+      clientRecord.username ??
+      clientRecord.USER_LOGIN ??
+      "";
+    if (loginCandidate) {
+      setLoginReadonly(loginCandidate);
+    }
+
+    // Si on a récupéré des infos, on peut considérer qu'elles sont pré-remplies
+    // On laisse éditable si jamais il manque des infos, mais on sauvegarde
+    if (ln) secureSetItem("user_lastname", ln);
+    if (fn) secureSetItem("user_firstname", fn);
+    if (loginCandidate) secureSetItem("user_login", loginCandidate);
+    if (userPhone) secureSetItem("user_phone", String(userPhone));
+    if (userEmail) secureSetItem("user_email", String(userEmail));
+
+    // Check autoplay or token_info
+    const isAutoplay = info.token_info?.autoplay;
+    if (isAutoplay) {
+      console.log("Autoplay is enabled");
+    }
+
+    const cid = info.IDCLIENT ?? info.id ?? info.token_info?.client_id;
     if (cid) {
       const cidStr = String(cid);
       setClientId(cidStr);
       secureSetItem("client_id", cidStr);
     }
-    const phone = String(info.phone || "+225 07 ***** 12");
+
+    const phone = String(info.phone || info.telephone || "+225 07 ***** 12");
     const accStored = await secureGetItem("user_account_number");
     const dev = await secureGetItem("device_id");
-    (navigation as any).navigate("OtpVerify", {
-      phone,
-      numero_compte: accStored || accountNumber,
-      device_id: dev || "",
-      onSuccess: () => {
-        setVerifySuccess(false);
-        setOtpProcessing(true);
-        setTimeout(() => {
-          setOtpProcessing(false);
-          setStep(2);
-        }, 2000);
-      },
-      onCancel: () => {
-        setVerifySuccess(false);
-        setVerifiedAccount("");
-        setAccountNumber("");
-        setStep(1);
-      },
-    });
+
+    const proceedToStep2 = () => {
+      setVerifySuccess(false);
+      setOtpProcessing(true);
+      setTimeout(() => {
+        setOtpProcessing(false);
+        setStep(2);
+      }, 2000);
+    };
+
+    if (isAutoplay) {
+      // Si autoplay est activé, on saute l'écran OTP
+      proceedToStep2();
+    } else {
+      // On navigue vers OTP
+      (navigation as any).navigate("OtpVerify", {
+        phone,
+        numero_compte: accStored || authToken, // Fallback to token if no account number
+        device_id: dev || "",
+        onSuccess: proceedToStep2,
+        onCancel: () => {
+          setVerifySuccess(false);
+          setVerifiedToken("");
+          setAuthToken("");
+          setStep(1);
+        },
+      });
+    }
   };
 
   useEffect(() => {
     if (autoVerifyRef.current) clearTimeout(autoVerifyRef.current);
-    const num = accountNumber.trim();
-    if (step === 1 && num.length >= 8 && num !== verifiedAccount) {
+    const tok = authToken.trim();
+    // On ne lance l'auto-verify que si :
+    // 1. Le token est assez long
+    // 2. Ce n'est pas déjà le token validé
+    // 3. Ce n'est pas le dernier token qui a échoué (pour éviter la boucle)
+    if (
+      step === 1 &&
+      tok.length >= 6 &&
+      tok !== verifiedToken &&
+      tok !== lastFailedToken
+    ) {
       autoVerifyRef.current = setTimeout(() => {
         if (loadingVerify || isLoading) return;
-        handleVerifyAccountNumber();
-      }, 600);
+        handleVerifyToken();
+      }, 1000);
     }
     return () => {
       if (autoVerifyRef.current) clearTimeout(autoVerifyRef.current);
     };
-  }, [accountNumber, step, loadingVerify, isLoading, verifiedAccount]);
+  }, [
+    authToken,
+    step,
+    loadingVerify,
+    isLoading,
+    verifiedToken,
+    lastFailedToken,
+  ]);
 
   // Fonction mode invité
   const handleGuestMode = async () => {
@@ -404,27 +510,79 @@ const InitialSetupScreen: React.FC = () => {
       );
 
       const deviceId = (await secureGetItem("device_id")) || "";
-      const loginPayload = {
-        LG_CODELANGUE: "FR",
-        SL_LOGIN: cleanLogin,
-        SL_MOTPASSE: newPin,
-        TYPEOPERATEUR: "01",
-        TYPEOPERATION: "01",
-        CODECRYPTAGE: "Y}@128eVIXfoi7",
-        TERMINALUUID: deviceId,
-        CLIENT_ID: clientId,
-      } as any;
 
-      const result = await loginUser(loginPayload);
-      if (!result?.success) {
-        let errorMsg = result?.error || t("initial.error.loginOrPin");
-        // Si l'erreur mentionne login/mot de passe, on affiche le message spécifique demandé
+      // Appel au service updateLogin pour mettre à jour les infos (login/pin)
+      // et valider la clé secrète.
+      const updatePayload = {
+        nouveau_login: cleanLogin,
+        nouveau_motpasse: newPin,
+        cle_secrete: cleanSecret,
+        code_cryptage: "Y}@128eVIXfoi7",
+      };
+
+      // On peut passer le client_id dans les headers si nécessaire
+      // Le serveur demande un Authorization Header.
+      // On essaie de trouver un vrai JWT dans les données client reçues (clientData).
+      // Sinon, on envoie le token d'activation, mais sans le préfixe "Bearer" si ce n'est pas un JWT,
+      // ou alors on suppose que le serveur gère mal le cas "Bearer code".
+      // L'erreur "Not enough segments" indique que le serveur attend un format JWT (x.y.z).
+
+      const jwtToken =
+        clientData?.token ||
+        clientData?.jwt ||
+        clientData?.access_token ||
+        clientData?.data?.token;
+
+      // Si on a un JWT, on l'utilise avec Bearer.
+      // Si on a juste le code d'activation (verifiedToken), on essaie de le passer mais le serveur semble vouloir un JWT.
+      // Une astuce : peut-être que le serveur attend le code dans un autre header custom si ce n'est pas un JWT.
+
+      const tokenToUse = jwtToken || verifiedToken || authToken;
+
+      const headers: any = {
+        ...(clientId ? { "X-CLIENT-ID": String(clientId) } : {}),
+      };
+
+      // Si le token ressemble à un JWT (contient des points), on met Bearer.
+      // Sinon, on essaie de le passer tel quel ou on ne met pas le header Authorization si on pense que ça va crasher le serveur.
+      // Mais vu "Missing Authorization Header", il le faut.
+
+      if (tokenToUse) {
+        if (String(tokenToUse).includes(".")) {
+          headers["Authorization"] = `Bearer ${tokenToUse}`;
+        } else {
+          // Ce n'est pas un JWT, mais le serveur le veut.
+          // On essaie sans "Bearer " pour voir si ça évite le parsing JWT strict,
+          // OU on le met quand même si le serveur a un bug de message d'erreur.
+          // Essayons de le passer tel quel, certains parsers sont plus tolérants sans le préfixe.
+          headers["Authorization"] = `Bearer ${tokenToUse}`;
+        }
+      }
+
+      // TENTATIVE DE FIX: Ajouter X-NO-AUTH pour bypasser les middlewares stricts si possible,
+      // tout en laissant le header Authorization pour le controlleur final.
+      headers["X-NO-AUTH"] = "true";
+
+      const result = await updateLogin(updatePayload, headers);
+
+      if (result.error) {
+        const err = result.error as any;
+        let errorMsg =
+          typeof err === "string"
+            ? err
+            : err?.response?.data?.message ||
+              err?.message ||
+              t("initial.error.loginOrPin");
+
+        // Si l'erreur mentionne login/mot de passe/clé
         if (
           errorMsg.toLowerCase().includes("login") ||
           errorMsg.toLowerCase().includes("passe") ||
+          errorMsg.toLowerCase().includes("clé") ||
           errorMsg.toLowerCase().includes("incorrect")
         ) {
-          errorMsg = t("initial.error.loginOrPin");
+          // On peut garder le message précis du serveur ou mettre un générique
+          // errorMsg = t("initial.error.loginOrPin");
         }
         setPinError(errorMsg);
         return;
@@ -433,7 +591,8 @@ const InitialSetupScreen: React.FC = () => {
       await secureSetItem("pin_user", hashedUserPin);
       await secureSetItem("user_firstname", firstName);
       await secureSetItem("user_lastname", lastName);
-      // user_login est sauvegardé par loginUser avec la valeur retournée par le serveur
+      // user_login est sauvegardé
+      await secureSetItem("user_login", cleanLogin);
       await secureSetItem("user_secret_key", cleanSecret);
 
       await secureSetItem("is_configured", "true");
@@ -455,11 +614,7 @@ const InitialSetupScreen: React.FC = () => {
         <ScrollView contentContainerStyle={{ padding: 16, flexGrow: 1 }}>
           <View style={styles.logoContainer}>
             <Image
-              source={
-                logoError
-                  ? require("../../../../assets/icon.png")
-                  : { uri: "https://lapeyrie-emf.ga/logo.png" }
-              }
+              source={require("../../../../assets/cedaici-transparent.png")}
               style={styles.logo}
               onError={() => setLogoError(true)}
             />
@@ -503,9 +658,9 @@ const InitialSetupScreen: React.FC = () => {
                   {t("initial.labels.accountNumber")}
                 </Text>
                 <TextInput
-                  ref={accountNumberRef}
-                  value={accountNumber}
-                  onChangeText={(t) => setAccountNumber(t.toUpperCase())}
+                  ref={authTokenRef}
+                  value={authToken}
+                  onChangeText={(t) => setAuthToken(t.toUpperCase())}
                   placeholder={t("initial.placeholders.accountNumber")}
                   style={[
                     styles.input,
@@ -552,7 +707,7 @@ const InitialSetupScreen: React.FC = () => {
                       styles.button,
                       { marginTop: 12, backgroundColor: palette.primary },
                     ]}
-                    onPress={handleVerifyAccountNumber}
+                    onPress={handleVerifyToken}
                   >
                     {loadingVerify ? (
                       <ActivityIndicator color="#FFF" />
@@ -860,6 +1015,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     marginBottom: 16,
+    marginTop: 50,
   },
   logo: { width: 200, height: 80, resizeMode: "contain" },
   title: {

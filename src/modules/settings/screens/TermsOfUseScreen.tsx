@@ -34,7 +34,7 @@ const TermsOfUseScreen: React.FC = () => {
         {/* Hero */}
         <View style={styles.hero}>
           <Image
-            source={{ uri: "https://lapeyrie-emf.ga/logo.png" }}
+            source={require("../../../../assets/cedaici-transparent.png")}
             style={styles.heroLogo}
             resizeMode="contain"
           />

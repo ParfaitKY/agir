@@ -89,27 +89,37 @@ const PrivacyPolicyScreen: React.FC = () => {
       ]}
     >
       <View style={styles.cardHeader}>
-        <View style={[styles.iconWrap, { backgroundColor: colors.primary + "20" }]}>
+        <View
+          style={[styles.iconWrap, { backgroundColor: colors.primary + "20" }]}
+        >
           <Ionicons name={icon as any} size={18} color={colors.primary} />
         </View>
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>{title}</Text>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>
+          {title}
+        </Text>
       </View>
       <View>{children}</View>
     </Animated.View>
   );
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+    <SafeAreaView
+      style={[styles.container, { backgroundColor: colors.background }]}
+    >
       <ScrollView contentContainerStyle={styles.content}>
         {/* Header */}
         <View style={styles.hero}>
           <Animated.Image
-            source={{ uri: "https://lapeyrie-emf.ga/logo.png" }}
+            source={require("../../../../assets/cedaici-transparent.png")}
             style={[styles.heroLogo, { transform: [{ scale: logoScale }] }]}
             resizeMode="contain"
           />
-          <Text style={[styles.heroTitle, { color: colors.text }]}>{t("privacy.hero.title")}</Text>
-          <Text style={[styles.heroSubtitle, { color: colors.text + "80" }]}>{t("privacy.hero.subtitle")}</Text>
+          <Text style={[styles.heroTitle, { color: colors.text }]}>
+            {t("privacy.hero.title")}
+          </Text>
+          <Text style={[styles.heroSubtitle, { color: colors.text + "80" }]}>
+            {t("privacy.hero.subtitle")}
+          </Text>
         </View>
 
         {/* Données collectées */}
@@ -118,7 +128,9 @@ const PrivacyPolicyScreen: React.FC = () => {
           icon="document-text-outline"
           title={t("privacy.data.title")}
         >
-          <Text style={[styles.sectionText, { color: colors.text + "90" }]}>{t("privacy.data.intro")}</Text>
+          <Text style={[styles.sectionText, { color: colors.text + "90" }]}>
+            {t("privacy.data.intro")}
+          </Text>
           <View style={styles.bullets}>
             {[
               "privacy.data.item1",
@@ -128,8 +140,14 @@ const PrivacyPolicyScreen: React.FC = () => {
               "privacy.data.item5",
             ].map((key, i) => (
               <View key={i} style={styles.bulletRow}>
-                <Text style={[styles.bullet, { color: colors.text + "60" }]}>•</Text>
-                <Text style={[styles.sectionText, { color: colors.text + "90" }]}>{t(key)}</Text>
+                <Text style={[styles.bullet, { color: colors.text + "60" }]}>
+                  •
+                </Text>
+                <Text
+                  style={[styles.sectionText, { color: colors.text + "90" }]}
+                >
+                  {t(key)}
+                </Text>
               </View>
             ))}
           </View>
@@ -141,7 +159,9 @@ const PrivacyPolicyScreen: React.FC = () => {
           icon="settings-outline"
           title={t("privacy.use.title")}
         >
-          <Text style={[styles.sectionText, { color: colors.text + "90" }]}>{t("privacy.use.intro")}</Text>
+          <Text style={[styles.sectionText, { color: colors.text + "90" }]}>
+            {t("privacy.use.intro")}
+          </Text>
           <View style={styles.bullets}>
             {[
               "privacy.use.item1",
@@ -151,8 +171,14 @@ const PrivacyPolicyScreen: React.FC = () => {
               "privacy.use.item5",
             ].map((key, i) => (
               <View key={i} style={styles.bulletRow}>
-                <Text style={[styles.bullet, { color: colors.text + "60" }]}>•</Text>
-                <Text style={[styles.sectionText, { color: colors.text + "90" }]}>{t(key)}</Text>
+                <Text style={[styles.bullet, { color: colors.text + "60" }]}>
+                  •
+                </Text>
+                <Text
+                  style={[styles.sectionText, { color: colors.text + "90" }]}
+                >
+                  {t(key)}
+                </Text>
               </View>
             ))}
           </View>
@@ -164,7 +190,9 @@ const PrivacyPolicyScreen: React.FC = () => {
           icon="share-social-outline"
           title={t("privacy.share.title")}
         >
-          <Text style={[styles.sectionText, { color: colors.text + "90" }]}>{t("privacy.share.p1")}</Text>
+          <Text style={[styles.sectionText, { color: colors.text + "90" }]}>
+            {t("privacy.share.p1")}
+          </Text>
         </SectionCard>
 
         {/* Sécurité des données */}
@@ -173,7 +201,9 @@ const PrivacyPolicyScreen: React.FC = () => {
           icon="lock-closed-outline"
           title={t("privacy.security.title")}
         >
-          <Text style={[styles.sectionText, { color: colors.text + "90" }]}>{t("privacy.security.p1")}</Text>
+          <Text style={[styles.sectionText, { color: colors.text + "90" }]}>
+            {t("privacy.security.p1")}
+          </Text>
         </SectionCard>
 
         {/* Vos droits */}
@@ -192,12 +222,23 @@ const PrivacyPolicyScreen: React.FC = () => {
               "privacy.rights.item6",
             ].map((key, i) => (
               <View key={i} style={styles.bulletRow}>
-                <Text style={[styles.bullet, { color: colors.text + "60" }]}>•</Text>
-                <Text style={[styles.sectionText, { color: colors.text + "90" }]}>{t(key)}</Text>
+                <Text style={[styles.bullet, { color: colors.text + "60" }]}>
+                  •
+                </Text>
+                <Text
+                  style={[styles.sectionText, { color: colors.text + "90" }]}
+                >
+                  {t(key)}
+                </Text>
               </View>
             ))}
           </View>
-          <Text style={[styles.sectionText, { marginTop: 6, color: colors.text + "90" }]}>
+          <Text
+            style={[
+              styles.sectionText,
+              { marginTop: 6, color: colors.text + "90" },
+            ]}
+          >
             {t("privacy.rights.p1")}
           </Text>
         </SectionCard>
@@ -208,7 +249,9 @@ const PrivacyPolicyScreen: React.FC = () => {
           icon="time-outline"
           title={t("privacy.retention.title")}
         >
-          <Text style={[styles.sectionText, { color: colors.text + "90" }]}>{t("privacy.retention.p1")}</Text>
+          <Text style={[styles.sectionText, { color: colors.text + "90" }]}>
+            {t("privacy.retention.p1")}
+          </Text>
         </SectionCard>
 
         {/* Cookies */}
@@ -217,7 +260,9 @@ const PrivacyPolicyScreen: React.FC = () => {
           icon="browsers-outline"
           title={t("privacy.cookies.title")}
         >
-          <Text style={[styles.sectionText, { color: colors.text + "90" }]}>{t("privacy.cookies.p1")}</Text>
+          <Text style={[styles.sectionText, { color: colors.text + "90" }]}>
+            {t("privacy.cookies.p1")}
+          </Text>
         </SectionCard>
 
         {/* Modifications de la politique */}
@@ -226,7 +271,9 @@ const PrivacyPolicyScreen: React.FC = () => {
           icon="refresh-outline"
           title={t("privacy.changes.title")}
         >
-          <Text style={[styles.sectionText, { color: colors.text + "90" }]}>{t("privacy.changes.p1")}</Text>
+          <Text style={[styles.sectionText, { color: colors.text + "90" }]}>
+            {t("privacy.changes.p1")}
+          </Text>
         </SectionCard>
 
         {/* Contact et réclamations */}
@@ -235,9 +282,15 @@ const PrivacyPolicyScreen: React.FC = () => {
           icon="mail-outline"
           title={t("privacy.contact.title")}
         >
-          <Text style={[styles.sectionText, { color: colors.text + "90" }]}>{t("privacy.contact.email")}</Text>
-          <Text style={[styles.sectionText, { color: colors.text + "90" }]}>{t("privacy.contact.phone")}</Text>
-          <Text style={[styles.sectionText, { color: colors.text + "90" }]}>{t("privacy.contact.address")}</Text>
+          <Text style={[styles.sectionText, { color: colors.text + "90" }]}>
+            {t("privacy.contact.email")}
+          </Text>
+          <Text style={[styles.sectionText, { color: colors.text + "90" }]}>
+            {t("privacy.contact.phone")}
+          </Text>
+          <Text style={[styles.sectionText, { color: colors.text + "90" }]}>
+            {t("privacy.contact.address")}
+          </Text>
         </SectionCard>
       </ScrollView>
     </SafeAreaView>
