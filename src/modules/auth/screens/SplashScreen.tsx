@@ -6,6 +6,7 @@ import {
   Animated,
   Image,
   Easing,
+  Text,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { useAuth } from "../../../app/hooks/useAuth";
@@ -126,6 +127,9 @@ const SplashScreen: React.FC = () => {
             style={styles.image}
             resizeMode="contain"
           />
+          <View style={styles.textContainer}>
+            <Text style={styles.appName}>MyCedaici</Text>
+          </View>
           {/* Spinner overlay centré */}
           <View style={styles.spinnerOverlay} pointerEvents="none">
             <Animated.View
@@ -139,7 +143,7 @@ const SplashScreen: React.FC = () => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#FFFFFF" }, // ou bleu CEDAICI SA
+  container: { flex: 1, backgroundColor: "#0B1220" }, // ou bleu CEDAICI SA
   center: {
     flex: 1,
   },

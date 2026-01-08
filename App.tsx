@@ -14,7 +14,6 @@ export default function App() {
     <SafeAreaProvider>
       <AppProviders>
         <StatusBar style="auto" />
-
         <AppNavigator />
       </AppProviders>
     </SafeAreaProvider>

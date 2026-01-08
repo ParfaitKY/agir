@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, Image, ViewProps, TextProps, ImageProps, TextStyle } from "react-native";
+import { View, Text as RNText, Image, ViewProps, TextProps, ImageProps, TextStyle } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../styles/ThemeProvider";
 
@@ -29,7 +29,7 @@ export const ThemedText: React.FC<TextProps & { variant?: "title" | "subtitle" |
       : variant === "muted"
       ? { opacity: 0.7 }
       : undefined;
-  return <Text style={[base, variantStyle, style]} {...props} />;
+  return <RNText style={[base, variantStyle, style]} {...props} />;
 };
 
 export const ThemedIcon: React.FC<{

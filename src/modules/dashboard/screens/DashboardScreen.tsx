@@ -655,7 +655,7 @@ export const DashboardScreen: React.FC = () => {
                         solde?.montant ??
                         soldeGlobalFromStats ??
                         0
-                    )} XAF`}
+                    )} XOF`}
               </Text>
               <View style={styles.subInfo}>
                 <Text
@@ -1085,28 +1085,8 @@ export const DashboardScreen: React.FC = () => {
               {!loadingRecent && !recentError && (
                 <View>
                   {(showAllTransactions
-                    ? recentOps.filter((op) => {
-                        const label = String(op.MC_LIBELLEOPERATION || "")
-                          .normalize("NFD")
-                          .replace(/[\u0300-\u036f]/g, "")
-                          .toUpperCase();
-                        return (
-                          label.includes("VIREMENT") ||
-                          label.includes("DECLASSEMENT")
-                        );
-                      })
-                    : recentOps
-                        .filter((op) => {
-                          const label = String(op.MC_LIBELLEOPERATION || "")
-                            .normalize("NFD")
-                            .replace(/[\u0300-\u036f]/g, "")
-                            .toUpperCase();
-                          return (
-                            label.includes("VIREMENT") ||
-                            label.includes("DECLASSEMENT")
-                          );
-                        })
-                        .slice(0, 3)
+                    ? recentOps // Si showAllTransactions est vrai, on affiche TOUT
+                    : recentOps.slice(0, 3) // Sinon on limite à 3
                   ).map((op, i) => {
                     const type = String(op.TypeOperation || "").toUpperCase();
                     const isCredit = type === "CREDIT";
@@ -1157,25 +1137,7 @@ export const DashboardScreen: React.FC = () => {
                       compact
                       style={{ paddingVertical: 20 }}
                     />
-                  ) : (
-                    recentOps.filter((op) => {
-                      const label = String(op.MC_LIBELLEOPERATION || "")
-                        .normalize("NFD")
-                        .replace(/[\u0300-\u036f]/g, "")
-                        .toUpperCase();
-                      return (
-                        label.includes("VIREMENT") ||
-                        label.includes("DECLASSEMENT")
-                      );
-                    }).length === 0 && (
-                      <EmptyState
-                        type="empty"
-                        message={t("transactions.empty.none")}
-                        compact
-                        style={{ paddingVertical: 20 }}
-                      />
-                    )
-                  )}
+                  ) : null}
                 </View>
               )}
             </View>

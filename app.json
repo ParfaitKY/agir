@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "ZenithMobile",
+    "name": "MyCedaici",
     "slug": "ZenithMobile",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -8,9 +8,9 @@
     "userInterfaceStyle": "light",
     "newArchEnabled": false,
     "splash": {
-      "image": "./assets/splash-cedaici.jpg",
+      "image": "./assets/cedaici-transparent.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#0B1220"
     },
     "ios": {
       "supportsTablet": true

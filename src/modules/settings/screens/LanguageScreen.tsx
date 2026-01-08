@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text as RNText, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useI18n } from '../../../app/providers/I18nProvider';
 import { useTheme } from '../../../shared/styles/ThemeProvider';
@@ -18,8 +18,8 @@ export const LanguageScreen: React.FC = () => {
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         <View style={[styles.headerCard, { backgroundColor: colors.card, shadowColor: colors.text + '20' }]}>
-          <Text style={[styles.headerTitle, { color: colors.text }]}>{t('language.title')}</Text>
-          <Text style={[styles.headerSubtitle, { color: colors.text + '80' }]}>Select Language | 选择语言</Text>
+          <RNText style={[styles.headerTitle, { color: colors.text }]}>{t('language.title')}</RNText>
+          <RNText style={[styles.headerSubtitle, { color: colors.text + '80' }]}>Select Language | 选择语言</RNText>
         </View>
 
         <View style={styles.list}>
@@ -37,10 +37,10 @@ export const LanguageScreen: React.FC = () => {
                 onPress={() => setLanguage(code)}
               >
                 <View style={styles.langLeft}>
-                  <Text style={styles.flag}>{flag}</Text>
+                  <RNText style={styles.flag}>{flag}</RNText>
                   <View>
-                    <Text style={[styles.langLabel, { color: colors.text }]}>{label}</Text>
-                    <Text style={[styles.langSub, { color: colors.text + '80' }]}>{subtitle}</Text>
+                    <RNText style={[styles.langLabel, { color: colors.text }]}>{label}</RNText>
+                    <RNText style={[styles.langSub, { color: colors.text + '80' }]}>{subtitle}</RNText>
                   </View>
                 </View>
                 {selected ? (
@@ -58,11 +58,11 @@ export const LanguageScreen: React.FC = () => {
         <View style={[styles.noteBox, { backgroundColor: colors.primary + '20', borderColor: colors.primary + '40' }]}>
           <View style={styles.noteHeader}>
             <Ionicons name="information" size={16} color={colors.primary} />
-            <Text style={[styles.noteHeaderText, { color: colors.primary }]}>{t('language.note.title')}</Text>
+            <RNText style={[styles.noteHeaderText, { color: colors.primary }]}>{t('language.note.title')}</RNText>
           </View>
-          <Text style={[styles.noteText, { color: colors.primary }]}>{t('language.note.title')}</Text>
-          <Text style={[styles.noteText, { color: colors.primary }]}>The language will be applied to the entire app.</Text>
-          <Text style={[styles.noteText, { color: colors.primary }]}>语言将应用于整个应用程序。</Text>
+          <RNText style={[styles.noteText, { color: colors.primary }]}>{t('language.note.title')}</RNText>
+          <RNText style={[styles.noteText, { color: colors.primary }]}>The language will be applied to the entire app.</RNText>
+          <RNText style={[styles.noteText, { color: colors.primary }]}>语言将应用于整个应用程序。</RNText>
         </View>
       </ScrollView>
     </SafeAreaView>

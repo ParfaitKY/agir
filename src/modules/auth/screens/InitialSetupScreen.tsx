@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import {
   View,
-  Text,
+  Text as RNText,
   TextInput,
   StyleSheet,
   TouchableOpacity,
@@ -389,7 +389,7 @@ const InitialSetupScreen: React.FC = () => {
     // 3. Ce n'est pas le dernier token qui a échoué (pour éviter la boucle)
     if (
       step === 1 &&
-      tok.length >= 6 &&
+      tok.length >= 7 &&
       tok !== verifiedToken &&
       tok !== lastFailedToken
     ) {
@@ -620,9 +620,9 @@ const InitialSetupScreen: React.FC = () => {
             />
           </View>
 
-          <Text style={[styles.title, { color: palette.textMain }]}>
+          <RNText style={[styles.title, { color: palette.textMain }]}>
             {step === 1 ? t("initial.title.verify") : t("initial.title.pin")}
-          </Text>
+          </RNText>
 
           <Animated.View
             style={{
@@ -642,7 +642,7 @@ const InitialSetupScreen: React.FC = () => {
                 ]}
               >
                 <ActivityIndicator size="large" color={palette.primary} />
-                <Text
+                <RNText
                   style={{
                     marginTop: 16,
                     color: palette.textMain,
@@ -650,13 +650,13 @@ const InitialSetupScreen: React.FC = () => {
                   }}
                 >
                   {t("initial.status.validating")}
-                </Text>
+                </RNText>
               </View>
             ) : step === 1 ? (
               <View style={[styles.card, { backgroundColor: palette.card }]}>
-                <Text style={[styles.label, { color: palette.textMain }]}>
+                <RNText style={[styles.label, { color: palette.textMain }]}>
                   {t("initial.labels.accountNumber")}
-                </Text>
+                </RNText>
                 <TextInput
                   ref={authTokenRef}
                   value={authToken}
@@ -683,14 +683,14 @@ const InitialSetupScreen: React.FC = () => {
                     }}
                   >
                     <ActivityIndicator color={palette.primary} />
-                    <Text style={{ marginLeft: 8, color: palette.textSub }}>
+                    <RNText style={{ marginLeft: 8, color: palette.textSub }}>
                       {t("initial.status.loadingAccount")}
-                    </Text>
+                    </RNText>
                   </View>
                 )}
 
                 {verifyError && (
-                  <Text
+                  <RNText
                     style={[
                       styles.error,
                       isDark
@@ -699,7 +699,7 @@ const InitialSetupScreen: React.FC = () => {
                     ]}
                   >
                     {verifyError}
-                  </Text>
+                  </RNText>
                 )}
                 {showVerifyButton && (
                   <TouchableOpacity
@@ -712,9 +712,9 @@ const InitialSetupScreen: React.FC = () => {
                     {loadingVerify ? (
                       <ActivityIndicator color="#FFF" />
                     ) : (
-                      <Text style={styles.buttonText}>
+                      <RNText style={styles.buttonText}>
                         {t("initial.actions.verify")}
-                      </Text>
+                      </RNText>
                     )}
                   </TouchableOpacity>
                 )}
@@ -729,21 +729,21 @@ const InitialSetupScreen: React.FC = () => {
                   ]}
                   onPress={handleGuestMode}
                 >
-                  <Text
+                  <RNText
                     style={[
                       styles.secondaryButtonText,
                       { color: isDark ? "#E5E7EB" : "#0F172A" },
                     ]}
                   >
                     {t("initial.guestMode")}
-                  </Text>
+                  </RNText>
                 </TouchableOpacity>
               </View>
             ) : (
               <View style={[styles.card, { backgroundColor: palette.card }]}>
-                <Text style={[styles.label, { color: palette.textMain }]}>
+                <RNText style={[styles.label, { color: palette.textMain }]}>
                   {t("initial.labels.lastName")}
-                </Text>
+                </RNText>
                 <TextInput
                   ref={lastNameRef}
                   value={lastName}
@@ -759,9 +759,9 @@ const InitialSetupScreen: React.FC = () => {
                   placeholderTextColor={palette.textSub}
                   editable={!hasPrefilledParams}
                 />
-                <Text style={[styles.label, { color: palette.textMain }]}>
+                <RNText style={[styles.label, { color: palette.textMain }]}>
                   {t("initial.labels.firstName")}
-                </Text>
+                </RNText>
                 <TextInput
                   value={firstName}
                   onChangeText={setFirstName}
@@ -776,9 +776,9 @@ const InitialSetupScreen: React.FC = () => {
                   placeholderTextColor={palette.textSub}
                   editable={!hasPrefilledParams}
                 />
-                <Text style={[styles.label, { color: palette.textMain }]}>
+                <RNText style={[styles.label, { color: palette.textMain }]}>
                   {t("initial.labels.login")}
-                </Text>
+                </RNText>
                 <TextInput
                   value={loginReadonly}
                   onChangeText={setLoginReadonly}
@@ -795,9 +795,9 @@ const InitialSetupScreen: React.FC = () => {
                   editable={!hasPrefilledParams}
                 />
 
-                <Text style={[styles.label, { color: palette.textMain }]}>
+                <RNText style={[styles.label, { color: palette.textMain }]}>
                   {t("initial.labels.pin")}
-                </Text>
+                </RNText>
                 <View style={styles.pinHintRow}>
                   {Array.from({ length: 5 }).map((_, i) => (
                     <View
@@ -818,14 +818,14 @@ const InitialSetupScreen: React.FC = () => {
                     />
                   )}
                 </View>
-                <Text
+                <RNText
                   style={[
                     styles.hintText,
                     { color: palette.textMain, fontWeight: "600" },
                   ]}
                 >
                   {t("initial.hint.min5")}
-                </Text>
+                </RNText>
                 <View style={styles.inputContainer}>
                   <TextInput
                     value={newPin}
@@ -858,9 +858,9 @@ const InitialSetupScreen: React.FC = () => {
                   </TouchableOpacity>
                 </View>
 
-                <Text style={[styles.label, { color: palette.textMain }]}>
+                <RNText style={[styles.label, { color: palette.textMain }]}>
                   {t("initial.labels.pinConfirm")}
-                </Text>
+                </RNText>
                 <View style={styles.inputContainer}>
                   <TextInput
                     value={confirmPin}
@@ -895,17 +895,17 @@ const InitialSetupScreen: React.FC = () => {
                   </TouchableOpacity>
                 </View>
 
-                <Text style={[styles.label, { color: palette.textMain }]}>
+                <RNText style={[styles.label, { color: palette.textMain }]}>
                   Clé secrète
-                </Text>
-                <Text
+                </RNText>
+                <RNText
                   style={[
                     styles.hintText,
                     { color: palette.textMain, fontWeight: "600" },
                   ]}
                 >
                   3 caractères minimum
-                </Text>
+                </RNText>
                 <View style={styles.inputContainer}>
                   <TextInput
                     value={secretKey}
@@ -936,7 +936,7 @@ const InitialSetupScreen: React.FC = () => {
                 </View>
 
                 {pinError && (
-                  <Text
+                  <RNText
                     style={[
                       styles.error,
                       isDark
@@ -945,7 +945,7 @@ const InitialSetupScreen: React.FC = () => {
                     ]}
                   >
                     {pinError}
-                  </Text>
+                  </RNText>
                 )}
 
                 <TouchableOpacity
@@ -958,7 +958,7 @@ const InitialSetupScreen: React.FC = () => {
                   {savingPin ? (
                     <ActivityIndicator color="#FFF" />
                   ) : (
-                    <Text style={styles.buttonText}>Enregistrer</Text>
+                    <RNText style={styles.buttonText}>Enregistrer</RNText>
                   )}
                 </TouchableOpacity>
               </View>

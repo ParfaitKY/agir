@@ -45,7 +45,25 @@ const ProfileScreen: React.FC = () => {
     const login =
       (await secureGetItem("user_login")) || (user as any)?.username || "";
     const email = (user as any)?.email || "";
-    let phone = (user as any)?.phone || (await secureGetItem("user_phone")) || "";
+    let phone =
+      (user as any)?.phone || (await secureGetItem("user_phone")) || "";
+
+    // Tentative de récupération depuis user_data si user.phone est vide
+    if (!phone) {
+      try {
+        const ud = await secureGetItem("user_data");
+        if (ud) {
+          const parsed = JSON.parse(ud);
+          phone =
+            parsed.phone ||
+            parsed.PHONE ||
+            parsed.telephone ||
+            parsed.TELEPHONE ||
+            "";
+        }
+      } catch {}
+    }
+
     let address = (await secureGetItem("user_address")) || "";
     if (!phone || !address) {
       const access = await secureGetItem("access_data");
@@ -76,6 +94,7 @@ const ProfileScreen: React.FC = () => {
         phone =
           phone ||
           pick(block, [
+            "CL_TELEPHONE", // Ajouté en premier car le plus probable
             "CL_TELEPHONECLIENT",
             "CONTACTCLIENT",
             "TELEPHONE",
