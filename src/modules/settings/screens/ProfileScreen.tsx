@@ -20,6 +20,7 @@ import { useI18n } from "../../../app/providers/I18nProvider";
 import { useTheme, useThemeMode } from "../../../shared/styles/ThemeProvider";
 import { secureGetItem } from "../../../shared/utils/secureStorage";
 import { getDerniereTransaction } from "../../../services/compte/derniereTransaction";
+import { dernieresOperationsClient } from "../../../services/compte/dernieresOperationsClient";
 import useClientByCompte from "../../../domain/auth/useClientByCompte";
 
 const ProfileScreen: React.FC = () => {
@@ -33,6 +34,173 @@ const ProfileScreen: React.FC = () => {
   const [txVisible, setTxVisible] = useState(false);
   const [dateInfoVisible, setDateInfoVisible] = useState(false);
   const [displayName, setDisplayName] = useState("");
+  const [startDate, setStartDate] = useState<Date | null>(null);
+  const [endDate, setEndDate] = useState<Date | null>(null);
+  const [showDatePicker, setShowDatePicker] = useState<"start" | "end" | null>(
+    null
+  );
+
+  const CustomCalendar = ({
+    onSelect,
+    initialDate,
+    onClose,
+  }: {
+    onSelect: (date: Date) => void;
+    initialDate?: Date;
+    onClose: () => void;
+  }) => {
+    const [viewDate, setViewDate] = useState(initialDate || new Date());
+    const [selected, setSelected] = useState<Date | null>(initialDate || null);
+
+    const getDaysInMonth = (year: number, month: number) => {
+      return new Date(year, month + 1, 0).getDate();
+    };
+
+    const getFirstDayOfMonth = (year: number, month: number) => {
+      return new Date(year, month, 1).getDay(); // 0 = Sunday
+    };
+
+    const year = viewDate.getFullYear();
+    const month = viewDate.getMonth();
+    const daysInMonth = getDaysInMonth(year, month);
+    const firstDay = getFirstDayOfMonth(year, month);
+
+    const days = [];
+    for (let i = 0; i < firstDay; i++) {
+      days.push(null);
+    }
+    for (let i = 1; i <= daysInMonth; i++) {
+      days.push(new Date(year, month, i));
+    }
+
+    const monthNames = [
+      "Janvier",
+      "Février",
+      "Mars",
+      "Avril",
+      "Mai",
+      "Juin",
+      "Juillet",
+      "Août",
+      "Septembre",
+      "Octobre",
+      "Novembre",
+      "Décembre",
+    ];
+
+    const handlePrevMonth = () => {
+      setViewDate(new Date(year, month - 1, 1));
+    };
+
+    const handleNextMonth = () => {
+      setViewDate(new Date(year, month + 1, 1));
+    };
+
+    return (
+      <View
+        style={{
+          backgroundColor: colors.card,
+          borderRadius: 16,
+          padding: 16,
+          width: "100%",
+        }}
+      >
+        <View
+          style={{
+            flexDirection: "row",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginBottom: 16,
+          }}
+        >
+          <TouchableOpacity onPress={handlePrevMonth} style={{ padding: 8 }}>
+            <Ionicons name="chevron-back" size={24} color={colors.text} />
+          </TouchableOpacity>
+          <Text style={{ fontSize: 16, fontWeight: "700", color: colors.text }}>
+            {monthNames[month]} {year}
+          </Text>
+          <TouchableOpacity onPress={handleNextMonth} style={{ padding: 8 }}>
+            <Ionicons name="chevron-forward" size={24} color={colors.text} />
+          </TouchableOpacity>
+        </View>
+
+        <View
+          style={{
+            flexDirection: "row",
+            marginBottom: 8,
+            justifyContent: "space-around",
+          }}
+        >
+          {["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"].map((d) => (
+            <Text
+              key={d}
+              style={{
+                width: 30,
+                textAlign: "center",
+                fontSize: 12,
+                color: colors.text + "80",
+              }}
+            >
+              {d}
+            </Text>
+          ))}
+        </View>
+
+        <View
+          style={{
+            flexDirection: "row",
+            flexWrap: "wrap",
+            justifyContent: "flex-start",
+          }}
+        >
+          {days.map((date, idx) => {
+            if (!date)
+              return (
+                <View key={idx} style={{ width: "14.28%", aspectRatio: 1 }} />
+              );
+            const isSelected =
+              selected && date.toDateString() === selected.toDateString();
+            const isToday = new Date().toDateString() === date.toDateString();
+            return (
+              <TouchableOpacity
+                key={idx}
+                style={{
+                  width: "14.28%",
+                  aspectRatio: 1,
+                  alignItems: "center",
+                  justifyContent: "center",
+                  backgroundColor: isSelected ? colors.primary : "transparent",
+                  borderRadius: 20,
+                  borderWidth: isToday && !isSelected ? 1 : 0,
+                  borderColor: colors.primary,
+                }}
+                onPress={() => {
+                  setSelected(date);
+                  onSelect(date);
+                }}
+              >
+                <Text
+                  style={{
+                    color: isSelected ? "#fff" : colors.text,
+                    fontWeight: isSelected || isToday ? "700" : "400",
+                  }}
+                >
+                  {date.getDate()}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+
+        <TouchableOpacity
+          onPress={onClose}
+          style={{ marginTop: 16, alignSelf: "center", paddingVertical: 8 }}
+        >
+          <Text style={{ color: colors.error }}>Fermer</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  };
   const [loginCode, setLoginCode] = useState("");
   const [emailValue, setEmailValue] = useState("");
   const [phoneValue, setPhoneValue] = useState("");
@@ -172,26 +340,74 @@ const ProfileScreen: React.FC = () => {
   const [txLoading, setTxLoading] = useState(false);
   const [txError, setTxError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const run = async () => {
-      if (!txVisible) return;
-      setTxError(null);
-      setTxLoading(true);
-      try {
-        const clientId = await secureGetItem("client_id");
-        const token = await secureGetItem("auth_token");
-        const loginSaved = await secureGetItem("user_login");
-        const agency = (await secureGetItem("user_agency")) || "";
-        const account = (await secureGetItem("user_account_number")) || "";
-        if (!token || !clientId || !account) {
-          setTxError(t("common.missingCredentials"));
+  const fetchTransactions = async (start?: Date | null, end?: Date | null) => {
+    setTxError(null);
+    setTxLoading(true);
+    try {
+      const clientId = await secureGetItem("client_id");
+      const token = await secureGetItem("auth_token");
+      const loginSaved = await secureGetItem("user_login");
+      const agency = (await secureGetItem("user_agency")) || "";
+      const account = (await secureGetItem("user_account_number")) || "";
+      if (!token || !clientId || !account) {
+        setTxError(t("common.missingCredentials"));
+        setTxLoading(false);
+        return;
+      }
+      const headers: any = {
+        Authorization: `Bearer ${token}`,
+        "X-CLIENT-ID": clientId,
+        ...(loginSaved ? { "X-LOGIN": loginSaved } : {}),
+      };
+
+      if (start && end) {
+        // Mode filtre par date
+        const formatDate = (d: Date) => {
+          const year = d.getFullYear();
+          const month = String(d.getMonth() + 1).padStart(2, "0");
+          const day = String(d.getDate()).padStart(2, "0");
+          return `${year}-${month}-${day}`;
+        };
+
+        const payload = {
+          AG_CODEAGENCE: String(agency || ""),
+          CO_CODECOMPTE: String(account),
+          CodeCryptage: "Y}@128eVIXfoi7",
+          DateDebut: formatDate(start),
+          DateFin: formatDate(end),
+          Nombretransactions: "20",
+        };
+
+        const result: any = await dernieresOperationsClient(payload, headers);
+        if (result?.error) {
+          const err: any = result.error;
+          const server = err?.response?.data;
+          const msg = server?.message || err?.message || t("common.fetchError");
+          setTxError(msg);
           return;
         }
-        const headers: any = {
-          Authorization: `Bearer ${token}`,
-          "X-CLIENT-ID": clientId,
-          ...(loginSaved ? { "X-LOGIN": loginSaved } : {}),
-        };
+
+        const ops = result?.data?.operations || [];
+        const mapped = ops.map((op: any, index: number) => {
+          const debit = Number(op.MC_MONTANTDEBIT || 0);
+          const credit = Number(op.MC_MONTANTCREDIT || 0);
+          const isCredit = credit > 0;
+          const amountVal = isCredit ? credit : debit;
+          const amount = `${isCredit ? "+" : "-"}${amountVal.toLocaleString(
+            "fr-FR"
+          )} XAF`;
+
+          return {
+            id: String(index),
+            title: op.MC_LIBELLEOPERATION || "Opération",
+            amount,
+            date: op.MC_DATESAISIE || op.DateOperation || "",
+            type: isCredit ? "entree" : "sortie",
+          } as TxItem;
+        });
+        setTxData(mapped);
+      } else {
+        // Mode défaut : Dernière transaction
         const payload = {
           AG_CODEAGENCE: String(agency || ""),
           CO_CODECOMPTE: String(account),
@@ -256,13 +472,18 @@ const ProfileScreen: React.FC = () => {
         setTxData([
           { id, title, amount, date, type: isCredit ? "entree" : "sortie" },
         ]);
-      } catch (e: any) {
-        setTxError(e?.message || t("common.networkError"));
-      } finally {
-        setTxLoading(false);
       }
-    };
-    run();
+    } catch (e: any) {
+      setTxError(e?.message || t("common.networkError"));
+    } finally {
+      setTxLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (txVisible) {
+      fetchTransactions();
+    }
   }, [txVisible]);
 
   const handleLogout = async () => {
@@ -886,66 +1107,68 @@ const ProfileScreen: React.FC = () => {
             )}
 
             {/* Liste des transactions */}
-            <View style={styles.txList}>
-              {txData.map((t) => (
-                <View
-                  key={t.id}
-                  style={[styles.txItem, { backgroundColor: colors.card }]}
-                >
-                  <View style={styles.txLeft}>
-                    <View
+            <ScrollView style={{ maxHeight: 300 }}>
+              <View style={styles.txList}>
+                {txData.map((t) => (
+                  <View
+                    key={t.id}
+                    style={[styles.txItem, { backgroundColor: colors.card }]}
+                  >
+                    <View style={styles.txLeft}>
+                      <View
+                        style={[
+                          styles.txIconBg,
+                          {
+                            backgroundColor:
+                              t.type === "entree"
+                                ? isDark
+                                  ? "#1a3d2e"
+                                  : "#E9FFF3"
+                                : isDark
+                                ? "#4a1a1a"
+                                : "#FFECEC",
+                          },
+                        ]}
+                      >
+                        <Ionicons
+                          name={t.type === "entree" ? "arrow-down" : "arrow-up"}
+                          size={18}
+                          color={
+                            t.type === "entree" ? colors.success : colors.error
+                          }
+                        />
+                      </View>
+                      <View>
+                        <Text style={[styles.txTitle, { color: colors.text }]}>
+                          {t.title}
+                        </Text>
+                        <Text
+                          style={[styles.txDate, { color: colors.text + "60" }]}
+                        >
+                          {t.date}
+                        </Text>
+                      </View>
+                    </View>
+                    <Text
                       style={[
-                        styles.txIconBg,
+                        styles.txAmount,
                         {
-                          backgroundColor:
-                            t.type === "entree"
-                              ? isDark
-                                ? "#1a3d2e"
-                                : "#E9FFF3"
-                              : isDark
-                              ? "#4a1a1a"
-                              : "#FFECEC",
+                          color:
+                            t.type === "entree" ? colors.success : colors.error,
                         },
                       ]}
                     >
-                      <Ionicons
-                        name={t.type === "entree" ? "arrow-down" : "arrow-up"}
-                        size={18}
-                        color={
-                          t.type === "entree" ? colors.success : colors.error
-                        }
-                      />
-                    </View>
-                    <View>
-                      <Text style={[styles.txTitle, { color: colors.text }]}>
-                        {t.title}
-                      </Text>
-                      <Text
-                        style={[styles.txDate, { color: colors.text + "60" }]}
-                      >
-                        {t.date}
-                      </Text>
-                    </View>
+                      {t.amount}
+                    </Text>
                   </View>
-                  <Text
-                    style={[
-                      styles.txAmount,
-                      {
-                        color:
-                          t.type === "entree" ? colors.success : colors.error,
-                      },
-                    ]}
-                  >
-                    {t.amount}
-                  </Text>
-                </View>
-              ))}
-            </View>
+                ))}
+              </View>
+            </ScrollView>
           </View>
         </View>
       </Modal>
 
-      {/* Modal Info filtre par date */}
+      {/* Modal Info filtre par date (Maintenant selecteur de date) */}
       <Modal
         visible={dateInfoVisible}
         transparent
@@ -960,36 +1183,134 @@ const ProfileScreen: React.FC = () => {
             },
           ]}
         >
-          <View style={[styles.modalBox, { backgroundColor: colors.card }]}>
-            <TouchableOpacity
-              style={[
-                styles.modalClose,
-                { backgroundColor: isDark ? "#333" : "#F7F7F7" },
-              ]}
-              onPress={() => setDateInfoVisible(false)}
-            >
-              <Ionicons name="close" size={24} color={colors.text} />
-            </TouchableOpacity>
-            <View style={styles.modalHandle} />
-            <Text style={[styles.modalTitle, { color: colors.text }]}>
-              {t("common.info")}
-            </Text>
-            <Text
-              style={[styles.modalText, { color: isDark ? "#ccc" : "#777" }]}
-            >
-              {t("transactions.dateFilter.info")}
-            </Text>
-            <View style={styles.actionsRow}>
+          {showDatePicker ? (
+            <CustomCalendar
+              initialDate={
+                showDatePicker === "start"
+                  ? startDate || new Date()
+                  : endDate || new Date()
+              }
+              onSelect={(date) => {
+                if (showDatePicker === "start") setStartDate(date);
+                else setEndDate(date);
+                setShowDatePicker(null);
+              }}
+              onClose={() => setShowDatePicker(null)}
+            />
+          ) : (
+            <View style={[styles.modalBox, { backgroundColor: colors.card }]}>
               <TouchableOpacity
-                style={[styles.actionBtn, { backgroundColor: colors.primary }]}
-                activeOpacity={0.8}
+                style={[
+                  styles.modalClose,
+                  { backgroundColor: isDark ? "#333" : "#F7F7F7" },
+                ]}
                 onPress={() => setDateInfoVisible(false)}
               >
-                <Ionicons name="checkmark" size={20} color="#fff" />
-                <Text style={styles.actionTextLight}>{t("common.ok")}</Text>
+                <Ionicons name="close" size={24} color={colors.text} />
               </TouchableOpacity>
+              <View style={styles.modalHandle} />
+              <Text style={[styles.modalTitle, { color: colors.text }]}>
+                Filtrer par date
+              </Text>
+              <Text
+                style={[styles.modalText, { color: isDark ? "#ccc" : "#777" }]}
+              >
+                Sélectionnez une plage de dates pour filtrer vos transactions.
+              </Text>
+
+              <View style={{ gap: 12, width: "100%", marginBottom: 20 }}>
+                <TouchableOpacity
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    padding: 16,
+                    backgroundColor: isDark ? "#333" : "#F5F5F5",
+                    borderRadius: 12,
+                    borderWidth: 1,
+                    borderColor: colors.border,
+                  }}
+                  onPress={() => setShowDatePicker("start")}
+                >
+                  <Text style={{ color: colors.text + "80" }}>Du :</Text>
+                  <Text style={{ fontWeight: "600", color: colors.text }}>
+                    {startDate
+                      ? startDate.toLocaleDateString("fr-FR")
+                      : "Sélectionner"}
+                  </Text>
+                  <Ionicons
+                    name="calendar-outline"
+                    size={20}
+                    color={colors.primary}
+                  />
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    padding: 16,
+                    backgroundColor: isDark ? "#333" : "#F5F5F5",
+                    borderRadius: 12,
+                    borderWidth: 1,
+                    borderColor: colors.border,
+                  }}
+                  onPress={() => setShowDatePicker("end")}
+                >
+                  <Text style={{ color: colors.text + "80" }}>Au :</Text>
+                  <Text style={{ fontWeight: "600", color: colors.text }}>
+                    {endDate
+                      ? endDate.toLocaleDateString("fr-FR")
+                      : "Sélectionner"}
+                  </Text>
+                  <Ionicons
+                    name="calendar-outline"
+                    size={20}
+                    color={colors.primary}
+                  />
+                </TouchableOpacity>
+              </View>
+
+              <View style={styles.actionsRow}>
+                <TouchableOpacity
+                  style={[
+                    styles.actionBtn,
+                    {
+                      backgroundColor: colors.primary,
+                      flex: 1,
+                      justifyContent: "center",
+                    },
+                  ]}
+                  activeOpacity={0.8}
+                  onPress={() => {
+                    // Ici on appliquerait le filtre
+                    setDateInfoVisible(false);
+                    fetchTransactions(startDate, endDate);
+                  }}
+                >
+                  <Ionicons name="checkmark" size={20} color="#fff" />
+                  <Text style={styles.actionTextLight}>Appliquer</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[
+                    styles.actionBtn,
+                    {
+                      backgroundColor: "transparent",
+                      borderWidth: 1,
+                      borderColor: colors.border,
+                    },
+                  ]}
+                  onPress={() => {
+                    setStartDate(null);
+                    setEndDate(null);
+                  }}
+                >
+                  <Text style={{ color: colors.text }}>Effacer</Text>
+                </TouchableOpacity>
+              </View>
             </View>
-          </View>
+          )}
         </View>
       </Modal>
     </SafeAreaView>

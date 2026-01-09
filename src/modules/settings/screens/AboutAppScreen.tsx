@@ -7,6 +7,8 @@ import {
   StyleSheet,
   Image,
   Animated,
+  Linking,
+  TouchableOpacity,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { useI18n } from "../../../app/providers/I18nProvider";
@@ -74,6 +76,52 @@ const AboutAppScreen: React.FC = () => {
       }).start();
     });
   }, []);
+
+  const handleLink = async (url: string) => {
+    try {
+      const supported = await Linking.canOpenURL(url);
+      if (supported) {
+        await Linking.openURL(url);
+      }
+    } catch (error) {
+      console.error("An error occurred", error);
+    }
+  };
+
+  const getContactItems = () => {
+    const phone = t("about.contact.phone.text") || "";
+    const email = t("about.contact.email.text") || "";
+    const website = t("about.contact.website.text") || "";
+    
+    return [
+      {
+        icon: "call-outline",
+        title: t("about.contact.phone.title"),
+        text: phone,
+        link: `tel:${phone.replace(/\s/g, "")}`,
+      },
+      {
+        icon: "mail-outline",
+        title: t("about.contact.email.title"),
+        text: email,
+        link: `mailto:${email}`,
+      },
+      {
+        icon: "location-outline",
+        title: t("about.contact.address.title"),
+        text: t("about.contact.address.text"),
+        link: "https://maps.app.goo.gl/3BujYN5wunFPcYgp6",
+      },
+      {
+        icon: "globe-outline",
+        title: t("about.contact.website.title"),
+        text: website,
+        link: website.startsWith("http") ? website : `https://${website}`,
+      },
+    ];
+  };
+
+  const contactItems = getContactItems();
 
   return (
     <SafeAreaView
@@ -297,63 +345,59 @@ const AboutAppScreen: React.FC = () => {
             {t("about.contact.title")}
           </Text>
           <View style={{ gap: 12 }}>
-            {[
-              {
-                icon: "call-outline",
-                title: t("about.contact.phone.title"),
-                text: t("about.contact.phone.text"),
-              },
-              {
-                icon: "mail-outline",
-                title: t("about.contact.email.title"),
-                text: t("about.contact.email.text"),
-              },
-              {
-                icon: "location-outline",
-                title: t("about.contact.address.title"),
-                text: t("about.contact.address.text"),
-              },
-              {
-                icon: "globe-outline",
-                title: t("about.contact.website.title"),
-                text: t("about.contact.website.text"),
-              },
-            ].map((item, i) => (
-              <Animated.View
+            {contactItems.map((item, i) => (
+              <TouchableOpacity
                 key={item.title}
-                style={[
-                  styles.contactBlock,
-                  {
-                    opacity: contactOpacities[i],
-                    transform: [{ translateY: contactTranslateYs[i] }],
-                    backgroundColor: colors.card,
-                    borderColor: colors.border,
-                  },
-                ]}
+                activeOpacity={0.7}
+                onPress={() => item.link && handleLink(item.link)}
+                disabled={!item.link}
               >
-                <View
+                <Animated.View
                   style={[
-                    styles.contactIconWrap,
-                    { backgroundColor: colors.primary + "20" },
+                    styles.contactBlock,
+                    {
+                      opacity: contactOpacities[i],
+                      transform: [{ translateY: contactTranslateYs[i] }],
+                      backgroundColor: colors.card,
+                      borderColor: colors.border,
+                    },
                   ]}
                 >
-                  <Ionicons
-                    name={item.icon as any}
-                    size={20}
-                    color={colors.primary}
-                  />
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={[styles.contactTitle, { color: colors.text }]}>
-                    {item.title}
-                  </Text>
-                  <Text
-                    style={[styles.contactText, { color: colors.text + "80" }]}
+                  <View
+                    style={[
+                      styles.contactIconWrap,
+                      { backgroundColor: colors.primary + "20" },
+                    ]}
                   >
-                    {item.text}
-                  </Text>
-                </View>
-              </Animated.View>
+                    <Ionicons
+                      name={item.icon as any}
+                      size={20}
+                      color={colors.primary}
+                    />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={[styles.contactTitle, { color: colors.text }]}>
+                      {item.title}
+                    </Text>
+                    <Text
+                      style={[
+                        styles.contactText,
+                        { color: colors.text + "80" },
+                        item.link ? { textDecorationLine: "underline" } : {},
+                      ]}
+                    >
+                      {item.text}
+                    </Text>
+                  </View>
+                  {!!item.link && (
+                    <Ionicons
+                      name="open-outline"
+                      size={16}
+                      color={colors.text + "60"}
+                    />
+                  )}
+                </Animated.View>
+              </TouchableOpacity>
             ))}
           </View>
         </View>

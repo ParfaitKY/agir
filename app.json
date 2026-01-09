@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "MyCedaici",
-    "slug": "ZenithMobile",
+    "slug": "ZenithMobileV2",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon_cedaici.jpg",
@@ -28,10 +28,12 @@
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "plugins": ["expo-secure-store"],
+    "plugins": [
+      "expo-secure-store"
+    ],
     "extra": {
       "eas": {
-        "projectId": "af007b25-5163-4aeb-862e-adc47c815ab4"
+        "projectId": "dbd6ac2a-1434-40a4-be56-e02bc58ff82a"
       }
     }
   }

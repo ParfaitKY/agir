@@ -263,90 +263,43 @@ export const AnalyticsScreen: React.FC = () => {
           >
             <View style={{ marginBottom: 8 }}>
               <Text style={[styles.metricLabel, { color: colors.text }]}>
-                {tText("Pourcentage debit")}: {String(percentDebit)}%
+                {tText("Part des retraits")}: {String(percentDebit)}%
               </Text>
               <Text style={[styles.metricLabel, { color: colors.text }]}>
-                {tText("Pourcentage credit")}: {String(percentCredit)}%
+                {tText("Part des dépôts")}: {String(percentCredit)}%
               </Text>
             </View>
             <Text
               style={[styles.title, { color: colors.text, marginBottom: 8 }]}
             >
-              {tText("Répartition")}
+              {tText("Répartition Dépôts vs Retraits")}
             </Text>
-            {(() => {
-              const debitProgress = Math.max(
-                0,
-                Math.min(1, percentDebit / 100)
-              );
-              const creditProgress = Math.max(
-                0,
-                Math.min(1, percentCredit / 100)
-              );
-              const strokeWidth = Math.max(
-                10,
-                Math.round(pieChartWidth * 0.06)
-              );
-              const radius = Math.max(28, Math.round(pieChartWidth * 0.18));
-              return (
-                <ProgressChart
-                  width={pieChartWidth}
-                  height={pieChartHeight}
-                  strokeWidth={strokeWidth}
-                  radius={radius}
-                  hideLegend={true}
-                  chartConfig={chartConfig}
-                  data={{
-                    labels: [tText("Débit"), tText("Crédit")],
-                    data: [debitProgress, creditProgress],
-                  }}
-                  style={{ borderRadius: 8 }}
-                />
-              );
-            })()}
-            <View
-              style={{
-                flexDirection: "row",
-                flexWrap: "wrap",
-                justifyContent: "center",
-                marginTop: 6,
-              }}
-            >
-              <View
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  marginRight: 16,
-                }}
-              >
-                <View
-                  style={{
-                    width: 10,
-                    height: 10,
-                    backgroundColor: excelOrange,
-                    marginRight: 6,
-                    borderRadius: 2,
-                  }}
-                />
-                <Text style={{ color: colors.text }} numberOfLines={1}>
-                  {tText("Débit")}
-                </Text>
-              </View>
-              <View style={{ flexDirection: "row", alignItems: "center" }}>
-                <View
-                  style={{
-                    width: 10,
-                    height: 10,
-                    backgroundColor: excelBlue,
-                    marginRight: 6,
-                    borderRadius: 2,
-                  }}
-                />
-                <Text style={{ color: colors.text }} numberOfLines={1}>
-                  {tText("Crédit")}
-                </Text>
-              </View>
-            </View>
+            <PieChart
+              data={[
+                {
+                  name: tText("Retraits"),
+                  population: percentDebit,
+                  color: excelOrange,
+                  legendFontColor: colors.text,
+                  legendFontSize: 12,
+                },
+                {
+                  name: tText("Dépôts"),
+                  population: percentCredit,
+                  color: excelBlue,
+                  legendFontColor: colors.text,
+                  legendFontSize: 12,
+                },
+              ]}
+              width={pieChartWidth}
+              height={220}
+              chartConfig={chartConfig}
+              accessor={"population"}
+              backgroundColor={"transparent"}
+              paddingLeft={"15"}
+              center={[10, 0]}
+              absolute
+            />
           </View>
         </View>
       )}

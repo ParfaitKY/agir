@@ -9,35 +9,263 @@ import {
   SafeAreaView,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useRoute } from "@react-navigation/native";
 import { useI18n } from "../../../app/providers/I18nProvider";
 import { useTheme } from "../../../shared/styles/ThemeProvider";
 import { useVirement } from "../../../domain/compte/useVirement";
+import { useCompteStatistiques } from "../../../domain/compte/useCompteStatistiques";
 import { ActivityIndicator } from "react-native";
 import { secureGetItem } from "../../../shared/utils/secureStorage";
 
 export const TransferScreen: React.FC = () => {
   const { t, tText } = useI18n();
   const { colors } = useTheme();
-  const [type, setType] = useState<"interne" | "externe">("interne");
+  const route = useRoute();
+  
   const [sourceAccount, setSourceAccount] = useState("");
   const [destinationAccount, setDestinationAccount] = useState("");
   const [amount, setAmount] = useState("");
   const { submit, isLoading, error, data } = useVirement();
+  const { data: compteStats, fetchData: fetchAccounts } = useCompteStatistiques();
   const [done, setDone] = useState(false);
+  const [selectedAccount, setSelectedAccount] = useState<any>(null);
+
   const sanitize = (s: string) => s.replace(/\D/g, "");
+
   React.useEffect(() => {
     const run = async () => {
+      // 1. Check params first
+      const params = route.params as any;
+      if (params?.account) {
+        setSelectedAccount(params.account);
+        setSourceAccount(sanitize(params.account.number));
+        return;
+      }
+
+      // 2. Fallback to storage or fetch
       const acc = (await secureGetItem("user_account_number")) || "";
-      setSourceAccount(sanitize(acc));
+      if (acc) {
+        setSourceAccount(sanitize(acc));
+        // Try to find full object in stats if available
+        if (compteStats?.COMPTES) {
+          const found = compteStats.COMPTES.find((c: any) => String(c.NUMEROCOMPTE) === acc);
+          if (found) {
+             // Adapt found account to expected structure if needed
+             const type = String(found.CO_INTITULECOMPTE ?? "");
+             const color = type.includes("Épargne") || type.includes("EPARGNE") ? colors.success : colors.primary;
+             setSelectedAccount({
+               type,
+               number: String(found.NUMEROCOMPTE ?? ""),
+               balance: String(found.SOLDE ?? found.SOLDE_GLOBAL ?? 0),
+               blocked: Number(found.MONTANTBLOQUE ?? 0),
+               currency: "XAF",
+               active: !found.CO_DATECLOTURE || String(found.CO_DATECLOTURE).includes("1900"),
+               color,
+             });
+          }
+        } else {
+            fetchAccounts();
+        }
+      }
     };
     run();
-  }, []);
+  }, [route.params, compteStats]);
+
   const canSubmit =
     sanitize(sourceAccount).length > 0 &&
     sanitize(destinationAccount).length > 0 &&
     Number(String(amount).replace(/[,\s]/g, "")) > 0;
 
   const styles = getStyles(colors);
+
+  const parseAmount = (s: string) => Number(s.replace(/\s/g, ""));
+  // Portfolio total estimation for progress bar (fallback to balance if single)
+  const portfolioTotal = Number(compteStats?.SOLDE_GLOBAL || parseAmount(selectedAccount?.balance || "0") || 1);
+
+
+  const renderSourceAccountCard = () => {
+    if (!selectedAccount) {
+        // Fallback input if no rich data
+        return (
+            <View style={styles.inputGroup}>
+            <Text style={styles.inputLabel}>
+              {t("transfer.form.source.label")}
+            </Text>
+            <TextInput
+              style={styles.input}
+              placeholder={t("transfer.form.source.placeholder")}
+              value={sourceAccount}
+              onChangeText={(v) => setSourceAccount(sanitize(v))}
+            />
+          </View>
+        );
+    }
+
+    const a = selectedAccount;
+    return (
+        <View style={styles.inputGroup}>
+            <Text style={styles.inputLabel}>
+              {t("transfer.form.source.label")}
+            </Text>
+            <View
+              style={[
+                styles.accountCard,
+                { backgroundColor: colors.card, borderColor: colors.border },
+              ]}
+            >
+              <View style={styles.accountTop}>
+                <View
+                  style={[
+                    styles.accountIcon,
+                    { backgroundColor: colors.background },
+                  ]}
+                >
+                  <Ionicons
+                    name={
+                      (a.type.includes("Courant")
+                        ? "briefcase"
+                        : "wallet") as any
+                    }
+                    size={22}
+                    color={a.color || colors.primary}
+                  />
+                </View>
+                <View style={styles.accountInfo}>
+                  <Text style={[styles.accountType, { color: colors.text }]}>
+                    {tText(a.type)}
+                  </Text>
+                  <Text
+                    style={[
+                      styles.accountNumber,
+                      { color: colors.text + "70" },
+                    ]}
+                  >
+                    {a.number}
+                  </Text>
+                </View>
+                <View
+                  style={[
+                    styles.statusPill,
+                    {
+                      backgroundColor: a.active
+                        ? colors.success + "15"
+                        : colors.error + "15",
+                    },
+                  ]}
+                >
+                  <Ionicons
+                    name={a.active ? "checkmark-circle" : "close-circle"}
+                    size={14}
+                    color={a.active ? colors.success : colors.error}
+                  />
+                  <Text
+                    style={[
+                      styles.statusText,
+                      { color: a.active ? colors.success : colors.error },
+                    ]}
+                  >
+                    {a.active ? t("accounts.status.active") : tText("Clôturé")}
+                  </Text>
+                  {Number(a.blocked) > 0 && (
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        alignItems: "center",
+                        marginLeft: 8,
+                      }}
+                    >
+                      <Ionicons
+                        name="lock-closed"
+                        size={14}
+                        color={colors.warning}
+                      />
+                    </View>
+                  )}
+                </View>
+              </View>
+
+              <View style={styles.accountBalanceRow}>
+                <View>
+                  <Text
+                    style={[styles.balanceLabel, { color: colors.text + "70" }]}
+                  >
+                    {t("accounts.balance.available")}
+                  </Text>
+                  <Text style={[styles.balanceValue, { color: colors.text }]}>
+                    {new Intl.NumberFormat("fr-FR").format(
+                      parseAmount(a.balance)
+                    )}{" "}
+                    <Text
+                      style={[
+                        styles.balanceCurrency,
+                        { color: colors.primary },
+                      ]}
+                    >
+                      {a.currency}
+                    </Text>
+                  </Text>
+                  {Number(a.blocked) > 0 && (
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        alignItems: "center",
+                        marginTop: 6,
+                      }}
+                    >
+                      <Ionicons
+                        name="lock-closed"
+                        size={14}
+                        color={colors.warning}
+                      />
+                      <Text
+                        style={{
+                          marginLeft: 6,
+                          color: colors.warning,
+                          fontWeight: "700",
+                        }}
+                      >
+                        {tText("Bloqué:")}{" "}
+                        {new Intl.NumberFormat("fr-FR").format(
+                          Number(a.blocked)
+                        )}{" "}
+                        {a.currency}
+                      </Text>
+                    </View>
+                  )}
+                </View>
+                 {/* Transfer button removed here as we are IN the transfer screen */}
+              </View>
+
+              <View style={styles.progressBarWrapper}>
+                <View
+                  style={[
+                    styles.progressTrack,
+                    { backgroundColor: colors.border },
+                  ]}
+                />
+                <View
+                  style={[
+                    styles.progressFill,
+                    {
+                      width: `${Math.round(
+                        (parseAmount(a.balance) / portfolioTotal) * 100
+                      )}%`,
+                      backgroundColor: a.color || colors.primary,
+                    },
+                  ]}
+                />
+              </View>
+              <Text
+                style={[styles.progressText, { color: colors.text + "70" }]}
+              >
+                {`${Math.round(
+                  (parseAmount(a.balance) / portfolioTotal) * 100
+                )}% du portfolio`}
+              </Text>
+            </View>
+        </View>
+    );
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -57,211 +285,45 @@ export const TransferScreen: React.FC = () => {
           {t("transfer.header.subtitle")}
         </Text>
 
-        {/* Type de virement */}
-        <Text style={styles.sectionLabel}>{t("transfer.section.type")}</Text>
+        {/* Formulaire de virement interne (affiché par défaut) */}
+        <View style={styles.formSection}>
+          <Text style={styles.formTitle}>
+            {t("transfer.form.internal.title")}
+          </Text>
 
-        <TouchableOpacity
-          style={[styles.typeCard, type === "interne" && styles.typeCardActive]}
-          onPress={() => setType("interne")}
-          activeOpacity={0.8}
-        >
-          <View style={styles.typeLeft}>
-            <View
-              style={[
-                styles.typeIconCircle,
-                type === "interne" && styles.typeIconCircleActive,
-              ]}
-            >
-              <Ionicons
-                name="swap-horizontal"
-                size={22}
-                color={type === "interne" ? "#fff" : colors.primary}
-              />
-            </View>
-            <View>
-              <Text
-                style={[
-                  styles.typeTitle,
-                  type === "interne" && styles.typeTitleActive,
-                ]}
-              >
-                {t("transfer.type.internal.title")}
-              </Text>
-              <Text
-                style={[
-                  styles.typeSubtitle,
-                  type === "interne" && styles.typeSubtitleActive,
-                ]}
-              >
-                {t("transfer.type.internal.subtitle")}
-              </Text>
-            </View>
-          </View>
-          <View
-            style={[
-              styles.checkCircle,
-              type === "interne" && styles.checkCircleActive,
-            ]}
-          >
-            {type === "interne" && (
-              <Ionicons name="checkmark" size={16} color="#fff" />
-            )}
-          </View>
-        </TouchableOpacity>
+          {renderSourceAccountCard()}
 
-        <TouchableOpacity
-          style={[styles.typeCard, type === "externe" && styles.typeCardActive]}
-          onPress={() => setType("externe")}
-          activeOpacity={0.8}
-        >
-          <View style={styles.typeLeft}>
-            <View
-              style={[
-                styles.typeIconCircle,
-                styles.typeIconCircleAlt,
-                type === "externe" && styles.typeIconCircleActive,
-              ]}
-            >
-              <Ionicons
-                name="send-outline"
-                size={20}
-                color={type === "externe" ? "#fff" : colors.primary}
-              />
-            </View>
-            <View>
-              <Text
-                style={[
-                  styles.typeTitle,
-                  type === "externe" && styles.typeTitleActive,
-                ]}
-              >
-                {t("transfer.type.external.title")}
-              </Text>
-              <Text
-                style={[
-                  styles.typeSubtitle,
-                  type === "externe" && styles.typeSubtitleActive,
-                ]}
-              >
-                {t("transfer.type.external.subtitle")}
-              </Text>
-            </View>
-          </View>
-          <View
-            style={[
-              styles.checkCircle,
-              type === "externe" && styles.checkCircleActive,
-            ]}
-          >
-            {type === "externe" && (
-              <Ionicons name="checkmark" size={16} color="#fff" />
-            )}
-          </View>
-        </TouchableOpacity>
-
-        {/* Formulaire de virement interne */}
-        {type === "interne" && (
-          <View style={styles.formSection}>
-            <Text style={styles.formTitle}>
-              {t("transfer.form.internal.title")}
+          <View style={styles.inputGroup}>
+            <Text style={styles.inputLabel}>
+              {t("transfer.form.beneficiary.label.internal")}
             </Text>
-
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>
-                {t("transfer.form.source.label")}
-              </Text>
-              <TextInput
-                style={styles.input}
-                placeholder={t("transfer.form.source.placeholder")}
-                value={sourceAccount}
-                onChangeText={(v) => setSourceAccount(sanitize(v))}
-              />
-            </View>
-
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>
-                {t("transfer.form.beneficiary.label.internal")}
-              </Text>
-              <TextInput
-                style={styles.input}
-                placeholder={t(
-                  "transfer.form.beneficiary.placeholder.internal"
-                )}
-                value={destinationAccount}
-                onChangeText={(v) => setDestinationAccount(sanitize(v))}
-              />
-            </View>
-
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>
-                {t("transfer.form.amount.label")}
-              </Text>
-              <View style={styles.amountInputContainer}>
-                <TextInput
-                  style={styles.amountInput}
-                  placeholder="0"
-                  keyboardType="numeric"
-                  underlineColorAndroid="transparent"
-                  value={amount}
-                  onChangeText={(v) => setAmount(v.replace(/[^0-9.]/g, ""))}
-                />
-                <Text style={styles.amountCurrency}>XAF</Text>
-              </View>
-            </View>
+            <TextInput
+              style={styles.input}
+              placeholder={t(
+                "transfer.form.beneficiary.placeholder.internal"
+              )}
+              value={destinationAccount}
+              onChangeText={(v) => setDestinationAccount(sanitize(v))}
+            />
           </View>
-        )}
 
-        {/* Formulaire de virement externe (même structure) */}
-        {type === "externe" && (
-          <View style={styles.formSection}>
-            <Text style={styles.formTitle}>
-              {t("transfer.form.external.title")}
+          <View style={styles.inputGroup}>
+            <Text style={styles.inputLabel}>
+              {t("transfer.form.amount.label")}
             </Text>
-
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>
-                {t("transfer.form.source.label")}
-              </Text>
+            <View style={styles.amountInputContainer}>
               <TextInput
-                style={styles.input}
-                placeholder={t("transfer.form.source.placeholder")}
-                value={sourceAccount}
-                onChangeText={(v) => setSourceAccount(sanitize(v))}
+                style={styles.amountInput}
+                placeholder="0"
+                keyboardType="numeric"
+                underlineColorAndroid="transparent"
+                value={amount}
+                onChangeText={(v) => setAmount(v.replace(/[^0-9.]/g, ""))}
               />
-            </View>
-
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>
-                {t("transfer.form.beneficiary.label.external")}
-              </Text>
-              <TextInput
-                style={styles.input}
-                placeholder={t(
-                  "transfer.form.beneficiary.placeholder.external"
-                )}
-                value={destinationAccount}
-                onChangeText={(v) => setDestinationAccount(sanitize(v))}
-              />
-            </View>
-
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>
-                {t("transfer.form.amount.label")}
-              </Text>
-              <View style={styles.amountInputContainer}>
-                <TextInput
-                  style={styles.amountInput}
-                  placeholder="0"
-                  keyboardType="numeric"
-                  underlineColorAndroid="transparent"
-                  value={amount}
-                  onChangeText={(v) => setAmount(v.replace(/[^0-9.]/g, ""))}
-                />
-                <Text style={styles.amountCurrency}>XAF</Text>
-              </View>
+              <Text style={styles.amountCurrency}>XAF</Text>
             </View>
           </View>
-        )}
+        </View>
 
         <TouchableOpacity
           style={styles.primaryButton}
@@ -368,73 +430,6 @@ const getStyles = (colors: any) =>
       opacity: 0.7,
       marginBottom: 10,
     },
-    typeCard: {
-      backgroundColor: colors.card,
-      borderRadius: 16,
-      padding: 16,
-      borderWidth: 1,
-      borderColor: colors.border,
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "space-between",
-      marginBottom: 12,
-    },
-    typeCardActive: {
-      backgroundColor: colors.primary,
-      borderColor: colors.primary,
-    },
-    typeLeft: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: 12,
-    },
-    typeIconCircle: {
-      width: 44,
-      height: 44,
-      borderRadius: 22,
-      backgroundColor: colors.card,
-      justifyContent: "center",
-      alignItems: "center",
-    },
-    typeIconCircleActive: {
-      backgroundColor: "rgba(255,255,255,0.2)",
-      borderWidth: 1,
-      borderColor: "rgba(255,255,255,0.35)",
-    },
-    typeIconCircleAlt: {
-      backgroundColor: colors.card,
-    },
-    typeTitle: {
-      fontSize: 16,
-      fontWeight: "700",
-      color: colors.text,
-    },
-    typeSubtitle: {
-      fontSize: 12,
-      color: colors.text,
-      opacity: 0.7,
-      marginTop: 2,
-    },
-    typeTitleActive: {
-      color: "#fff",
-    },
-    typeSubtitleActive: {
-      color: "#E6F0FF",
-    },
-    checkCircle: {
-      width: 24,
-      height: 24,
-      borderRadius: 12,
-      borderWidth: 2,
-      borderColor: colors.border,
-      justifyContent: "center",
-      alignItems: "center",
-      backgroundColor: colors.card,
-    },
-    checkCircleActive: {
-      backgroundColor: colors.primary,
-      borderColor: colors.primary,
-    },
     formSection: {
       marginTop: 20,
     },
@@ -462,6 +457,104 @@ const getStyles = (colors: any) =>
       paddingVertical: 14,
       fontSize: 15,
       color: colors.text,
+    },
+    // Styles pour la carte compte
+    accountCard: {
+      backgroundColor: colors.card,
+      borderRadius: 16,
+      padding: 16,
+      shadowColor: "#000",
+      shadowOpacity: 0.08,
+      shadowOffset: { width: 0, height: 2 },
+      shadowRadius: 8,
+      elevation: 3,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    accountTop: {
+      flexDirection: "row",
+      alignItems: "center",
+    },
+    accountIcon: {
+      width: 48,
+      height: 48,
+      borderRadius: 24,
+      justifyContent: "center",
+      alignItems: "center",
+      marginRight: 12,
+    },
+    accountInfo: {
+      flex: 1,
+    },
+    accountType: {
+      fontSize: 16,
+      fontWeight: "800",
+      color: colors.text,
+    },
+    accountNumber: {
+      fontSize: 12,
+      color: colors.text,
+      opacity: 0.7,
+      marginTop: 2,
+    },
+    statusPill: {
+      flexDirection: "row",
+      alignItems: "center",
+      borderRadius: 12,
+      backgroundColor: "rgba(52, 199, 89, 0.1)",
+      paddingHorizontal: 10,
+      paddingVertical: 6,
+      gap: 6,
+    },
+    statusText: {
+      fontSize: 12,
+      fontWeight: "700",
+    },
+    accountBalanceRow: {
+      marginTop: 16,
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+    },
+    balanceLabel: {
+      fontSize: 13,
+      color: colors.text,
+      opacity: 0.7,
+    },
+    balanceValue: {
+      fontSize: 22,
+      fontWeight: "800",
+      color: colors.text,
+      marginTop: 6,
+    },
+    balanceCurrency: {
+      color: colors.primary,
+      fontWeight: "800",
+    },
+    progressBarWrapper: {
+      position: "relative",
+      marginTop: 12,
+      height: 6,
+    },
+    progressTrack: {
+      position: "absolute",
+      left: 0,
+      right: 0,
+      top: 0,
+      height: 6,
+      borderRadius: 3,
+    },
+    progressFill: {
+      position: "absolute",
+      left: 0,
+      top: 0,
+      height: 6,
+      borderRadius: 3,
+    },
+    progressText: {
+      marginTop: 6,
+      fontSize: 12,
+      textAlign: "right",
     },
     // Champ Montant stylé (comme le mockup)
     amountInputContainer: {

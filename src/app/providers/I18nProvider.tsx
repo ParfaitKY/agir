@@ -629,9 +629,9 @@ const TRANSLATIONS: Translations = {
   },
   "about.contact.address.title": { fr: "Adresse", en: "Address", zh: "地址" },
   "about.contact.address.text": {
-    fr: "Abidjan, Côte d'Ivoire",
-    en: "Abidjan, Ivory Coast",
-    zh: "阿比让，科特迪瓦",
+    fr: "Odienné; Côte d'Ivoire",
+    en: "Odienné; Ivory Coast",
+    zh: "奥迭内，科特迪瓦",
   },
   "about.contact.website.title": { fr: "Site web", en: "Website", zh: "网站" },
   "about.contact.website.text": {
@@ -802,14 +802,14 @@ const TRANSLATIONS: Translations = {
     zh: "邮箱：info.vallon@cedaici.com",
   },
   "privacy.contact.phone": {
-    fr: "Téléphone : +225 27 22 22 22 22",
-    en: "Phone: +225 27 22 22 22 22",
-    zh: "电话：+225 27 22 22 22 22",
+    fr: "Téléphone : +225 27 21 51 87 19 ",
+    en: "Phone: +225 27 21 51 87 19 ",
+    zh: "电话：+225 27 21 51 87 19 ",
   },
   "privacy.contact.address": {
-    fr: "Adresse : Abidjan, Côte d'Ivoire",
-    en: "Address: Abidjan, Ivory Coast",
-    zh: "地址：阿比让，科特迪瓦",
+    fr: "Adresse : Odienné; Côte d'Ivoire",
+    en: "Address: Odienné; Ivory Coast",
+    zh: "地址：奥迭内，科特迪瓦",
   },
 
   // Terms screen
@@ -880,9 +880,9 @@ const TRANSLATIONS: Translations = {
     zh: "6. 联系方式",
   },
   "terms.contact.phone": {
-    fr: "Téléphone : +225 27 22 22 22 22",
-    en: "Phone: +225 27 22 22 22 22",
-    zh: "电话：+225 27 22 22 22 22",
+    fr: "Téléphone : +225 27 21 51 87 19 ",
+    en: "Phone: +225 27 21 51 87 19 ",
+    zh: "电话：+225 27 21 51 87 19 ",
   },
   "terms.contact.email": {
     fr: "Email : info.vallon@cedaici.com",
@@ -890,9 +890,9 @@ const TRANSLATIONS: Translations = {
     zh: "邮箱：info.vallon@cedaici.com",
   },
   "terms.contact.address": {
-    fr: "Adresse : Abidjan, Côte d'Ivoire",
-    en: "Address: Abidjan, Ivory Coast",
-    zh: "地址：阿比让，科特迪瓦",
+    fr: "Adresse : Odienné; Côte d'Ivoire",
+    en: "Address: Odienné; Ivory Coast",
+    zh: "地址：奥迭内，科特迪瓦",
   },
   "terms.contact.website": {
     fr: "Site web : www.cedaici.com",
@@ -2288,7 +2288,7 @@ const TRANSLATIONS: Translations = {
     zh: "转账类型",
   },
   "transfer.type.internal.title": {
-    fr: "Compte à compte interne",
+    fr: "Virement de compte CEDAICI\nà compte CEDAICI",
     en: "Internal account to account",
     zh: "内部账户间转账",
   },
@@ -2308,7 +2308,7 @@ const TRANSLATIONS: Translations = {
     zh: "转至其他收款人",
   },
   "transfer.form.internal.title": {
-    fr: "Virement interne",
+    fr: "Virement de compte CEDAICI à compte CEDAICI",
     en: "Internal transfer",
     zh: "内部转账",
   },

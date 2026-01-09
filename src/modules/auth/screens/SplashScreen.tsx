@@ -21,6 +21,9 @@ const SplashScreen: React.FC = () => {
   // Animation du spinner (cercle de chargement)
   const spinAnim = useRef(new Animated.Value(0)).current;
 
+  const textOpacity = useRef(new Animated.Value(0)).current;
+  const textTranslateY = useRef(new Animated.Value(100)).current;
+
   useEffect(() => {
     Animated.parallel([
       Animated.timing(fadeAnim, {
@@ -39,6 +42,23 @@ const SplashScreen: React.FC = () => {
         duration: 900,
         useNativeDriver: true,
       }),
+      // Animation du texte avec un léger délai
+      Animated.sequence([
+        Animated.delay(300),
+        Animated.parallel([
+          Animated.timing(textOpacity, {
+            toValue: 1,
+            duration: 800,
+            useNativeDriver: true,
+          }),
+          Animated.timing(textTranslateY, {
+            toValue: 0,
+            duration: 1000,
+            easing: Easing.out(Easing.cubic),
+            useNativeDriver: true,
+          }),
+        ]),
+      ]),
     ]).start();
 
     // Démarrer la rotation infinie du cercle de chargement
@@ -98,6 +118,7 @@ const SplashScreen: React.FC = () => {
     fadeAnim,
     scaleAnim,
     translateY,
+    textTranslateY,
     spinAnim,
     isAuthenticated,
     isConfigured,
@@ -128,7 +149,17 @@ const SplashScreen: React.FC = () => {
             resizeMode="contain"
           />
           <View style={styles.textContainer}>
-            <Text style={styles.appName}>MyCedaici</Text>
+            <Animated.Text
+              style={[
+                styles.appName,
+                {
+                  opacity: textOpacity,
+                  transform: [{ translateY: textTranslateY }],
+                },
+              ]}
+            >
+              MyCedaici
+            </Animated.Text>
           </View>
           {/* Spinner overlay centré */}
           <View style={styles.spinnerOverlay} pointerEvents="none">
@@ -168,6 +199,27 @@ const styles = StyleSheet.create({
     borderLeftColor: "#E0E0E0",
     borderRightColor: "#E0E0E0",
     backgroundColor: "transparent",
+  },
+  textContainer: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 10,
+  },
+  appName: {
+    marginTop: 150,
+    fontSize: 32,
+    fontWeight: "700",
+    color: "#FFFFFF",
+    letterSpacing: 4,
+
+    textShadowColor: "rgba(0, 0, 0, 0.3)",
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 4,
   },
 });
 

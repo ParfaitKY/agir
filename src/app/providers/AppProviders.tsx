@@ -6,6 +6,7 @@ import {
   DarkTheme as NavigationDarkTheme,
 } from "@react-navigation/native";
 import { AuthProvider } from "../providers/AuthProvider";
+import { InactivityProvider } from "./InactivityProvider";
 import { I18nProvider } from "./I18nProvider";
 import { NetworkProvider } from "./NetworkProvider";
 import {
@@ -58,7 +59,9 @@ export const AppProviders: React.FC<AppProvidersProps> = ({ children }) => {
       <I18nProvider>
         <NetworkProvider>
           <AuthProvider>
-            <ThemedNavigation>{children}</ThemedNavigation>
+            <InactivityProvider>
+              <ThemedNavigation>{children}</ThemedNavigation>
+            </InactivityProvider>
           </AuthProvider>
         </NetworkProvider>
       </I18nProvider>
