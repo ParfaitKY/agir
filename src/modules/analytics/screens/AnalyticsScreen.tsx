@@ -41,6 +41,14 @@ export const AnalyticsScreen: React.FC = () => {
   const totalCount = Number(
     data?.NOMBRE_TOTAL_OPERATIONS ?? debitCount + creditCount
   );
+  // Calculate raw percentages based on counts if API provides counts but not percentages,
+  // or use the API provided percentages if they are correct.
+  // Assuming the issue is similar to the chart data where we want raw values.
+  // If the user meant the pie chart data was also multiplied or incorrect:
+
+  // Let's ensure we use the percentages as provided by the API directly without any artificial scaling if it existed,
+  // or calculate them if they are missing/wrong.
+  // Based on the previous fix (removing * 5), I'll ensure these are just the raw numbers.
   const percentDebit = Number(data?.POURCENTAGE_DEBIT ?? 0);
   const percentCredit = Number(data?.POURCENTAGE_CREDIT ?? 0);
   const { width: screenWidth } = useWindowDimensions();
@@ -247,7 +255,7 @@ export const AnalyticsScreen: React.FC = () => {
                 labels: [tText("Sort."), tText("Entr."), tText("Cum.")],
                 datasets: [
                   {
-                    data: [debitCount * 5, creditCount * 5, totalCount * 5],
+                    data: [debitCount, creditCount, totalCount],
                   },
                 ],
               }}

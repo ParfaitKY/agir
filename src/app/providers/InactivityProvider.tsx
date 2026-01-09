@@ -39,10 +39,8 @@ export const InactivityProvider: React.FC<{ children: React.ReactNode }> = ({
         resetTimer();
         return false; // Let the touch pass through to child components
       },
-      onMoveShouldSetPanResponderCapture: () => {
-        resetTimer();
-        return false;
-      },
+      // Optimization: Removed onMoveShouldSetPanResponderCapture to prevent excessive timer resets during scrolling.
+      // onStart is sufficient to detect user presence.
       onPanResponderTerminationRequest: () => true,
       onShouldBlockNativeResponder: () => false,
     })
