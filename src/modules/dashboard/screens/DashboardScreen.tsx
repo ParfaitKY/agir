@@ -48,6 +48,9 @@ export const DashboardScreen: React.FC = () => {
     error: compteStatsError,
     fetchData: fetchCompteStats,
   } = useCompteStatistiques();
+
+  // Tentative de récupération du code client depuis les stats si disponible
+  const clientCodeFromStats = compteStats?.COMPTES?.[0]?.CL_CODECLIENT;
   const {
     operations: recentOps,
     isLoading: loadingRecent,
@@ -180,6 +183,13 @@ export const DashboardScreen: React.FC = () => {
   const horizontalPadding = 40; // 20 left + 20 right (section padding)
   const itemSpacing = 12; // space between items
   const offerCardWidth = screenWidth - horizontalPadding - itemSpacing; // account for spacing to avoid overflow
+
+  // Calculer la valeur du QR Code
+  // Utiliser l'ID client, le login ou le numéro de compte comme valeur fiable
+  // L'utilisateur a précisé que CL_CODECLIENT est la clé correcte, par exemple "00007950"
+  // On priorise les stats (données fraîches), puis le stockage local
+  const qrValue =
+    clientCodeFromStats || clientIdDisplay || loginDisplay || "INVITE";
 
   const offers = [
     // ... (offres existantes restent identiques)
@@ -473,7 +483,7 @@ export const DashboardScreen: React.FC = () => {
                 ]}
               >
                 <QRCode
-                  value={phoneDisplay || loginDisplay || displayName || ""}
+                  value={qrValue}
                   size={220}
                   backgroundColor={colors.background}
                   color={colors.text}
@@ -541,7 +551,7 @@ export const DashboardScreen: React.FC = () => {
                       {t("dashboard.qr.clientCode")}
                     </Text>
                     <Text style={[styles.qrInfoValue, { color: colors.text }]}>
-                      {clientIdDisplay || ""}
+                      {clientCodeFromStats || clientIdDisplay || ""}
                     </Text>
                   </View>
                 </View>
@@ -1086,49 +1096,58 @@ export const DashboardScreen: React.FC = () => {
                 <View>
                   {(showAllTransactions
                     ? recentOps // Si showAllTransactions est vrai, on affiche TOUT
-                    : recentOps.slice(0, 3) // Sinon on limite à 3
-                  ).map((op, i) => {
-                    const type = String(op.TypeOperation || "").toUpperCase();
-                    const isCredit = type === "CREDIT";
-                    const amt = isCredit
-                      ? op.MC_MONTANTCREDIT
-                      : op.MC_MONTANTDEBIT;
-                    const baseColor = isCredit ? colors.success : colors.error;
-                    const amountColor = baseColor + "CC";
-                    const label = String(op.MC_LIBELLEOPERATION || "");
-                    return (
-                      <View
-                        key={`op-${i}`}
-                        style={[
-                          styles.activityItem,
-                          { borderColor: colors.border, borderBottomWidth: 1 },
-                        ]}
-                      >
+                    : recentOps.slice(0, 3)
+                  ) // Sinon on limite à 3
+                    .map((op, i) => {
+                      const type = String(op.TypeOperation || "").toUpperCase();
+                      const isCredit = type === "CREDIT";
+                      const amt = isCredit
+                        ? op.MC_MONTANTCREDIT
+                        : op.MC_MONTANTDEBIT;
+                      const baseColor = isCredit
+                        ? colors.success
+                        : colors.error;
+                      const amountColor = baseColor + "CC";
+                      const label = String(op.MC_LIBELLEOPERATION || "");
+                      return (
                         <View
+                          key={`op-${i}`}
                           style={[
-                            styles.activityBullet,
-                            { backgroundColor: baseColor },
-                          ]}
-                        />
-                        <Text
-                          numberOfLines={1}
-                          style={[styles.activityLabel, { color: colors.text }]}
-                        >
-                          {label}
-                        </Text>
-                        <Text
-                          style={[
-                            styles.activityAmount,
-                            { color: amountColor },
+                            styles.activityItem,
+                            {
+                              borderColor: colors.border,
+                              borderBottomWidth: 1,
+                            },
                           ]}
                         >
-                          {new Intl.NumberFormat("fr-FR").format(
-                            Number(amt || 0)
-                          )}
-                        </Text>
-                      </View>
-                    );
-                  })}
+                          <View
+                            style={[
+                              styles.activityBullet,
+                              { backgroundColor: baseColor },
+                            ]}
+                          />
+                          <Text
+                            numberOfLines={1}
+                            style={[
+                              styles.activityLabel,
+                              { color: colors.text },
+                            ]}
+                          >
+                            {label}
+                          </Text>
+                          <Text
+                            style={[
+                              styles.activityAmount,
+                              { color: amountColor },
+                            ]}
+                          >
+                            {new Intl.NumberFormat("fr-FR").format(
+                              Number(amt || 0)
+                            )}
+                          </Text>
+                        </View>
+                      );
+                    })}
 
                   {!recentOps || recentOps.length === 0 ? (
                     <EmptyState

@@ -146,6 +146,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       const block = normalize(data);
       const fnSaved = await secureGetItem("user_firstname");
       const lnSaved = await secureGetItem("user_lastname");
+
+      // SAUVEGARDE DU CODE CLIENT
+      const clientCode = pick(block, ["CL_CODECLIENT", "CODECLIENT", "CLIENT_ID", "ID_CLIENT"]) || "";
+      if (clientCode) await secureSetItem("client_id", String(clientCode));
       const fn =
         block?.CL_PRENOMCLIENT ||
         pick(block, [
