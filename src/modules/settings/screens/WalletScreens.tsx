@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -9,11 +9,14 @@ import {
   KeyboardAvoidingView,
   Platform,
   useWindowDimensions,
+  Modal,
+  FlatList,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons"; // ou "react-native-vector-icons/Ionicons"
 import { MaterialCommunityIcons } from "@expo/vector-icons"; // ou Ionicons
 import { useI18n } from "../../../app/providers/I18nProvider";
 import { useTheme } from "../../../shared/styles/ThemeProvider";
+import { useCompteStatistiques } from "../../../domain/compte/useCompteStatistiques";
 
 const WalletScreens: React.FC = () => {
   const { t } = useI18n();
@@ -25,6 +28,16 @@ const WalletScreens: React.FC = () => {
   const [walletNumber, setWalletNumber] = useState<string>("");
   const [bankAccount, setBankAccount] = useState<string>("");
   const [amount, setAmount] = useState<number>(0);
+  const [showAccountPicker, setShowAccountPicker] = useState(false);
+  const [pickerTarget, setPickerTarget] = useState<"wallet" | "bank">("bank");
+
+  const { data: compteStats, fetchData } = useCompteStatistiques();
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const accounts = compteStats?.COMPTES || [];
 
   const handleQuickAmount = (value: number) => {
     setAmount(value);
@@ -34,6 +47,56 @@ const WalletScreens: React.FC = () => {
     const from = transferType === "walletToBank" ? walletNumber : bankAccount;
     const to = transferType === "walletToBank" ? bankAccount : walletNumber;
     alert(`Transfert de ${amount} XAF: ${from} → ${to}`);
+  };
+
+  const renderAccountItem = ({ item }: { item: any }) => {
+    const isSelected =
+      pickerTarget === "wallet"
+        ? walletNumber === item.NUMEROCOMPTE
+        : bankAccount === item.NUMEROCOMPTE;
+
+    return (
+      <TouchableOpacity
+        style={[
+          styles.accountItem,
+          { borderBottomColor: colors.border },
+          isSelected && {
+            backgroundColor: colors.primary + "10",
+          },
+        ]}
+        onPress={() => {
+          if (pickerTarget === "wallet") {
+            setWalletNumber(item.NUMEROCOMPTE || "");
+          } else {
+            setBankAccount(item.NUMEROCOMPTE || "");
+          }
+          setShowAccountPicker(false);
+        }}
+      >
+        <View style={styles.accountIcon}>
+          <Ionicons
+            name={
+              String(item.CO_INTITULECOMPTE).includes("Epargne")
+                ? "wallet-outline"
+                : "briefcase-outline"
+            }
+            size={24}
+            color={colors.primary}
+          />
+        </View>
+        <View style={{ flex: 1 }}>
+          <Text style={[styles.accountLabel, { color: colors.text }]}>
+            {item.CO_INTITULECOMPTE || "Compte"}
+          </Text>
+          <Text style={[styles.accountNumber, { color: colors.text + "80" }]}>
+            {item.NUMEROCOMPTE}
+          </Text>
+        </View>
+        {isSelected && (
+          <Ionicons name="checkmark-circle" size={24} color={colors.primary} />
+        )}
+      </TouchableOpacity>
+    );
   };
 
   return (
@@ -223,20 +286,35 @@ const WalletScreens: React.FC = () => {
               <Text style={[styles.label, { color: colors.text }]}>
                 {t("wallet.form.walletSource.label")}
               </Text>
-              <TextInput
+              <TouchableOpacity
                 style={[
                   styles.input,
                   {
                     backgroundColor: colors.background,
-                    color: colors.text,
                     borderColor: colors.border,
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "space-between",
                   },
                 ]}
-                placeholder={t("wallet.form.walletSource.placeholder")}
-                placeholderTextColor={colors.text + "60"}
-                value={walletNumber}
-                onChangeText={setWalletNumber}
-              />
+                onPress={() => {
+                  setPickerTarget("wallet");
+                  setShowAccountPicker(true);
+                }}
+              >
+                <Text
+                  style={{
+                    color: walletNumber ? colors.text : colors.text + "60",
+                  }}
+                >
+                  {walletNumber || t("placeholders.selectAccount")}
+                </Text>
+                <Ionicons
+                  name="chevron-down"
+                  size={20}
+                  color={colors.text + "60"}
+                />
+              </TouchableOpacity>
 
               <Text style={[styles.label, { color: colors.text }]}>
                 {t("wallet.form.bankDest.label")}
@@ -250,7 +328,9 @@ const WalletScreens: React.FC = () => {
                     borderColor: colors.border,
                   },
                 ]}
-                placeholder={t("wallet.form.bankDest.placeholder")}
+                placeholder={
+                  t("wallet.form.bankDest.placeholder") || "Compte bancaire"
+                }
                 placeholderTextColor={colors.text + "60"}
                 value={bankAccount}
                 onChangeText={setBankAccount}
@@ -261,20 +341,35 @@ const WalletScreens: React.FC = () => {
               <Text style={[styles.label, { color: colors.text }]}>
                 {t("wallet.form.bankSource.label")}
               </Text>
-              <TextInput
+              <TouchableOpacity
                 style={[
                   styles.input,
                   {
                     backgroundColor: colors.background,
-                    color: colors.text,
                     borderColor: colors.border,
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "space-between",
                   },
                 ]}
-                placeholder={t("wallet.form.bankDest.placeholder")}
-                placeholderTextColor={colors.text + "60"}
-                value={bankAccount}
-                onChangeText={setBankAccount}
-              />
+                onPress={() => {
+                  setPickerTarget("bank");
+                  setShowAccountPicker(true);
+                }}
+              >
+                <Text
+                  style={{
+                    color: bankAccount ? colors.text : colors.text + "60",
+                  }}
+                >
+                  {bankAccount || t("placeholders.selectAccount")}
+                </Text>
+                <Ionicons
+                  name="chevron-down"
+                  size={20}
+                  color={colors.text + "60"}
+                />
+              </TouchableOpacity>
 
               <Text style={[styles.label, { color: colors.text }]}>
                 {t("wallet.form.walletDest.label")}
@@ -288,7 +383,9 @@ const WalletScreens: React.FC = () => {
                     borderColor: colors.border,
                   },
                 ]}
-                placeholder={t("wallet.form.walletSource.placeholder")}
+                placeholder={
+                  t("wallet.form.walletDest.placeholder") || "Numéro Wallet"
+                }
                 placeholderTextColor={colors.text + "60"}
                 value={walletNumber}
                 onChangeText={setWalletNumber}
@@ -390,6 +487,40 @@ const WalletScreens: React.FC = () => {
           </View>
         </View>
       </ScrollView>
+
+      {/* Account Picker Modal */}
+      <Modal
+        visible={showAccountPicker}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowAccountPicker(false)}
+      >
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setShowAccountPicker(false)}
+        >
+          <TouchableOpacity
+            activeOpacity={1}
+            style={[styles.modalContent, { backgroundColor: colors.card }]}
+          >
+            <View style={styles.modalHeader}>
+              <Text style={[styles.modalTitle, { color: colors.text }]}>
+                {t("placeholders.selectAccount")}
+              </Text>
+              <TouchableOpacity onPress={() => setShowAccountPicker(false)}>
+                <Ionicons name="close" size={24} color={colors.text} />
+              </TouchableOpacity>
+            </View>
+            <FlatList
+              data={accounts}
+              keyExtractor={(item, index) => String(item.id || index)}
+              renderItem={renderAccountItem}
+              contentContainerStyle={{ paddingBottom: 20 }}
+            />
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </Modal>
     </KeyboardAvoidingView>
   );
 };
@@ -481,6 +612,49 @@ const styles = StyleSheet.create({
   submitText: { color: "#fff", fontWeight: "bold" },
   secure: {
     color: "#727272ff",
+  },
+  accountItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+  },
+  accountIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "#F0F2F5",
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 12,
+  },
+  accountLabel: {
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  accountNumber: {
+    fontSize: 14,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "flex-end",
+  },
+  modalContent: {
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    padding: 20,
+    maxHeight: "80%",
+  },
+  modalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 20,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
   },
 });
 

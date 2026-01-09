@@ -10,7 +10,10 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { useTheme } from "../../../shared/styles/ThemeProvider";
-import { secureGetItem, secureSetItem } from "../../../shared/utils/secureStorage";
+import {
+  secureGetItem,
+  secureSetItem,
+} from "../../../shared/utils/secureStorage";
 import { Platform, ActivityIndicator } from "react-native";
 import { silentOtp } from "../../../services/auth/silentOtp";
 import { verifyOtp as verifyOtpService } from "../../../services/auth/verifyOtp";
@@ -18,6 +21,20 @@ import { verifyOtp as verifyOtpService } from "../../../services/auth/verifyOtp"
 const OtpVerifyScreen: React.FC = () => {
   const navigation = useNavigation<any>();
   const { colors } = useTheme();
+
+  // Force light theme colors for this screen to ensure visibility
+  const themeColors = {
+    background: "#FFFFFF",
+    text: "#000000",
+    textSecondary: "#424242",
+    border: "#E0E0E0",
+    inputBg: "#F8F9FA",
+    primary: colors.primary,
+    error: colors.error,
+    success: colors.success,
+    warning: colors.warning,
+  };
+
   const route = useRoute<any>();
   const [accountMasked, setAccountMasked] = useState("");
   const [numeroCompte, setNumeroCompte] = useState<string>("");
@@ -170,16 +187,18 @@ const OtpVerifyScreen: React.FC = () => {
   };
 
   return (
-    <SafeAreaView style={[styles.screen, { backgroundColor: "#121212" }]}>
+    <SafeAreaView
+      style={[styles.screen, { backgroundColor: themeColors.background }]}
+    >
       <View style={styles.headerRow}>
         <TouchableOpacity
           style={styles.headerBackBtn}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           onPress={() => navigation.goBack()}
         >
-          <Ionicons name="arrow-back" size={24} color={colors.text} />
+          <Ionicons name="arrow-back" size={24} color={themeColors.text} />
         </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: colors.text }]}>
+        <Text style={[styles.headerTitle, { color: themeColors.text }]}>
           Vérification
         </Text>
       </View>
@@ -190,8 +209,8 @@ const OtpVerifyScreen: React.FC = () => {
             style={[
               styles.lockInner,
               {
-                backgroundColor: colors.primary + "65",
-                borderColor: colors.primary + "66",
+                backgroundColor: themeColors.primary + "65",
+                borderColor: themeColors.primary + "66",
                 borderWidth: 1,
               },
             ]}
@@ -199,10 +218,10 @@ const OtpVerifyScreen: React.FC = () => {
             <Ionicons name="lock-closed" size={22} color="#FFFF" />
           </View>
         </View>
-        <Text style={[styles.title, { color: colors.text }]}>
+        <Text style={[styles.title, { color: themeColors.text }]}>
           Connexion en cours
         </Text>
-        <Text style={[styles.subtitle, { color: colors.text + "80" }]}>
+        <Text style={[styles.subtitle, { color: themeColors.textSecondary }]}>
           {loadingSilent
             ? "Patientez, détection du code…"
             : silentOk
@@ -210,26 +229,32 @@ const OtpVerifyScreen: React.FC = () => {
             : "Saisissez le code reçu."}
         </Text>
 
-        <Text style={[styles.fieldLabel, { color: colors.text }]}>
+        <Text style={[styles.fieldLabel, { color: themeColors.text }]}>
           Numéro de compte
         </Text>
         <View
           style={[
             styles.accountInput,
             {
-              borderColor: colors.border,
-              backgroundColor: colors.background,
+              borderColor: themeColors.border,
+              backgroundColor: themeColors.background,
             },
           ]}
         >
-          <Text style={[styles.accountText, { color: colors.text + "88" }]}>
+          <Text
+            style={[styles.accountText, { color: themeColors.textSecondary }]}
+          >
             {accountMasked || "FR76 •••• •••• ••••  3790"}
           </Text>
-          <Ionicons name="lock-closed" size={22} color={colors.text + "70"} />
+          <Ionicons
+            name="lock-closed"
+            size={22}
+            color={themeColors.textSecondary}
+          />
         </View>
 
         <View style={styles.otpHeaderRow}>
-          <Text style={[styles.fieldLabel, { color: colors.text }]}>
+          <Text style={[styles.fieldLabel, { color: themeColors.text }]}>
             Code OTP
           </Text>
           <View
@@ -238,27 +263,31 @@ const OtpVerifyScreen: React.FC = () => {
               {
                 backgroundColor:
                   (silentOk
-                    ? colors.success
+                    ? themeColors.success
                     : requiresManual
-                    ? colors.warning || "#EAB308"
-                    : colors.primary) + "18",
+                    ? themeColors.warning || "#EAB308"
+                    : themeColors.primary) + "18",
               },
             ]}
           >
             {loadingSilent ? (
-              <ActivityIndicator size="small" color={colors.primary} />
+              <ActivityIndicator size="small" color={themeColors.primary} />
             ) : (
               <Ionicons
                 name={
-                  silentOk ? "checkmark-done" : requiresManual ? "alert" : "time"
+                  silentOk
+                    ? "checkmark-done"
+                    : requiresManual
+                    ? "alert"
+                    : "time"
                 }
                 size={16}
                 color={
                   silentOk
-                    ? colors.success
+                    ? themeColors.success
                     : requiresManual
-                    ? colors.warning || "#EAB308"
-                    : colors.primary
+                    ? themeColors.warning || "#EAB308"
+                    : themeColors.primary
                 }
               />
             )}
@@ -267,10 +296,10 @@ const OtpVerifyScreen: React.FC = () => {
                 styles.detectText,
                 {
                   color: silentOk
-                    ? colors.success
+                    ? themeColors.success
                     : requiresManual
-                    ? colors.warning || "#EAB308"
-                    : colors.primary,
+                    ? themeColors.warning || "#EAB308"
+                    : themeColors.primary,
                 },
               ]}
             >
@@ -292,8 +321,8 @@ const OtpVerifyScreen: React.FC = () => {
               style={[
                 styles.otpItem,
                 {
-                  borderColor: colors.primary,
-                  backgroundColor: colors.background,
+                  borderColor: themeColors.primary,
+                  backgroundColor: themeColors.background,
                   ...(i === active
                     ? { shadowOpacity: 0.1, shadowRadius: 6 }
                     : {}),
@@ -307,20 +336,22 @@ const OtpVerifyScreen: React.FC = () => {
                 onKeyPress={(e) => handleKeyPress(i, e)}
                 keyboardType="number-pad"
                 maxLength={1}
-                style={[styles.otpInput, { color: colors.text }]}
-                selectionColor={colors.primary}
+                style={[styles.otpInput, { color: themeColors.text }]}
+                selectionColor={themeColors.primary}
               />
             </View>
           ))}
-          <Text style={[styles.dash, { color: colors.text + "70" }]}>-</Text>
+          <Text style={[styles.dash, { color: themeColors.textSecondary }]}>
+            -
+          </Text>
           {Array.from({ length: 3 }).map((_, j) => (
             <View
               key={`otp-b-${j}`}
               style={[
                 styles.otpItem,
                 {
-                  borderColor: colors.primary,
-                  backgroundColor: colors.background,
+                  borderColor: themeColors.primary,
+                  backgroundColor: themeColors.background,
                   ...(j + 3 === active
                     ? { shadowOpacity: 0.1, shadowRadius: 6 }
                     : {}),
@@ -334,8 +365,8 @@ const OtpVerifyScreen: React.FC = () => {
                 onKeyPress={(e) => handleKeyPress(j + 3, e)}
                 keyboardType="number-pad"
                 maxLength={1}
-                style={[styles.otpInput, { color: colors.text }]}
-                selectionColor={colors.primary}
+                style={[styles.otpInput, { color: themeColors.text }]}
+                selectionColor={themeColors.primary}
               />
             </View>
           ))}
@@ -347,7 +378,10 @@ const OtpVerifyScreen: React.FC = () => {
           <TouchableOpacity
             style={[
               styles.submitBtn,
-              { backgroundColor: colors.primary, opacity: canSubmit ? 1 : 0.6 },
+              {
+                backgroundColor: themeColors.primary,
+                opacity: canSubmit ? 1 : 0.6,
+              },
             ]}
             disabled={!canSubmit}
             onPress={verifyOtp}
@@ -368,7 +402,7 @@ const OtpVerifyScreen: React.FC = () => {
           {!!verifyError && (
             <Text
               style={{
-                color: colors.error || "#ff4d4f",
+                color: themeColors.error || "#ff4d4f",
                 marginTop: 10,
                 textAlign: "center",
                 fontWeight: "600",
@@ -389,7 +423,7 @@ const OtpVerifyScreen: React.FC = () => {
           >
             <Text
               style={{
-                color: colors.text + "80",
+                color: themeColors.textSecondary,
                 fontWeight: "600",
                 textAlign: "center",
               }}
@@ -401,9 +435,14 @@ const OtpVerifyScreen: React.FC = () => {
             <Ionicons
               name="shield-checkmark"
               size={16}
-              color={colors.text + "60"}
+              color={themeColors.textSecondary}
             />
-            <Text style={[styles.securityText, { color: colors.text + "60" }]}>
+            <Text
+              style={[
+                styles.securityText,
+                { color: themeColors.textSecondary },
+              ]}
+            >
               Connexion sécurisée par la banque
             </Text>
           </View>

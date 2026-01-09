@@ -30,6 +30,7 @@ export const TransactionsScreen: React.FC = () => {
       amountNum: number;
       date: string;
       type: "entree" | "sortie";
+      status: string;
     }>
   >([]);
   const [loading, setLoading] = useState(false);
@@ -85,6 +86,7 @@ export const TransactionsScreen: React.FC = () => {
             amountNum: num,
             date: String(r?.MC_DATEPIECE ?? r?.MC_DATESAISIE ?? ""),
             type,
+            status: t("common.success"),
           };
         });
         setItems(normalized);
@@ -95,7 +97,7 @@ export const TransactionsScreen: React.FC = () => {
       }
     };
     run();
-  }, []);
+  }, [t]);
 
   const totalEntrees = items.reduce(
     (s, it) => s + (it.type === "entree" ? it.amountNum : 0),
@@ -266,6 +268,7 @@ export const TransactionsScreen: React.FC = () => {
                 {translateTitle(transaction.title)}
               </Text>
               <Text style={styles.transactionDate}>{transaction.date}</Text>
+              <Text style={styles.transactionStatus}>{transaction.status}</Text>
             </View>
             <Text
               style={[
@@ -438,6 +441,12 @@ const getStyles = (colors: any) =>
       fontSize: 14,
       color: colors.text,
       opacity: 0.7,
+    },
+    transactionStatus: {
+      fontSize: 12,
+      color: colors.success,
+      marginTop: 2,
+      fontWeight: "500",
     },
     amountText: {
       fontSize: 16,

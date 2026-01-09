@@ -348,6 +348,22 @@ const InitialSetupScreen: React.FC = () => {
     }
 
     const phone = String(info.phone || info.telephone || "+225 07 ***** 12");
+
+    // Extraction du numéro de compte réel depuis la réponse serveur
+    // On cherche NUMEROCOMPTE, CO_CODECOMPTE, etc. dans clientRecord
+    const realAccountNumber =
+      clientRecord.CO_CODECOMPTE ??
+      clientRecord.NUMEROCOMPTE ??
+      clientRecord.account_number ??
+      clientRecord.numero_compte ??
+      clientRecord.NUMCOMPTE ??
+      "";
+
+    if (realAccountNumber) {
+      // On sauvegarde le vrai numéro de compte
+      secureSetItem("user_account_number", String(realAccountNumber));
+    }
+
     const accStored = await secureGetItem("user_account_number");
     const dev = await secureGetItem("device_id");
 
@@ -367,7 +383,9 @@ const InitialSetupScreen: React.FC = () => {
       // On navigue vers OTP
       (navigation as any).navigate("OtpVerify", {
         phone,
-        numero_compte: accStored || authToken, // Fallback to token if no account number
+        // Priorité au numéro de compte extrait de la réponse serveur,
+        // sinon celui stocké, sinon ce que l'utilisateur a saisi (fallback)
+        numero_compte: realAccountNumber || accStored || authToken,
         device_id: dev || "",
         onSuccess: proceedToStep2,
         onCancel: () => {

@@ -121,7 +121,11 @@ const WalletMobileOperationsListScreen: React.FC = () => {
             { color: item.status === "SUCCESS" ? "#4CAF50" : "#FFC107" },
           ]}
         >
-          {item.status}
+          {item.status === "SUCCESS"
+            ? t("common.success")
+            : item.status === "PENDING"
+            ? t("products.stats.pending")
+            : item.status}
         </Text>
       </View>
     </View>
