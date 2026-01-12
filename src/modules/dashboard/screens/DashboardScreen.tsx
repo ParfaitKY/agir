@@ -1104,10 +1104,8 @@ export const DashboardScreen: React.FC = () => {
                       const amt = isCredit
                         ? op.MC_MONTANTCREDIT
                         : op.MC_MONTANTDEBIT;
-                      const baseColor = isCredit
-                        ? colors.success
-                        : colors.error;
-                      const amountColor = baseColor + "CC";
+                      
+                      // Modification: retrait de la distinction visuelle Débit/Crédit (couleurs et puces)
                       const label = String(op.MC_LIBELLEOPERATION || "");
                       return (
                         <View
@@ -1120,12 +1118,6 @@ export const DashboardScreen: React.FC = () => {
                             },
                           ]}
                         >
-                          <View
-                            style={[
-                              styles.activityBullet,
-                              { backgroundColor: baseColor },
-                            ]}
-                          />
                           <Text
                             numberOfLines={1}
                             style={[
@@ -1138,7 +1130,7 @@ export const DashboardScreen: React.FC = () => {
                           <Text
                             style={[
                               styles.activityAmount,
-                              { color: amountColor },
+                              { color: colors.text },
                             ]}
                           >
                             {new Intl.NumberFormat("fr-FR").format(

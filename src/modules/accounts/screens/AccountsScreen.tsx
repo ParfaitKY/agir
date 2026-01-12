@@ -36,12 +36,47 @@ export const AccountsScreen: React.FC = () => {
     return unsub;
   }, [navigation]);
 
+  const parseAmount = (s: string) => Number(s.replace(/\s/g, ""));
+
+  const accounts = (compteStats?.COMPTES ?? []).map((c, idx) => {
+    const type = String(c.CO_INTITULECOMPTE ?? "");
+    const color =
+      type.includes("Épargne") || type.includes("EPARGNE")
+        ? colors.success
+        : colors.primary;
+    return {
+      id: c.id ?? idx,
+      type,
+      CO_CODECOMPTE: String(c.CO_CODECOMPTE ?? ""),
+      number: String(c.NUMEROCOMPTE ?? ""),
+      balance: String(c.SOLDE ?? c.SOLDE_GLOBAL ?? 0),
+      blocked: Number(c.MONTANTBLOQUE ?? 0),
+      currency: "XOF",
+      active: !c.CO_DATECLOTURE || String(c.CO_DATECLOTURE).includes("1900"),
+      color,
+      duration: c.duration || "24 mois",
+      nextDueDate: c.nextDueDate || "15/05/2024",
+      // progress will be calculated after portfolioTotal
+    } as any;
+  });
+
+  // Calculate portfolio total dynamically from accounts to ensure consistency
+  const portfolioTotal = accounts.reduce(
+    (sum, a) => sum + parseAmount(a.balance),
+    0
+  );
+
+  // Update progress now that we have portfolioTotal
+  accounts.forEach((a) => {
+    const b = parseAmount(a.balance);
+    a.progress =
+      portfolioTotal > 0 ? Math.max(0, Math.min(1, b / portfolioTotal)) : 0;
+  });
+
   const stats = [
     {
       id: 1,
-      label: `${new Intl.NumberFormat("fr-FR").format(
-        Number(compteStats?.SOLDE_GLOBAL || 0)
-      )} XAF`,
+      label: `${new Intl.NumberFormat("fr-FR").format(portfolioTotal)} XOF`,
       sub: tText("Total"),
       icon: "wallet-outline",
       bg: colors.primary + "15",
@@ -62,45 +97,13 @@ export const AccountsScreen: React.FC = () => {
           (s: number, c: any) => s + Number(c?.MONTANTBLOQUE || 0),
           0
         )
-      )} XAF`,
+      )} XOF`,
       sub: tText("Bloqué"),
       icon: "lock-closed-outline",
       bg: colors.warning + "15",
       iconColor: colors.warning,
     },
   ];
-
-  const accounts = (compteStats?.COMPTES ?? []).map((c, idx) => {
-    const type = String(c.CO_INTITULECOMPTE ?? "");
-    const color =
-      type.includes("Épargne") || type.includes("EPARGNE")
-        ? colors.success
-        : colors.primary;
-    return {
-      id: c.id ?? idx,
-      type,
-      CO_CODECOMPTE: String(c.CO_CODECOMPTE ?? ""),
-      number: String(c.NUMEROCOMPTE ?? ""),
-      balance: String(c.SOLDE ?? c.SOLDE_GLOBAL ?? 0),
-      blocked: Number(c.MONTANTBLOQUE ?? 0),
-      currency: "XAF",
-      progress: (() => {
-        const g = Number(compteStats?.SOLDE_GLOBAL ?? 0);
-        const b = Number(c.SOLDE ?? c.SOLDE_GLOBAL ?? 0);
-        return g > 0 ? Math.max(0, Math.min(1, b / g)) : 0;
-      })(),
-      active: !c.CO_DATECLOTURE || String(c.CO_DATECLOTURE).includes("1900"),
-      color,
-      duration: c.duration || "24 mois", // Default mock if not present
-      nextDueDate: c.nextDueDate || "15/05/2024", // Default mock if not present
-    } as any;
-  });
-
-  const parseAmount = (s: string) => Number(s.replace(/\s/g, ""));
-  const portfolioTotal = Number(
-    compteStats?.SOLDE_GLOBAL ??
-      accounts.reduce((sum, a) => sum + parseAmount(a.balance), 0)
-  );
 
   const renderStat = (s: any) => (
     <View
@@ -186,7 +189,7 @@ export const AccountsScreen: React.FC = () => {
             {t("accounts.header.portfolioTotal")}
           </Text>
           <Text style={[styles.portfolioValue, { color: colors.primary }]}>
-            {new Intl.NumberFormat("fr-FR").format(portfolioTotal)} XAF
+            {new Intl.NumberFormat("fr-FR").format(portfolioTotal)} XOF
           </Text>
         </View>
         <TouchableOpacity

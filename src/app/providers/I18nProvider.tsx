@@ -1488,9 +1488,9 @@ const TRANSLATIONS: Translations = {
     zh: "收藏",
   },
   "beneficiaries.help.contact": {
-    fr: "Pour toute question, contactez votre conseiller ou notre service client au +241 XX XX XX XX",
-    en: "For any questions, contact your advisor or our customer service at +241 XX XX XX XX",
-    zh: "如有疑问，请联系您的顾问或致电客户服务 +241 XX XX XX XX",
+    fr: "Pour toute question, contactez votre conseiller ou notre service client au +225 27 22 22 22 22",
+    en: "For any questions, contact your advisor or our customer service at +225 27 22 22 22 22",
+    zh: "如有疑问，请联系您的顾问或致电客户服务 +225 27 22 22 22 22",
   },
 
   // Beneficiaries modal
@@ -2400,6 +2400,11 @@ const TRANSLATIONS: Translations = {
     fr: "Wallet destinataire",
     en: "Destination wallet",
     zh: "收款钱包",
+  },
+  "wallet.form.walletDest.placeholder": {
+    fr: "Numéro Wallet (ex: 077 xx xx xx)",
+    en: "Wallet number (e.g., 077 xx xx xx)",
+    zh: "钱包号码（如：077 xx xx xx）",
   },
   "wallet.form.bankDest.label": {
     fr: "Compte bancaire destinataire",

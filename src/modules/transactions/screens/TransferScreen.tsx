@@ -21,12 +21,13 @@ export const TransferScreen: React.FC = () => {
   const { t, tText } = useI18n();
   const { colors } = useTheme();
   const route = useRoute();
-  
+
   const [sourceAccount, setSourceAccount] = useState("");
   const [destinationAccount, setDestinationAccount] = useState("");
   const [amount, setAmount] = useState("");
   const { submit, isLoading, error, data } = useVirement();
-  const { data: compteStats, fetchData: fetchAccounts } = useCompteStatistiques();
+  const { data: compteStats, fetchData: fetchAccounts } =
+    useCompteStatistiques();
   const [done, setDone] = useState(false);
   const [selectedAccount, setSelectedAccount] = useState<any>(null);
 
@@ -48,23 +49,30 @@ export const TransferScreen: React.FC = () => {
         setSourceAccount(sanitize(acc));
         // Try to find full object in stats if available
         if (compteStats?.COMPTES) {
-          const found = compteStats.COMPTES.find((c: any) => String(c.NUMEROCOMPTE) === acc);
+          const found = compteStats.COMPTES.find(
+            (c: any) => String(c.NUMEROCOMPTE) === acc
+          );
           if (found) {
-             // Adapt found account to expected structure if needed
-             const type = String(found.CO_INTITULECOMPTE ?? "");
-             const color = type.includes("Épargne") || type.includes("EPARGNE") ? colors.success : colors.primary;
-             setSelectedAccount({
-               type,
-               number: String(found.NUMEROCOMPTE ?? ""),
-               balance: String(found.SOLDE ?? found.SOLDE_GLOBAL ?? 0),
-               blocked: Number(found.MONTANTBLOQUE ?? 0),
-               currency: "XAF",
-               active: !found.CO_DATECLOTURE || String(found.CO_DATECLOTURE).includes("1900"),
-               color,
-             });
+            // Adapt found account to expected structure if needed
+            const type = String(found.CO_INTITULECOMPTE ?? "");
+            const color =
+              type.includes("Épargne") || type.includes("EPARGNE")
+                ? colors.success
+                : colors.primary;
+            setSelectedAccount({
+              type,
+              number: String(found.NUMEROCOMPTE ?? ""),
+              balance: String(found.SOLDE ?? found.SOLDE_GLOBAL ?? 0),
+              blocked: Number(found.MONTANTBLOQUE ?? 0),
+              currency: "XAF",
+              active:
+                !found.CO_DATECLOTURE ||
+                String(found.CO_DATECLOTURE).includes("1900"),
+              color,
+            });
           }
         } else {
-            fetchAccounts();
+          fetchAccounts();
         }
       }
     };
@@ -80,190 +88,27 @@ export const TransferScreen: React.FC = () => {
 
   const parseAmount = (s: string) => Number(s.replace(/\s/g, ""));
   // Portfolio total estimation for progress bar (fallback to balance if single)
-  const portfolioTotal = Number(compteStats?.SOLDE_GLOBAL || parseAmount(selectedAccount?.balance || "0") || 1);
-
+  const portfolioTotal = Number(
+    compteStats?.SOLDE_GLOBAL ||
+      parseAmount(selectedAccount?.balance || "0") ||
+      1
+  );
 
   const renderSourceAccountCard = () => {
-    if (!selectedAccount) {
-        // Fallback input if no rich data
-        return (
-            <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>
-              {t("transfer.form.source.label")}
-            </Text>
-            <TextInput
-              style={styles.input}
-              placeholder={t("transfer.form.source.placeholder")}
-              value={sourceAccount}
-              onChangeText={(v) => setSourceAccount(sanitize(v))}
-            />
-          </View>
-        );
-    }
-
-    const a = selectedAccount;
+    // Affichage simplifié (type Input) pour correspondre à la maquette
     return (
-        <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>
-              {t("transfer.form.source.label")}
-            </Text>
-            <View
-              style={[
-                styles.accountCard,
-                { backgroundColor: colors.card, borderColor: colors.border },
-              ]}
-            >
-              <View style={styles.accountTop}>
-                <View
-                  style={[
-                    styles.accountIcon,
-                    { backgroundColor: colors.background },
-                  ]}
-                >
-                  <Ionicons
-                    name={
-                      (a.type.includes("Courant")
-                        ? "briefcase"
-                        : "wallet") as any
-                    }
-                    size={22}
-                    color={a.color || colors.primary}
-                  />
-                </View>
-                <View style={styles.accountInfo}>
-                  <Text style={[styles.accountType, { color: colors.text }]}>
-                    {tText(a.type)}
-                  </Text>
-                  <Text
-                    style={[
-                      styles.accountNumber,
-                      { color: colors.text + "70" },
-                    ]}
-                  >
-                    {a.number}
-                  </Text>
-                </View>
-                <View
-                  style={[
-                    styles.statusPill,
-                    {
-                      backgroundColor: a.active
-                        ? colors.success + "15"
-                        : colors.error + "15",
-                    },
-                  ]}
-                >
-                  <Ionicons
-                    name={a.active ? "checkmark-circle" : "close-circle"}
-                    size={14}
-                    color={a.active ? colors.success : colors.error}
-                  />
-                  <Text
-                    style={[
-                      styles.statusText,
-                      { color: a.active ? colors.success : colors.error },
-                    ]}
-                  >
-                    {a.active ? t("accounts.status.active") : tText("Clôturé")}
-                  </Text>
-                  {Number(a.blocked) > 0 && (
-                    <View
-                      style={{
-                        flexDirection: "row",
-                        alignItems: "center",
-                        marginLeft: 8,
-                      }}
-                    >
-                      <Ionicons
-                        name="lock-closed"
-                        size={14}
-                        color={colors.warning}
-                      />
-                    </View>
-                  )}
-                </View>
-              </View>
-
-              <View style={styles.accountBalanceRow}>
-                <View>
-                  <Text
-                    style={[styles.balanceLabel, { color: colors.text + "70" }]}
-                  >
-                    {t("accounts.balance.available")}
-                  </Text>
-                  <Text style={[styles.balanceValue, { color: colors.text }]}>
-                    {new Intl.NumberFormat("fr-FR").format(
-                      parseAmount(a.balance)
-                    )}{" "}
-                    <Text
-                      style={[
-                        styles.balanceCurrency,
-                        { color: colors.primary },
-                      ]}
-                    >
-                      {a.currency}
-                    </Text>
-                  </Text>
-                  {Number(a.blocked) > 0 && (
-                    <View
-                      style={{
-                        flexDirection: "row",
-                        alignItems: "center",
-                        marginTop: 6,
-                      }}
-                    >
-                      <Ionicons
-                        name="lock-closed"
-                        size={14}
-                        color={colors.warning}
-                      />
-                      <Text
-                        style={{
-                          marginLeft: 6,
-                          color: colors.warning,
-                          fontWeight: "700",
-                        }}
-                      >
-                        {tText("Bloqué:")}{" "}
-                        {new Intl.NumberFormat("fr-FR").format(
-                          Number(a.blocked)
-                        )}{" "}
-                        {a.currency}
-                      </Text>
-                    </View>
-                  )}
-                </View>
-                 {/* Transfer button removed here as we are IN the transfer screen */}
-              </View>
-
-              <View style={styles.progressBarWrapper}>
-                <View
-                  style={[
-                    styles.progressTrack,
-                    { backgroundColor: colors.border },
-                  ]}
-                />
-                <View
-                  style={[
-                    styles.progressFill,
-                    {
-                      width: `${Math.round(
-                        (parseAmount(a.balance) / portfolioTotal) * 100
-                      )}%`,
-                      backgroundColor: a.color || colors.primary,
-                    },
-                  ]}
-                />
-              </View>
-              <Text
-                style={[styles.progressText, { color: colors.text + "70" }]}
-              >
-                {`${Math.round(
-                  (parseAmount(a.balance) / portfolioTotal) * 100
-                )}% du portfolio`}
-              </Text>
-            </View>
-        </View>
+      <View style={styles.inputGroup}>
+        <Text style={styles.inputLabel}>{t("transfer.form.source.label")}</Text>
+        <TextInput
+          style={[
+            styles.input,
+            { opacity: 0.8, backgroundColor: colors.card + "40" },
+          ]}
+          placeholder={t("transfer.form.source.placeholder")}
+          value={sourceAccount}
+          editable={false} // Le compte source est pré-sélectionné
+        />
+      </View>
     );
   };
 
@@ -299,9 +144,7 @@ export const TransferScreen: React.FC = () => {
             </Text>
             <TextInput
               style={styles.input}
-              placeholder={t(
-                "transfer.form.beneficiary.placeholder.internal"
-              )}
+              placeholder={t("transfer.form.beneficiary.placeholder.internal")}
               value={destinationAccount}
               onChangeText={(v) => setDestinationAccount(sanitize(v))}
             />
@@ -320,7 +163,7 @@ export const TransferScreen: React.FC = () => {
                 value={amount}
                 onChangeText={(v) => setAmount(v.replace(/[^0-9.]/g, ""))}
               />
-              <Text style={styles.amountCurrency}>XAF</Text>
+              <Text style={styles.amountCurrency}>XOF</Text>
             </View>
           </View>
         </View>

@@ -25,7 +25,25 @@ interface AddBeneficiaireModalProps {
   onAdd: (beneficiaire: NewBeneficiaire) => void;
 }
 
-const BANKS = ["La Peyie EMF", "BGFI Bank", "Ecobank", "UBA", "Autre Banque"];
+const BANKS = [
+  "CEDAICI SA",
+  "Ecobank",
+  "SGBCI",
+  "NSIA Banque",
+  "BOA",
+  "SIB",
+  "BICICI",
+  "BNI",
+  "Coris Bank",
+  "UBA",
+  "BGFI Bank",
+  "Orabank",
+  "Afriland First Bank",
+  "GTBank",
+  "Bridge Bank Group",
+  "Versus Bank",
+  "Autre Banque",
+];
 
 export default function AddBeneficiaireModal({
   visible,
@@ -69,9 +87,13 @@ export default function AddBeneficiaireModal({
       transparent
       onRequestClose={resetForm}
     >
-      <View style={[styles.modalOverlay, { backgroundColor: "rgba(0,0,0,0.5)" }]}>
+      <View
+        style={[styles.modalOverlay, { backgroundColor: "rgba(0,0,0,0.5)" }]}
+      >
         <View style={[styles.modalContainer, { backgroundColor: colors.card }]}>
-          <View style={[styles.modalHeader, { borderBottomColor: colors.border }]}>
+          <View
+            style={[styles.modalHeader, { borderBottomColor: colors.border }]}
+          >
             <Text style={[styles.modalTitle, { color: colors.text }]}>
               {t("beneficiaries.modal.title")}
             </Text>
@@ -84,10 +106,19 @@ export default function AddBeneficiaireModal({
             <View style={styles.fieldGroup}>
               <Text style={[styles.label, { color: colors.text }]}>
                 {t("beneficiaries.modal.fullName")}{" "}
-                <Text style={[styles.required, { color: colors.error }]}>*</Text>
+                <Text style={[styles.required, { color: colors.error }]}>
+                  *
+                </Text>
               </Text>
               <TextInput
-                style={[styles.input, { backgroundColor: colors.background, borderColor: colors.border, color: colors.text }]}
+                style={[
+                  styles.input,
+                  {
+                    backgroundColor: colors.background,
+                    borderColor: colors.border,
+                    color: colors.text,
+                  },
+                ]}
                 placeholder="Ex: Jean Dupont"
                 placeholderTextColor={colors.text + "80"}
                 value={name}
@@ -98,11 +129,20 @@ export default function AddBeneficiaireModal({
             <View style={styles.fieldGroup}>
               <Text style={[styles.label, { color: colors.text }]}>
                 {t("beneficiaries.modal.accountNumber")}{" "}
-                <Text style={[styles.required, { color: colors.error }]}>*</Text>
+                <Text style={[styles.required, { color: colors.error }]}>
+                  *
+                </Text>
               </Text>
               <TextInput
-                style={[styles.input, { backgroundColor: colors.background, borderColor: colors.border, color: colors.text }]}
-                placeholder="Ex: 1000CCHQ00000031001"
+                style={[
+                  styles.input,
+                  {
+                    backgroundColor: colors.background,
+                    borderColor: colors.border,
+                    color: colors.text,
+                  },
+                ]}
+                placeholder="Ex: 00007950001"
                 placeholderTextColor={colors.text + "80"}
                 value={accountNumber}
                 onChangeText={setAccountNumber}
@@ -112,16 +152,32 @@ export default function AddBeneficiaireModal({
             <View style={styles.fieldGroup}>
               <Text style={[styles.label, { color: colors.text }]}>
                 {t("beneficiaries.modal.bank")}{" "}
-                <Text style={[styles.required, { color: colors.error }]}>*</Text>
+                <Text style={[styles.required, { color: colors.error }]}>
+                  *
+                </Text>
               </Text>
               <TouchableOpacity
-                style={[styles.pickerButton, { backgroundColor: colors.background, borderColor: colors.border }]}
+                style={[
+                  styles.pickerButton,
+                  {
+                    backgroundColor: colors.background,
+                    borderColor: colors.border,
+                  },
+                ]}
                 onPress={() => setShowBankPicker(!showBankPicker)}
               >
-                <Text style={!bank ? [styles.placeholder, { color: colors.text + "80" }] : { color: colors.text }}>
+                <Text
+                  style={
+                    !bank
+                      ? [styles.placeholder, { color: colors.text + "80" }]
+                      : { color: colors.text }
+                  }
+                >
                   {bank || t("beneficiaries.modal.selectBank")}
                 </Text>
-                <Text style={{ color: colors.text }}>{showBankPicker ? "▲" : "▼"}</Text>
+                <Text style={{ color: colors.text }}>
+                  {showBankPicker ? "▲" : "▼"}
+                </Text>
               </TouchableOpacity>
               {showBankPicker && (
                 <View style={styles.pickerList}>
@@ -157,13 +213,21 @@ export default function AddBeneficiaireModal({
             </View>
           </ScrollView>
 
-          <View style={styles.modalFooter}>
-            <TouchableOpacity style={styles.cancelBtn} onPress={resetForm}>
-              <Text style={styles.cancelText}>{t("common.cancel")}</Text>
+          <View
+            style={[styles.modalFooter, { borderTopColor: colors.border }]}
+          >
+            <TouchableOpacity
+              style={[styles.cancelBtn, { backgroundColor: colors.border }]}
+              onPress={resetForm}
+            >
+              <Text style={[styles.cancelText, { color: colors.text }]}>
+                {t("common.cancel")}
+              </Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[
                 styles.addBtn,
+                { backgroundColor: colors.primary },
                 !name.trim() || !accountNumber.trim() || !bank
                   ? styles.disabledBtn
                   : null,
@@ -171,7 +235,7 @@ export default function AddBeneficiaireModal({
               disabled={!name.trim() || !accountNumber.trim() || !bank}
               onPress={handleAdd}
             >
-              <Text style={styles.addText}>
+              <Text style={[styles.addText, { color: colors.card }]}>
                 {t("beneficiaries.modal.save")}
               </Text>
             </TouchableOpacity>
