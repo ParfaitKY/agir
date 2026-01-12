@@ -47,6 +47,8 @@ import { useTheme } from "../../shared/styles/ThemeProvider";
 import { AnalyticsScreen } from "../../modules/analytics/screens/AnalyticsScreen";
 import { CreditSimulatorScreen } from "../../modules/credits/screens/CreditSimulatorScreen";
 import { CreditRequestScreen } from "../../modules/credits/screens/CreditRequestScreen";
+import { Linking } from "react-native";
+import useClientByTokenV2 from "../../domain/auth/useClientByTokenV2";
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -242,11 +244,58 @@ const MainTabs = () => {
 };
 
 export const AppNavigator: React.FC = () => {
-  const { isAuthenticated, user, isConfigured } = useAuth();
+  const { isAuthenticated, user, isConfigured, logout } = useAuth();
   const { t, tText } = useI18n();
   const { colors } = useTheme();
   const isGuestMode = isAuthenticated && user?.username === "invite";
   const navigation = useNavigation<any>();
+  const { fetchClientInfo } = useClientByTokenV2();
+
+  React.useEffect(() => {
+    const handleDeepLink = async (event: { url: string }) => {
+      try {
+        console.log("[DeepLink] Received:", event.url);
+        const regex = /[?&]token=([^&#]*)/;
+        const match = regex.exec(event.url);
+        const token = match ? match[1] : null;
+
+        if (token) {
+          console.log("[DeepLink] Token found, verifying...");
+          const clientInfo = await fetchClientInfo({ authtoken: token });
+
+          if (clientInfo?.token_info?.autoplay === false) {
+            console.log(
+              "[DeepLink] Autoplay disabled. Redirecting to PinLogin."
+            );
+
+            if (isGuestMode) {
+              console.log("[DeepLink] Guest mode detected. Logging out first.");
+              await logout();
+              return;
+            }
+
+            // Redirection directe vers PinLogin (suppose user configuré)
+            // Utilisation de reset pour empêcher SplashScreen de rediriger vers InitialSetup
+            navigation.reset({
+              index: 0,
+              routes: [{ name: "PinLogin" }],
+            });
+          }
+        }
+      } catch (e) {
+        console.error("[DeepLink] Error:", e);
+      }
+    };
+
+    Linking.getInitialURL().then((url) => {
+      if (url) handleDeepLink({ url });
+    });
+
+    const subscription = Linking.addEventListener("url", handleDeepLink);
+    return () => {
+      subscription.remove();
+    };
+  }, []);
 
   React.useEffect(() => {
     try {

@@ -72,8 +72,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       if (configured === "true") {
         const isValid = await verifyToken();
         if (!isValid) {
-          console.log("Initial Token Invalid -> Hard Reset");
-          await secureDeleteItem("is_configured"); // Force hard logout logic
+          console.log("Initial Token Invalid -> Soft Logout (Pin preserved)");
+          // On ne supprime pas is_configured ici, on laisse logout() gérer la déconnexion "douce"
+          // pour permettre à l'utilisateur de se reconnecter avec son PIN.
           await logout();
           return;
         }

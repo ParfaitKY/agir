@@ -2,6 +2,7 @@
   "expo": {
     "name": "MyCedaici",
     "slug": "ZenithMobileV2",
+    "scheme": "cedaici",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon_cedaici.jpg",
