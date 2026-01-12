@@ -1,3 +1,6 @@
+// Ancie
+
+// Nouveau
 import React from "react";
 import {
   TouchableOpacity,
@@ -44,6 +47,8 @@ import EmailSupportScreen from "../../modules/settings/screens/EmailSupportScree
 import AboutAppScreen from "../../modules/settings/screens/AboutAppScreen";
 import RateAppScreen from "../../modules/settings/screens/RateAppScreen";
 import ShareAppScreen from "../../modules/settings/screens/ShareAppScreen";
+import { CustomerSupportScreen } from "../../modules/settings/screens/CustomerSupportScreen";
+import { HelpCenterScreen } from "../../modules/settings/screens/HelpCenterScreen";
 import TermsOfUseScreen from "../../modules/settings/screens/TermsOfUseScreen";
 import SplashScreen from "../../modules/auth/screens/SplashScreen";
 import InitialSetupScreen from "../../modules/auth/screens/InitialSetupScreen";
@@ -333,8 +338,18 @@ export const AppNavigator: React.FC = () => {
 
           if (clientInfo?.token_info?.autoplay === false) {
             console.log(
-              "[DeepLink] Autoplay disabled. Redirecting to PinLogin."
+              "[DeepLink] Autoplay disabled. Redirecting to PinLogin. Info:",
+              JSON.stringify(clientInfo?.token_info)
             );
+
+            // Si l'utilisateur est connecté (ou en mode invité), on déconnecte d'abord
+            // pour éviter que le logout() ne supprime les nouvelles données qu'on va écrire.
+            if (isAuthenticated || isGuestMode) {
+              console.log(
+                "[DeepLink] Clearing previous session before binding..."
+              );
+              await logout();
+            }
 
             // Extraction et sauvegarde des informations client pour permettre le PinLogin
             // même si les données locales ont été effacées.
@@ -358,6 +373,7 @@ export const AppNavigator: React.FC = () => {
               const secureSetItem =
                 require("../../shared/utils/secureStorage").secureSetItem;
               if (loginCandidate) {
+                console.log("[DeepLink] Saving user_login:", loginCandidate);
                 await secureSetItem("user_login", String(loginCandidate));
               }
               // On marque comme configuré pour activer l'écran PinLogin via le contexte
@@ -366,18 +382,18 @@ export const AppNavigator: React.FC = () => {
               console.warn("[DeepLink] Failed to save client info", err);
             }
 
-            if (isGuestMode) {
-              console.log("[DeepLink] Guest mode detected. Logging out first.");
-              await logout();
-              return;
-            }
-
             // Redirection directe vers PinLogin (suppose user configuré)
             // Utilisation de reset pour empêcher SplashScreen de rediriger vers InitialSetup
             navigation.reset({
               index: 0,
               routes: [{ name: "PinLogin" }],
             });
+          } else {
+            console.log(
+              "[DeepLink] Autoplay is NOT false (or undefined). Value:",
+              clientInfo?.token_info?.autoplay
+            );
+            // TODO: Gérer le cas autoplay = true si nécessaire (auto-login ?)
           }
         }
       } catch (e) {
@@ -699,6 +715,28 @@ export const AppNavigator: React.FC = () => {
             options={{
               headerShown: true,
               title: t("settings.app.share"),
+              headerStyle: { backgroundColor: colors.card },
+              headerTitleStyle: { color: colors.text },
+              headerTintColor: colors.primary,
+            }}
+          />
+          <Stack.Screen
+            name="CustomerSupport"
+            component={CustomerSupportScreen}
+            options={{
+              headerShown: true,
+              title: tText("Service client"),
+              headerStyle: { backgroundColor: colors.card },
+              headerTitleStyle: { color: colors.text },
+              headerTintColor: colors.primary,
+            }}
+          />
+          <Stack.Screen
+            name="HelpCenter"
+            component={HelpCenterScreen}
+            options={{
+              headerShown: true,
+              title: "Centre d'aide",
               headerStyle: { backgroundColor: colors.card },
               headerTitleStyle: { color: colors.text },
               headerTintColor: colors.primary,

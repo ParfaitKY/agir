@@ -71,7 +71,8 @@ const EmailSupportScreen: React.FC = () => {
       return;
     }
 
-    const to = "info.vallon@cedaici.com";
+    const to =
+      "info.vallon@cedaici.com,info.treichville@cedaici.com,info.odienne@cedaici.com";
     const finalSubject =
       subject || `[${motifs.find((m) => m.key === motif)?.label}]`;
     const finalBody = body || t("support.email.body.default");
@@ -101,7 +102,9 @@ const EmailSupportScreen: React.FC = () => {
   };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+    <SafeAreaView
+      style={[styles.container, { backgroundColor: colors.background }]}
+    >
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
@@ -110,7 +113,12 @@ const EmailSupportScreen: React.FC = () => {
           <Animated.View
             style={{ opacity: fadeAnim, transform: [{ scale: scaleAnim }] }}
           >
-            <View style={[styles.logoCircle, { backgroundColor: colors.card, borderColor: colors.border }]}>
+            <View
+              style={[
+                styles.logoCircle,
+                { backgroundColor: colors.card, borderColor: colors.border },
+              ]}
+            >
               <Ionicons name="mail-outline" size={36} color={colors.primary} />
             </View>
           </Animated.View>
@@ -120,11 +128,21 @@ const EmailSupportScreen: React.FC = () => {
           style={[
             styles.card,
             { opacity: fadeAnim, transform: [{ scale: scaleAnim }] },
-            { backgroundColor: colors.card, borderColor: colors.border }
+            { backgroundColor: colors.card, borderColor: colors.border },
           ]}
         >
-          <Text style={[styles.label, { color: colors.text }]}>{t("support.email.address.label")}</Text>
-          <View style={[styles.inputRow, { backgroundColor: colors.background, borderColor: colors.border }]}>
+          <Text style={[styles.label, { color: colors.text }]}>
+            {t("support.email.address.label")}
+          </Text>
+          <View
+            style={[
+              styles.inputRow,
+              {
+                backgroundColor: colors.background,
+                borderColor: colors.border,
+              },
+            ]}
+          >
             <Ionicons
               name="mail-outline"
               size={18}
@@ -142,7 +160,9 @@ const EmailSupportScreen: React.FC = () => {
             />
           </View>
 
-          <Text style={[styles.label, { color: colors.text }]}>{t("support.email.motif.label")}</Text>
+          <Text style={[styles.label, { color: colors.text }]}>
+            {t("support.email.motif.label")}
+          </Text>
           <View style={styles.segmentRow}>
             {motifs.map((m) => (
               <TouchableOpacity
@@ -150,16 +170,28 @@ const EmailSupportScreen: React.FC = () => {
                 onPress={() => setMotif(m.key)}
                 style={[
                   styles.segment,
-                  motif === m.key && [styles.segmentActive, { backgroundColor: colors.primary, borderColor: colors.primary }],
-                  motif !== m.key && { backgroundColor: colors.background, borderColor: colors.border }
+                  motif === m.key && [
+                    styles.segmentActive,
+                    {
+                      backgroundColor: colors.primary,
+                      borderColor: colors.primary,
+                    },
+                  ],
+                  motif !== m.key && {
+                    backgroundColor: colors.background,
+                    borderColor: colors.border,
+                  },
                 ]}
                 activeOpacity={0.8}
               >
                 <Text
                   style={[
                     styles.segmentText,
-                    motif === m.key && [styles.segmentTextActive, { color: "#fff" }],
-                    motif !== m.key && { color: colors.text }
+                    motif === m.key && [
+                      styles.segmentTextActive,
+                      { color: "#fff" },
+                    ],
+                    motif !== m.key && { color: colors.text },
                   ]}
                 >
                   {m.label}
@@ -168,8 +200,18 @@ const EmailSupportScreen: React.FC = () => {
             ))}
           </View>
 
-          <Text style={[styles.label, { color: colors.text }]}>{t("support.email.subject.label")}</Text>
-          <View style={[styles.inputRow, { backgroundColor: colors.background, borderColor: colors.border }]}>
+          <Text style={[styles.label, { color: colors.text }]}>
+            {t("support.email.subject.label")}
+          </Text>
+          <View
+            style={[
+              styles.inputRow,
+              {
+                backgroundColor: colors.background,
+                borderColor: colors.border,
+              },
+            ]}
+          >
             <Ionicons
               name="pencil-outline"
               size={18}
@@ -185,8 +227,19 @@ const EmailSupportScreen: React.FC = () => {
             />
           </View>
 
-          <Text style={[styles.label, { color: colors.text }]}>{t("support.email.body.label")}</Text>
-          <View style={[styles.inputRow, styles.textareaRow, { backgroundColor: colors.background, borderColor: colors.border }]}>
+          <Text style={[styles.label, { color: colors.text }]}>
+            {t("support.email.body.label")}
+          </Text>
+          <View
+            style={[
+              styles.inputRow,
+              styles.textareaRow,
+              {
+                backgroundColor: colors.background,
+                borderColor: colors.border,
+              },
+            ]}
+          >
             <Ionicons
               name="create-outline"
               size={18}
@@ -194,7 +247,12 @@ const EmailSupportScreen: React.FC = () => {
               style={styles.inputIcon}
             />
             <TextInput
-              style={[styles.input, styles.textarea, styles.inputFlex, { color: colors.text }]}
+              style={[
+                styles.input,
+                styles.textarea,
+                styles.inputFlex,
+                { color: colors.text },
+              ]}
               placeholder={t("support.email.body.placeholder")}
               placeholderTextColor={colors.text + "80"}
               multiline
@@ -205,23 +263,43 @@ const EmailSupportScreen: React.FC = () => {
 
           <View style={styles.actions}>
             <TouchableOpacity
-              style={[styles.button, styles.ghost, { backgroundColor: colors.card, borderColor: colors.border }]}
+              style={[
+                styles.button,
+                styles.ghost,
+                { backgroundColor: colors.card, borderColor: colors.border },
+              ]}
               onPress={() => {
                 setEmail("");
                 setSubject("");
                 setBody("");
               }}
             >
-              <Text style={[styles.buttonText, styles.ghostText, { color: colors.text }]}>
+              <Text
+                style={[
+                  styles.buttonText,
+                  styles.ghostText,
+                  { color: colors.text },
+                ]}
+              >
                 {t("common.cancel")}
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[styles.button, styles.primary, { backgroundColor: colors.primary }]}
+              style={[
+                styles.button,
+                styles.primary,
+                { backgroundColor: colors.primary },
+              ]}
               onPress={sendMail}
               activeOpacity={0.85}
             >
-              <Text style={[styles.buttonText, styles.primaryText, { color: "#fff" }]}>
+              <Text
+                style={[
+                  styles.buttonText,
+                  styles.primaryText,
+                  { color: "#fff" },
+                ]}
+              >
                 {t("support.email.action.send")}
               </Text>
             </TouchableOpacity>
