@@ -29,6 +29,8 @@ export const DashboardScreen: React.FC = () => {
   const servicesScrollRef = useRef<FlatList>(null);
   const navigation = useNavigation();
   const [showQrModal, setShowQrModal] = useState(false);
+  const [showFeatureUnavailableModal, setShowFeatureUnavailableModal] =
+    useState(false);
   const [showAllTransactions, setShowAllTransactions] = useState(false);
   const [isBalanceHidden, setIsBalanceHidden] = useState(false);
   const { t, tText } = useI18n();
@@ -615,6 +617,53 @@ export const DashboardScreen: React.FC = () => {
           </View>
         </Modal>
 
+        {/* Modal Feature Unavailable */}
+        <Modal
+          transparent
+          visible={showFeatureUnavailableModal}
+          animationType="fade"
+          onRequestClose={() => setShowFeatureUnavailableModal(false)}
+        >
+          <View style={styles.qrOverlay}>
+            <View
+              style={[
+                styles.qrContainer,
+                { backgroundColor: colors.card, borderColor: colors.border },
+              ]}
+            >
+              <View style={styles.qrHeaderRow}>
+                <Text style={[styles.qrHeaderTitle, { color: colors.text }]}>
+                  Module indisponible
+                </Text>
+                <TouchableOpacity
+                  onPress={() => setShowFeatureUnavailableModal(false)}
+                  style={styles.qrCloseBtn}
+                >
+                  <Ionicons name="close" size={20} color={colors.text} />
+                </TouchableOpacity>
+              </View>
+
+              <View style={{ padding: 20, alignItems: "center" }}>
+                <Ionicons
+                  name="construct-outline"
+                  size={48}
+                  color={colors.warning}
+                  style={{ marginBottom: 16 }}
+                />
+                <Text
+                  style={{
+                    fontSize: 16,
+                    color: colors.text,
+                    textAlign: "center",
+                  }}
+                >
+                  Fonctionnalité à venir
+                </Text>
+              </View>
+            </View>
+          </View>
+        </Modal>
+
         {/* Carte principale - MASQUÉE EN MODE INVITÉ */}
         {!isGuestMode && (
           <View
@@ -825,8 +874,7 @@ export const DashboardScreen: React.FC = () => {
                 { backgroundColor: colors.card, borderColor: colors.border },
               ]}
               onPress={() => {
-                if (handleGuestRestriction("les produits")) return;
-                navigation.navigate("Products" as never);
+                setShowFeatureUnavailableModal(true);
               }}
             >
               <View
@@ -1104,7 +1152,7 @@ export const DashboardScreen: React.FC = () => {
                       const amt = isCredit
                         ? op.MC_MONTANTCREDIT
                         : op.MC_MONTANTDEBIT;
-                      
+
                       // Modification: retrait de la distinction visuelle Débit/Crédit (couleurs et puces)
                       const label = String(op.MC_LIBELLEOPERATION || "");
                       return (

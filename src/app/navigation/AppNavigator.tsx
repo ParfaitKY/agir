@@ -1,5 +1,12 @@
 import React from "react";
-import { TouchableOpacity, View, Text, Alert } from "react-native";
+import {
+  TouchableOpacity,
+  View,
+  Text,
+  Alert,
+  Modal,
+  StyleSheet,
+} from "react-native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { useNavigation } from "@react-navigation/native";
@@ -61,6 +68,9 @@ const CustomTabBar = ({
   colors,
   isGuestMode,
 }: any) => {
+  const [showFeatureUnavailableModal, setShowFeatureUnavailableModal] =
+    React.useState(false);
+
   const handleGuestRestriction = () => {
     Alert.alert(
       "Connexion requise",
@@ -105,6 +115,11 @@ const CustomTabBar = ({
           isGuestMode && restrictedScreens.includes(route.name);
 
         const onPress = () => {
+          if (route.name === "Products") {
+            setShowFeatureUnavailableModal(true);
+            return;
+          }
+
           if (isRestricted) {
             handleGuestRestriction();
           } else {
@@ -121,15 +136,21 @@ const CustomTabBar = ({
             testID={options.tabBarTestID}
             onPress={onPress}
             style={{ flex: 1, alignItems: "center", paddingVertical: 8 }}
-            disabled={isRestricted}
+            disabled={isRestricted && route.name !== "Products"}
           >
-            <View style={{ opacity: isRestricted ? 0.5 : 1 }}>{iconName}</View>
+            <View
+              style={{
+                opacity: isRestricted && route.name !== "Products" ? 0.5 : 1,
+              }}
+            >
+              {iconName}
+            </View>
             <Text
               style={{
                 color: isFocused ? colors.primary : colors.text,
                 fontSize: 12,
                 marginTop: 4,
-                opacity: isRestricted ? 0.5 : 1,
+                opacity: isRestricted && route.name !== "Products" ? 0.5 : 1,
               }}
             >
               {label}
@@ -137,6 +158,52 @@ const CustomTabBar = ({
           </TouchableOpacity>
         );
       })}
+
+      <Modal
+        transparent
+        visible={showFeatureUnavailableModal}
+        animationType="fade"
+        onRequestClose={() => setShowFeatureUnavailableModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View
+            style={[
+              styles.modalContainer,
+              { backgroundColor: colors.card, borderColor: colors.border },
+            ]}
+          >
+            <View style={styles.modalHeader}>
+              <Text style={[styles.modalTitle, { color: colors.text }]}>
+                Module indisponible
+              </Text>
+              <TouchableOpacity
+                onPress={() => setShowFeatureUnavailableModal(false)}
+                style={styles.closeBtn}
+              >
+                <Ionicons name="close" size={20} color={colors.text} />
+              </TouchableOpacity>
+            </View>
+
+            <View style={{ padding: 20, alignItems: "center" }}>
+              <Ionicons
+                name="construct-outline"
+                size={48}
+                color={colors.warning || "#FFC107"}
+                style={{ marginBottom: 16 }}
+              />
+              <Text
+                style={{
+                  fontSize: 16,
+                  color: colors.text,
+                  textAlign: "center",
+                }}
+              >
+                Fonctionnalité à venir
+              </Text>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -244,7 +311,8 @@ const MainTabs = () => {
 };
 
 export const AppNavigator: React.FC = () => {
-  const { isAuthenticated, user, isConfigured, logout } = useAuth();
+  const { isAuthenticated, user, isConfigured, logout, markConfigured } =
+    useAuth();
   const { t, tText } = useI18n();
   const { colors } = useTheme();
   const isGuestMode = isAuthenticated && user?.username === "invite";
@@ -267,6 +335,36 @@ export const AppNavigator: React.FC = () => {
             console.log(
               "[DeepLink] Autoplay disabled. Redirecting to PinLogin."
             );
+
+            // Extraction et sauvegarde des informations client pour permettre le PinLogin
+            // même si les données locales ont été effacées.
+            try {
+              const normalize = (r: any) => {
+                const d = r?.data ?? r;
+                if (Array.isArray(d)) return d[0] ?? {};
+                if (Array.isArray(d?.data)) return d.data[0] ?? {};
+                if (d?.data && typeof d.data === "object") return d.data;
+                return d ?? {};
+              };
+              const block = normalize(clientInfo);
+              const loginCandidate =
+                block.SL_LOGIN ??
+                block.LOGIN ??
+                block.login ??
+                block.username ??
+                block.USER_LOGIN ??
+                "";
+
+              const secureSetItem =
+                require("../../shared/utils/secureStorage").secureSetItem;
+              if (loginCandidate) {
+                await secureSetItem("user_login", String(loginCandidate));
+              }
+              // On marque comme configuré pour activer l'écran PinLogin via le contexte
+              await markConfigured(true);
+            } catch (err) {
+              console.warn("[DeepLink] Failed to save client info", err);
+            }
 
             if (isGuestMode) {
               console.log("[DeepLink] Guest mode detected. Logging out first.");
@@ -405,6 +503,17 @@ export const AppNavigator: React.FC = () => {
             options={{
               headerShown: true,
               title: tText("Détail du produit"),
+              headerStyle: { backgroundColor: colors.card },
+              headerTitleStyle: { color: colors.text },
+              headerTintColor: colors.primary,
+            }}
+          />
+          <Stack.Screen
+            name="ProductsList"
+            component={ProductsScreen}
+            options={{
+              headerShown: true,
+              title: "Mes Produits",
               headerStyle: { backgroundColor: colors.card },
               headerTitleStyle: { color: colors.text },
               headerTintColor: colors.primary,
@@ -652,3 +761,39 @@ const withGuestRestriction = (Component: any) => (props: any) => {
   }
   return <Component {...props} />;
 };
+
+const styles = StyleSheet.create({
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.35)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalContainer: {
+    width: "90%",
+    borderRadius: 20,
+    padding: 16,
+    borderWidth: 1,
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 10,
+    elevation: 5,
+  },
+  modalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 12,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: "800",
+  },
+  closeBtn: {
+    width: 32,
+    height: 32,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+});

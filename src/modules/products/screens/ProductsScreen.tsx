@@ -41,6 +41,14 @@ interface Product {
 }
 
 export const ProductsScreen: React.FC = () => {
+  console.log("ProductsScreen mounted");
+
+  React.useEffect(() => {
+    // Debug: Confirmer le montage
+    // Alert.alert("Debug", "ProductsScreen est monté");
+    console.log("ProductsScreen useEffect mounted");
+  }, []);
+
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const { t, tText } = useI18n();
   const { colors } = useTheme();

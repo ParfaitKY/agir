@@ -63,6 +63,7 @@ export const SettingsScreen: React.FC = () => {
   const [showCurrentPin, setShowCurrentPin] = React.useState(false);
   const [showNewPin, setShowNewPin] = React.useState(false);
   const [showConfirmPin, setShowConfirmPin] = React.useState(false);
+  const [showFeatureUnavailableModal, setShowFeatureUnavailableModal] = React.useState(false);
   const [showLogoutModal, setShowLogoutModal] = React.useState(false);
   const [logoutProcessing, setLogoutProcessing] = React.useState<
     "normal" | "forget" | null
@@ -196,7 +197,7 @@ export const SettingsScreen: React.FC = () => {
           icon: "grid-outline",
           iconColor: colors.primary,
           title: "Mes produits",
-          onPress: () => (navigation as any).navigate("Products"),
+          onPress: () => setShowFeatureUnavailableModal(true),
           showChevron: true,
           isRestricted: true,
         },
@@ -967,6 +968,68 @@ export const SettingsScreen: React.FC = () => {
                   {t("common.close")}
                 </Text>
               </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Modal Feature Unavailable */}
+      <Modal
+        transparent
+        visible={showFeatureUnavailableModal}
+        animationType="fade"
+        onRequestClose={() => setShowFeatureUnavailableModal(false)}
+      >
+        <View
+          style={[
+            styles.modalOverlay,
+            { backgroundColor: isDark ? "rgba(0,0,0,0.6)" : "rgba(0,0,0,0.35)" },
+          ]}
+        >
+          <View
+            style={[
+              styles.modalContainer,
+              { backgroundColor: colors.card, borderColor: colors.border, borderWidth: 1 },
+            ]}
+          >
+            <View style={{
+                flexDirection: "row",
+                justifyContent: "space-between",
+                alignItems: "center",
+                marginBottom: 12,
+            }}>
+              <Text style={[styles.modalTitle, { color: colors.text, marginBottom: 0 }]}>
+                Module indisponible
+              </Text>
+              <TouchableOpacity
+                onPress={() => setShowFeatureUnavailableModal(false)}
+                style={{
+                    width: 32,
+                    height: 32,
+                    justifyContent: "center",
+                    alignItems: "center",
+                }}
+              >
+                <Ionicons name="close" size={20} color={colors.text} />
+              </TouchableOpacity>
+            </View>
+
+            <View style={{ padding: 20, alignItems: "center" }}>
+              <Ionicons
+                name="construct-outline"
+                size={48}
+                color={colors.warning || "#FFC107"}
+                style={{ marginBottom: 16 }}
+              />
+              <Text
+                style={{
+                  fontSize: 16,
+                  color: colors.text,
+                  textAlign: "center",
+                }}
+              >
+                Fonctionnalité à venir
+              </Text>
             </View>
           </View>
         </View>

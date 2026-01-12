@@ -149,7 +149,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       const lnSaved = await secureGetItem("user_lastname");
 
       // SAUVEGARDE DU CODE CLIENT
-      const clientCode = pick(block, ["CL_CODECLIENT", "CODECLIENT", "CLIENT_ID", "ID_CLIENT"]) || "";
+      const clientCode =
+        pick(block, [
+          "CL_CODECLIENT",
+          "CODECLIENT",
+          "CLIENT_ID",
+          "ID_CLIENT",
+        ]) || "";
       if (clientCode) await secureSetItem("client_id", String(clientCode));
       const fn =
         block?.CL_PRENOMCLIENT ||
@@ -324,6 +330,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     try {
       const storedPin = await secureGetItem("pin_user");
       const userData = await secureGetItem("user_data");
+
+      // Si aucun PIN n'est stocké localement (cas de réinstallation ou suppression de données),
+      // on tente une authentification serveur directe (mode restauration).
+      if (!storedPin) {
+        console.log(
+          "No stored PIN found. Attempting server verification for restoration."
+        );
+        // On continue sans vérification locale matchStored
+      }
+
       // Vérifie storedPin en clair ou déjà haché
       let matchStored = false;
       if (storedPin) {
@@ -345,7 +361,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           );
           matchStored = hashedStored === hashedInput;
         }
+      } else {
+        // Mode restauration : on suppose que c'est bon pour laisser le serveur décider
+        matchStored = true;
       }
+
       if (matchStored) {
         const lg = (await secureGetItem("user_login")) || undefined;
         if (!lg) {
@@ -367,8 +387,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
             err?.response?.data?.message ||
             err?.message ||
             "Échec de connexion";
+          // Si on était en mode restauration et que ça échoue, c'est que le PIN est vraiment faux
           throw new Error(msg);
         }
+
+        // Si succès et qu'on n'avait pas de PIN stocké, on le sauvegarde (Restauration)
+        if (!storedPin) {
+          const hashedNewPin = await Crypto.digestStringAsync(
+            Crypto.CryptoDigestAlgorithm.SHA256,
+            pin
+          );
+          await secureSetItem("pin_user", hashedNewPin);
+          await secureSetItem("is_configured", "true");
+        }
+
         const data: any = result?.data;
         const token =
           data?.token ||
