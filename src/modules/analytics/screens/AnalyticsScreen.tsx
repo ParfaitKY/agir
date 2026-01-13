@@ -431,6 +431,35 @@ const styles = StyleSheet.create({
   metricValue: { fontSize: 18, fontWeight: "700" },
   metricLabel: { fontSize: 12 },
   error: { fontSize: 14 },
+  chartRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  legendContainer: {
+    flex: 1,
+    justifyContent: "center",
+    paddingLeft: 10,
+  },
+  legendItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 12,
+  },
+  legendDot: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    marginRight: 8,
+  },
+  legendText: {
+    fontSize: 14,
+    fontWeight: "600",
+  },
+  legendSubText: {
+    fontSize: 12,
+    opacity: 0.7,
+  },
 });
 
 export default AnalyticsScreen;

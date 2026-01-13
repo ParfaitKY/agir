@@ -81,22 +81,30 @@ export function useDernieresOperationsClient(count: number = 10) {
         (a, b) => parseDateStr(b.MC_DATESAISIE) - parseDateStr(a.MC_DATESAISIE)
       );
 
-      // Deduplication logic
+      // Deduplicate operations based on unique ID fields
       const uniqueOps: OperationItem[] = [];
-      const seen = new Set<string>();
+      const seenIds = new Set<string>();
 
       for (const op of sorted) {
-        const type = String(op.TypeOperation || "").toUpperCase();
-        const isCredit = type === "CREDIT";
-        const amt = isCredit ? op.MC_MONTANTCREDIT : op.MC_MONTANTDEBIT;
-        const label = op.MC_LIBELLEOPERATION || "";
-        const date = op.MC_DATESAISIE || "";
-        
-        // Key based on Label, Amount and Date (ignoring type/direction to filter pairs)
-        const key = `${label}|${amt}|${date}`;
-        
-        if (!seen.has(key)) {
-          seen.add(key);
+        // Create a unique key using composite fields
+        // MC_NUMPIECE + MC_NUMSEQUENCE + AG_CODEAGENCE + CO_CODECOMPTE seems robust enough for banking transactions
+        // Casting to any to avoid linter issues if type definition update is lagging
+        const opAny = op as any;
+        const numPiece = opAny.MC_NUMPIECE || "";
+        const numSequence = opAny.MC_NUMSEQUENCE || "";
+        const agence = opAny.AG_CODEAGENCE || "";
+        const compte = opAny.CO_CODECOMPTE || "";
+        const montantDebit = op.MC_MONTANTDEBIT || "0";
+        const montantCredit = op.MC_MONTANTCREDIT || "0";
+
+        // Fallback key if technical IDs are missing: Date + Amount + Label + Type
+        const technicalId = `${numPiece}-${numSequence}-${agence}-${compte}`;
+        const fallbackId = `${op.MC_DATESAISIE}-${montantDebit}-${montantCredit}-${op.MC_LIBELLEOPERATION}`;
+
+        const key = numPiece && numSequence ? technicalId : fallbackId;
+
+        if (!seenIds.has(key)) {
+          seenIds.add(key);
           uniqueOps.push(op);
         }
       }
