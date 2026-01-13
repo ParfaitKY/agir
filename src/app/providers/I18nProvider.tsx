@@ -1578,14 +1578,14 @@ const TRANSLATIONS: Translations = {
     zh: "7 天客服支持",
   },
   "products.currentAccount.cond1": {
-    fr: "Dépôt minimum : 25 000 XAF",
-    en: "Minimum deposit: 25,000 XAF",
-    zh: "最低存款：25,000 XAF",
+    fr: "Dépôt minimum : 25 000 XOF",
+    en: "Minimum deposit: 25,000 XOF",
+    zh: "最低存款：25,000 XOF",
   },
   "products.currentAccount.cond2": {
-    fr: "Frais de tenue : 1 500 XAF/mois",
-    en: "Maintenance fee: 1,500 XAF/month",
-    zh: "账户维护费：每月 1,500 XAF",
+    fr: "Frais de tenue : 1 500 XOF/mois",
+    en: "Maintenance fee: 1,500 XOF/month",
+    zh: "账户维护费：每月 1,500 XOF",
   },
   "products.currentAccount.cond3": {
     fr: "Pièce d’identité requise",
@@ -1625,14 +1625,14 @@ const TRANSLATIONS: Translations = {
     zh: "需要活期账户",
   },
   "products.visaPremium.cond2": {
-    fr: "Cotisation : 5 000 XAF/an",
-    en: "Fee: 5,000 XAF/year",
-    zh: "年费：5,000 XAF",
+    fr: "Cotisation : 5 000 XOF/an",
+    en: "Fee: 5,000 XOF/year",
+    zh: "年费：5,000 XOF",
   },
   "products.visaPremium.cond3": {
-    fr: "Plafond : 500 000 XAF/jour",
-    en: "Limit: 500,000 XAF/day",
-    zh: "每日限额：500,000 XAF",
+    fr: "Plafond : 500 000 XOF/jour",
+    en: "Limit: 500,000 XOF/day",
+    zh: "每日限额：500,000 XOF",
   },
 
   // Micro Credit Express
@@ -1652,9 +1652,9 @@ const TRANSLATIONS: Translations = {
     zh: "灵活还款",
   },
   "products.microCredit.adv4": {
-    fr: "Montant jusqu’à 500 000 XAF",
-    en: "Amount up to 500,000 XAF",
-    zh: "额度最高 500,000 XAF",
+    fr: "Montant jusqu’à 500 000 XOF",
+    en: "Amount up to 500,000 XOF",
+    zh: "额度最高 500,000 XOF",
   },
   "products.microCredit.adv5": {
     fr: "Procédure 100% digitale",
@@ -1704,9 +1704,9 @@ const TRANSLATIONS: Translations = {
     zh: "直接报销",
   },
   "products.healthInsurance.cond1": {
-    fr: "À partir de 15 000 XAF/mois",
-    en: "From 15,000 XAF/month",
-    zh: "每月起价 15,000 XAF",
+    fr: "À partir de 15 000 XOF/mois",
+    en: "From 15,000 XOF/month",
+    zh: "每月起价 15,000 XOF",
   },
   "products.healthInsurance.cond2": {
     fr: "Questionnaire médical",
@@ -1746,14 +1746,14 @@ const TRANSLATIONS: Translations = {
     zh: "个性化建议",
   },
   "products.savingsProject.cond1": {
-    fr: "Dépôt initial : 10 000 XAF",
-    en: "Initial deposit: 10,000 XAF",
-    zh: "初始存款：10,000 XAF",
+    fr: "Dépôt initial : 10 000 XOF",
+    en: "Initial deposit: 10,000 XOF",
+    zh: "初始存款：10,000 XOF",
   },
   "products.savingsProject.cond2": {
-    fr: "Versement minimum : 5 000 XAF",
-    en: "Minimum deposit: 5,000 XAF",
-    zh: "最低存款：5,000 XAF",
+    fr: "Versement minimum : 5 000 XOF",
+    en: "Minimum deposit: 5,000 XOF",
+    zh: "最低存款：5,000 XOF",
   },
   "products.savingsProject.cond3": {
     fr: "Durée : 6 à 36 mois",
@@ -2422,7 +2422,7 @@ const TRANSLATIONS: Translations = {
     zh: "来源银行账户",
   },
   "wallet.form.amount.label": { fr: "Montant", en: "Amount", zh: "金额" },
-  "common.currency.xaf": { fr: "XAF", en: "XAF", zh: "XAF" },
+  "common.currency.code": { fr: "XOF", en: "XOF", zh: "XOF" },
   "wallet.action.submit": {
     fr: "Effectuer le transfert",
     en: "Make the transfer",

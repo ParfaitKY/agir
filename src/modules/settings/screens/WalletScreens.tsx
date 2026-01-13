@@ -46,7 +46,7 @@ const WalletScreens: React.FC = () => {
   const handleSubmit = () => {
     const from = transferType === "walletToBank" ? walletNumber : bankAccount;
     const to = transferType === "walletToBank" ? bankAccount : walletNumber;
-    alert(`Transfert de ${amount} XAF: ${from} → ${to}`);
+    alert(`Transfert de ${amount} XOF: ${from} → ${to}`);
   };
 
   const renderAccountItem = ({ item }: { item: any }) => {
@@ -413,7 +413,7 @@ const WalletScreens: React.FC = () => {
               onChangeText={(text) => setAmount(Number(text) || 0)}
             />
             <Text style={[styles.currency, { color: colors.text }]}>
-              {t("common.currency.xaf")}
+              {t("common.currency.code")}
             </Text>
           </View>
 

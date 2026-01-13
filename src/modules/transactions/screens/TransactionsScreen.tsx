@@ -82,7 +82,7 @@ export const TransactionsScreen: React.FC = () => {
             title: String(r?.MC_LIBELLEOPERATION ?? ""),
             amountText: `${
               type === "entree" ? "+" : "-"
-            }${num.toLocaleString()} XAF`,
+            }${num.toLocaleString()} XOF`,
             amountNum: num,
             date: String(r?.MC_DATEPIECE ?? r?.MC_DATESAISIE ?? ""),
             type,
@@ -162,7 +162,7 @@ export const TransactionsScreen: React.FC = () => {
             </Text>
           </View>
           <Text style={styles.entreeAmount}>
-            {totalEntrees.toLocaleString()} XAF
+            {totalEntrees.toLocaleString()} XOF
           </Text>
         </View>
         <View style={styles.summarySeparator} />
@@ -174,7 +174,7 @@ export const TransactionsScreen: React.FC = () => {
             </Text>
           </View>
           <Text style={styles.sortieAmount}>
-            {totalSorties.toLocaleString()} XAF
+            {totalSorties.toLocaleString()} XOF
           </Text>
         </View>
       </View>

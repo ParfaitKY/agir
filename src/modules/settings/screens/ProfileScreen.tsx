@@ -395,7 +395,7 @@ const ProfileScreen: React.FC = () => {
           const amountVal = isCredit ? credit : debit;
           const amount = `${isCredit ? "+" : "-"}${amountVal.toLocaleString(
             "fr-FR"
-          )} XAF`;
+          )} XOF`;
 
           return {
             id: String(index),
@@ -462,7 +462,7 @@ const ProfileScreen: React.FC = () => {
         const amountAbs = Math.abs(Number(amountNum) || 0);
         const amount = `${isCredit ? "+" : "-"}${amountAbs.toLocaleString(
           "fr-FR"
-        )} XAF`;
+        )} XOF`;
         const date =
           pick(item, ["DATEOPERATION", "DATE", "DATEVALEUR", "OP_DATE"]) ||
           new Date().toLocaleDateString("fr-FR");

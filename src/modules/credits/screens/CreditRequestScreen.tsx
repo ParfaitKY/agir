@@ -151,33 +151,9 @@ export const CreditRequestScreen: React.FC = () => {
       const stored = await secureGetItem("local_credit_requests");
       let data = stored ? JSON.parse(stored) : [];
 
-      // Seed some fake data if empty for demo
-      if (data.length === 0) {
-        data = [
-          {
-            id: "mock-1",
-            amount: 1500000,
-            date: "2024-05-10",
-            status: "PENDING",
-            type: "Consommation",
-          },
-          {
-            id: "mock-2",
-            amount: 5000000,
-            date: "2024-04-01",
-            status: "APPROVED",
-            type: "Immobilier",
-          },
-          {
-            id: "mock-3",
-            amount: 200000,
-            date: "2024-03-15",
-            status: "REJECTED",
-            type: "Consommation",
-          },
-        ];
-        await secureSetItem("local_credit_requests", JSON.stringify(data));
-      }
+      // Filter out mock data if it exists from previous sessions
+      data = data.filter((item: any) => !String(item.id).startsWith("mock-"));
+
       setRequests(data);
     } catch (e) {
       console.error("Failed to load requests", e);
@@ -447,7 +423,7 @@ export const CreditRequestScreen: React.FC = () => {
                 </View>
               </View>
               <Text style={[styles.requestAmount, { color: colors.primary }]}>
-                {new Intl.NumberFormat("fr-FR").format(item.amount)} XAF
+                {new Intl.NumberFormat("fr-FR").format(item.amount)} XOF
               </Text>
               <Text style={[styles.requestDate, { color: colors.text + "80" }]}>
                 Demandé le {item.date}

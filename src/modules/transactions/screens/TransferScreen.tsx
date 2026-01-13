@@ -64,7 +64,7 @@ export const TransferScreen: React.FC = () => {
               number: String(found.NUMEROCOMPTE ?? ""),
               balance: String(found.SOLDE ?? found.SOLDE_GLOBAL ?? 0),
               blocked: Number(found.MONTANTBLOQUE ?? 0),
-              currency: "XAF",
+              currency: "XOF",
               active:
                 !found.CO_DATECLOTURE ||
                 String(found.CO_DATECLOTURE).includes("1900"),

@@ -227,6 +227,19 @@ export const DashboardScreen: React.FC = () => {
   }).current;
 
   const services = [
+    ...(isGuestMode
+      ? [
+          {
+            id: 0,
+            title: "Ouvrir un compte",
+            subtitle: "Devenir client",
+            icon: "person-add-outline",
+            iconColor: colors.primary,
+            backgroundColor: colors.primary + "20",
+            action: () => navigation.navigate("AccountOpening" as never),
+          },
+        ]
+      : []),
     {
       id: 1,
       title: "Crédit Express",
@@ -333,6 +346,7 @@ export const DashboardScreen: React.FC = () => {
           marginRight: index === services.length - 1 ? 0 : 12,
         },
       ]}
+      onPress={item.action}
     >
       <View
         style={[
@@ -1152,8 +1166,8 @@ export const DashboardScreen: React.FC = () => {
                       const amt = isCredit
                         ? op.MC_MONTANTCREDIT
                         : op.MC_MONTANTDEBIT;
+                      const color = isCredit ? colors.success : colors.error;
 
-                      // Modification: retrait de la distinction visuelle Débit/Crédit (couleurs et puces)
                       const label = String(op.MC_LIBELLEOPERATION || "");
                       return (
                         <View
@@ -1166,6 +1180,12 @@ export const DashboardScreen: React.FC = () => {
                             },
                           ]}
                         >
+                          <View
+                            style={[
+                              styles.activityBullet,
+                              { backgroundColor: color },
+                            ]}
+                          />
                           <Text
                             numberOfLines={1}
                             style={[
@@ -1176,10 +1196,7 @@ export const DashboardScreen: React.FC = () => {
                             {label}
                           </Text>
                           <Text
-                            style={[
-                              styles.activityAmount,
-                              { color: colors.text },
-                            ]}
+                            style={[styles.activityAmount, { color: color }]}
                           >
                             {new Intl.NumberFormat("fr-FR").format(
                               Number(amt || 0)

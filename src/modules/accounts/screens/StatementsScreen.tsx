@@ -138,7 +138,7 @@ export const StatementsScreen: React.FC = () => {
     const totalDebit = rows.reduce((s, r) => s + Number(r.debit || 0), 0);
     const variation = totalCredit - totalDebit;
 
-    const currency = (n: number) => `${n.toLocaleString("fr-FR")} XAF`;
+    const currency = (n: number) => `${n.toLocaleString("fr-FR")} XOF`;
 
     return `
       <!doctype html>

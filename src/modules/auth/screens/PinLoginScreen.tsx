@@ -64,6 +64,18 @@ const PinLoginScreen: React.FC = () => {
   const pulseAnim = React.useRef(new Animated.Value(0)).current;
   const MAX_LEN = 5;
 
+  const [keypadNumbers, setKeypadNumbers] = useState<string[]>([]);
+
+  React.useEffect(() => {
+    // Mélanger les chiffres au chargement de l'écran
+    const numbers = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"];
+    for (let i = numbers.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [numbers[i], numbers[j]] = [numbers[j], numbers[i]];
+    }
+    setKeypadNumbers(numbers);
+  }, []);
+
   React.useEffect(() => {
     (async () => {
       try {
@@ -240,69 +252,46 @@ const PinLoginScreen: React.FC = () => {
         </TouchableOpacity>
 
         <View style={pinStyles.keypad}>
+          {/* Row 1 */}
           <View style={pinStyles.keyRow}>
-            <TouchableOpacity
-              style={pinStyles.keyButton}
-              onPress={() => handleDigit("7")}
-            >
-              <Text style={pinStyles.keyText}>7</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={pinStyles.keyButton}
-              onPress={() => handleDigit("6")}
-            >
-              <Text style={pinStyles.keyText}>6</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={pinStyles.keyButton}
-              onPress={() => handleDigit("8")}
-            >
-              <Text style={pinStyles.keyText}>8</Text>
-            </TouchableOpacity>
+            {keypadNumbers.slice(0, 3).map((num) => (
+              <TouchableOpacity
+                key={num}
+                style={pinStyles.keyButton}
+                onPress={() => handleDigit(num)}
+              >
+                <Text style={pinStyles.keyText}>{num}</Text>
+              </TouchableOpacity>
+            ))}
           </View>
 
+          {/* Row 2 */}
           <View style={pinStyles.keyRow}>
-            <TouchableOpacity
-              style={pinStyles.keyButton}
-              onPress={() => handleDigit("5")}
-            >
-              <Text style={pinStyles.keyText}>5</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={pinStyles.keyButton}
-              onPress={() => handleDigit("9")}
-            >
-              <Text style={pinStyles.keyText}>9</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={pinStyles.keyButton}
-              onPress={() => handleDigit("3")}
-            >
-              <Text style={pinStyles.keyText}>3</Text>
-            </TouchableOpacity>
+            {keypadNumbers.slice(3, 6).map((num) => (
+              <TouchableOpacity
+                key={num}
+                style={pinStyles.keyButton}
+                onPress={() => handleDigit(num)}
+              >
+                <Text style={pinStyles.keyText}>{num}</Text>
+              </TouchableOpacity>
+            ))}
           </View>
 
+          {/* Row 3 */}
           <View style={pinStyles.keyRow}>
-            <TouchableOpacity
-              style={pinStyles.keyButton}
-              onPress={() => handleDigit("0")}
-            >
-              <Text style={pinStyles.keyText}>0</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={pinStyles.keyButton}
-              onPress={() => handleDigit("1")}
-            >
-              <Text style={pinStyles.keyText}>1</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={pinStyles.keyButton}
-              onPress={() => handleDigit("2")}
-            >
-              <Text style={pinStyles.keyText}>2</Text>
-            </TouchableOpacity>
+            {keypadNumbers.slice(6, 9).map((num) => (
+              <TouchableOpacity
+                key={num}
+                style={pinStyles.keyButton}
+                onPress={() => handleDigit(num)}
+              >
+                <Text style={pinStyles.keyText}>{num}</Text>
+              </TouchableOpacity>
+            ))}
           </View>
 
+          {/* Row 4 (Biometric, Last Digit, Backspace) */}
           <View style={pinStyles.keyRow}>
             <TouchableOpacity
               style={[pinStyles.keyButton, pinStyles.biometricButton]}
@@ -310,12 +299,16 @@ const PinLoginScreen: React.FC = () => {
             >
               <Ionicons name="finger-print" size={24} color="#007AFF" />
             </TouchableOpacity>
-            <TouchableOpacity
-              style={pinStyles.keyButton}
-              onPress={() => handleDigit("4")}
-            >
-              <Text style={pinStyles.keyText}>4</Text>
-            </TouchableOpacity>
+            
+            {keypadNumbers[9] && (
+              <TouchableOpacity
+                style={pinStyles.keyButton}
+                onPress={() => handleDigit(keypadNumbers[9])}
+              >
+                <Text style={pinStyles.keyText}>{keypadNumbers[9]}</Text>
+              </TouchableOpacity>
+            )}
+
             <TouchableOpacity
               style={[pinStyles.keyButton, pinStyles.deleteButton]}
               onPress={handleBackspace}

@@ -49,6 +49,8 @@ import RateAppScreen from "../../modules/settings/screens/RateAppScreen";
 import ShareAppScreen from "../../modules/settings/screens/ShareAppScreen";
 import { CustomerSupportScreen } from "../../modules/settings/screens/CustomerSupportScreen";
 import { HelpCenterScreen } from "../../modules/settings/screens/HelpCenterScreen";
+import { ReportProblemScreen } from "../../modules/settings/screens/ReportProblemScreen";
+import { PrivacySettingsScreen } from "../../modules/settings/screens/PrivacySettingsScreen";
 import TermsOfUseScreen from "../../modules/settings/screens/TermsOfUseScreen";
 import SplashScreen from "../../modules/auth/screens/SplashScreen";
 import InitialSetupScreen from "../../modules/auth/screens/InitialSetupScreen";
@@ -61,6 +63,8 @@ import { CreditSimulatorScreen } from "../../modules/credits/screens/CreditSimul
 import { CreditRequestScreen } from "../../modules/credits/screens/CreditRequestScreen";
 import { Linking } from "react-native";
 import useClientByTokenV2 from "../../domain/auth/useClientByTokenV2";
+
+import { AccountOpeningScreen } from "../../modules/guest/screens/AccountOpeningScreen";
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -737,6 +741,39 @@ export const AppNavigator: React.FC = () => {
             options={{
               headerShown: true,
               title: "Centre d'aide",
+              headerStyle: { backgroundColor: colors.card },
+              headerTitleStyle: { color: colors.text },
+              headerTintColor: colors.primary,
+            }}
+          />
+          <Stack.Screen
+            name="ReportProblem"
+            component={ReportProblemScreen}
+            options={{
+              headerShown: true,
+              title: "Signaler un problème",
+              headerStyle: { backgroundColor: colors.card },
+              headerTitleStyle: { color: colors.text },
+              headerTintColor: colors.primary,
+            }}
+          />
+          <Stack.Screen
+            name="PrivacySettings"
+            component={PrivacySettingsScreen}
+            options={{
+              headerShown: true,
+              title: "Confidentialité",
+              headerStyle: { backgroundColor: colors.card },
+              headerTitleStyle: { color: colors.text },
+              headerTintColor: colors.primary,
+            }}
+          />
+          <Stack.Screen
+            name="AccountOpening"
+            component={AccountOpeningScreen}
+            options={{
+              headerShown: true,
+              title: "Ouvrir un compte",
               headerStyle: { backgroundColor: colors.card },
               headerTitleStyle: { color: colors.text },
               headerTintColor: colors.primary,

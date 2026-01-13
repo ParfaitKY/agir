@@ -80,11 +80,32 @@ export function useDernieresOperationsClient(count: number = 10) {
       const sorted = [...ops].sort(
         (a, b) => parseDateStr(b.MC_DATESAISIE) - parseDateStr(a.MC_DATESAISIE)
       );
-      setOperations(sorted);
+
+      // Deduplication logic
+      const uniqueOps: OperationItem[] = [];
+      const seen = new Set<string>();
+
+      for (const op of sorted) {
+        const type = String(op.TypeOperation || "").toUpperCase();
+        const isCredit = type === "CREDIT";
+        const amt = isCredit ? op.MC_MONTANTCREDIT : op.MC_MONTANTDEBIT;
+        const label = op.MC_LIBELLEOPERATION || "";
+        const date = op.MC_DATESAISIE || "";
+        
+        // Key based on Label, Amount and Date (ignoring type/direction to filter pairs)
+        const key = `${label}|${amt}|${date}`;
+        
+        if (!seen.has(key)) {
+          seen.add(key);
+          uniqueOps.push(op);
+        }
+      }
+
+      setOperations(uniqueOps);
       setStatistiques(stats);
 
       const grouped: GroupedDebits = {};
-      for (const op of sorted) {
+      for (const op of uniqueOps) {
         const type = String(op.TypeOperation || "").toUpperCase();
         if (type !== "DEBIT") continue;
         const key = op.TS_CODETYPESCHEMACOMPTABLE || "AUTRE";

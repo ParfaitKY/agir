@@ -17,7 +17,7 @@ import { EmptyState } from "../../../shared/components/EmptyState";
 export const AccountsScreen: React.FC = () => {
   const navigation = useNavigation();
   const [filter, setFilter] = useState<
-    "tous" | "cheque" | "epargne" | "courant" | "credit"
+    "tous" | "ordinaire" | "projet" | "dat" | "credit"
   >("tous");
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const { t, tText } = useI18n();
@@ -40,6 +40,7 @@ export const AccountsScreen: React.FC = () => {
 
   const accounts = (compteStats?.COMPTES ?? []).map((c, idx) => {
     const type = String(c.CO_INTITULECOMPTE ?? "");
+    const productLabel = String(c.PD_LIBELLE ?? "").toUpperCase();
     const color =
       type.includes("Épargne") || type.includes("EPARGNE")
         ? colors.success
@@ -47,6 +48,7 @@ export const AccountsScreen: React.FC = () => {
     return {
       id: c.id ?? idx,
       type,
+      productLabel,
       CO_CODECOMPTE: String(c.CO_CODECOMPTE ?? ""),
       number: String(c.NUMEROCOMPTE ?? ""),
       balance: String(c.SOLDE ?? c.SOLDE_GLOBAL ?? 0),
@@ -134,7 +136,7 @@ export const AccountsScreen: React.FC = () => {
   );
 
   const renderFilter = (
-    key: "tous" | "cheque" | "epargne" | "courant" | "credit",
+    key: "tous" | "ordinaire" | "projet" | "dat" | "credit",
     label: string,
     icon?: any
   ) => (
@@ -186,7 +188,7 @@ export const AccountsScreen: React.FC = () => {
       >
         <View>
           <Text style={[styles.portfolioLabel, { color: colors.text + "70" }]}>
-            {t("accounts.header.portfolioTotal")}
+            Portefeuille Total
           </Text>
           <Text style={[styles.portfolioValue, { color: colors.primary }]}>
             {new Intl.NumberFormat("fr-FR").format(portfolioTotal)} XOF
@@ -218,21 +220,21 @@ export const AccountsScreen: React.FC = () => {
         >
           {renderFilter("tous", t("accounts.filters.all"))}
           {renderFilter(
-            "cheque",
-            t("accounts.filters.checking"),
-            "card-outline"
-          )}
-          {renderFilter(
-            "epargne",
-            t("accounts.filters.savings"),
+            "ordinaire",
+            "Ordinaire",
             "wallet-outline"
           )}
           {renderFilter(
-            "courant",
-            t("accounts.filters.current"),
-            "briefcase-outline"
+            "projet",
+            "Projet",
+            "construct-outline"
           )}
-          {renderFilter("credit", t("accounts.filters.credit"), "cash-outline")}
+          {renderFilter(
+            "dat",
+            "Dat",
+            "time-outline"
+          )}
+          {renderFilter("credit", "Crédit", "cash-outline")}
         </ScrollView>
       </View>
 
@@ -260,14 +262,26 @@ export const AccountsScreen: React.FC = () => {
       {(accounts || [])
         .filter((a) => {
           const type = a.type.toUpperCase();
-          if (filter === "cheque") return type.includes("CHEQUE");
-          if (filter === "epargne") return type.includes("EPARGNE");
-          if (filter === "courant") return type.includes("COURANT");
+          if (filter === "ordinaire")
+            return (
+              (type.includes("COURANT") || type.includes("EPARGNE")) &&
+              !type.includes("PROJET") &&
+              !type.includes("DAT") &&
+              !type.includes("TERME")
+            );
+          if (filter === "projet") return type.includes("PROJET");
+          if (filter === "dat")
+            return type.includes("DAT") || type.includes("TERME");
           if (filter === "credit")
             return (
               type.includes("CREDIT") ||
               type.includes("PRET") ||
-              type.includes("CRÉDIT")
+              type.includes("CRÉDIT") ||
+              type.includes("PRÊT") ||
+              a.productLabel.includes("CREDIT") ||
+              a.productLabel.includes("PRET") ||
+              a.productLabel.includes("CRÉDIT") ||
+              a.productLabel.includes("PRÊT")
             );
           return true;
         })
@@ -275,7 +289,12 @@ export const AccountsScreen: React.FC = () => {
           const isCredit =
             a.type.toUpperCase().includes("CREDIT") ||
             a.type.toUpperCase().includes("PRET") ||
-            a.type.toUpperCase().includes("CRÉDIT");
+            a.type.toUpperCase().includes("CRÉDIT") ||
+            a.type.toUpperCase().includes("PRÊT") ||
+            a.productLabel.includes("CREDIT") ||
+            a.productLabel.includes("PRET") ||
+            a.productLabel.includes("CRÉDIT") ||
+            a.productLabel.includes("PRÊT");
           return (
             <TouchableOpacity
               key={a.id}
@@ -318,7 +337,9 @@ export const AccountsScreen: React.FC = () => {
                 </View>
                 <View style={styles.accountInfo}>
                   <Text style={[styles.accountType, { color: colors.text }]}>
-                    {tText(a.type)}
+                    {a.type.toUpperCase().includes("COURANT")
+                      ? "COMPTE ORDINAIRE"
+                      : tText(a.type)}
                   </Text>
                   <Text
                     style={[
@@ -329,36 +350,39 @@ export const AccountsScreen: React.FC = () => {
                     {a.number}
                   </Text>
                 </View>
-                <View
-                  style={[
-                    styles.statusPill,
-                    {
-                      backgroundColor: a.active
-                        ? colors.success + "15"
-                        : colors.error + "15",
-                    },
-                  ]}
-                >
-                  <Ionicons
-                    name={a.active ? "checkmark-circle" : "close-circle"}
-                    size={14}
-                    color={a.active ? colors.success : colors.error}
-                  />
-                  <Text
+                <View style={{ flexDirection: "row", gap: 6 }}>
+                  <View
                     style={[
-                      styles.statusText,
-                      { color: a.active ? colors.success : colors.error },
+                      styles.statusPill,
+                      {
+                        backgroundColor: a.active
+                          ? colors.success + "15"
+                          : colors.error + "15",
+                      },
                     ]}
                   >
-                    {a.active ? t("accounts.status.active") : tText("Clôturé")}
-                  </Text>
+                    <Ionicons
+                      name={a.active ? "checkmark-circle" : "close-circle"}
+                      size={14}
+                      color={a.active ? colors.success : colors.error}
+                    />
+                    <Text
+                      style={[
+                        styles.statusText,
+                        { color: a.active ? colors.success : colors.error },
+                      ]}
+                    >
+                      {a.active
+                        ? t("accounts.status.active")
+                        : tText("Clôturé")}
+                    </Text>
+                  </View>
                   {Number(a.blocked) > 0 && (
                     <View
-                      style={{
-                        flexDirection: "row",
-                        alignItems: "center",
-                        marginLeft: 8,
-                      }}
+                      style={[
+                        styles.statusPill,
+                        { backgroundColor: colors.warning + "15" },
+                      ]}
                     >
                       <Ionicons
                         name="lock-closed"
@@ -366,12 +390,10 @@ export const AccountsScreen: React.FC = () => {
                         color={colors.warning}
                       />
                       <Text
-                        style={{
-                          color: colors.warning,
-                          fontSize: 12,
-                          fontWeight: "700",
-                          marginLeft: 4,
-                        }}
+                        style={[
+                          styles.statusText,
+                          { color: colors.warning },
+                        ]}
                       >
                         {tText("Bloqué")}
                       </Text>
@@ -389,37 +411,44 @@ export const AccountsScreen: React.FC = () => {
                       ? "Solde à rembourser"
                       : t("accounts.balance.available")}
                   </Text>
-                  <Text style={[styles.balanceValue, { color: colors.text }]}>
-                    {new Intl.NumberFormat("fr-FR").format(
-                      parseAmount(a.balance)
-                    )}{" "}
+                  <View
+                    style={{ flexDirection: "row", alignItems: "baseline" }}
+                  >
+                    <Text
+                      style={[styles.balanceValue, { color: colors.text }]}
+                    >
+                      {new Intl.NumberFormat("fr-FR").format(
+                        parseAmount(a.balance)
+                      )}
+                    </Text>
                     <Text
                       style={[
                         styles.balanceCurrency,
-                        { color: colors.primary },
+                        { color: colors.primary, marginLeft: 4 },
                       ]}
                     >
                       {a.currency}
                     </Text>
-                  </Text>
+                  </View>
                   {Number(a.blocked) > 0 && (
                     <View
                       style={{
                         flexDirection: "row",
                         alignItems: "center",
-                        marginTop: 6,
+                        marginTop: 4,
                       }}
                     >
                       <Ionicons
                         name="lock-closed"
-                        size={14}
+                        size={12}
                         color={colors.warning}
                       />
                       <Text
                         style={{
-                          marginLeft: 6,
+                          marginLeft: 4,
                           color: colors.warning,
                           fontWeight: "700",
+                          fontSize: 12,
                         }}
                       >
                         {tText("Bloqué:")}{" "}
@@ -432,7 +461,10 @@ export const AccountsScreen: React.FC = () => {
                   )}
                 </View>
                 <TouchableOpacity
-                  style={[styles.roundActionBtn, { backgroundColor: a.color }]}
+                  style={[
+                    styles.roundActionBtn,
+                    { backgroundColor: a.color },
+                  ]}
                   onPress={() =>
                     (navigation as any).navigate("Transfer", { account: a })
                   }
@@ -470,7 +502,7 @@ export const AccountsScreen: React.FC = () => {
                     )} ${a.currency}`
                   : `${Math.round(
                       (parseAmount(a.balance) / portfolioTotal) * 100
-                    )}% du portfolio`}
+                    )}% du portefeuille`}
               </Text>
 
               {isCredit && expandedId === a.id && (

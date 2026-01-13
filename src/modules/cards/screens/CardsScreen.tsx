@@ -635,7 +635,7 @@ export const CardsScreen: React.FC = () => {
           />
         </View>
         <View style={styles.limitBottomRow}>
-          <Text style={styles.limitAmount}>35 500 / 100 000 XAF</Text>
+          <Text style={styles.limitAmount}>35 500 / 100 000 XOF</Text>
           <Text style={styles.limitUsed}>36% utilisé</Text>
         </View>
       </View>
@@ -665,7 +665,7 @@ export const CardsScreen: React.FC = () => {
           />
         </View>
         <View style={styles.limitBottomRow}>
-          <Text style={styles.limitAmount}>125 000 / 500 000 XAF</Text>
+          <Text style={styles.limitAmount}>125 000 / 500 000 XOF</Text>
           <Text style={styles.limitUsed}>25% utilisé</Text>
         </View>
       </View>
@@ -691,7 +691,7 @@ export const CardsScreen: React.FC = () => {
               <Text style={styles.txAmount}>
                 {t.amount.toLocaleString("fr-FR")}{" "}
               </Text>
-              <Text style={styles.txCurrency}>XAF</Text>
+              <Text style={styles.txCurrency}>XOF</Text>
             </View>
           </View>
         ))

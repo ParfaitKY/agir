@@ -30,7 +30,7 @@ export const AccountDetailsScreen: React.FC = () => {
   const type = String(accountRaw.CO_INTITULECOMPTE ?? accountRaw.type ?? "");
   const number = String(accountRaw.NUMEROCOMPTE ?? accountRaw.number ?? "");
   const balanceNum = Number(accountRaw.SOLDE ?? accountRaw.balance ?? 0);
-  const currency = String(accountRaw.currency ?? "XAF");
+  const currency = String(accountRaw.currency ?? "XOF");
   const blockedNum = Number(
     accountRaw.blocked ?? accountRaw.MONTANTBLOQUE ?? 0
   );

@@ -165,7 +165,7 @@ export const CreditSimulatorScreen: React.FC = () => {
                   {t("credit.simulator.monthlyPayment")}:
                 </Text>
                 <Text style={[styles.resultValue, { color: colors.primary }]}>
-                  {result.monthly.toLocaleString("fr-FR")} XAF
+                  {result.monthly.toLocaleString("fr-FR")} XOF
                 </Text>
               </View>
 
@@ -174,7 +174,7 @@ export const CreditSimulatorScreen: React.FC = () => {
                   {t("credit.simulator.totalCost")}:
                 </Text>
                 <Text style={[styles.resultValue, { color: colors.text }]}>
-                  {result.total.toLocaleString("fr-FR")} XAF
+                  {result.total.toLocaleString("fr-FR")} XOF
                 </Text>
               </View>
             </View>
