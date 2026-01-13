@@ -681,7 +681,11 @@ export const CardsScreen: React.FC = () => {
         transactions.map((t) => (
           <View key={t.id} style={styles.txCard}>
             <View style={[styles.txIconBg, { backgroundColor: t.iconBg }]}>
-              <Ionicons name={t.icon as any} size={20} color="#FF3B30" />
+              <Ionicons
+                name={t.icon as any}
+                size={20}
+                color={t.amount > 0 ? colors.success : colors.error}
+              />
             </View>
             <View style={{ flex: 1 }}>
               <Text style={styles.txTitle}>{t.name}</Text>

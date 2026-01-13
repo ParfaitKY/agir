@@ -9,48 +9,116 @@ import {
 import { useI18n } from "../../../app/providers/I18nProvider";
 import { useTheme } from "../../../shared/styles/ThemeProvider";
 import { Ionicons } from "@expo/vector-icons";
-import { useAnalyseDerniereTransaction } from "../../../domain/compte/useAnalyseDerniereTransaction";
+import { useDernieresOperationsClient } from "../../../domain/compte/useDernieresOperationsClient";
 import { useWindowDimensions, Animated } from "react-native";
-import { BarChart, PieChart, ProgressChart } from "react-native-chart-kit";
+import { BarChart, PieChart } from "react-native-chart-kit";
 
 export const AnalyticsScreen: React.FC = () => {
   const { t, tText } = useI18n();
   const { colors } = useTheme();
-  const { data, isLoading, error, fetchData } =
-    useAnalyseDerniereTransaction(50);
-  const sens = data?.SENS_FORT;
-  const isUp = sens === "CREDIT";
-  const isDown = sens === "DEBIT";
+
+  // Use the full transaction list to calculate accurate volume-based analytics
+  const {
+    operations: transactions,
+    isLoading,
+    error,
+    fetchData,
+  } = useDernieresOperationsClient(50);
+
+  // Calculate analytics locally
+  const analytics = React.useMemo(() => {
+    if (!transactions || transactions.length === 0) {
+      return {
+        debitCount: 0,
+        creditCount: 0,
+        totalCount: 0,
+        debitAmount: 0,
+        creditAmount: 0,
+        totalVolume: 0,
+        percentDebit: 0,
+        percentCredit: 0,
+        sensFort: "EGAL",
+        percentStrong: 0,
+      };
+    }
+
+    let debitC = 0;
+    let creditC = 0;
+    let debitA = 0;
+    let creditA = 0;
+
+    transactions.forEach((op) => {
+      const type = (op.TypeOperation || "").toUpperCase();
+      // Check type or amounts
+      // Often debit amounts are in MC_MONTANTDEBIT and credit in MC_MONTANTCREDIT
+      const dAmt = Number(op.MC_MONTANTDEBIT || 0);
+      const cAmt = Number(op.MC_MONTANTCREDIT || 0);
+
+      if (dAmt > 0 || type === "DEBIT") {
+        debitC++;
+        debitA += dAmt;
+      }
+      if (cAmt > 0 || type === "CREDIT") {
+        creditC++;
+        creditA += cAmt;
+      }
+    });
+
+    const totalC = debitC + creditC;
+    const totalV = debitA + creditA; // Total volume moved
+
+    // Percentages based on VOLUME (Amount), which is more relevant for analytics
+    const pDebit = totalV > 0 ? Math.round((debitA / totalV) * 100) : 0;
+    const pCredit = totalV > 0 ? Math.round((creditA / totalV) * 100) : 0;
+
+    const sens =
+      debitA > creditA ? "DEBIT" : creditA > debitA ? "CREDIT" : "EGAL";
+    const pStrong = sens === "DEBIT" ? pDebit : pCredit;
+
+    return {
+      debitCount: debitC,
+      creditCount: creditC,
+      totalCount: totalC,
+      debitAmount: debitA,
+      creditAmount: creditA,
+      totalVolume: totalV,
+      percentDebit: pDebit,
+      percentCredit: pCredit,
+      sensFort: sens,
+      percentStrong: pStrong,
+    };
+  }, [transactions]);
+
+  const {
+    sensFort,
+    percentStrong,
+    debitCount,
+    creditCount,
+    totalCount,
+    debitAmount,
+    creditAmount,
+    percentDebit,
+    percentCredit,
+  } = analytics;
+
+  const isUp = sensFort === "CREDIT";
+  const isDown = sensFort === "DEBIT";
+
   const trendIcon = isUp
     ? ("trending-up-outline" as const)
     : isDown
     ? ("trending-down-outline" as const)
     : ("remove-outline" as const);
+
   const trendColor = isUp
     ? colors.success
     : isDown
     ? colors.error
     : colors.text;
-  const percentStrong = data?.POURCENTAGE_SENS_FORT;
-  const percentDisplay =
-    percentStrong !== undefined && percentStrong !== null
-      ? `${isUp ? "+" : isDown ? "-" : ""}${percentStrong}%`
-      : "0%";
-  const debitCount = Number(data?.NOMBRE_OPERATIONS_DEBIT ?? 0);
-  const creditCount = Number(data?.NOMBRE_OPERATIONS_CREDIT ?? 0);
-  const totalCount = Number(
-    data?.NOMBRE_TOTAL_OPERATIONS ?? debitCount + creditCount
-  );
-  // Calculate raw percentages based on counts if API provides counts but not percentages,
-  // or use the API provided percentages if they are correct.
-  // Assuming the issue is similar to the chart data where we want raw values.
-  // If the user meant the pie chart data was also multiplied or incorrect:
 
-  // Let's ensure we use the percentages as provided by the API directly without any artificial scaling if it existed,
-  // or calculate them if they are missing/wrong.
-  // Based on the previous fix (removing * 5), I'll ensure these are just the raw numbers.
-  const percentDebit = Number(data?.POURCENTAGE_DEBIT ?? 0);
-  const percentCredit = Number(data?.POURCENTAGE_CREDIT ?? 0);
+  // Display just the percentage, without +/- sign for composition
+  const percentDisplay = `${percentStrong}%`;
+
   const { width: screenWidth } = useWindowDimensions();
   const contentPadding = 16;
   const cardPadding = 14;
@@ -213,7 +281,12 @@ export const AnalyticsScreen: React.FC = () => {
               </Text>
             </View>
             <Text style={[styles.metricLabel, { color: colors.text }]}>
-              {tText("Sens fort")}: {String(sens ?? "EGAL")}
+              {tText("Flux dominant")}:{" "}
+              {sensFort === "DEBIT"
+                ? "Sorties"
+                : sensFort === "CREDIT"
+                ? "Entrées"
+                : "Équilibré"}
             </Text>
           </View>
 
@@ -226,19 +299,22 @@ export const AnalyticsScreen: React.FC = () => {
           >
             <View style={{ marginBottom: 8 }}>
               <Text style={[styles.metricLabel, { color: colors.text }]}>
-                {tText("nombres d'opérations sortantes")}: {String(debitCount)}
+                {tText("Volume sortant")}:{" "}
+                {new Intl.NumberFormat("fr-FR").format(debitAmount)} XOF
               </Text>
               <Text style={[styles.metricLabel, { color: colors.text }]}>
-                {tText("nombres d'opérations entrantes")}: {String(creditCount)}
+                {tText("Volume entrant")}:{" "}
+                {new Intl.NumberFormat("fr-FR").format(creditAmount)} XOF
               </Text>
               <Text style={[styles.metricLabel, { color: colors.text }]}>
-                {tText("Cumul")}: {String(totalCount)}
+                {tText("Opérations")}: {totalCount} ({debitCount} sorties /{" "}
+                {creditCount} entrées)
               </Text>
             </View>
             <Text
               style={[styles.title, { color: colors.text, marginBottom: 8 }]}
             >
-              {tText("Titre du graphique")}
+              {tText("Volume des transactions")}
             </Text>
             <BarChart
               width={barChartWidth}
@@ -252,10 +328,10 @@ export const AnalyticsScreen: React.FC = () => {
               showValuesOnTopOfBars
               xLabelsOffset={-4}
               data={{
-                labels: [tText("Sort."), tText("Entr."), tText("Cum.")],
+                labels: [tText("Sort."), tText("Entr.")],
                 datasets: [
                   {
-                    data: [debitCount, creditCount, totalCount],
+                    data: [debitAmount, creditAmount],
                   },
                 ],
               }}

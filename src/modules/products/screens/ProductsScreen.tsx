@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigation, NavigationProp } from "@react-navigation/native";
 import {
   View,
@@ -11,6 +11,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useI18n } from "../../../app/providers/I18nProvider";
 import { useTheme } from "../../../shared/styles/ThemeProvider";
+import { useCompteStatistiques } from "../../../domain/compte/useCompteStatistiques";
 
 // Définir les types pour la navigation
 type RootStackParamList = {
@@ -41,17 +42,15 @@ interface Product {
 }
 
 export const ProductsScreen: React.FC = () => {
-  console.log("ProductsScreen mounted");
-
-  React.useEffect(() => {
-    // Debug: Confirmer le montage
-    // Alert.alert("Debug", "ProductsScreen est monté");
-    console.log("ProductsScreen useEffect mounted");
-  }, []);
-
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const { t, tText } = useI18n();
   const { colors } = useTheme();
+
+  const { data: compteStats, fetchData } = useCompteStatistiques();
+
+  useEffect(() => {
+    fetchData();
+  }, []);
 
   const [activeCategory, setActiveCategory] = useState<CategoryType>("comptes");
 
@@ -63,152 +62,37 @@ export const ProductsScreen: React.FC = () => {
     { id: "services", label: t("products.category.services") },
   ];
 
-  const products: Product[] = [
-    {
-      id: "1",
-      title: t("products.list.currentAccount.title"),
-      subtitle: t("products.list.currentAccount.subtitle"),
-      description: t("products.list.currentAccount.description"),
+  const accounts = compteStats?.COMPTES || [];
+
+  const products: Product[] = accounts.map((acc, index) => {
+    const label = (acc.PD_LIBELLE || "Compte").toUpperCase();
+    let category: CategoryType = "comptes";
+    let icon = "card-outline";
+
+    if (label.includes("EPARGNE") || label.includes("SAVING")) {
+      category = "epargne";
+      icon = "trending-up-outline";
+    } else if (label.includes("CREDIT") || label.includes("PRET")) {
+      category = "credit";
+      icon = "flash-outline";
+    }
+
+    return {
+      id: String(acc.id || index),
+      title: acc.PD_LIBELLE || "Produit",
+      subtitle: acc.NUMEROCOMPTE || acc.CO_CODECOMPTE || "",
+      description: acc.CO_INTITULECOMPTE || "",
       features: [
-        t("products.list.currentAccount.feature.cardFree"),
-        t("products.list.currentAccount.feature.unlimitedTransfers"),
+        `Solde: ${new Intl.NumberFormat("fr-FR").format(acc.SOLDE || 0)} XOF`,
+        `Agence: ${acc.AG_CODEAGENCE || "Principale"}`,
       ],
-      advantages: [
-        t("products.currentAccount.adv1"),
-        t("products.currentAccount.adv2"),
-        t("products.currentAccount.adv3"),
-        t("products.currentAccount.adv4"),
-        t("products.currentAccount.adv5"),
-      ],
-      conditions: [
-        t("products.currentAccount.cond1"),
-        t("products.currentAccount.cond2"),
-        t("products.currentAccount.cond3"),
-      ],
-      category: "comptes",
-      status: t("products.status.active"),
-      icon: "card-outline",
-    },
-    {
-      id: "2",
-      title: t("products.list.visaPremium.title"),
-      subtitle: t("products.list.visaPremium.subtitle"),
-      description: t("products.list.visaPremium.description"),
-      features: [
-        t("products.list.visaPremium.feature.travelInsurance"),
-        t("products.list.visaPremium.feature.cashback2"),
-      ],
-      advantages: [
-        t("products.visaPremium.adv1"),
-        t("products.visaPremium.adv2"),
-        t("products.visaPremium.adv3"),
-        t("products.visaPremium.adv4"),
-        t("products.visaPremium.adv5"),
-      ],
-      conditions: [
-        t("products.visaPremium.cond1"),
-        t("products.visaPremium.cond2"),
-        t("products.visaPremium.cond3"),
-      ],
-      category: "comptes",
-      status: t("products.status.active"),
-      icon: "card-outline",
-    },
-    {
-      id: "credit-micro-express",
-      title: t("products.list.microCreditExpress.title"),
-      subtitle: t("products.list.microCreditExpress.subtitle"),
-      description: t("products.list.microCreditExpress.description"),
-      features: [
-        t("products.list.microCreditExpress.feature.response24h"),
-        t("products.list.microCreditExpress.feature.rateAdvantage"),
-      ],
-      advantages: [
-        t("products.microCredit.adv1"),
-        t("products.microCredit.adv2"),
-        t("products.microCredit.adv3"),
-        t("products.microCredit.adv4"),
-        t("products.microCredit.adv5"),
-      ],
-      conditions: [
-        t("products.microCredit.cond1"),
-        t("products.microCredit.cond2"),
-        t("products.microCredit.cond3"),
-      ],
-      category: "credit",
-      status: "Inactif",
-      icon: "flash-outline",
-      statusColor: colors.text + "70",
-      statusDotColor: colors.border,
-    },
-    {
-      id: "service-health-insurance",
-      title: t("products.list.healthInsurance.title"),
-      subtitle: t("products.list.healthInsurance.subtitle"),
-      description: t("products.list.healthInsurance.description"),
-      features: [
-        t("products.list.healthInsurance.feature.coverage"),
-        t("products.list.healthInsurance.feature.fastReimbursement"),
-      ],
-      advantages: [
-        t("products.healthInsurance.adv1"),
-        t("products.healthInsurance.adv2"),
-        t("products.healthInsurance.adv3"),
-        t("products.healthInsurance.adv4"),
-        t("products.healthInsurance.adv5"),
-      ],
-      conditions: [
-        t("products.healthInsurance.cond1"),
-        t("products.healthInsurance.cond2"),
-        t("products.healthInsurance.cond3"),
-      ],
-      category: "services",
-      status: "Inactif",
-      icon: "shield-checkmark-outline",
-      statusColor: colors.text + "70",
-      statusDotColor: colors.border,
-    },
-    {
-      id: "savings-standard",
-      title: t("products.list.savingsStandard.title"),
-      subtitle: t("products.list.savingsStandard.subtitle"),
-      description: t("products.list.savingsStandard.description"),
-      features: [
-        t("products.list.savingsStandard.feature.rate5"),
-        t("products.list.savingsStandard.feature.flexWithdrawals"),
-      ],
-      category: "epargne",
+      category,
       status: "Actif",
-      icon: "trending-up-outline",
-    },
-    {
-      id: "savings-project",
-      title: t("products.list.savingsProject.title"),
-      subtitle: t("products.list.savingsProject.subtitle"),
-      description: t("products.list.savingsProject.description"),
-      features: [
-        t("products.list.savingsProject.feature.targetedGoals"),
-        t("products.list.savingsProject.feature.realTime"),
-      ],
-      advantages: [
-        t("products.savingsProject.adv1"),
-        t("products.savingsProject.adv2"),
-        t("products.savingsProject.adv3"),
-        t("products.savingsProject.adv4"),
-        t("products.savingsProject.adv5"),
-      ],
-      conditions: [
-        t("products.savingsProject.cond1"),
-        t("products.savingsProject.cond2"),
-        t("products.savingsProject.cond3"),
-      ],
-      category: "epargne",
-      status: "En attente",
-      icon: "trophy-outline",
-      statusColor: colors.warning,
-      statusDotColor: colors.warning,
-    },
-  ];
+      icon,
+      statusColor: colors.success,
+      statusDotColor: colors.success,
+    };
+  });
 
   const filteredProducts = products.filter(
     (product) =>
