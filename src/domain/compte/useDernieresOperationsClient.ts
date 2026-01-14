@@ -109,11 +109,78 @@ export function useDernieresOperationsClient(count: number = 10) {
         }
       }
 
-      setOperations(uniqueOps);
+      // Grouping by MC_NUMPIECE to merge split transactions (e.g. Transfer + Fee)
+      // The user wants to avoid "duplicates" which are actually multiple lines of the same accounting piece
+      const mergedOps: OperationItem[] = [];
+      const pieceMap = new Map<string, OperationItem[]>();
+
+      for (const op of uniqueOps) {
+        const opAny = op as any;
+        const piece = opAny.MC_NUMPIECE;
+
+        // Only group if piece is defined and valid (not 0)
+        // We also check MC_DATEPIECE to ensure uniqueness across days if piece numbers reset
+        const datePiece = opAny.MC_DATEPIECE || op.MC_DATESAISIE || "";
+
+        if (piece && String(piece) !== "0") {
+          const key = `${piece}_${datePiece}`;
+          if (!pieceMap.has(key)) {
+            pieceMap.set(key, []);
+          }
+          pieceMap.get(key)?.push(op);
+        } else {
+          // No piece number, keep as individual
+          mergedOps.push(op);
+        }
+      }
+
+      // Process groups
+      pieceMap.forEach((group) => {
+        if (group.length === 1) {
+          mergedOps.push(group[0]);
+        } else {
+          // Find the "main" operation (usually the one with the highest amount or specific label)
+          // We sum the amounts
+          const totalDebit = group.reduce(
+            (sum, op) => sum + Number(op.MC_MONTANTDEBIT || 0),
+            0
+          );
+          const totalCredit = group.reduce(
+            (sum, op) => sum + Number(op.MC_MONTANTCREDIT || 0),
+            0
+          );
+
+          // Pick the operation with the highest value as the representative for Label, etc.
+          const mainOp = group.reduce((prev, current) => {
+            const prevVal = Math.max(
+              Number(prev.MC_MONTANTDEBIT || 0),
+              Number(prev.MC_MONTANTCREDIT || 0)
+            );
+            const currVal = Math.max(
+              Number(current.MC_MONTANTDEBIT || 0),
+              Number(current.MC_MONTANTCREDIT || 0)
+            );
+            return prevVal >= currVal ? prev : current;
+          });
+
+          mergedOps.push({
+            ...mainOp,
+            MC_MONTANTDEBIT: totalDebit,
+            MC_MONTANTCREDIT: totalCredit,
+          });
+        }
+      });
+
+      // Re-sort by date descending
+      const finalOps = mergedOps.sort(
+        (a, b) => parseDateStr(b.MC_DATESAISIE) - parseDateStr(a.MC_DATESAISIE)
+      );
+
+      setOperations(finalOps);
       setStatistiques(stats);
 
       const grouped: GroupedDebits = {};
-      for (const op of uniqueOps) {
+      for (const op of finalOps) {
         const type = String(op.TypeOperation || "").toUpperCase();
         if (type !== "DEBIT") continue;
         const key = op.TS_CODETYPESCHEMACOMPTABLE || "AUTRE";

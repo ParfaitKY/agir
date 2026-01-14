@@ -44,10 +44,14 @@ const ProfileScreen: React.FC = () => {
     onSelect,
     initialDate,
     onClose,
+    minDate,
+    maxDate,
   }: {
     onSelect: (date: Date) => void;
     initialDate?: Date;
     onClose: () => void;
+    minDate?: Date | null;
+    maxDate?: Date | null;
   }) => {
     const [viewDate, setViewDate] = useState(initialDate || new Date());
     const [selected, setSelected] = useState<Date | null>(initialDate || null);
@@ -94,6 +98,13 @@ const ProfileScreen: React.FC = () => {
 
     const handleNextMonth = () => {
       setViewDate(new Date(year, month + 1, 1));
+    };
+
+    const isDateDisabled = (date: Date) => {
+      if (minDate && date < new Date(minDate.setHours(0, 0, 0, 0))) return true;
+      if (maxDate && date > new Date(maxDate.setHours(23, 59, 59, 999)))
+        return true;
+      return false;
     };
 
     return (
@@ -161,9 +172,12 @@ const ProfileScreen: React.FC = () => {
             const isSelected =
               selected && date.toDateString() === selected.toDateString();
             const isToday = new Date().toDateString() === date.toDateString();
+            const disabled = isDateDisabled(date);
+
             return (
               <TouchableOpacity
                 key={idx}
+                disabled={disabled}
                 style={{
                   width: "14.28%",
                   aspectRatio: 1,
@@ -173,6 +187,7 @@ const ProfileScreen: React.FC = () => {
                   borderRadius: 20,
                   borderWidth: isToday && !isSelected ? 1 : 0,
                   borderColor: colors.primary,
+                  opacity: disabled ? 0.3 : 1,
                 }}
                 onPress={() => {
                   setSelected(date);
@@ -1190,9 +1205,32 @@ const ProfileScreen: React.FC = () => {
                   ? startDate || new Date()
                   : endDate || new Date()
               }
+              minDate={
+                showDatePicker === "end" && startDate ? startDate : undefined
+              }
+              maxDate={
+                showDatePicker === "start"
+                  ? new Date() // Impossible de sélectionner une date future
+                  : (() => {
+                      const today = new Date();
+                      if (startDate) {
+                        const limit = new Date(startDate);
+                        limit.setDate(limit.getDate() + 30);
+                        return limit < today ? limit : today; // Limite à 30 jours et pas de futur
+                      }
+                      return today;
+                    })()
+              }
               onSelect={(date) => {
-                if (showDatePicker === "start") setStartDate(date);
-                else setEndDate(date);
+                if (showDatePicker === "start") {
+                  setStartDate(date);
+                  // Reset end date if it becomes invalid
+                  if (endDate && date > endDate) {
+                    setEndDate(null);
+                  }
+                } else {
+                  setEndDate(date);
+                }
                 setShowDatePicker(null);
               }}
               onClose={() => setShowDatePicker(null)}

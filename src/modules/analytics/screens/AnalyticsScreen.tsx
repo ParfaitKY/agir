@@ -10,6 +10,7 @@ import { useI18n } from "../../../app/providers/I18nProvider";
 import { useTheme } from "../../../shared/styles/ThemeProvider";
 import { Ionicons } from "@expo/vector-icons";
 import { useDernieresOperationsClient } from "../../../domain/compte/useDernieresOperationsClient";
+import { useCompteStatistiques } from "../../../domain/compte/useCompteStatistiques";
 import { useWindowDimensions, Animated } from "react-native";
 import { BarChart, PieChart } from "react-native-chart-kit";
 
@@ -17,13 +18,23 @@ export const AnalyticsScreen: React.FC = () => {
   const { t, tText } = useI18n();
   const { colors } = useTheme();
 
+  // Fetch account stats to get Total Balance
+  const { data: compteStats, fetchData: fetchStats } = useCompteStatistiques();
+
   // Use the full transaction list to calculate accurate volume-based analytics
   const {
     operations: transactions,
-    isLoading,
+    isLoading: loadingOps,
     error,
-    fetchData,
+    fetchData: fetchOps,
   } = useDernieresOperationsClient(50);
+
+  const isLoading = loadingOps;
+
+  const fetchData = () => {
+    fetchOps();
+    fetchStats();
+  };
 
   // Calculate analytics locally
   const analytics = React.useMemo(() => {
@@ -49,25 +60,58 @@ export const AnalyticsScreen: React.FC = () => {
 
     transactions.forEach((op) => {
       const type = (op.TypeOperation || "").toUpperCase();
-      // Check type or amounts
-      // Often debit amounts are in MC_MONTANTDEBIT and credit in MC_MONTANTCREDIT
+      const label = String(op.MC_LIBELLEOPERATION || "").toUpperCase();
       const dAmt = Number(op.MC_MONTANTDEBIT || 0);
       const cAmt = Number(op.MC_MONTANTCREDIT || 0);
+      
+      // 1. Détermination par défaut (Priorité aux montants explicites)
+      let isCredit = false;
+      if (cAmt > 0) isCredit = true;
+      else if (dAmt > 0) isCredit = false;
+      else isCredit = type === "CREDIT";
 
-      if (dAmt > 0 || type === "DEBIT") {
-        debitC++;
-        debitA += dAmt;
+      // 2. Corrections forcées basées sur le libellé (Override)
+      
+      // SORTIES (Débits)
+      if (
+        label.includes("OUVERTURE") || 
+        label.includes("ADHESION") || 
+        label.includes("FRAIS") ||
+        label.includes("RETRAIT") ||
+        label.includes("TAXE")
+      ) {
+        isCredit = false;
       }
-      if (cAmt > 0 || type === "CREDIT") {
+
+      // ENTRÉES (Crédits)
+      if (
+        label.includes("DEBLOCAGE") || 
+        label.includes("DÉBLOCAGE") || 
+        label.includes("VERSEMENT") ||
+        label.includes("RECU") ||
+        label.includes("RÉÇU")
+      ) {
+        isCredit = true;
+      }
+
+      // 3. Affectation des sommes
+      // On prend le montant disponible (peu importe la colonne) car on a déterminé le sens réel
+      const effectiveAmount = dAmt > 0 ? dAmt : cAmt;
+
+      if (isCredit) {
         creditC++;
-        creditA += cAmt;
+        creditA += effectiveAmount;
+      } else {
+        debitC++;
+        debitA += effectiveAmount;
       }
     });
 
     const totalC = debitC + creditC;
     const totalV = debitA + creditA; // Total volume moved
 
-    // Percentages based on VOLUME (Amount), which is more relevant for analytics
+    // Percentages
+    // Standard calculation based on VOLUME (Amount)
     const pDebit = totalV > 0 ? Math.round((debitA / totalV) * 100) : 0;
     const pCredit = totalV > 0 ? Math.round((creditA / totalV) * 100) : 0;
 
@@ -87,7 +131,7 @@ export const AnalyticsScreen: React.FC = () => {
       sensFort: sens,
       percentStrong: pStrong,
     };
-  }, [transactions]);
+  }, [transactions, compteStats]);
 
   const {
     sensFort,

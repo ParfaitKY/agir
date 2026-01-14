@@ -58,7 +58,7 @@ export const DashboardScreen: React.FC = () => {
     isLoading: loadingRecent,
     error: recentError,
     fetchData: fetchRecent,
-  } = useDernieresOperationsClient(10);
+  } = useDernieresOperationsClient(15);
   React.useEffect(() => {
     if (!isAuthenticated) return;
     const isGuestMode = isAuthenticated && user?.username === "invite";
@@ -156,7 +156,17 @@ export const DashboardScreen: React.FC = () => {
         : 0)) ||
       0
   );
-  const soldeGlobalFromStats = compteStats?.SOLDE_GLOBAL;
+  
+  // Calculer le solde total réel en additionnant les soldes des comptes
+  // car SOLDE_GLOBAL envoyé par le serveur peut être incohérent (ex: 1000000 vs 1492500)
+  // On soustrait également le montant bloqué si demandé
+  const realTotalBalance = (compteStats?.COMPTES || []).reduce(
+    (sum, account) =>
+      sum + (Number(account.SOLDE) || 0) - (Number(account.MONTANTBLOQUE) || 0),
+    0
+  );
+
+  const soldeGlobalFromStats = realTotalBalance > 0 ? realTotalBalance : compteStats?.SOLDE_GLOBAL;
 
   // Fonction pour gérer les restrictions en mode invité
   const handleGuestRestriction = (featureName: string) => {
@@ -227,19 +237,6 @@ export const DashboardScreen: React.FC = () => {
   }).current;
 
   const services = [
-    ...(isGuestMode
-      ? [
-          {
-            id: 0,
-            title: "Ouvrir un compte",
-            subtitle: "Devenir client",
-            icon: "person-add-outline",
-            iconColor: colors.primary,
-            backgroundColor: colors.primary + "20",
-            action: () => navigation.navigate("AccountOpening" as never),
-          },
-        ]
-      : []),
     {
       id: 1,
       title: "Crédit Express",
@@ -718,15 +715,15 @@ export const DashboardScreen: React.FC = () => {
               <Text style={[styles.balance, { color: colors.primary }]}>
                 {isBalanceHidden
                   ? "••••••••"
-                  : loadingSolde
+                  : loadingCompteStats
                   ? t("dashboard.loading")
                   : soldeError
                   ? "–"
                   : `${fmt(
-                      solde?.solde ??
+                      soldeGlobalFromStats ??
+                        solde?.solde ??
                         solde?.balance ??
                         solde?.montant ??
-                        soldeGlobalFromStats ??
                         0
                     )} XOF`}
               </Text>
@@ -812,6 +809,44 @@ export const DashboardScreen: React.FC = () => {
             </View>
           </View>
           <View style={styles.quickActions}>
+            {isGuestMode && (
+              <TouchableOpacity
+                style={[
+                  styles.quickActionCard,
+                  { backgroundColor: colors.card, borderColor: colors.border },
+                ]}
+                onPress={() => navigation.navigate("AccountOpening" as never)}
+              >
+                <View
+                  style={[
+                    styles.quickActionIcon,
+                    {
+                      backgroundColor: colors.card,
+                      borderColor: colors.border,
+                      borderWidth: 1,
+                    },
+                  ]}
+                >
+                  <Ionicons
+                    name="person-add-outline"
+                    size={24}
+                    color={colors.primary}
+                  />
+                </View>
+                <Text style={[styles.quickActionTitle, { color: colors.text }]}>
+                  Ouvrir un compte
+                </Text>
+                <Text
+                  style={[
+                    styles.quickActionSubtitle,
+                    { color: colors.primary },
+                  ]}
+                >
+                  Devenir client
+                </Text>
+              </TouchableOpacity>
+            )}
+
             <TouchableOpacity
               style={[
                 styles.quickActionCard,
@@ -847,6 +882,7 @@ export const DashboardScreen: React.FC = () => {
                 {t("dashboard.quick.transfer.subtitle")}
               </Text>
             </TouchableOpacity>
+            {!isGuestMode && (
             <TouchableOpacity
               style={[
                 styles.quickActionCard,
@@ -882,6 +918,7 @@ export const DashboardScreen: React.FC = () => {
                 {t("dashboard.quick.beneficiaries.subtitle")}
               </Text>
             </TouchableOpacity>
+            )}
             <TouchableOpacity
               style={[
                 styles.quickActionCard,
@@ -1162,13 +1199,21 @@ export const DashboardScreen: React.FC = () => {
                   ) // Sinon on limite à 3
                     .map((op, i) => {
                       const type = String(op.TypeOperation || "").toUpperCase();
-                      const isCredit = type === "CREDIT";
+                      const label = String(op.MC_LIBELLEOPERATION || "");
+                      
+                      let isCredit = type === "CREDIT";
+
+                      // SEULEMENT "OUVERTURE" (ouverture de compte) est forcé en DEBIT si ambigu
+                      // On ne modifie PAS les autres types (Retrait, Frais, etc.)
+                      if (label.toUpperCase().includes("OUVERTURE")) {
+                        isCredit = false;
+                      }
+
                       const amt = isCredit
                         ? op.MC_MONTANTCREDIT
                         : op.MC_MONTANTDEBIT;
                       const color = isCredit ? colors.success : colors.error;
 
-                      const label = String(op.MC_LIBELLEOPERATION || "");
                       return (
                         <View
                           key={`op-${i}`}

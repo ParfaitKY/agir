@@ -62,9 +62,7 @@ export const ReportProblemScreen: React.FC = () => {
       <View style={[styles.container, { backgroundColor: colors.background }]}>
         <ScrollView contentContainerStyle={styles.content}>
           <View style={styles.header}>
-            <Text style={[styles.title, { color: colors.text }]}>
-              Signaler un problème
-            </Text>
+            
             <Text style={[styles.subtitle, { color: colors.text + "80" }]}>
               Nous sommes désolés que vous rencontriez un problème. Dites-nous
               en plus pour que nous puissions vous aider.

@@ -13,6 +13,7 @@ export type VirementPayload = {
   MC_AUTRE1?: string;
   MC_AUTRE2?: string;
   MC_AUTRE3?: string;
+  OP_CODEOPERATEUR?: string;
 };
 
 export const virement = (

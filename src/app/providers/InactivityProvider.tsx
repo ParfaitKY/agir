@@ -7,16 +7,18 @@ const TIMEOUT = 1 * 60 * 1000; // 1 minute
 export const InactivityProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const { isAuthenticated, logout } = useAuth();
+  const { isAuthenticated, logout, user } = useAuth();
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const appState = useRef(AppState.currentState);
   const [backgroundTime, setBackgroundTime] = useState<number | null>(null);
+
+  const isGuestMode = user?.username === "invite";
 
   const resetTimer = () => {
     if (timerRef.current) {
       clearTimeout(timerRef.current);
     }
-    if (isAuthenticated) {
+    if (isAuthenticated && !isGuestMode) {
       timerRef.current = setTimeout(async () => {
         console.log("Auto logout triggered due to inactivity");
         try {
@@ -33,7 +35,7 @@ export const InactivityProvider: React.FC<{ children: React.ReactNode }> = ({
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current);
     };
-  }, [isAuthenticated]);
+  }, [isAuthenticated, isGuestMode]);
 
   // Handle App State Changes (Background/Foreground)
   useEffect(() => {
@@ -43,7 +45,7 @@ export const InactivityProvider: React.FC<{ children: React.ReactNode }> = ({
         nextAppState === "active"
       ) {
         // App has come to the foreground
-        if (backgroundTime && isAuthenticated) {
+        if (backgroundTime && isAuthenticated && !isGuestMode) {
           const now = Date.now();
           const elapsed = now - backgroundTime;
           console.log(`App resumed. In background for ${elapsed}ms`);
@@ -63,7 +65,7 @@ export const InactivityProvider: React.FC<{ children: React.ReactNode }> = ({
         setBackgroundTime(null);
       } else if (nextAppState.match(/inactive|background/)) {
         // App is going to background
-        if (isAuthenticated) {
+        if (isAuthenticated && !isGuestMode) {
           setBackgroundTime(Date.now());
           // Optionally clear the active timer to prevent it firing while in background
           // (though setTimeout usually pauses in background on mobile, depend on OS)
@@ -82,7 +84,7 @@ export const InactivityProvider: React.FC<{ children: React.ReactNode }> = ({
     return () => {
       subscription.remove();
     };
-  }, [isAuthenticated, backgroundTime]);
+  }, [isAuthenticated, backgroundTime, isGuestMode]);
 
   const panResponder = useRef(
     PanResponder.create({

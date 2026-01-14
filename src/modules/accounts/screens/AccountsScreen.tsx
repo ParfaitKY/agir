@@ -39,12 +39,9 @@ export const AccountsScreen: React.FC = () => {
   const parseAmount = (s: string) => Number(s.replace(/\s/g, ""));
 
   const accounts = (compteStats?.COMPTES ?? []).map((c, idx) => {
-    const type = String(c.CO_INTITULECOMPTE ?? "");
+    const type = String(c.CO_INTITULECOMPTE ?? "").toUpperCase();
     const productLabel = String(c.PD_LIBELLE ?? "").toUpperCase();
-    const color =
-      type.includes("Épargne") || type.includes("EPARGNE")
-        ? colors.success
-        : colors.primary;
+    const color = type.includes("EPARGNE") ? colors.success : colors.primary;
     return {
       id: c.id ?? idx,
       type,
@@ -63,8 +60,9 @@ export const AccountsScreen: React.FC = () => {
   });
 
   // Calculate portfolio total dynamically from accounts to ensure consistency
+  // Soustraire le montant bloqué du solde total
   const portfolioTotal = accounts.reduce(
-    (sum, a) => sum + parseAmount(a.balance),
+    (sum, a) => sum + parseAmount(a.balance) - (Number(a.blocked) || 0),
     0
   );
 

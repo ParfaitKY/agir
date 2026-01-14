@@ -39,11 +39,16 @@ const FormPicker = ({
 
   return (
     <View style={styles.fieldGroup}>
-      <Text style={[styles.label, { color: colors.text }]}>{label}</Text>
+      <Text style={[styles.label, { color: colors.text }]}>
+        {label} {required && <Text style={{ color: "red" }}>*</Text>}
+      </Text>
       <TouchableOpacity
         style={[
           styles.pickerButton,
-          { borderColor: colors.border, backgroundColor: colors.background },
+          { 
+            borderColor: colors.border, 
+            backgroundColor: colors.background + '80' // Slightly transparent background
+          },
         ]}
         onPress={() => setModalVisible(true)}
       >
@@ -127,13 +132,18 @@ export const AccountOpeningScreen: React.FC = () => {
   const [firstName, setFirstName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
+  const [profession, setProfession] = useState("");
   const [idType, setIdType] = useState("");
   const [idNumber, setIdNumber] = useState("");
-  const [docImage, setDocImage] = useState<string | null>(null);
+  const [docImageRecto, setDocImageRecto] = useState<string | null>(null);
+  const [docImageVerso, setDocImageVerso] = useState<string | null>(null);
 
   const handleNext = () => {
     if (!lastName || !firstName || !phone || !email) {
-      Alert.alert(t("common.error"), t("common.fillAllFields"));
+      Alert.alert(
+        "Attention",
+        "Veuillez remplir tous les champs obligatoires."
+      );
       return;
     }
     setStep(2);
@@ -143,13 +153,17 @@ export const AccountOpeningScreen: React.FC = () => {
     setStep(1);
   };
 
-  const pickImage = async (useCamera: boolean) => {
+  const pickImage = async (useCamera: boolean, side: "recto" | "verso") => {
     try {
       let result;
       if (useCamera) {
-        const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
+        const permissionResult =
+          await ImagePicker.requestCameraPermissionsAsync();
         if (permissionResult.granted === false) {
-          Alert.alert("Permission requise", "L'accès à la caméra est nécessaire.");
+          Alert.alert(
+            "Permission requise",
+            "L'accès à la caméra est nécessaire."
+          );
           return;
         }
         result = await ImagePicker.launchCameraAsync({
@@ -158,9 +172,13 @@ export const AccountOpeningScreen: React.FC = () => {
           quality: 0.7,
         });
       } else {
-        const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        const permissionResult =
+          await ImagePicker.requestMediaLibraryPermissionsAsync();
         if (permissionResult.granted === false) {
-          Alert.alert("Permission requise", "L'accès à la galerie est nécessaire.");
+          Alert.alert(
+            "Permission requise",
+            "L'accès à la galerie est nécessaire."
+          );
           return;
         }
         result = await ImagePicker.launchImageLibraryAsync({
@@ -171,22 +189,35 @@ export const AccountOpeningScreen: React.FC = () => {
       }
 
       if (!result.canceled && result.assets && result.assets.length > 0) {
-        setDocImage(result.assets[0].uri);
+        if (side === "recto") {
+          setDocImageRecto(result.assets[0].uri);
+        } else {
+          setDocImageVerso(result.assets[0].uri);
+        }
       }
     } catch (error) {
       console.error("Image picker error:", error);
-      Alert.alert("Erreur", "Une erreur est survenue lors de la sélection de l'image.");
+      Alert.alert(
+        "Erreur",
+        "Une erreur est survenue lors de la sélection de l'image."
+      );
     }
   };
 
   const handleFinish = async () => {
     if (!idType || !idNumber) {
-        Alert.alert(t("common.error"), t("common.fillAllFields"));
-        return;
+      Alert.alert(
+        "Attention",
+        "Veuillez remplir tous les champs obligatoires."
+      );
+      return;
     }
-    if (!docImage) {
-        Alert.alert(t("common.error"), "Veuillez joindre une photo de votre pièce d'identité.");
-        return;
+    if (!docImageRecto || !docImageVerso) {
+      Alert.alert(
+        t("common.error"),
+        "Veuillez joindre une photo de votre pièce d'identité."
+      );
+      return;
     }
 
     // Simulate API call
@@ -243,7 +274,9 @@ export const AccountOpeningScreen: React.FC = () => {
             {step === 1 && (
               <>
                 <View style={styles.fieldGroup}>
-                  <Text style={[styles.label, { color: colors.text }]}>Nom</Text>
+                  <Text style={[styles.label, { color: colors.text }]}>
+                    Nom <Text style={{ color: "red" }}>*</Text>
+                  </Text>
                   <TextInput
                     style={[
                       styles.input,
@@ -253,15 +286,17 @@ export const AccountOpeningScreen: React.FC = () => {
                         backgroundColor: colors.background,
                       },
                     ]}
-                    placeholder="Votre nom"
+                    placeholder="Entrez votre nom"
                     placeholderTextColor={colors.text + "60"}
                     value={lastName}
-                    onChangeText={setLastName}
+                    onChangeText={(text) => setLastName(text.replace(/[^a-zA-ZÀ-ÿ\s'-]/g, ""))}
                   />
                 </View>
 
                 <View style={styles.fieldGroup}>
-                  <Text style={[styles.label, { color: colors.text }]}>Prénom</Text>
+                  <Text style={[styles.label, { color: colors.text }]}>
+                    Prénom <Text style={{ color: "red" }}>*</Text>
+                  </Text>
                   <TextInput
                     style={[
                       styles.input,
@@ -271,7 +306,7 @@ export const AccountOpeningScreen: React.FC = () => {
                         backgroundColor: colors.background,
                       },
                     ]}
-                    placeholder="Votre prénom"
+                    placeholder="Entrez votre prénom"
                     placeholderTextColor={colors.text + "60"}
                     value={firstName}
                     onChangeText={setFirstName}
@@ -279,7 +314,9 @@ export const AccountOpeningScreen: React.FC = () => {
                 </View>
 
                 <View style={styles.fieldGroup}>
-                  <Text style={[styles.label, { color: colors.text }]}>Téléphone</Text>
+                  <Text style={[styles.label, { color: colors.text }]}>
+                    Téléphone <Text style={{ color: "red" }}>*</Text>
+                  </Text>
                   <TextInput
                     style={[
                       styles.input,
@@ -289,16 +326,18 @@ export const AccountOpeningScreen: React.FC = () => {
                         backgroundColor: colors.background,
                       },
                     ]}
-                    placeholder="Numéro de téléphone"
+                    placeholder="225 0101010101"
                     placeholderTextColor={colors.text + "60"}
-                    keyboardType="phone-pad"
+                    keyboardType="numeric"
                     value={phone}
-                    onChangeText={setPhone}
+                    onChangeText={(text) => setPhone(text.replace(/[^0-9]/g, ""))}
                   />
                 </View>
 
                 <View style={styles.fieldGroup}>
-                  <Text style={[styles.label, { color: colors.text }]}>Email</Text>
+                  <Text style={[styles.label, { color: colors.text }]}>
+                    Email <Text style={{ color: "red" }}>*</Text>
+                  </Text>
                   <TextInput
                     style={[
                       styles.input,
@@ -307,8 +346,8 @@ export const AccountOpeningScreen: React.FC = () => {
                         color: colors.text,
                         backgroundColor: colors.background,
                       },
-                    ]}
-                    placeholder="Adresse email"
+                    ]}Enrz vore adresse e
+                    placeholder="test@mail.com"
                     placeholderTextColor={colors.text + "60"}
                     keyboardType="email-address"
                     value={email}
@@ -317,11 +356,33 @@ export const AccountOpeningScreen: React.FC = () => {
                   />
                 </View>
 
+                <View style={styles.fieldGroup}>
+                  <Text style={[styles.label, { color: colors.text }]}>
+                    Profession <Text style={{ color: "red" }}>*</Text>
+                  </Text>
+                  <TextInput
+                    style={[
+                      styles.input,
+                      {
+                        borderColor: colors.border,
+                        color: colors.text,
+                        backgroundColor: colors.background,
+                      },
+                    ]}
+                    placeholder="Entrez votre profession"
+                    placeholderTextColor={colors.text + "60"}
+                    value={profession}
+                    onChangeText={setProfession}
+                  />
+                </View>
+
                 <TouchableOpacity
                   style={[styles.button, { backgroundColor: colors.primary }]}
                   onPress={handleNext}
                 >
-                  <Text style={styles.buttonText}>{t("credit.request.next")}</Text>
+                  <Text style={styles.buttonText}>
+                    {t("credit.request.next")}
+                  </Text>
                 </TouchableOpacity>
               </>
             )}
@@ -331,7 +392,14 @@ export const AccountOpeningScreen: React.FC = () => {
                 <FormPicker
                   label="Type de pièce"
                   value={idType}
-                  options={["CNI", "Passeport", "Permis de conduire"]}
+                  options={[
+                    "CNI",
+                    "Passeport",
+                    "Permis de conduire",
+                    "Carte consulaire",
+                    "Attestation d'identité",
+                    "Autres pièces",
+                  ]}
                   onSelect={setIdType}
                   required
                 />
@@ -352,21 +420,31 @@ export const AccountOpeningScreen: React.FC = () => {
                     placeholder="Numéro de la pièce d'identité"
                     placeholderTextColor={colors.text + "60"}
                     value={idNumber}
+                    maxLength={8}
                     onChangeText={setIdNumber}
                   />
+                  <Text style={{ fontSize: 12, color: colors.text + "80", marginTop: 4 }}>
+                    8 caractères requis
+                  </Text>
                 </View>
 
                 <View style={styles.fieldGroup}>
                   <Text style={[styles.label, { color: colors.text }]}>
-                    Photo du document
+                    Photo du document (Recto) <Text style={{ color: "red" }}>*</Text>
                   </Text>
                   <View style={styles.imagePickerContainer}>
-                    {docImage ? (
+                    {docImageRecto ? (
                       <View style={styles.imagePreview}>
-                        <Image source={{ uri: docImage }} style={styles.image} />
+                        <Image
+                          source={{ uri: docImageRecto }}
+                          style={styles.image}
+                        />
                         <TouchableOpacity
-                          style={[styles.removeImageBtn, { backgroundColor: colors.error }]}
-                          onPress={() => setDocImage(null)}
+                          style={[
+                            styles.removeImageBtn,
+                            { backgroundColor: colors.error },
+                          ]}
+                          onPress={() => setDocImageRecto(null)}
                         >
                           <Ionicons name="trash" size={20} color="#fff" />
                         </TouchableOpacity>
@@ -374,20 +452,114 @@ export const AccountOpeningScreen: React.FC = () => {
                     ) : (
                       <View style={styles.imageActions}>
                         <TouchableOpacity
-                          style={[styles.actionBtn, { borderColor: colors.primary }]}
-                          onPress={() => pickImage(true)}
+                          style={[
+                            styles.actionBtn,
+                            { borderColor: colors.primary },
+                          ]}
+                          onPress={() => pickImage(true, "recto")}
                         >
-                          <Ionicons name="camera" size={24} color={colors.primary} />
-                          <Text style={[styles.actionText, { color: colors.primary }]}>
+                          <Ionicons
+                            name="camera"
+                            size={24}
+                            color={colors.primary}
+                          />
+                          <Text
+                            style={[
+                              styles.actionText,
+                              { color: colors.primary },
+                            ]}
+                          >
                             Prendre photo
                           </Text>
                         </TouchableOpacity>
                         <TouchableOpacity
-                          style={[styles.actionBtn, { borderColor: colors.primary }]}
-                          onPress={() => pickImage(false)}
+                          style={[
+                            styles.actionBtn,
+                            { borderColor: colors.primary },
+                          ]}
+                          onPress={() => pickImage(false, "recto")}
                         >
-                          <Ionicons name="images" size={24} color={colors.primary} />
-                          <Text style={[styles.actionText, { color: colors.primary }]}>
+                          <Ionicons
+                            name="images"
+                            size={24}
+                            color={colors.primary}
+                          />
+                          <Text
+                            style={[
+                              styles.actionText,
+                              { color: colors.primary },
+                            ]}
+                          >
+                            Galerie
+                          </Text>
+                        </TouchableOpacity>
+                      </View>
+                    )}
+                  </View>
+                </View>
+
+                <View style={styles.fieldGroup}>
+                  <Text style={[styles.label, { color: colors.text }]}>
+                    Photo du document (Verso) <Text style={{ color: "red" }}>*</Text>
+                  </Text>
+                  <View style={styles.imagePickerContainer}>
+                    {docImageVerso ? (
+                      <View style={styles.imagePreview}>
+                        <Image
+                          source={{ uri: docImageVerso }}
+                          style={styles.image}
+                        />
+                        <TouchableOpacity
+                          style={[
+                            styles.removeImageBtn,
+                            { backgroundColor: colors.error },
+                          ]}
+                          onPress={() => setDocImageVerso(null)}
+                        >
+                          <Ionicons name="trash" size={20} color="#fff" />
+                        </TouchableOpacity>
+                      </View>
+                    ) : (
+                      <View style={styles.imageActions}>
+                        <TouchableOpacity
+                          style={[
+                            styles.actionBtn,
+                            { borderColor: colors.primary },
+                          ]}
+                          onPress={() => pickImage(true, "verso")}
+                        >
+                          <Ionicons
+                            name="camera"
+                            size={24}
+                            color={colors.primary}
+                          />
+                          <Text
+                            style={[
+                              styles.actionText,
+                              { color: colors.primary },
+                            ]}
+                          >
+                            Prendre photo
+                          </Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          style={[
+                            styles.actionBtn,
+                            { borderColor: colors.primary },
+                          ]}
+                          onPress={() => pickImage(false, "verso")}
+                        >
+                          <Ionicons
+                            name="images"
+                            size={24}
+                            color={colors.primary}
+                          />
+                          <Text
+                            style={[
+                              styles.actionText,
+                              { color: colors.primary },
+                            ]}
+                          >
                             Galerie
                           </Text>
                         </TouchableOpacity>
@@ -418,7 +590,9 @@ export const AccountOpeningScreen: React.FC = () => {
                     ]}
                     onPress={handleFinish}
                   >
-                    <Text style={styles.buttonText}>{t("credit.request.finish")}</Text>
+                    <Text style={styles.buttonText}>
+                      {t("credit.request.finish")}
+                    </Text>
                   </TouchableOpacity>
                 </View>
               </>
@@ -440,7 +614,8 @@ export const AccountOpeningScreen: React.FC = () => {
             </View>
             <Text style={styles.successTitle}>Demande envoyée !</Text>
             <Text style={styles.successMessage}>
-              Votre demande d'ouverture de compte a bien été reçue. Un conseiller vous contactera sous peu.
+              Votre demande d'ouverture de compte a bien été reçue. Un
+              conseiller vous contactera sous peu.
             </Text>
             <TouchableOpacity
               style={styles.successButton}
