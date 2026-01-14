@@ -108,6 +108,9 @@ const PinLoginScreen: React.FC = () => {
     })();
   }, []);
 
+  const [attempts, setAttempts] = useState(0);
+  const MAX_ATTEMPTS = 3;
+
   React.useEffect(() => {
     const length = pin.length;
     setPinSuccess(false);
@@ -132,7 +135,16 @@ const PinLoginScreen: React.FC = () => {
           }
         }, 450);
       } catch (e: any) {
-        setError(e?.message || "Échec de connexion par PIN.");
+        const newAttempts = attempts + 1;
+        setAttempts(newAttempts);
+        const remaining = MAX_ATTEMPTS - newAttempts;
+        
+        if (remaining <= 0) {
+          setError("Nombre de tentatives épuisé. Veuillez contacter votre gestionnaire pour réinitialiser votre accès.");
+        } else {
+          setError(`Code PIN incorrect. ${remaining} tentative(s) restante(s).`);
+        }
+
         setPinSuccess(false);
         setPin("");
         Vibration.vibrate(60);
@@ -172,6 +184,10 @@ const PinLoginScreen: React.FC = () => {
   }, [pin]);
 
   const handleDigit = (d: string) => {
+    if (attempts >= MAX_ATTEMPTS) {
+      Vibration.vibrate(100);
+      return;
+    }
     setPin((prev) => {
       const next = prev.length < MAX_LEN ? prev + d : prev;
       pulseAnim.setValue(0);

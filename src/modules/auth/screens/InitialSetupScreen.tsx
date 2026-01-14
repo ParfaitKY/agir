@@ -241,6 +241,8 @@ const InitialSetupScreen: React.FC = () => {
   }, [accessData]);
 
   const [lastFailedToken, setLastFailedToken] = useState("");
+  const [attempts, setAttempts] = useState(0);
+  const MAX_ATTEMPTS = 3;
 
   // Fonction vérification token
   const handleVerifyToken = async () => {
@@ -249,6 +251,11 @@ const InitialSetupScreen: React.FC = () => {
 
     if (!currentToken || currentToken.length < 3) {
       setVerifyError("Token invalide");
+      return;
+    }
+
+    if (attempts >= MAX_ATTEMPTS) {
+      setVerifyError("Nombre de tentatives épuisé. Veuillez contacter votre gestionnaire pour réinitialiser votre token.");
       return;
     }
 
@@ -262,12 +269,22 @@ const InitialSetupScreen: React.FC = () => {
     setLoadingVerify(false);
 
     if (!info) {
-      setVerifyError(fetchError || t("initial.error.verification"));
+      const newAttempts = attempts + 1;
+      setAttempts(newAttempts);
+      const remaining = MAX_ATTEMPTS - newAttempts;
+      
+      if (remaining <= 0) {
+        setVerifyError("Nombre de tentatives épuisé. Veuillez contacter votre gestionnaire pour réinitialiser votre token.");
+      } else {
+        setVerifyError(`${fetchError || t("initial.error.verification")}. ${remaining} tentative(s) restante(s).`);
+      }
+      
       setLastFailedToken(currentToken); // Marquer ce token comme échoué
       return;
     }
 
     // Succès
+    setAttempts(0); // Reset en cas de succès
     setLastFailedToken(""); // Reset en cas de succès
     setVerifiedToken(currentToken);
     setVerifySuccess(true);
