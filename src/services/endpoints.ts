@@ -1,4 +1,5 @@
 export const BASE_URL =
+  //"https://zenithmobilereact-serveur-mgd.app.mgdigitalplus.com/api";
   "https://zenithmobilereact-serveur-peyrie-test.app.mgdigitalplus.com/api";
 
 export const ENDPOINTS = {
