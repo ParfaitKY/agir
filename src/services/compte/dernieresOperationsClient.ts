@@ -24,14 +24,26 @@ export type OperationItem = {
 };
 
 export type DernieresOperationsResponse = {
-  operations?: OperationItem[];
-  statistiques?: {
-    moyenne_credit?: number;
-    moyenne_debit?: number;
-    solde?: number;
-    total_credit?: number;
-    total_debit?: number;
+  data: {
+    operations: OperationItem[];
+    params?: {
+      client_id?: string;
+      date_debut?: string;
+      date_fin?: string;
+      dernier_jours?: any;
+      nombre_operations?: number;
+    };
+    statistiques?: {
+      moyenne_credit?: number;
+      moyenne_debit?: number;
+      solde?: number;
+      total_credit?: number;
+      total_debit?: number;
+    };
+    total_operations?: number;
   };
+  message?: string;
+  success?: boolean;
 };
 
 export const dernieresOperationsClient = (

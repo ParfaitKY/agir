@@ -255,7 +255,9 @@ const InitialSetupScreen: React.FC = () => {
     }
 
     if (attempts >= MAX_ATTEMPTS) {
-      setVerifyError("Nombre de tentatives épuisé. Veuillez contacter votre gestionnaire pour réinitialiser votre token.");
+      setVerifyError(
+        "Nombre de tentatives épuisé. Veuillez contacter votre gestionnaire pour réinitialiser votre token."
+      );
       return;
     }
 
@@ -272,13 +274,19 @@ const InitialSetupScreen: React.FC = () => {
       const newAttempts = attempts + 1;
       setAttempts(newAttempts);
       const remaining = MAX_ATTEMPTS - newAttempts;
-      
+
       if (remaining <= 0) {
-        setVerifyError("Nombre de tentatives épuisé. Veuillez contacter votre gestionnaire pour réinitialiser votre token.");
+        setVerifyError(
+          "Nombre de tentatives épuisé. Veuillez contacter votre gestionnaire pour réinitialiser votre token."
+        );
       } else {
-        setVerifyError(`${fetchError || t("initial.error.verification")}. ${remaining} tentative(s) restante(s).`);
+        setVerifyError(
+          `${
+            fetchError || t("initial.error.verification")
+          }. ${remaining} tentative(s) restante(s).`
+        );
       }
-      
+
       setLastFailedToken(currentToken); // Marquer ce token comme échoué
       return;
     }
@@ -295,6 +303,116 @@ const InitialSetupScreen: React.FC = () => {
       clientRecord = info.data[0] ?? {};
     } else if (info?.data && typeof info.data === "object") {
       clientRecord = info.data;
+    }
+
+    console.log(
+      "[InitialSetup] Client Info Full:",
+      JSON.stringify(info, null, 2)
+    );
+
+    // Fonction de recherche récursive (profondeur limitée) pour trouver le login
+    const findLoginDeep = (obj: any, depth = 0): string => {
+      if (!obj || depth > 2) return "";
+
+      // Priorité 1: SL_LOGIN (exact match)
+      if (obj.SL_LOGIN) return String(obj.SL_LOGIN);
+
+      // Priorité 2: Autres variantes
+      const keys = [
+        "sl_login",
+        "login",
+        "user_login",
+        "username",
+        "cl_login",
+        "login_user",
+        "cl_nomclient", // Fallback: Nom du client comme login si SL_LOGIN manquant
+        "cl_email", // Fallback: Email comme login
+      ];
+      for (const k of keys) {
+        // Case insensitive check
+        const foundKey = Object.keys(obj).find(
+          (key) => key.toLowerCase() === k
+        );
+        if (foundKey && obj[foundKey]) return String(obj[foundKey]);
+      }
+
+      // Recherche dans les sous-objets communs
+      if (Array.isArray(obj.data) && obj.data[0])
+        return findLoginDeep(obj.data[0], depth + 1);
+      if (obj.data && typeof obj.data === "object")
+        return findLoginDeep(obj.data, depth + 1);
+      if (obj.result && typeof obj.result === "object")
+        return findLoginDeep(obj.result, depth + 1);
+      if (Array.isArray(obj.result) && obj.result[0])
+        return findLoginDeep(obj.result[0], depth + 1);
+
+      return "";
+    };
+
+    // TENTATIVE D'EXTRACTION DU LOGIN DEPUIS LE JWT (Si le serveur ne le renvoie pas explicitement)
+    // Le serveur renvoie souvent un access_token qui contient le "sub" (subject) qui est le login.
+    let extractedLoginFromToken = "";
+    const jwtToken = info.access_token || info.authtoken || info.token;
+
+    if (
+      jwtToken &&
+      typeof jwtToken === "string" &&
+      jwtToken.split(".").length === 3
+    ) {
+      try {
+        const decodeBase64 = (input: string) => {
+          const chars =
+            "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
+          let str = input.replace(/=+$/, "");
+          let output = "";
+          if (str.length % 4 == 1) throw new Error("'atob' failed");
+          for (
+            let bc = 0, bs = 0, buffer, i = 0;
+            (buffer = str.charAt(i++));
+            ~buffer && ((bs = bc % 4 ? bs * 64 + buffer : buffer), bc++ % 4)
+              ? (output += String.fromCharCode(255 & (bs >> ((-2 * bc) & 6))))
+              : 0
+          ) {
+            buffer = chars.indexOf(buffer);
+          }
+          return output;
+        };
+        const base64Url = jwtToken.split(".")[1];
+        const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+        const jsonPayload = decodeURIComponent(
+          decodeBase64(base64)
+            .split("")
+            .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
+            .join("")
+        );
+        const payload = JSON.parse(jsonPayload);
+
+        // Le login est souvent dans "sub" ou "username" ou "login" du payload JWT
+        // "sub" peut être un objet ou une string.
+        if (typeof payload.sub === "string") {
+          extractedLoginFromToken = payload.sub;
+        } else if (typeof payload.sub === "object") {
+          extractedLoginFromToken =
+            payload.sub.login ||
+            payload.sub.username ||
+            payload.sub.nom_utilisateur ||
+            "";
+        }
+
+        if (!extractedLoginFromToken) {
+          extractedLoginFromToken = payload.login || payload.username || "";
+        }
+
+        console.log(
+          "[InitialSetup] Extracted login from JWT:",
+          extractedLoginFromToken
+        );
+      } catch (e) {
+        console.warn(
+          "[InitialSetup] Failed to decode JWT for login extraction",
+          e
+        );
+      }
     }
 
     const ln =
@@ -332,12 +450,16 @@ const InitialSetupScreen: React.FC = () => {
     setLastName(ln);
     setFirstName(fn);
 
+    // Extraction explicite du SL_LOGIN depuis la réponse serveur (via recherche profonde)
+    const slLoginFromData = findLoginDeep(info);
+
     const loginCandidate =
-      clientRecord.SL_LOGIN ??
-      clientRecord.LOGIN ??
-      clientRecord.login ??
-      clientRecord.username ??
-      clientRecord.USER_LOGIN ??
+      slLoginFromData || // Priorité absolue au SL_LOGIN trouvé dans la réponse
+      extractedLoginFromToken || // Puis extraction JWT
+      clientRecord.LOGIN ||
+      clientRecord.login ||
+      clientRecord.CO_CODECOMPTE || // Fallback ultime si le login est vide mais qu'on a un code compte
+      authToken || // Fallback ultime: ce que l'utilisateur a saisi (ex: numéro de compte)
       "";
     if (loginCandidate) {
       setLoginReadonly(loginCandidate);
@@ -351,10 +473,117 @@ const InitialSetupScreen: React.FC = () => {
     if (userPhone) secureSetItem("user_phone", String(userPhone));
     if (userEmail) secureSetItem("user_email", String(userEmail));
 
+    // Fonction de recherche récursive pour trouver autoplay
+    const findAutoplayDeep = (obj: any, depth = 0): boolean | string | number | undefined => {
+      if (!obj || depth > 3) return undefined;
+      
+      if (obj.autoplay !== undefined) return obj.autoplay;
+      if (obj.AUTOPLAY !== undefined) return obj.AUTOPLAY;
+      if (obj.token_info?.autoplay !== undefined) return obj.token_info.autoplay;
+
+      // Recherche dans les sous-objets
+      if (Array.isArray(obj.data) && obj.data[0])
+        return findAutoplayDeep(obj.data[0], depth + 1);
+      if (obj.data && typeof obj.data === "object")
+        return findAutoplayDeep(obj.data, depth + 1);
+      if (obj.result && typeof obj.result === "object")
+        return findAutoplayDeep(obj.result, depth + 1);
+        
+      return undefined;
+    };
+
+    // Helper pour trouver le PIN
+    const findPinDeep = (obj: any, depth = 0): string | undefined => {
+      if (!obj || depth > 4) return undefined;
+
+      const keys = [
+        "PIN", "pin",
+        "DEFAULT_PIN", "default_pin",
+        "CODE_SECRET", "code_secret",
+        "SL_PIN", "sl_pin",
+        "USER_PIN", "user_pin",
+        "MOT_DE_PASSE", "mot_de_passe",
+        "PASSWORD", "password"
+      ];
+
+      for (const k of keys) {
+        if (obj[k]) return String(obj[k]);
+      }
+
+      // Parfois le pin est dans token_info
+      if (obj.token_info) {
+        for (const k of keys) {
+          if (obj.token_info[k]) return String(obj.token_info[k]);
+        }
+      }
+
+      // Recursion sur les conteneurs connus
+      if (Array.isArray(obj.data) && obj.data[0])
+        return findPinDeep(obj.data[0], depth + 1);
+      if (obj.data && typeof obj.data === "object")
+        return findPinDeep(obj.data, depth + 1);
+      if (obj.result && typeof obj.result === "object")
+        return findPinDeep(obj.result, depth + 1);
+      if (Array.isArray(obj.result) && obj.result[0])
+        return findPinDeep(obj.result[0], depth + 1);
+      if (Array.isArray(obj.payload) && obj.payload[0])
+        return findPinDeep(obj.payload[0], depth + 1);
+      if (obj.payload && typeof obj.payload === "object")
+        return findPinDeep(obj.payload, depth + 1);
+
+      return undefined;
+    };
+
+    const foundAutoplay = findAutoplayDeep(info);
+
     // Check autoplay or token_info
-    const isAutoplay = info.token_info?.autoplay;
+    // Robust check for autoplay value (boolean, string, 1/0)
+    // MODIFICATION: On accepte aussi validation_status === "SUCCES" comme condition d'autoplay
+    // car le serveur peut renvoyer autoplay: false pour un "Nouvel équipement" alors que le token est valide
+    // et que l'utilisateur veut juste se reconnecter (Restauration).
+    const rawAutoplay = foundAutoplay ?? info.token_info?.autoplay;
+    const isAutoplay =
+      rawAutoplay === true ||
+      rawAutoplay === "true" ||
+      rawAutoplay === 1 ||
+      String(rawAutoplay).toLowerCase() === "true" ||
+      clientRecord?.OTP_REQUIRED === false ||
+      clientRecord?.OTP_REQUIRED === "false" ||
+      info.token_info?.validation_status === "SUCCES";
+
+    console.log("[InitialSetup] Autoplay Decision:", {
+      rawTokenInfo: info.token_info,
+      foundAutoplay,
+      rawAutoplay,
+      validationStatus: info.token_info?.validation_status,
+      otpRequired: clientRecord?.OTP_REQUIRED,
+      isAutoplayComputed: isAutoplay,
+      loginCandidate,
+    });
+
     if (isAutoplay) {
       console.log("Autoplay is enabled");
+      
+      const foundPin = findPinDeep(info);
+      if (foundPin) {
+        console.log(`[InitialSetup] PIN retrieved for first configuration (Autoplay): "${foundPin}"`);
+      } else {
+        console.log("[InitialSetup] Autoplay enabled but NO PIN found in response.");
+        // Log FULL response to debug
+        try {
+          console.log("[InitialSetup] FULL RESPONSE DEBUG:", JSON.stringify(info, null, 2));
+        } catch {}
+      }
+
+      if (loginCandidate) {
+        console.log(
+          `[InitialSetup] Login utilisé pour la session Autoplay : "${loginCandidate}"`
+        );
+      } else {
+        console.warn(
+          "[InitialSetup] ATTENTION: Autoplay activé MAIS login vide !"
+        );
+      }
     }
 
     const cid = info.IDCLIENT ?? info.id ?? info.token_info?.client_id;
@@ -395,7 +624,42 @@ const InitialSetupScreen: React.FC = () => {
 
     if (isAutoplay) {
       // Si autoplay est activé, on saute l'écran OTP
-      proceedToStep2();
+      // MODIFICATION: Redirection directe vers PinLogin au lieu de step 2
+      // car Autoplay = appareil déjà configuré = PIN déjà existant.
+
+      try {
+        await secureSetItem("is_configured", "true");
+
+        // IMPORTANT: Sauvegarde du Login pour permettre le mode Restauration (Validation Serveur)
+        // car si l'utilisateur a effacé ses données, le login local est perdu.
+        // On l'a extrait plus haut dans 'loginCandidate'.
+        if (loginCandidate) {
+          console.log(
+            "[InitialSetup] Saving login before redirect:",
+            loginCandidate
+          );
+          await secureSetItem("user_login", loginCandidate);
+          // Petite pause pour s'assurer que l'écriture est finie (sur certains OS lents)
+          await new Promise((r) => setTimeout(r, 100));
+        } else {
+          console.error(
+            "[InitialSetup] CRITICAL: No login found for Autoplay! Redirect aborted."
+          );
+          // Fallback: On force l'utilisateur à passer par step 2 pour vérifier ses infos
+          // car on ne peut pas aller au PIN sans login.
+          proceedToStep2();
+          return;
+        }
+
+        // On s'assure que le user est "configuré" dans le contexte auth si nécessaire
+        if (markConfigured) await markConfigured(true);
+
+        navigation.replace("PinLogin");
+      } catch (e) {
+        console.error("Autoplay redirect error", e);
+        // Fallback en cas d'erreur: aller à step 2
+        proceedToStep2();
+      }
     } else {
       // On navigue vers OTP
       (navigation as any).navigate("OtpVerify", {
@@ -553,6 +817,10 @@ const InitialSetupScreen: React.FC = () => {
         nouveau_motpasse: newPin,
         cle_secrete: cleanSecret,
         code_cryptage: "Y}@128eVIXfoi7",
+        // Ajout de champs alternatifs pour maximiser la compatibilité avec le backend
+        SL_LOGIN: cleanLogin,
+        LOGIN: cleanLogin,
+        sl_login: cleanLogin,
       };
 
       // On peut passer le client_id dans les headers si nécessaire
@@ -623,11 +891,54 @@ const InitialSetupScreen: React.FC = () => {
         return;
       }
 
+      console.log(
+        "[InitialSetup] updateLogin SUCCESS. Server response:",
+        JSON.stringify(result.data, null, 2)
+      );
+
+      // EXTRACTION DU LOGIN DEPUIS LA RÉPONSE UPDATE (Source de vérité)
+      // Si le serveur a ignoré le nouveau login ou l'a normalisé, on prend ce qu'il nous renvoie.
+      // Cela évite le décalage entre le login stocké localement et le login serveur.
+
+      // On réutilise une logique simplifiée d'extraction (findLoginDeep n'est pas dispo ici)
+      const extractLoginFromUpdate = (data: any): string => {
+        if (!data) return "";
+        // Vérifier les champs standards
+        if (data.SL_LOGIN) return String(data.SL_LOGIN);
+        if (data.sl_login) return String(data.sl_login);
+        if (data.LOGIN) return String(data.LOGIN);
+        if (data.login) return String(data.login);
+
+        // Vérifier dans data[0] si c'est un tableau
+        const inner = Array.isArray(data.data)
+          ? data.data[0]
+          : typeof data.data === "object"
+          ? data.data
+          : null;
+        if (inner) {
+          if (inner.SL_LOGIN) return String(inner.SL_LOGIN);
+          if (inner.sl_login) return String(inner.sl_login);
+          if (inner.LOGIN) return String(inner.LOGIN);
+          if (inner.login) return String(inner.login);
+        }
+
+        return "";
+      };
+
+      const serverConfirmedLogin = extractLoginFromUpdate(result.data);
+
+      // Si le serveur renvoie un login, on l'utilise. Sinon on garde celui qu'on a envoyé.
+      const finalLoginToSave = serverConfirmedLogin || cleanLogin;
+
+      console.log(
+        `[InitialSetup] Final Login to Save: "${finalLoginToSave}" (Sent: "${cleanLogin}", Server: "${serverConfirmedLogin}")`
+      );
+
       await secureSetItem("pin_user", hashedUserPin);
       await secureSetItem("user_firstname", firstName);
       await secureSetItem("user_lastname", lastName);
-      // user_login est sauvegardé
-      await secureSetItem("user_login", cleanLogin);
+      // user_login est sauvegardé avec la valeur confirmée par le serveur
+      await secureSetItem("user_login", finalLoginToSave);
       await secureSetItem("user_secret_key", cleanSecret);
 
       await secureSetItem("is_configured", "true");

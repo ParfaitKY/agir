@@ -30,6 +30,7 @@ const FormPicker = ({
   onSelect,
   placeholder,
   required = false,
+  searchable = false,
 }: {
   label: string;
   value: string;
@@ -37,9 +38,17 @@ const FormPicker = ({
   onSelect: (val: string) => void;
   placeholder?: string;
   required?: boolean;
+  searchable?: boolean;
 }) => {
   const { colors } = useTheme();
   const [modalVisible, setModalVisible] = useState(false);
+  const [searchText, setSearchText] = useState("");
+
+  const filteredOptions = searchable
+    ? options.filter((opt) =>
+        opt.toLowerCase().includes(searchText.toLowerCase())
+      )
+    : options;
 
   return (
     <View style={styles.fieldGroup}>
@@ -49,7 +58,10 @@ const FormPicker = ({
           styles.pickerButton,
           { borderColor: colors.border, backgroundColor: colors.background },
         ]}
-        onPress={() => setModalVisible(true)}
+        onPress={() => {
+          setSearchText("");
+          setModalVisible(true);
+        }}
       >
         <Text
           style={[
@@ -74,7 +86,12 @@ const FormPicker = ({
         onRequestClose={() => setModalVisible(false)}
       >
         <View style={styles.modalOverlay}>
-          <View style={[styles.modalContent, { backgroundColor: colors.card }]}>
+          <View
+            style={[
+              styles.modalContent,
+              { backgroundColor: colors.card, maxHeight: "80%" },
+            ]}
+          >
             <View
               style={[styles.modalHeader, { borderBottomColor: colors.border }]}
             >
@@ -85,9 +102,32 @@ const FormPicker = ({
                 <Ionicons name="close" size={24} color={colors.text} />
               </TouchableOpacity>
             </View>
+
+            {searchable && (
+              <View style={{ marginBottom: 10 }}>
+                <TextInput
+                  style={[
+                    styles.input,
+                    {
+                      borderColor: colors.border,
+                      color: colors.text,
+                      backgroundColor: colors.background,
+                      height: 45,
+                    },
+                  ]}
+                  placeholder="Rechercher..."
+                  placeholderTextColor={colors.text + "60"}
+                  value={searchText}
+                  onChangeText={setSearchText}
+                  autoFocus={true}
+                />
+              </View>
+            )}
+
             <FlatList
-              data={options}
+              data={filteredOptions}
               keyExtractor={(item) => item}
+              keyboardShouldPersistTaps="handled"
               renderItem={({ item }) => (
                 <TouchableOpacity
                   style={[
@@ -118,6 +158,202 @@ const FormPicker = ({
     </View>
   );
 };
+
+const COUNTRIES = [
+  "AFGHANISTAN",
+  "AFRIQUE DU SUD",
+  "ALBANIE",
+  "ALGÉRIE",
+  "ALLEMAGNE",
+  "ANDORRE",
+  "ANGOLA",
+  "ANTIGUA-ET-BARBUDA",
+  "ARABIE SAOUDITE",
+  "ARGENTINE",
+  "ARMÉNIE",
+  "AUSTRALIE",
+  "AUTRICHE",
+  "AZERBAÏDJAN",
+  "BAHAMAS",
+  "BAHREÏN",
+  "BANGLADESH",
+  "BARBADE",
+  "BELGIQUE",
+  "BELIZE",
+  "BÉNIN",
+  "BHOUTAN",
+  "BIÉLORUSSIE",
+  "BIRMANIE",
+  "BOLIVIE",
+  "BOSNIE-HERZÉGOVINE",
+  "BOTSWANA",
+  "BRÉSIL",
+  "BRUNEI",
+  "BULGARIE",
+  "BURKINA FASO",
+  "BURUNDI",
+  "CAMBODGE",
+  "CAMEROUN",
+  "CANADA",
+  "CAP-VERT",
+  "CENTRAFRIQUE",
+  "CHILI",
+  "CHINE",
+  "CHYPRE",
+  "COLOMBIE",
+  "COMORES",
+  "CONGO",
+  "CONGO (RDC)",
+  "CORÉE DU NORD",
+  "CORÉE DU SUD",
+  "COSTA RICA",
+  "CÔTE D'IVOIRE",
+  "CROATIE",
+  "CUBA",
+  "DANEMARK",
+  "DJIBOUTI",
+  "DOMINIQUE",
+  "ÉGYPTE",
+  "ÉMIRATS ARABES UNIS",
+  "ÉQUATEUR",
+  "ÉRYTHRÉE",
+  "ESPAGNE",
+  "ESTONIE",
+  "ÉTATS-UNIS",
+  "ÉTHIOPIE",
+  "FIDJI",
+  "FINLANDE",
+  "FRANCE",
+  "GABON",
+  "GAMBIE",
+  "GÉORGIE",
+  "GHANA",
+  "GRÈCE",
+  "GRENADE",
+  "GUATEMALA",
+  "GUINÉE",
+  "GUINÉE-BISSAU",
+  "GUINÉE ÉQUATORIALE",
+  "GUYANA",
+  "HAÏTI",
+  "HONDURAS",
+  "HONGRIE",
+  "INDE",
+  "INDONÉSIE",
+  "IRAK",
+  "IRAN",
+  "IRLANDE",
+  "ISLANDE",
+  "ISRAËL",
+  "ITALIE",
+  "JAMAIQUE",
+  "JAPON",
+  "JORDANIE",
+  "KAZAKHSTAN",
+  "KENYA",
+  "KIRGHIZISTAN",
+  "KIRIBATI",
+  "KOWEÏT",
+  "LAOS",
+  "LESOTHO",
+  "LETTONIE",
+  "LIBAN",
+  "LIBERIA",
+  "LIBYE",
+  "LIECHTENSTEIN",
+  "LITUANIE",
+  "LUXEMBOURG",
+  "MACÉDOINE DU NORD",
+  "MADAGASCAR",
+  "MALAISIE",
+  "MALAWI",
+  "MALDIVES",
+  "MALI",
+  "MALTE",
+  "MAROC",
+  "MARSHALL",
+  "MAURICE",
+  "MAURITANIE",
+  "MEXIQUE",
+  "MICRONÉSIE",
+  "MOLDAVIE",
+  "MONACO",
+  "MONGOLIE",
+  "MONTÉNÉGRO",
+  "MOZAMBIQUE",
+  "NAMIBIE",
+  "NAURU",
+  "NÉPAL",
+  "NICARAGUA",
+  "NIGER",
+  "NIGÉRIA",
+  "NORVÈGE",
+  "NOUVELLE-ZÉLANDE",
+  "OMAN",
+  "OUGANDA",
+  "OUZBÉKISTAN",
+  "PAKISTAN",
+  "PALAOS",
+  "PALESTINE",
+  "PANAMA",
+  "PAPOUASIE-NOUVELLE-GUINÉE",
+  "PARAGUAY",
+  "PAYS-BAS",
+  "PÉROU",
+  "PHILIPPINES",
+  "POLOGNE",
+  "PORTUGAL",
+  "QATAR",
+  "ROUMANIE",
+  "ROYAUME-UNI",
+  "RUSSIE",
+  "RWANDA",
+  "SAINT-CHRISTOPHE-ET-NIÉVÈS",
+  "SAINTE-LUCIE",
+  "SAINT-MARIN",
+  "SAINT-VINCENT-ET-LES-GRENADINES",
+  "SALOMON",
+  "SALVADOR",
+  "SAMOA",
+  "SAO TOMÉ-ET-PRINCIPE",
+  "SÉNÉGAL",
+  "SERBIE",
+  "SEYCHELLES",
+  "SIERRA LEONE",
+  "SINGAPOUR",
+  "SLOVAQUIE",
+  "SLOVÉNIE",
+  "SOMALIE",
+  "SOUDAN",
+  "SOUDAN DU SUD",
+  "SRI LANKA",
+  "SUÈDE",
+  "SUISSE",
+  "SURINAME",
+  "SYRIE",
+  "TADJIKISTAN",
+  "TANZANIE",
+  "TCHAD",
+  "RÉPUBLIQUE TCHÈQUE",
+  "THAÏLANDE",
+  "TIMOR ORIENTAL",
+  "TOGO",
+  "TONGA",
+  "TRINITÉ-ET-TOBAGO",
+  "TUNISIE",
+  "TURKMÉNISTAN",
+  "TURQUIE",
+  "TUVALU",
+  "UKRAINE",
+  "URUGUAY",
+  "VANUATU",
+  "VATICAN",
+  "VENEZUELA",
+  "VIETNAM",
+  "YÉMEN",
+  "ZAMBIE",
+  "ZIMBABWE",
+];
 
 export const CreditRequestScreen: React.FC = () => {
   const navigation = useNavigation();
@@ -672,15 +908,10 @@ export const CreditRequestScreen: React.FC = () => {
                 <FormPicker
                   label={t("credit.request.birthCountry")}
                   value={birthCountry}
-                  options={[
-                    "CÔTE D'IVOIRE",
-                    "SÉNÉGAL",
-                    "MALI",
-                    "BURKINA FASO",
-                    "FRANCE",
-                  ]}
+                  options={COUNTRIES}
                   onSelect={setBirthCountry}
                   required
+                  searchable
                 />
 
                 <FormPicker

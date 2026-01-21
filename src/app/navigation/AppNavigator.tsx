@@ -435,6 +435,24 @@ export const AppNavigator: React.FC = () => {
             });
           }
         }, 100);
+      } else if (!isAuthenticated && !isConfigured && !isGuestMode) {
+        // Si l'utilisateur n'est pas connecté et n'est PAS configuré (cas de suppression de données),
+        // on le redirige explicitement vers InitialSetup pour saisir son token.
+         setTimeout(() => {
+          if (navigation && navigation.reset) {
+            // On vérifie qu'on n'est pas déjà sur InitialSetup ou Login
+            // Pour éviter les boucles, on force le reset vers InitialSetup
+            // qui est le point d'entrée pour un utilisateur "vierge".
+            // Mais attention, LoginScreen est aussi une option si on utilise le login classique.
+            // Vu le flow demandé : "écran de saisie de token" -> InitialSetupScreen.
+            
+            // On ne fait le reset que si on n'est pas sur le Splash
+            navigation.reset({
+              index: 0,
+              routes: [{ name: "InitialSetup" }],
+            });
+          }
+        }, 100);
       }
     } catch {}
   }, [isAuthenticated, user?.username, isConfigured]);

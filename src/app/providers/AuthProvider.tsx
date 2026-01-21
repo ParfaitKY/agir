@@ -18,6 +18,7 @@ interface AuthContextType {
   loginWithPin: (pin: string) => Promise<void>;
   loginAsGuest: () => Promise<void>;
   logout: () => Promise<void>;
+  fullLogout: () => Promise<void>;
   markConfigured: (configured: boolean) => Promise<void>;
   isLoading: boolean;
 }
@@ -270,6 +271,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       const storedConfig = await secureGetItem("is_configured");
       const isGuest = user?.username === "invite";
 
+      // IMPORTANT: Pour forcer un "Hard Logout" complet quand demandé,
+      // il faut s'assurer que toutes les données sensibles sont bien effacées.
+      // Le comportement actuel fait un "Soft Logout" par défaut pour les utilisateurs connectés.
+
       // Si c'est un invité OU que l'app n'est pas configurée, on nettoie tout
       if (isGuest || storedConfig !== "true") {
         const GUEST_CLEAR_KEYS = [
@@ -289,6 +294,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           "solde_globale",
           "compte_statistiques",
           "analyse_derniere_transaction",
+          "work_date", // Ajout de work_date
+          // "device_id" // NE PAS SUPPRIMER device_id POUR GARDER L'AUTOPLAY
         ];
         for (const k of GUEST_CLEAR_KEYS) {
           try {
@@ -319,6 +326,46 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       );
     } catch (error) {
       console.error("Error during logout:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Nouvelle fonction pour suppression complète explicite (Hard Logout manuel)
+  const fullLogout = async () => {
+    setIsLoading(true);
+    try {
+      const ALL_KEYS = [
+        "auth_token",
+        "user_data",
+        "is_configured",
+        "pin_user",
+        "user_login",
+        "user_firstname",
+        "user_lastname",
+        "user_phone",
+        "user_address",
+        "user_account_number",
+        "user_agency",
+        "user_id",
+        "user_secret_key",
+        "access_data",
+        "client_id",
+        "solde_globale",
+        "compte_statistiques",
+        "analyse_derniere_transaction",
+        "work_date",
+        // On préserve device_id même ici pour l'autoplay
+      ];
+
+      for (const k of ALL_KEYS) {
+        await secureDeleteItem(k);
+      }
+
+      setIsAuthenticated(false);
+      setIsConfigured(false);
+      setUser(null);
+      console.log("=== FULL LOGOUT (HARD) PERFORMED ===");
     } finally {
       setIsLoading(false);
     }
@@ -367,10 +414,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       }
 
       if (matchStored) {
+        // En mode restauration, on récupère le login stocké.
+        // SI le login est manquant (ex: nettoyage trop agressif), on ne peut pas restaurer.
+        // C'est pourquoi j'ai ajouté la sauvegarde user_login dans InitialSetupScreen lors de l'autoplay.
         const lg = (await secureGetItem("user_login")) || undefined;
+
         if (!lg) {
-          throw new Error("Identifiant utilisateur manquant");
+          // Si on n'a pas de login, on ne peut pas appeler l'API.
+          // Il faut renvoyer une erreur explicite pour que l'UI réagisse (peut-être rediriger vers InitialSetup ?)
+          console.error(
+            "Mode Restauration impossible : Identifiant utilisateur (user_login) manquant."
+          );
+          throw new Error(
+            "Identifiant manquant. Veuillez réinitialiser l'application."
+          );
         }
+
+        console.log(`Attempting server login for user: ${lg}`);
+
         const body: LoginPayload = {
           LG_CODELANGUE: "FR",
           SL_LOGIN: lg,
@@ -432,6 +493,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           return undefined;
         };
         const block = normalize(data);
+
+        // SAUVEGARDE DE L'AGENCE ET DE LA DATE DE TRAVAIL
+        const agencyCode =
+          pick(block, [
+            "AG_CODEAGENCE",
+            "CODE_AGENCE",
+            "AGENCE",
+            "CODEAGENCE",
+          ]) || "";
+        if (agencyCode) await secureSetItem("user_agency", String(agencyCode));
+
+        const workDate =
+          pick(block, [
+            "JT_DATEJOURNEETRAVAIL",
+            "DATE_JOURNEE_TRAVAIL",
+            "DATE_TRAVAIL",
+            "WORK_DATE",
+          ]) || "";
+        if (workDate) await secureSetItem("work_date", String(workDate));
+
         let finalUser: User | null = null;
         if (userData) {
           finalUser = JSON.parse(userData);
@@ -518,6 +599,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         loginWithPin,
         loginAsGuest,
         logout,
+        fullLogout,
         markConfigured,
         isLoading,
       }}

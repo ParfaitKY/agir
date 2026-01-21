@@ -10,7 +10,7 @@ export type ClientByTokenV2Payload = {
   code_cryptage: string;
 };
 
-export const clientByTokenV2 = (
+export const clientByTokenV2 = async (
   body: ClientByTokenV2Payload,
   headers: AuthHeaders = {}
 ) => {
@@ -18,7 +18,14 @@ export const clientByTokenV2 = (
     "=== [DEBUG] clientByTokenV2 Payload ===",
     JSON.stringify(body, null, 2)
   );
-  return handleRequest(
+  const response = await handleRequest(
     httpClient.post(ENDPOINTS.CLIENT_BY_TOKEN_V2, body, { headers })
   );
+
+  console.log(
+    "=== [DEBUG] clientByTokenV2 Response ===",
+    JSON.stringify(response.data, null, 2)
+  );
+
+  return response;
 };

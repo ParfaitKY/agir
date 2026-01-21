@@ -13,7 +13,7 @@ import { useNavigation } from "@react-navigation/native";
 import * as Print from "expo-print";
 import * as Sharing from "expo-sharing";
 import { secureGetItem } from "../../../shared/utils/secureStorage";
-import { getDerniereTransaction } from "../../../services/compte/derniereTransaction";
+import { dernieresOperationsClient } from "../../../services/compte/dernieresOperationsClient";
 
 const formatDate = (d: Date) => {
   const dd = String(d.getDate()).padStart(2, "0");
@@ -74,66 +74,58 @@ export const StatementsScreen: React.FC = () => {
             ...(login ? { "X-LOGIN": login } : {}),
           }
         : {};
+
+    const [dateDebut, dateFin] = item.range.split(" - ");
+
     const payload: any = {
       AG_CODEAGENCE: String(agency || ""),
       CO_CODECOMPTE: String(number || ""),
       CODECRYPTAGE: "Y}@128eVIXfoi7",
+      DateDebut: dateDebut,
+      DateFin: dateFin,
+      Nombretransactions: "1000",
     };
-    let row = {
-      date: new Date().toLocaleDateString("fr-FR"),
-      desc: "Dernière opération",
-      debit: 0,
-      credit: 0,
-      balance: 0,
-    } as any;
+
+    let rows: any[] = [];
+    
     try {
-      const result: any = await getDerniereTransaction(payload, headers);
-      const raw = result?.data;
-      const normalize = (r: any) => {
-        const d = r?.data ?? r;
-        if (Array.isArray(d)) return d[0] ?? {};
-        if (Array.isArray(d?.data)) return d.data[0] ?? {};
-        if (Array.isArray(d?.result)) return d.result[0] ?? {};
-        if (Array.isArray(d?.payload)) return d.payload[0] ?? {};
-        if (d?.data && typeof d.data === "object") return d.data;
-        return d ?? {};
-      };
-      const pick = (obj: any, patterns: string[]) => {
-        if (!obj) return undefined;
-        const keys = Object.keys(obj);
-        for (const p of patterns) {
-          const np = p.toLowerCase().replace(/_/g, "");
-          for (const k of keys) {
-            const nk = k.toLowerCase().replace(/_/g, "");
-            if (nk === np) return obj[k];
-          }
-        }
-        return undefined;
-      };
-      const itemData = normalize(raw);
-      const date =
-        pick(itemData, ["DATEOPERATION", "DATE", "DATEVALEUR", "OP_DATE"]) ||
-        new Date().toLocaleDateString("fr-FR");
-      const desc =
-        pick(itemData, [
-          "LIBELLEOPERATION",
-          "LIBELLE",
-          "INTITULE",
-          "MOTIF",
-          "DETAILS",
-        ]) || "Dernière opération";
-      const amountNum = Number(
-        pick(itemData, ["MONTANTOPERATION", "MONTANT", "MONTANT_TOTAL"]) || 0
-      );
-      row = {
-        date,
-        desc,
-        debit: amountNum < 0 ? Math.abs(amountNum) : 0,
-        credit: amountNum > 0 ? Math.abs(amountNum) : 0,
-        balance: amountNum,
-      };
-    } catch {}
-    const rows = [row];
+      const result: any = await dernieresOperationsClient(payload, headers);
+      const dataPayload = result?.data;
+      
+      const ops = 
+        dataPayload?.operations || 
+        dataPayload?.data?.operations || 
+        [];
+
+      rows = ops.map((op: any) => {
+         const debit = Number(op.MC_MONTANTDEBIT || 0);
+         const credit = Number(op.MC_MONTANTCREDIT || 0);
+         const balance = 0; // Le solde par ligne n'est pas toujours dispo, on le laisse à 0 ou on pourrait le calculer si on avait le solde de départ
+         
+         return {
+           date: op.MC_DATESAISIE || op.MC_DATEPIECE || op.DateOperation || "",
+           desc: op.MC_LIBELLEOPERATION || op.LibelleOperation || "Opération",
+           debit,
+           credit,
+           balance
+         };
+      });
+      
+    } catch (e) {
+      console.error("Error generating PDF rows", e);
+    }
+
+    // Si aucune donnée, on met une ligne vide pour ne pas avoir un tableau cassé
+    if (rows.length === 0) {
+      rows.push({
+        date: "—",
+        desc: "Aucune opération sur cette période",
+        debit: 0,
+        credit: 0,
+        balance: 0
+      });
+    }
+
     const totalCredit = rows.reduce((s, r) => s + Number(r.credit || 0), 0);
     const totalDebit = rows.reduce((s, r) => s + Number(r.debit || 0), 0);
     const variation = totalCredit - totalDebit;

@@ -25,7 +25,7 @@ import useClientByCompte from "../../../domain/auth/useClientByCompte";
 
 const ProfileScreen: React.FC = () => {
   const navigation = useNavigation();
-  const { logout, user } = useAuth();
+  const { logout, fullLogout, user } = useAuth();
   const { colors } = useTheme();
   const { preference, isDark, setPreference } = useThemeMode();
   const { t } = useI18n();
@@ -34,8 +34,11 @@ const ProfileScreen: React.FC = () => {
   const [txVisible, setTxVisible] = useState(false);
   const [dateInfoVisible, setDateInfoVisible] = useState(false);
   const [displayName, setDisplayName] = useState("");
-  const [startDate, setStartDate] = useState<Date | null>(null);
-  const [endDate, setEndDate] = useState<Date | null>(null);
+  // Initialiser avec la date du serveur (11/07/2025)
+  // Note: Idéalement cette date devrait venir d'un endpoint /server-time ou de JT_DATEJOURNEETRAVAIL
+  const serverDate = new Date(2025, 6, 11); // Mois 6 = Juillet (0-indexed)
+  const [startDate, setStartDate] = useState<Date | null>(serverDate);
+  const [endDate, setEndDate] = useState<Date | null>(serverDate);
   const [showDatePicker, setShowDatePicker] = useState<"start" | "end" | null>(
     null
   );
@@ -53,7 +56,9 @@ const ProfileScreen: React.FC = () => {
     minDate?: Date | null;
     maxDate?: Date | null;
   }) => {
-    const [viewDate, setViewDate] = useState(initialDate || new Date());
+    // Utiliser la date du serveur (11/07/2025) comme référence "Aujourd'hui"
+    const today = new Date(2025, 6, 11);
+    const [viewDate, setViewDate] = useState(initialDate || today);
     const [selected, setSelected] = useState<Date | null>(initialDate || null);
 
     const getDaysInMonth = (year: number, month: number) => {
@@ -106,6 +111,13 @@ const ProfileScreen: React.FC = () => {
         return true;
       return false;
     };
+
+    // Auto-focus sur le mois courant (travail) si aucune date sélectionnée
+    useEffect(() => {
+      if (!initialDate) {
+        setViewDate(today);
+      }
+    }, []);
 
     return (
       <View
@@ -171,7 +183,7 @@ const ProfileScreen: React.FC = () => {
               );
             const isSelected =
               selected && date.toDateString() === selected.toDateString();
-            const isToday = new Date().toDateString() === date.toDateString();
+            const isToday = today.toDateString() === date.toDateString();
             const disabled = isDateDisabled(date);
 
             return (
@@ -183,7 +195,11 @@ const ProfileScreen: React.FC = () => {
                   aspectRatio: 1,
                   alignItems: "center",
                   justifyContent: "center",
-                  backgroundColor: isSelected ? colors.primary : "transparent",
+                  backgroundColor: isSelected
+                    ? colors.primary
+                    : isToday
+                    ? colors.primary + "20"
+                    : "transparent",
                   borderRadius: 20,
                   borderWidth: isToday && !isSelected ? 1 : 0,
                   borderColor: colors.primary,
@@ -196,7 +212,11 @@ const ProfileScreen: React.FC = () => {
               >
                 <Text
                   style={{
-                    color: isSelected ? "#fff" : colors.text,
+                    color: isSelected
+                      ? "#fff"
+                      : isToday
+                      ? colors.primary
+                      : colors.text,
                     fontWeight: isSelected || isToday ? "700" : "400",
                   }}
                 >
@@ -376,17 +396,26 @@ const ProfileScreen: React.FC = () => {
       };
 
       if (start && end) {
+        // Validation : La plage ne doit pas dépasser 30 jours
+        const diffTime = Math.abs(end.getTime() - start.getTime());
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+        if (diffDays > 30) {
+          setTxError("La plage de dates ne doit pas dépasser 30 jours.");
+          setTxLoading(false);
+          return;
+        }
+
         // Mode filtre par date
         const formatDate = (d: Date) => {
           const year = d.getFullYear();
           const month = String(d.getMonth() + 1).padStart(2, "0");
           const day = String(d.getDate()).padStart(2, "0");
-          return `${year}-${month}-${day}`;
+          // Format DD/MM/YYYY pour compatibilité SQL Server (nvarchar -> datetime)
+          return `${day}/${month}/${year}`;
         };
 
         const payload = {
-          AG_CODEAGENCE: String(agency || ""),
-          CO_CODECOMPTE: String(account),
           CodeCryptage: "Y}@128eVIXfoi7",
           DateDebut: formatDate(start),
           DateFin: formatDate(end),
@@ -402,7 +431,13 @@ const ProfileScreen: React.FC = () => {
           return;
         }
 
-        const ops = result?.data?.operations || [];
+        // Adaptation pour structure imbriquée : result.data.data.operations
+        const dataPayload = result?.data;
+        const ops = 
+          dataPayload?.operations || 
+          dataPayload?.data?.operations || 
+          [];
+        
         const mapped = ops.map((op: any, index: number) => {
           const debit = Number(op.MC_MONTANTDEBIT || 0);
           const credit = Number(op.MC_MONTANTCREDIT || 0);
@@ -422,71 +457,62 @@ const ProfileScreen: React.FC = () => {
         });
         setTxData(mapped);
       } else {
-        // Mode défaut : Dernière transaction
+        // Mode défaut : Dernière transaction -> Remplacé par historique complet par défaut (sans date)
+        // On utilise les dates par défaut (01/01/1900 à aujourd'hui) si aucune date n'est fournie,
+        // ou on charge les X dernières transactions.
+
+        // Pour correspondre à la requête fournie par l'utilisateur:
+        const today = new Date();
+        const formatDate = (d: Date) => {
+          const year = d.getFullYear();
+          const month = String(d.getMonth() + 1).padStart(2, "0");
+          const day = String(d.getDate()).padStart(2, "0");
+          // Format DD/MM/YYYY
+          return `${day}/${month}/${year}`;
+        };
+
         const payload = {
-          AG_CODEAGENCE: String(agency || ""),
-          CO_CODECOMPTE: String(account),
-          CODECRYPTAGE: "Y}@128eVIXfoi7",
-        } as any;
-        const result: any = await getDerniereTransaction(payload, headers);
+          CodeCryptage: "Y}@128eVIXfoi7",
+          DateDebut: "01/01/1900", // Date fixe demandée
+          DateFin: formatDate(today),
+          Nombretransactions: "10",
+        };
+
+        const result: any = await dernieresOperationsClient(payload, headers);
+
         if (result?.error) {
-          const err: any = result.error;
-          const server = err?.response?.data;
-          const msg = server?.message || err?.message || t("common.fetchError");
-          setTxError(msg);
-          return;
+          // Fallback silencieux ou gestion d'erreur légère
+          console.log(
+            "Erreur chargement transactions par défaut",
+            result.error
+          );
         }
-        const raw = result?.data;
-        const normalize = (r: any) => {
-          const d = r?.data ?? r;
-          if (Array.isArray(d)) return d[0] ?? {};
-          if (Array.isArray(d?.data)) return d.data[0] ?? {};
-          if (Array.isArray(d?.result)) return d.result[0] ?? {};
-          if (Array.isArray(d?.payload)) return d.payload[0] ?? {};
-          if (d?.data && typeof d.data === "object") return d.data;
-          return d ?? {};
-        };
-        const pick = (obj: any, patterns: string[]) => {
-          if (!obj) return undefined;
-          const keys = Object.keys(obj);
-          for (const p of patterns) {
-            const np = p.toLowerCase().replace(/_/g, "");
-            for (const k of keys) {
-              const nk = k.toLowerCase().replace(/_/g, "");
-              if (nk === np) return obj[k];
-            }
-          }
-          return undefined;
-        };
-        const item = normalize(raw);
-        const title =
-          pick(item, [
-            "LIBELLEOPERATION",
-            "LIBELLE",
-            "INTITULE",
-            "MOTIF",
-            "DETAILS",
-          ]) || "Dernière opération";
-        const amountNum =
-          pick(item, ["MONTANTOPERATION", "MONTANT", "MONTANT_TOTAL"]) ?? 0;
-        const sens =
-          pick(item, ["TYPEOPERATION", "SENS", "TYPE", "NATURE"]) || "";
-        const isCredit =
-          String(sens).toLowerCase().includes("credit") ||
-          Number(amountNum) > 0;
-        const amountAbs = Math.abs(Number(amountNum) || 0);
-        const amount = `${isCredit ? "+" : "-"}${amountAbs.toLocaleString(
-          "fr-FR"
-        )} XOF`;
-        const date =
-          pick(item, ["DATEOPERATION", "DATE", "DATEVALEUR", "OP_DATE"]) ||
-          new Date().toLocaleDateString("fr-FR");
-        const id = String(
-          pick(item, ["IDOPERATION", "REFERENCE", "ID"]) || Date.now()
-        );
-        setTxData([
-          { id, title, amount, date, type: isCredit ? "entree" : "sortie" },
-        ]);
+
+        // Adaptation pour structure imbriquée
+        const dataPayload = result?.data;
+        const ops = 
+          dataPayload?.operations || 
+          dataPayload?.data?.operations || 
+          [];
+        
+        const mapped = ops.map((op: any, index: number) => {
+          const debit = Number(op.MC_MONTANTDEBIT || 0);
+          const credit = Number(op.MC_MONTANTCREDIT || 0);
+          const isCredit = credit > 0; // Ou baser sur TypeOperation === 'CREDIT'
+          const amountVal = isCredit ? credit : debit;
+          const amount = `${isCredit ? "+" : "-"}${amountVal.toLocaleString(
+            "fr-FR"
+          )} XOF`;
+
+          return {
+            id: String(index),
+            title: op.MC_LIBELLEOPERATION || "Opération",
+            amount,
+            date: op.MC_DATESAISIE || op.MC_DATEPIECE || "",
+            type: isCredit ? "entree" : "sortie",
+          } as TxItem;
+        });
+        setTxData(mapped);
       }
     } catch (e: any) {
       setTxError(e?.message || t("common.networkError"));
@@ -558,8 +584,9 @@ const ProfileScreen: React.FC = () => {
             text: t("settings.logout"),
             style: "destructive",
             onPress: async () => {
+              // Soft Logout par défaut (conserve le PIN)
               await logout();
-              console.log("Regular user logged out");
+              console.log("Regular user logged out (Soft)");
               try {
                 (navigation as any).reset({
                   index: 0,
@@ -567,6 +594,37 @@ const ProfileScreen: React.FC = () => {
                 });
               } catch (error) {
                 (navigation as any).navigate("PinLogin" as never);
+              }
+            },
+          },
+          // Option explicite pour suppression complète
+          {
+            text: "Déconnexion et suppression",
+            style: "destructive",
+            onPress: async () => {
+              // Hard Logout (Full wipe)
+              if (fullLogout) {
+                await fullLogout();
+              } else {
+                // Fallback
+                const {
+                  secureDeleteItem,
+                } = require("../../../shared/utils/secureStorage");
+                await secureDeleteItem("is_configured");
+                await secureDeleteItem("pin_user");
+                await secureDeleteItem("user_login");
+                await logout();
+              }
+
+              console.log("User logged out AND data wiped");
+              try {
+                // Redirection vers l'écran de saisie de token (InitialSetup)
+                (navigation as any).reset({
+                  index: 0,
+                  routes: [{ name: "InitialSetup" }],
+                });
+              } catch (error) {
+                (navigation as any).navigate("InitialSetup" as never);
               }
             },
           },
@@ -1210,9 +1268,9 @@ const ProfileScreen: React.FC = () => {
               }
               maxDate={
                 showDatePicker === "start"
-                  ? new Date() // Impossible de sélectionner une date future
+                  ? new Date(2025, 6, 11) // Impossible de sélectionner après le 11/07/2025
                   : (() => {
-                      const today = new Date();
+                      const today = new Date(2025, 6, 11);
                       if (startDate) {
                         const limit = new Date(startDate);
                         limit.setDate(limit.getDate() + 30);

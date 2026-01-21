@@ -14,6 +14,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useAuth } from "../../../app/hooks/useAuth";
 import { secureDeleteItem } from "../../../shared/utils/secureStorage";
+import { clearAppCache } from "../../../shared/utils/cacheManager";
 import { useNavigation } from "@react-navigation/native";
 import { useI18n } from "../../../app/providers/I18nProvider";
 import { useTheme, useThemeMode } from "../../../shared/styles/ThemeProvider";
@@ -29,7 +30,7 @@ export const SettingsScreen: React.FC = () => {
   const guestAlert = () => {
     Alert.alert(
       "Connexion requise",
-      "Veuillez vous connecter pour accéder à cette fonctionnalité."
+      "Veuillez vous connecter pour accéder à cette fonctionnalité.",
     );
   };
   type SettingItem = {
@@ -89,36 +90,10 @@ export const SettingsScreen: React.FC = () => {
     setLogoutProcessing("forget");
     try {
       await logout();
-      const ALL_CLEAR_KEYS = [
-        "auth_token",
-        "user_data",
-        "is_configured",
-        "pin_user",
-        "user_login",
-        "user_firstname",
-        "user_lastname",
-        "user_phone",
-        "user_address",
-        "user_account_number",
-        "user_agency",
-        "user_id",
-        "user_secret_key",
-        "access_data",
-        "client_id",
-        "solde_globale",
-        "compte_statistiques",
-        "analyse_derniere_transaction",
-      ];
-      for (const k of ALL_CLEAR_KEYS) {
-        try {
-          await secureDeleteItem(k);
-        } catch {}
-      }
-      try {
-        if (typeof window !== "undefined") {
-          window.localStorage?.clear?.();
-        }
-      } catch {}
+
+      // Use smart cache clear that preserves device_id for autoplay
+      await clearAppCache();
+
       (navigation as any).reset({
         index: 0,
         routes: [{ name: "InitialSetup" }],
@@ -247,8 +222,8 @@ export const SettingsScreen: React.FC = () => {
                 {preference === "system"
                   ? t("theme.system")
                   : preference === "dark"
-                  ? t("theme.dark")
-                  : t("theme.light")}
+                    ? t("theme.dark")
+                    : t("theme.light")}
               </Text>
             </View>
           ),
@@ -937,8 +912,8 @@ export const SettingsScreen: React.FC = () => {
                       opt.key === "dark"
                         ? "moon"
                         : opt.key === "light"
-                        ? "sunny"
-                        : "contrast-outline"
+                          ? "sunny"
+                          : "contrast-outline"
                     }
                     size={22}
                     color={colors.primary}

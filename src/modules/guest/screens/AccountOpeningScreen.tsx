@@ -420,17 +420,20 @@ export const AccountOpeningScreen: React.FC = () => {
                     placeholder="Numéro de la pièce d'identité"
                     placeholderTextColor={colors.text + "60"}
                     value={idNumber}
-                    maxLength={8}
+                    maxLength={15}
                     onChangeText={setIdNumber}
                   />
                   <Text style={{ fontSize: 12, color: colors.text + "80", marginTop: 4 }}>
-                    8 caractères requis
+                    15 caractères requis
                   </Text>
                 </View>
 
                 <View style={styles.fieldGroup}>
                   <Text style={[styles.label, { color: colors.text }]}>
                     Photo du document (Recto) <Text style={{ color: "red" }}>*</Text>
+                  </Text>
+                  <Text style={{ fontSize: 12, color: colors.text + "80", marginBottom: 8 }}>
+                    Taille max: 5 Mo. Formats: JPG, PNG.
                   </Text>
                   <View style={styles.imagePickerContainer}>
                     {docImageRecto ? (
@@ -501,6 +504,9 @@ export const AccountOpeningScreen: React.FC = () => {
                 <View style={styles.fieldGroup}>
                   <Text style={[styles.label, { color: colors.text }]}>
                     Photo du document (Verso) <Text style={{ color: "red" }}>*</Text>
+                  </Text>
+                  <Text style={{ fontSize: 12, color: colors.text + "80", marginBottom: 8 }}>
+                    Taille max: 5 Mo. Formats: JPG, PNG.
                   </Text>
                   <View style={styles.imagePickerContainer}>
                     {docImageVerso ? (

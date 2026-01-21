@@ -49,7 +49,8 @@ export const useWalletUnsubscribe = () => {
     const SL_LOGIN = (await secureGetItem("user_login")) || "";
     const SL_MOTPASSE = (await secureGetItem("pin_user")) || "";
     const SL_CLESESSION = (await secureGetItem("user_secret_key")) || "";
-    const JT_DATEJOURNEETRAVAIL = formatDate(new Date());
+    const storedDate = await secureGetItem("work_date");
+    const JT_DATEJOURNEETRAVAIL = storedDate || formatDate(new Date());
     return {
       AG_CODEAGENCE,
       JT_DATEJOURNEETRAVAIL,

@@ -6,6 +6,7 @@ export type UpdateLoginPayload = {
   nouveau_motpasse: string;
   cle_secrete: string;
   code_cryptage: string;
+  [key: string]: any; // Permettre des champs additionnels
 };
 
 export const updateLogin = (

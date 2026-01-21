@@ -78,6 +78,7 @@ export const AnalyticsScreen: React.FC = () => {
         label.includes("ADHESION") || 
         label.includes("FRAIS") ||
         label.includes("RETRAIT") ||
+        label.includes("VIREMENT") ||
         label.includes("TAXE")
       ) {
         isCredit = false;
@@ -113,11 +114,15 @@ export const AnalyticsScreen: React.FC = () => {
     // Percentages
     // Standard calculation based on VOLUME (Amount)
     const pDebit = totalV > 0 ? Math.round((debitA / totalV) * 100) : 0;
-    const pCredit = totalV > 0 ? Math.round((creditA / totalV) * 100) : 0;
+    // Si pDebit est très petit mais non nul (ex: < 0.5% arrondi à 0), on force au moins 1% pour la visibilité si le montant > 0
+    const displayPDebit = (debitA > 0 && pDebit === 0) ? 1 : pDebit;
+    
+    // Le reste va aux crédits
+    const displayPCredit = 100 - displayPDebit;
 
     const sens =
       debitA > creditA ? "DEBIT" : creditA > debitA ? "CREDIT" : "EGAL";
-    const pStrong = sens === "DEBIT" ? pDebit : pCredit;
+    const pStrong = sens === "DEBIT" ? displayPDebit : displayPCredit;
 
     return {
       debitCount: debitC,
@@ -126,8 +131,8 @@ export const AnalyticsScreen: React.FC = () => {
       debitAmount: debitA,
       creditAmount: creditA,
       totalVolume: totalV,
-      percentDebit: pDebit,
-      percentCredit: pCredit,
+      percentDebit: displayPDebit,
+      percentCredit: displayPCredit,
       sensFort: sens,
       percentStrong: pStrong,
     };

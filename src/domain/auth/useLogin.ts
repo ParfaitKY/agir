@@ -74,6 +74,21 @@ export const useLogin = () => {
         return undefined;
       };
       const block = normalize(data);
+
+      const agencyCode =
+        pick(block, ["AG_CODEAGENCE", "CODE_AGENCE", "AGENCE", "CODEAGENCE"]) ||
+        "";
+      if (agencyCode) await secureSetItem("user_agency", String(agencyCode));
+
+      const workDate =
+        pick(block, [
+          "JT_DATEJOURNEETRAVAIL",
+          "DATE_JOURNEE_TRAVAIL",
+          "DATE_TRAVAIL",
+          "WORK_DATE",
+        ]) || "";
+      if (workDate) await secureSetItem("work_date", String(workDate));
+
       const fn =
         block?.CL_PRENOMCLIENT ||
         pick(block, [
