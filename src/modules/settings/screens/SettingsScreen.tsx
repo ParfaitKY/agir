@@ -10,6 +10,8 @@ import {
   Modal,
   TextInput,
   Alert,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useAuth } from "../../../app/hooks/useAuth";
@@ -693,183 +695,194 @@ export const SettingsScreen: React.FC = () => {
         transparent
         onRequestClose={() => setShowChangePinModal(false)}
       >
-        <View
-          style={[
-            styles.modalOverlay,
-            { backgroundColor: isDark ? "rgba(0,0,0,0.6)" : "rgba(0,0,0,0.4)" },
-          ]}
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          style={{ flex: 1 }}
         >
           <View
-            style={[styles.modalContainer, { backgroundColor: colors.card }]}
+            style={[
+              styles.modalOverlay,
+              {
+                backgroundColor: isDark ? "rgba(0,0,0,0.6)" : "rgba(0,0,0,0.4)",
+              },
+            ]}
           >
-            <Text style={[styles.modalTitle, { color: colors.text }]}>
-              {t("pin.change.title")}
-            </Text>
             <View
-              style={[
-                styles.inputContainer,
-                {
-                  borderColor:
-                    currentPin.length === 5 ? "#4CAF50" : colors.border,
-                  backgroundColor: colors.background,
-                },
-              ]}
+              style={[styles.modalContainer, { backgroundColor: colors.card }]}
             >
-              <TextInput
-                style={[styles.inputField, { color: colors.text }]}
-                placeholder={t("pin.current")}
-                secureTextEntry={!showCurrentPin}
-                keyboardType="numeric"
-                value={currentPin}
-                onChangeText={setCurrentPin}
-                maxLength={5}
-                placeholderTextColor={colors.text + "80"}
-              />
-              {currentPin.length === 5 && (
-                <Ionicons
-                  name="checkmark-circle"
-                  size={20}
-                  color="#4CAF50"
-                  style={{ marginRight: 8 }}
-                />
-              )}
-              <TouchableOpacity
-                onPress={() => setShowCurrentPin(!showCurrentPin)}
-                style={styles.eyeIcon}
-              >
-                <Ionicons
-                  name={showCurrentPin ? "eye-off-outline" : "eye-outline"}
-                  size={20}
-                  color={colors.text}
-                />
-              </TouchableOpacity>
-            </View>
-
-            <View
-              style={[
-                styles.inputContainer,
-                {
-                  borderColor: newPin.length === 5 ? "#4CAF50" : colors.border,
-                  backgroundColor: colors.background,
-                },
-              ]}
-            >
-              <TextInput
-                style={[styles.inputField, { color: colors.text }]}
-                placeholder={t("pin.new.label")}
-                secureTextEntry={!showNewPin}
-                keyboardType="numeric"
-                value={newPin}
-                onChangeText={setNewPin}
-                maxLength={5}
-                placeholderTextColor={colors.text + "80"}
-              />
-              {newPin.length === 5 && (
-                <Ionicons
-                  name="checkmark-circle"
-                  size={20}
-                  color="#4CAF50"
-                  style={{ marginRight: 8 }}
-                />
-              )}
-              <TouchableOpacity
-                onPress={() => setShowNewPin(!showNewPin)}
-                style={styles.eyeIcon}
-              >
-                <Ionicons
-                  name={showNewPin ? "eye-off-outline" : "eye-outline"}
-                  size={20}
-                  color={colors.text}
-                />
-              </TouchableOpacity>
-            </View>
-
-            <View
-              style={[
-                styles.inputContainer,
-                {
-                  borderColor:
-                    confirmPin.length === 5 && confirmPin === newPin
-                      ? "#4CAF50"
-                      : colors.border,
-                  backgroundColor: colors.background,
-                },
-              ]}
-            >
-              <TextInput
-                style={[styles.inputField, { color: colors.text }]}
-                placeholder={t("pin.confirm")}
-                secureTextEntry={!showConfirmPin}
-                keyboardType="numeric"
-                value={confirmPin}
-                onChangeText={setConfirmPin}
-                maxLength={5}
-                placeholderTextColor={colors.text + "80"}
-              />
-              {confirmPin.length === 5 && confirmPin === newPin && (
-                <Ionicons
-                  name="checkmark-circle"
-                  size={20}
-                  color="#4CAF50"
-                  style={{ marginRight: 8 }}
-                />
-              )}
-              <TouchableOpacity
-                onPress={() => setShowConfirmPin(!showConfirmPin)}
-                style={styles.eyeIcon}
-              >
-                <Ionicons
-                  name={showConfirmPin ? "eye-off-outline" : "eye-outline"}
-                  size={20}
-                  color={colors.text}
-                />
-              </TouchableOpacity>
-            </View>
-            {pinError && (
-              <Text style={[styles.errorText, { color: colors.error }]}>
-                {pinError}
+              <Text style={[styles.modalTitle, { color: colors.text }]}>
+                {t("pin.change.title")}
               </Text>
-            )}
-            <View style={styles.modalActions}>
-              <TouchableOpacity
-                style={[styles.actionButton, { backgroundColor: colors.card }]}
-                onPress={() => setShowChangePinModal(false)}
-              >
-                <Text style={[styles.actionText, { color: colors.text }]}>
-                  {t("common.cancel")}
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
+              <View
                 style={[
-                  styles.actionButton,
-                  { backgroundColor: colors.primary },
+                  styles.inputContainer,
+                  {
+                    borderColor:
+                      currentPin.length === 5 ? "#4CAF50" : colors.border,
+                    backgroundColor: colors.background,
+                  },
                 ]}
-                onPress={() => {
-                  // Validation simple du PIN
-                  const pinRegex = /^\d{5}$/;
-                  if (!pinRegex.test(newPin)) {
-                    setPinError(t("pin.error.length"));
-                    return;
-                  }
-                  if (newPin !== confirmPin) {
-                    setPinError(t("pin.error.mismatch"));
-                    return;
-                  }
-                  setPinError(null);
-                  console.log("Change PIN", { currentPin, newPin });
-                  setShowChangePinModal(false);
-                  setCurrentPin("");
-                  setNewPin("");
-                  setConfirmPin("");
-                }}
               >
-                <Text style={[styles.actionText, { color: "#fff" }]}>
-                  {t("common.confirm")}
+                <TextInput
+                  style={[styles.inputField, { color: colors.text }]}
+                  placeholder={t("pin.current")}
+                  secureTextEntry={!showCurrentPin}
+                  keyboardType="numeric"
+                  value={currentPin}
+                  onChangeText={setCurrentPin}
+                  maxLength={5}
+                  placeholderTextColor={colors.text + "80"}
+                />
+                {currentPin.length === 5 && (
+                  <Ionicons
+                    name="checkmark-circle"
+                    size={20}
+                    color="#4CAF50"
+                    style={{ marginRight: 8 }}
+                  />
+                )}
+                <TouchableOpacity
+                  onPress={() => setShowCurrentPin(!showCurrentPin)}
+                  style={styles.eyeIcon}
+                >
+                  <Ionicons
+                    name={showCurrentPin ? "eye-off-outline" : "eye-outline"}
+                    size={20}
+                    color={colors.text}
+                  />
+                </TouchableOpacity>
+              </View>
+
+              <View
+                style={[
+                  styles.inputContainer,
+                  {
+                    borderColor:
+                      newPin.length === 5 ? "#4CAF50" : colors.border,
+                    backgroundColor: colors.background,
+                  },
+                ]}
+              >
+                <TextInput
+                  style={[styles.inputField, { color: colors.text }]}
+                  placeholder={t("pin.new.label")}
+                  secureTextEntry={!showNewPin}
+                  keyboardType="numeric"
+                  value={newPin}
+                  onChangeText={setNewPin}
+                  maxLength={5}
+                  placeholderTextColor={colors.text + "80"}
+                />
+                {newPin.length === 5 && (
+                  <Ionicons
+                    name="checkmark-circle"
+                    size={20}
+                    color="#4CAF50"
+                    style={{ marginRight: 8 }}
+                  />
+                )}
+                <TouchableOpacity
+                  onPress={() => setShowNewPin(!showNewPin)}
+                  style={styles.eyeIcon}
+                >
+                  <Ionicons
+                    name={showNewPin ? "eye-off-outline" : "eye-outline"}
+                    size={20}
+                    color={colors.text}
+                  />
+                </TouchableOpacity>
+              </View>
+
+              <View
+                style={[
+                  styles.inputContainer,
+                  {
+                    borderColor:
+                      confirmPin.length === 5 && confirmPin === newPin
+                        ? "#4CAF50"
+                        : colors.border,
+                    backgroundColor: colors.background,
+                  },
+                ]}
+              >
+                <TextInput
+                  style={[styles.inputField, { color: colors.text }]}
+                  placeholder={t("pin.confirm")}
+                  secureTextEntry={!showConfirmPin}
+                  keyboardType="numeric"
+                  value={confirmPin}
+                  onChangeText={setConfirmPin}
+                  maxLength={5}
+                  placeholderTextColor={colors.text + "80"}
+                />
+                {confirmPin.length === 5 && confirmPin === newPin && (
+                  <Ionicons
+                    name="checkmark-circle"
+                    size={20}
+                    color="#4CAF50"
+                    style={{ marginRight: 8 }}
+                  />
+                )}
+                <TouchableOpacity
+                  onPress={() => setShowConfirmPin(!showConfirmPin)}
+                  style={styles.eyeIcon}
+                >
+                  <Ionicons
+                    name={showConfirmPin ? "eye-off-outline" : "eye-outline"}
+                    size={20}
+                    color={colors.text}
+                  />
+                </TouchableOpacity>
+              </View>
+              {pinError && (
+                <Text style={[styles.errorText, { color: colors.error }]}>
+                  {pinError}
                 </Text>
-              </TouchableOpacity>
+              )}
+              <View style={styles.modalActions}>
+                <TouchableOpacity
+                  style={[
+                    styles.actionButton,
+                    { backgroundColor: colors.card },
+                  ]}
+                  onPress={() => setShowChangePinModal(false)}
+                >
+                  <Text style={[styles.actionText, { color: colors.text }]}>
+                    {t("common.cancel")}
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[
+                    styles.actionButton,
+                    { backgroundColor: colors.primary },
+                  ]}
+                  onPress={() => {
+                    // Validation simple du PIN
+                    const pinRegex = /^\d{5}$/;
+                    if (!pinRegex.test(newPin)) {
+                      setPinError(t("pin.error.length"));
+                      return;
+                    }
+                    if (newPin !== confirmPin) {
+                      setPinError(t("pin.error.mismatch"));
+                      return;
+                    }
+                    setPinError(null);
+                    console.log("Change PIN", { currentPin, newPin });
+                    setShowChangePinModal(false);
+                    setCurrentPin("");
+                    setNewPin("");
+                    setConfirmPin("");
+                  }}
+                >
+                  <Text style={[styles.actionText, { color: "#fff" }]}>
+                    {t("common.confirm")}
+                  </Text>
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
-        </View>
+        </KeyboardAvoidingView>
       </Modal>
       {/* Modal Choisir le thème */}
       <Modal

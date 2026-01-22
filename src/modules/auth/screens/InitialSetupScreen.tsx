@@ -200,7 +200,7 @@ const InitialSetupScreen: React.FC = () => {
 
         const storedAccess = await secureGetItem("access_data");
         const block = normalize(
-          accessData || (storedAccess ? JSON.parse(storedAccess) : null)
+          accessData || (storedAccess ? JSON.parse(storedAccess) : null),
         );
 
         const phoneCandidate =
@@ -256,7 +256,7 @@ const InitialSetupScreen: React.FC = () => {
 
     if (attempts >= MAX_ATTEMPTS) {
       setVerifyError(
-        "Nombre de tentatives épuisé. Veuillez contacter votre gestionnaire pour réinitialiser votre token."
+        "Nombre de tentatives épuisé. Veuillez contacter votre gestionnaire pour réinitialiser votre token.",
       );
       return;
     }
@@ -277,13 +277,13 @@ const InitialSetupScreen: React.FC = () => {
 
       if (remaining <= 0) {
         setVerifyError(
-          "Nombre de tentatives épuisé. Veuillez contacter votre gestionnaire pour réinitialiser votre token."
+          "Nombre de tentatives épuisé. Veuillez contacter votre gestionnaire pour réinitialiser votre token.",
         );
       } else {
         setVerifyError(
           `${
             fetchError || t("initial.error.verification")
-          }. ${remaining} tentative(s) restante(s).`
+          }. ${remaining} tentative(s) restante(s).`,
         );
       }
 
@@ -307,7 +307,7 @@ const InitialSetupScreen: React.FC = () => {
 
     console.log(
       "[InitialSetup] Client Info Full:",
-      JSON.stringify(info, null, 2)
+      JSON.stringify(info, null, 2),
     );
 
     // Fonction de recherche récursive (profondeur limitée) pour trouver le login
@@ -331,7 +331,7 @@ const InitialSetupScreen: React.FC = () => {
       for (const k of keys) {
         // Case insensitive check
         const foundKey = Object.keys(obj).find(
-          (key) => key.toLowerCase() === k
+          (key) => key.toLowerCase() === k,
         );
         if (foundKey && obj[foundKey]) return String(obj[foundKey]);
       }
@@ -383,7 +383,7 @@ const InitialSetupScreen: React.FC = () => {
           decodeBase64(base64)
             .split("")
             .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
-            .join("")
+            .join(""),
         );
         const payload = JSON.parse(jsonPayload);
 
@@ -405,12 +405,12 @@ const InitialSetupScreen: React.FC = () => {
 
         console.log(
           "[InitialSetup] Extracted login from JWT:",
-          extractedLoginFromToken
+          extractedLoginFromToken,
         );
       } catch (e) {
         console.warn(
           "[InitialSetup] Failed to decode JWT for login extraction",
-          e
+          e,
         );
       }
     }
@@ -474,12 +474,16 @@ const InitialSetupScreen: React.FC = () => {
     if (userEmail) secureSetItem("user_email", String(userEmail));
 
     // Fonction de recherche récursive pour trouver autoplay
-    const findAutoplayDeep = (obj: any, depth = 0): boolean | string | number | undefined => {
+    const findAutoplayDeep = (
+      obj: any,
+      depth = 0,
+    ): boolean | string | number | undefined => {
       if (!obj || depth > 3) return undefined;
-      
+
       if (obj.autoplay !== undefined) return obj.autoplay;
       if (obj.AUTOPLAY !== undefined) return obj.AUTOPLAY;
-      if (obj.token_info?.autoplay !== undefined) return obj.token_info.autoplay;
+      if (obj.token_info?.autoplay !== undefined)
+        return obj.token_info.autoplay;
 
       // Recherche dans les sous-objets
       if (Array.isArray(obj.data) && obj.data[0])
@@ -488,7 +492,7 @@ const InitialSetupScreen: React.FC = () => {
         return findAutoplayDeep(obj.data, depth + 1);
       if (obj.result && typeof obj.result === "object")
         return findAutoplayDeep(obj.result, depth + 1);
-        
+
       return undefined;
     };
 
@@ -497,13 +501,20 @@ const InitialSetupScreen: React.FC = () => {
       if (!obj || depth > 4) return undefined;
 
       const keys = [
-        "PIN", "pin",
-        "DEFAULT_PIN", "default_pin",
-        "CODE_SECRET", "code_secret",
-        "SL_PIN", "sl_pin",
-        "USER_PIN", "user_pin",
-        "MOT_DE_PASSE", "mot_de_passe",
-        "PASSWORD", "password"
+        "PIN",
+        "pin",
+        "DEFAULT_PIN",
+        "default_pin",
+        "CODE_SECRET",
+        "code_secret",
+        "SL_PIN",
+        "sl_pin",
+        "USER_PIN",
+        "user_pin",
+        "MOT_DE_PASSE",
+        "mot_de_passe",
+        "PASSWORD",
+        "password",
       ];
 
       for (const k of keys) {
@@ -537,51 +548,58 @@ const InitialSetupScreen: React.FC = () => {
     const foundAutoplay = findAutoplayDeep(info);
 
     // Check autoplay or token_info
-    // Robust check for autoplay value (boolean, string, 1/0)
-    // MODIFICATION: On accepte aussi validation_status === "SUCCES" comme condition d'autoplay
-    // car le serveur peut renvoyer autoplay: false pour un "Nouvel équipement" alors que le token est valide
-    // et que l'utilisateur veut juste se reconnecter (Restauration).
+    // MODIFICATION: On respecte STRICTEMENT la décision du serveur.
+    // Seul le champ 'autoplay' renvoyé par l'API fait foi.
+    // On n'essaie plus de le déduire d'autres champs comme OTP_REQUIRED.
     const rawAutoplay = foundAutoplay ?? info.token_info?.autoplay;
+
+    // On normalise la valeur reçue (true, "true", 1, "1")
     const isAutoplay =
       rawAutoplay === true ||
       rawAutoplay === "true" ||
       rawAutoplay === 1 ||
-      String(rawAutoplay).toLowerCase() === "true" ||
-      clientRecord?.OTP_REQUIRED === false ||
-      clientRecord?.OTP_REQUIRED === "false" ||
-      info.token_info?.validation_status === "SUCCES";
+      String(rawAutoplay).toLowerCase() === "true";
 
-    console.log("[InitialSetup] Autoplay Decision:", {
-      rawTokenInfo: info.token_info,
-      foundAutoplay,
-      rawAutoplay,
-      validationStatus: info.token_info?.validation_status,
-      otpRequired: clientRecord?.OTP_REQUIRED,
-      isAutoplayComputed: isAutoplay,
-      loginCandidate,
+    const dev = await secureGetItem("device_id");
+    const accStored = await secureGetItem("user_account_number");
+
+    console.log("[InitialSetup] SERVER RESPONSE ANALYSIS:", {
+      TokenEnvoi: authToken,
+      DeviceIdEnvoi: dev, // On loggue ce qu'on a envoyé (récupéré plus haut)
+      AutoplayRecu: rawAutoplay,
+      IsAutoplayFinal: isAutoplay,
+      LoginRecu: loginCandidate,
+      FullTokenInfo: info.token_info
     });
 
     if (isAutoplay) {
       console.log("Autoplay is enabled");
-      
+
       const foundPin = findPinDeep(info);
       if (foundPin) {
-        console.log(`[InitialSetup] PIN retrieved for first configuration (Autoplay): "${foundPin}"`);
+        console.log(
+          `[InitialSetup] PIN retrieved for first configuration (Autoplay): "${foundPin}"`,
+        );
       } else {
-        console.log("[InitialSetup] Autoplay enabled but NO PIN found in response.");
+        console.log(
+          "[InitialSetup] Autoplay enabled but NO PIN found in response.",
+        );
         // Log FULL response to debug
         try {
-          console.log("[InitialSetup] FULL RESPONSE DEBUG:", JSON.stringify(info, null, 2));
+          console.log(
+            "[InitialSetup] FULL RESPONSE DEBUG:",
+            JSON.stringify(info, null, 2),
+          );
         } catch {}
       }
 
       if (loginCandidate) {
         console.log(
-          `[InitialSetup] Login utilisé pour la session Autoplay : "${loginCandidate}"`
+          `[InitialSetup] Login utilisé pour la session Autoplay : "${loginCandidate}"`,
         );
       } else {
         console.warn(
-          "[InitialSetup] ATTENTION: Autoplay activé MAIS login vide !"
+          "[InitialSetup] ATTENTION: Autoplay activé MAIS login vide !",
         );
       }
     }
@@ -610,9 +628,6 @@ const InitialSetupScreen: React.FC = () => {
       secureSetItem("user_account_number", String(realAccountNumber));
     }
 
-    const accStored = await secureGetItem("user_account_number");
-    const dev = await secureGetItem("device_id");
-
     const proceedToStep2 = () => {
       setVerifySuccess(false);
       setOtpProcessing(true);
@@ -623,58 +638,37 @@ const InitialSetupScreen: React.FC = () => {
     };
 
     if (isAutoplay) {
-      // Si autoplay est activé, on saute l'écran OTP
-      // MODIFICATION: Redirection directe vers PinLogin au lieu de step 2
-      // car Autoplay = appareil déjà configuré = PIN déjà existant.
+      // REGLE UTILISATEUR: Autoplay = TRUE -> "Précharger, Définir ses accès"
+      // C'est une session de configuration assistée (Autoplay).
 
       try {
-        await secureSetItem("is_configured", "true");
-
-        // IMPORTANT: Sauvegarde du Login pour permettre le mode Restauration (Validation Serveur)
-        // car si l'utilisateur a effacé ses données, le login local est perdu.
-        // On l'a extrait plus haut dans 'loginCandidate'.
+        // Sauvegarde du Login pour pré-remplissage (Precharger)
         if (loginCandidate) {
           console.log(
-            "[InitialSetup] Saving login before redirect:",
-            loginCandidate
+            "[InitialSetup] Saving login for prefill (Autoplay=TRUE):",
+            loginCandidate,
           );
           await secureSetItem("user_login", loginCandidate);
-          // Petite pause pour s'assurer que l'écriture est finie (sur certains OS lents)
           await new Promise((r) => setTimeout(r, 100));
-        } else {
-          console.error(
-            "[InitialSetup] CRITICAL: No login found for Autoplay! Redirect aborted."
-          );
-          // Fallback: On force l'utilisateur à passer par step 2 pour vérifier ses infos
-          // car on ne peut pas aller au PIN sans login.
-          proceedToStep2();
-          return;
         }
 
-        // On s'assure que le user est "configuré" dans le contexte auth si nécessaire
-        if (markConfigured) await markConfigured(true);
-
-        navigation.replace("PinLogin");
+        console.log(
+          "[InitialSetup] Autoplay TRUE -> Proceeding to Step 2 (Define Access)",
+        );
+        proceedToStep2();
       } catch (e) {
-        console.error("Autoplay redirect error", e);
-        // Fallback en cas d'erreur: aller à step 2
+        console.error("Autoplay setup error", e);
         proceedToStep2();
       }
     } else {
-      // On navigue vers OTP
-      (navigation as any).navigate("OtpVerify", {
-        phone,
-        // Priorité au numéro de compte extrait de la réponse serveur,
-        // sinon celui stocké, sinon ce que l'utilisateur a saisi (fallback)
-        numero_compte: realAccountNumber || accStored || authToken,
-        device_id: dev || "",
-        onSuccess: proceedToStep2,
-        onCancel: () => {
-          setVerifySuccess(false);
-          setVerifiedToken("");
-          setAuthToken("");
-          setStep(1);
-        },
+      // REGLE UTILISATEUR: Autoplay = FALSE -> "Redirigé sur le PinLoginScreen"
+      // L'utilisateur indique que autoplay: false signifie qu'on doit aller au login.
+      console.log("[InitialSetup] Autoplay FALSE -> Redirecting to PinLogin");
+
+      // On s'assure que la config est marquée comme faite pour permettre l'accès au PinLogin
+      secureSetItem("is_configured", "true").then(() => {
+        if (markConfigured) markConfigured(true);
+        navigation.replace("PinLogin");
       });
     }
   };
@@ -724,13 +718,13 @@ const InitialSetupScreen: React.FC = () => {
             username: "invite",
             name: "Invité",
             email: "",
-          })
+          }),
         );
         await secureSetItem("user_login", "invite");
         try {
           const hashedDefaultPin = await Crypto.digestStringAsync(
             Crypto.CryptoDigestAlgorithm.SHA256,
-            "12345"
+            "12345",
           );
           await secureSetItem("pin_user", hashedDefaultPin);
         } catch {}
@@ -743,7 +737,7 @@ const InitialSetupScreen: React.FC = () => {
       }
     } catch (e: any) {
       setVerifyError(
-        String(e?.message || "Impossible d’activer le mode invité.")
+        String(e?.message || "Impossible d’activer le mode invité."),
       );
     }
   };
@@ -805,7 +799,7 @@ const InitialSetupScreen: React.FC = () => {
 
       const hashedUserPin = await Crypto.digestStringAsync(
         Crypto.CryptoDigestAlgorithm.SHA256,
-        newPin
+        newPin,
       );
 
       const deviceId = (await secureGetItem("device_id")) || "";
@@ -893,7 +887,7 @@ const InitialSetupScreen: React.FC = () => {
 
       console.log(
         "[InitialSetup] updateLogin SUCCESS. Server response:",
-        JSON.stringify(result.data, null, 2)
+        JSON.stringify(result.data, null, 2),
       );
 
       // EXTRACTION DU LOGIN DEPUIS LA RÉPONSE UPDATE (Source de vérité)
@@ -913,8 +907,8 @@ const InitialSetupScreen: React.FC = () => {
         const inner = Array.isArray(data.data)
           ? data.data[0]
           : typeof data.data === "object"
-          ? data.data
-          : null;
+            ? data.data
+            : null;
         if (inner) {
           if (inner.SL_LOGIN) return String(inner.SL_LOGIN);
           if (inner.sl_login) return String(inner.sl_login);
@@ -931,7 +925,7 @@ const InitialSetupScreen: React.FC = () => {
       const finalLoginToSave = serverConfirmedLogin || cleanLogin;
 
       console.log(
-        `[InitialSetup] Final Login to Save: "${finalLoginToSave}" (Sent: "${cleanLogin}", Server: "${serverConfirmedLogin}")`
+        `[InitialSetup] Final Login to Save: "${finalLoginToSave}" (Sent: "${cleanLogin}", Server: "${serverConfirmedLogin}")`,
       );
 
       await secureSetItem("pin_user", hashedUserPin);

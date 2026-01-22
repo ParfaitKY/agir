@@ -37,7 +37,7 @@ interface User {
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(
-  undefined
+  undefined,
 );
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
@@ -247,7 +247,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       try {
         const hashedDefaultPin = await Crypto.digestStringAsync(
           Crypto.CryptoDigestAlgorithm.SHA256,
-          "12345"
+          "12345",
         );
         await secureSetItem("pin_user", hashedDefaultPin);
       } catch {}
@@ -322,7 +322,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       console.log(
         storedConfig === "true"
           ? "Soft Logout (Pin preserved)"
-          : "Hard Logout (Data wiped)"
+          : "Hard Logout (Data wiped)",
       );
     } catch (error) {
       console.error("Error during logout:", error);
@@ -378,55 +378,48 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       const storedPin = await secureGetItem("pin_user");
       const userData = await secureGetItem("user_data");
 
-      // Si aucun PIN n'est stocké localement (cas de réinstallation ou suppression de données),
-      // on tente une authentification serveur directe (mode restauration).
-      if (!storedPin) {
-        console.log(
-          "No stored PIN found. Attempting server verification for restoration."
-        );
-        // On continue sans vérification locale matchStored
-      }
-
-      // Vérifie storedPin en clair ou déjà haché
+      // Mode hybride : Local vs Online
       let matchStored = false;
+
       if (storedPin) {
+        // --- CAS 1: PIN stocké localement (Mode Offline/Rapide) ---
         const isHash = /^[a-f0-9]{64}$/i.test(storedPin);
         if (isHash) {
           const hashedInput = await Crypto.digestStringAsync(
             Crypto.CryptoDigestAlgorithm.SHA256,
-            pin
+            pin,
           );
           matchStored = storedPin === hashedInput;
         } else {
           const hashedStored = await Crypto.digestStringAsync(
             Crypto.CryptoDigestAlgorithm.SHA256,
-            storedPin
+            storedPin,
           );
           const hashedInput = await Crypto.digestStringAsync(
             Crypto.CryptoDigestAlgorithm.SHA256,
-            pin
+            pin,
           );
           matchStored = hashedStored === hashedInput;
         }
+
+        if (!matchStored) {
+          // Si la vérif locale échoue, on arrête tout de suite (ne pas tenter le serveur pour éviter blocage)
+          throw new Error("Code PIN incorrect");
+        }
       } else {
-        // Mode restauration : on suppose que c'est bon pour laisser le serveur décider
-        matchStored = true;
+        // --- CAS 2: Pas de PIN local (Mode Restauration/Nouvel appareil) ---
+        console.log("No stored PIN found. Proceeding to Online Verification.");
+        matchStored = true; // On autorise la suite pour appeler l'API
       }
 
       if (matchStored) {
         // En mode restauration, on récupère le login stocké.
-        // SI le login est manquant (ex: nettoyage trop agressif), on ne peut pas restaurer.
-        // C'est pourquoi j'ai ajouté la sauvegarde user_login dans InitialSetupScreen lors de l'autoplay.
         const lg = (await secureGetItem("user_login")) || undefined;
 
         if (!lg) {
-          // Si on n'a pas de login, on ne peut pas appeler l'API.
-          // Il faut renvoyer une erreur explicite pour que l'UI réagisse (peut-être rediriger vers InitialSetup ?)
-          console.error(
-            "Mode Restauration impossible : Identifiant utilisateur (user_login) manquant."
-          );
+          console.error("Login manquante pour authentification.");
           throw new Error(
-            "Identifiant manquant. Veuillez réinitialiser l'application."
+            "Identifiant manquant. Veuillez réinitialiser l'application.",
           );
         }
 
@@ -435,20 +428,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         const body: LoginPayload = {
           LG_CODELANGUE: "FR",
           SL_LOGIN: lg,
-          SL_MOTPASSE: pin,
+          SL_MOTPASSE: pin, // Envoi du PIN au serveur
           TYPEOPERATEUR: "01",
           TYPEOPERATION: "01",
           CODECRYPTAGE: "Y}@128eVIXfoi7",
           TERMINALUUID: "",
         };
+
         const result: any = await loginApi(body);
+
         if (result?.error) {
           const err: any = result.error;
           const msg =
             err?.response?.data?.message ||
             err?.message ||
             "Échec de connexion";
-          // Si on était en mode restauration et que ça échoue, c'est que le PIN est vraiment faux
           throw new Error(msg);
         }
 
@@ -456,13 +450,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         if (!storedPin) {
           const hashedNewPin = await Crypto.digestStringAsync(
             Crypto.CryptoDigestAlgorithm.SHA256,
-            pin
+            pin,
           );
           await secureSetItem("pin_user", hashedNewPin);
           await secureSetItem("is_configured", "true");
         }
 
         const data: any = result?.data;
+        // ... (Reste du traitement des données inchangé)
         const token =
           data?.token ||
           data?.jwt ||
@@ -471,6 +466,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           data?.result?.token;
         if (!token) throw new Error("Token absent dans la réponse");
         await secureSetItem("auth_token", String(token));
+
+        // ... Normalisation et sauvegarde ...
         const normalize = (raw: any) => {
           const d = raw?.data ?? raw;
           if (Array.isArray(d)) return d[0] ?? {};
@@ -551,6 +548,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           finalUser = { id: lg, username: lg, name, email } as User;
           await secureSetItem("user_data", JSON.stringify(finalUser));
         }
+
         const phone =
           pick(block, [
             "CL_TELEPHONECLIENT",
@@ -574,10 +572,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           ]) || "";
         if (phone) await secureSetItem("user_phone", String(phone));
         if (address) await secureSetItem("user_address", String(address));
+
         setIsAuthenticated(true);
         if (finalUser) setUser(finalUser);
-      } else {
-        throw new Error("PIN incorrect");
       }
     } finally {
       setIsLoading(false);
