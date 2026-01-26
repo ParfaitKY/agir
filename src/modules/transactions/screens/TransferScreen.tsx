@@ -132,7 +132,7 @@ export const TransferScreen: React.FC = () => {
 
         {/* Formulaire de virement interne (affiché par défaut) */}
         <View style={styles.formSection}>
-          <Text style={styles.formTitle}>
+          <Text style={[styles.formTitle, { textTransform: 'uppercase' }]}>
             {t("transfer.form.internal.title")}
           </Text>
 

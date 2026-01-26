@@ -142,10 +142,11 @@ export default function AddBeneficiaireModal({
                     color: colors.text,
                   },
                 ]}
+                autoCapitalize="characters"
                 placeholder="Ex: 00007950001"
                 placeholderTextColor={colors.text + "80"}
                 value={accountNumber}
-                onChangeText={setAccountNumber}
+                onChangeText={(text) => setAccountNumber(text.toUpperCase())}
               />
             </View>
 
@@ -208,7 +209,7 @@ export default function AddBeneficiaireModal({
                 style={styles.input}
                 placeholder="Ex: jean.dupont@email.com"
                 value={email}
-                onChangeText={setEmail}
+                onChangeText={(text) => setEmail(text.toUpperCase())}
               />
             </View>
           </ScrollView>
@@ -284,6 +285,7 @@ const styles = StyleSheet.create({
     padding: 12,
     borderWidth: 1,
     borderColor: "#e0e0e0",
+    textTransform: "uppercase",
   },
   pickerButton: {
     width: "100%",
