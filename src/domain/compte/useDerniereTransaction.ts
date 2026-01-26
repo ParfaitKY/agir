@@ -36,11 +36,20 @@ export const useDerniereTransaction = () => {
         setError("Code agence invalide");
         return false;
       }
+      const today = new Date();
+      const dd = String(today.getDate()).padStart(2, "0");
+      const mm = String(today.getMonth() + 1).padStart(2, "0");
+      const yyyy = today.getFullYear();
+      const dateFin = `${dd}/${mm}/${yyyy}`;
+
       const result: any = await getDerniereTransaction(
         {
           AG_CODEAGENCE: sanitizedAgency,
           CO_CODECOMPTE: sanitizedAccount,
           CODECRYPTAGE: "Y}@128eVIXfoi7",
+          DateDebut: "01/01/2000",
+          DateFin: dateFin,
+          Nombretransactions: "1"
         },
         headers
       );

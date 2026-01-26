@@ -12,7 +12,7 @@ import { useNavigation } from "@react-navigation/native";
 import { useI18n } from "../../../app/providers/I18nProvider";
 import { useTheme } from "../../../shared/styles/ThemeProvider";
 import { secureGetItem } from "../../../shared/utils/secureStorage";
-import { getDerniereTransaction } from "../../../services/compte/derniereTransaction";
+import { dernieresOperationsClient } from "../../../services/compte/dernieresOperationsClient";
 import { EmptyState } from "../../../shared/components/EmptyState";
 
 export const TransactionsScreen: React.FC = () => {
@@ -46,23 +46,36 @@ export const TransactionsScreen: React.FC = () => {
         const login = await secureGetItem("user_login");
         const agency = (await secureGetItem("user_agency")) || "1000";
         const accountCode = (await secureGetItem("user_account_number")) || "";
+        
         if (!clientId || !token || !accountCode) {
           setError("Identifiants manquants");
           return;
         }
+
+        const today = new Date();
+        const dd = String(today.getDate()).padStart(2, "0");
+        const mm = String(today.getMonth() + 1).padStart(2, "0");
+        const yyyy = today.getFullYear();
+        const dateFin = `${dd}/${mm}/${yyyy}`;
+
         const headers: any = {
           Authorization: `Bearer ${token}`,
           "X-CLIENT-ID": clientId,
           ...(login ? { "X-LOGIN": login } : {}),
         };
-        const result: any = await getDerniereTransaction(
+
+        const result: any = await dernieresOperationsClient(
           {
             AG_CODEAGENCE: String(agency).replace(/\D/g, ""),
             CO_CODECOMPTE: String(accountCode).replace(/\D/g, ""),
             CODECRYPTAGE: "Y}@128eVIXfoi7",
+            DateDebut: "01/01/2000",
+            DateFin: dateFin,
+            Nombretransactions: "50"
           } as any,
           headers
         );
+
         if (result?.error) {
           const err: any = result.error;
           const server = err?.response?.data;
@@ -70,25 +83,35 @@ export const TransactionsScreen: React.FC = () => {
           setError(msg);
           return;
         }
+
         const payload = result?.data;
-        const arr = Array.isArray(payload?.data) ? payload.data : [];
+        // Gestion robuste de la structure de réponse
+        const arr = Array.isArray(payload?.data) 
+             ? payload.data 
+             : Array.isArray(payload?.data?.operations)
+                ? payload.data.operations
+                : Array.isArray(payload?.operations) 
+                    ? payload.operations 
+                    : [];
+
         const normalized = arr.map((r: any, idx: number) => {
           const debit = parseNum(r?.MC_MONTANTDEBIT);
           const credit = parseNum(r?.MC_MONTANTCREDIT);
+          // Si débit > 0, c'est une sortie. Sinon (crédit > 0), c'est une entrée.
           const type = debit > 0 ? "sortie" : "entree";
           const num = debit > 0 ? debit : credit;
+          
           return {
             id: String(r?.MC_NUMSEQUENCE ?? idx),
-            title: String(r?.MC_LIBELLEOPERATION ?? ""),
-            amountText: `${
-              type === "entree" ? "+" : "-"
-            }${num.toLocaleString()} XOF`,
+            title: String(r?.MC_LIBELLEOPERATION ?? "Opération"),
+            amountText: `${type === "entree" ? "+" : "-"}${num.toLocaleString()} XOF`,
             amountNum: num,
             date: String(r?.MC_DATEPIECE ?? r?.MC_DATESAISIE ?? ""),
             type,
             status: t("common.success"),
           };
         });
+        
         setItems(normalized);
       } catch (e: any) {
         setError(e?.message || "Erreur réseau");

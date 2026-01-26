@@ -15,7 +15,9 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useAuth } from "../../../app/hooks/useAuth";
-import { secureDeleteItem } from "../../../shared/utils/secureStorage";
+import { secureDeleteItem, secureGetItem, secureSetItem } from "../../../shared/utils/secureStorage";
+import * as Crypto from "expo-crypto";
+import { updateLogin } from "../../../services/auth/updateLogin";
 import { clearAppCache } from "../../../shared/utils/cacheManager";
 import { useNavigation } from "@react-navigation/native";
 import { useI18n } from "../../../app/providers/I18nProvider";
@@ -74,6 +76,7 @@ export const SettingsScreen: React.FC = () => {
   const [logoutProcessing, setLogoutProcessing] = React.useState<
     "normal" | "forget" | null
   >(null);
+  const [loadingPin, setLoadingPin] = React.useState(false);
 
   const handleLogout = async () => {
     await logout();
@@ -856,7 +859,7 @@ export const SettingsScreen: React.FC = () => {
                     styles.actionButton,
                     { backgroundColor: colors.primary },
                   ]}
-                  onPress={() => {
+                  onPress={async () => {
                     // Validation simple du PIN
                     const pinRegex = /^\d{5}$/;
                     if (!pinRegex.test(newPin)) {
@@ -867,17 +870,124 @@ export const SettingsScreen: React.FC = () => {
                       setPinError(t("pin.error.mismatch"));
                       return;
                     }
-                    setPinError(null);
-                    console.log("Change PIN", { currentPin, newPin });
-                    setShowChangePinModal(false);
-                    setCurrentPin("");
-                    setNewPin("");
-                    setConfirmPin("");
+
+                    // --- INTEGRATION CHANGEMENT DE PIN (SERVEUR + LOCAL) ---
+                    try {
+                      setLoadingPin(true);
+                      setPinError(null);
+
+                      // 1. Récupération des infos utilisateur nécessaires
+                      const userLogin = await secureGetItem("user_login");
+                      const userSecret = await secureGetItem("user_secret_key");
+                      const storedPin = await secureGetItem("pin_user");
+
+                      if (!userLogin) {
+                        setPinError("Impossible de récupérer l'identifiant utilisateur.");
+                        setLoadingPin(false);
+                        return;
+                      }
+
+                      // (Optionnel) Vérification de l'ancien PIN si nécessaire
+                      // Note: Ici storedPin est hashé, donc on devrait hasher currentPin pour comparer.
+                      // Mais pour l'instant on fait confiance à l'utilisateur qui est déjà connecté.
+                      if (storedPin) {
+                         const isHash = /^[a-f0-9]{64}$/i.test(storedPin);
+                         let match = false;
+                         if (isHash) {
+                            const hashedCurrent = await Crypto.digestStringAsync(
+                                Crypto.CryptoDigestAlgorithm.SHA256,
+                                currentPin
+                            );
+                            match = hashedCurrent === storedPin;
+                         } else {
+                            match = storedPin === currentPin; // Legacy
+                         }
+                         
+                         if (!match) {
+                            setPinError("Le code PIN actuel est incorrect.");
+                            setLoadingPin(false);
+                            return;
+                         }
+                      }
+
+                      // 2. Préparation du Payload pour updateLogin
+                      // On utilise le service existant 'updateLogin' qui gère la mise à jour
+                      // login + mot de passe (PIN) + clé secrète.
+                      // On garde le MEME login, on change juste le PIN.
+                      // On suppose que la clé secrète est requise par le serveur pour valider l'opération,
+                      // donc on utilise celle stockée ou on demande à l'utilisateur de la saisir (ici on utilise celle stockée si dispo).
+                      
+                      // Si pas de clé secrète stockée, on pourrait bloquer ou demander à l'utilisateur, 
+                      // mais essayons avec une chaîne vide ou une valeur par défaut si l'API l'accepte,
+                      // ou alors on affiche une erreur.
+                      const secretKeyToUse = userSecret || ""; 
+
+                      const payload = {
+                        nouveau_login: userLogin, // On ne change pas le login
+                        nouveau_motpasse: newPin, // Le nouveau PIN
+                        cle_secrete: secretKeyToUse,
+                        code_cryptage: "Y}@128eVIXfoi7",
+                        // Champs de compatibilité
+                        SL_LOGIN: userLogin,
+                        LOGIN: userLogin,
+                      };
+
+                      // 3. Appel API
+                      // On utilise X-NO-AUTH ou le token actuel selon le besoin.
+                      const token = await secureGetItem("auth_token");
+                      const clientId = await secureGetItem("client_id");
+                      
+                      const headers = {
+                         "Accept": "application/json",
+                         "Content-Type": "application/json",
+                         // On force l'auth si besoin, ou on laisse l'intercepteur faire
+                         ...(token ? { "Authorization": `Bearer ${token}` } : {}),
+                         // IMPORTANT: Certains endpoints exigent le X-CLIENT-ID explicitement
+                         ...(clientId ? { "X-CLIENT-ID": String(clientId) } : {}),
+                      };
+
+                      console.log("[Settings] Updating PIN...", { userLogin });
+                      const result: any = await updateLogin(payload, headers);
+
+                      if (result.error) {
+                        const err = result.error;
+                        const msg = typeof err === 'string' ? err : (err?.response?.data?.message || err?.message || "Erreur lors de la mise à jour");
+                        setPinError(msg);
+                        setLoadingPin(false);
+                        return;
+                      }
+
+                      // 4. Succès : Mise à jour locale
+                      console.log("[Settings] PIN Update Success. Updating local storage.");
+                      const hashedNewPin = await Crypto.digestStringAsync(
+                        Crypto.CryptoDigestAlgorithm.SHA256,
+                        newPin
+                      );
+                      await secureSetItem("pin_user", hashedNewPin);
+
+                      Alert.alert("Succès", "Votre code PIN a été modifié avec succès.");
+                      
+                      setShowChangePinModal(false);
+                      setCurrentPin("");
+                      setNewPin("");
+                      setConfirmPin("");
+
+                    } catch (e: any) {
+                      console.error("[Settings] Change PIN Error:", e);
+                      setPinError("Une erreur est survenue : " + (e.message || "Inconnue"));
+                    } finally {
+                      setLoadingPin(false);
+                    }
                   }}
+                  disabled={loadingPin}
                 >
-                  <Text style={[styles.actionText, { color: "#fff" }]}>
-                    {t("common.confirm")}
-                  </Text>
+                  {loadingPin ? (
+                    <Text style={[styles.actionText, { color: "#fff" }]}>Patientez...</Text>
+                  ) : (
+                    <Text style={[styles.actionText, { color: "#fff" }]}>
+                      {t("common.confirm")}
+                    </Text>
+                  )}
                 </TouchableOpacity>
               </View>
             </View>

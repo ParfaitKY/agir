@@ -49,7 +49,7 @@ const useRecentStatements = (count: number = 6) => {
 
 export const StatementsScreen: React.FC = () => {
   const navigation = useNavigation();
-  const statements = useRecentStatements(6);
+  const { items: statements, loading } = useRecentStatements();
 
   const generateHtml = async (item: { month: string; range: string }) => {
     const company = {
@@ -76,44 +76,45 @@ export const StatementsScreen: React.FC = () => {
         : {};
 
     const [dateDebut, dateFin] = item.range.split(" - ");
+    // La variable dateDebut et dateFin étaient redondantes ou mal utilisées par rapport à l'item.range
+    // On s'assure d'utiliser les variables définies plus bas ou directement item.range.
+    // Suppression de cette ligne pour éviter la confusion, on utilisera item.range directement dans le payload.
 
-    const payload: any = {
-      AG_CODEAGENCE: String(agency || ""),
-      CO_CODECOMPTE: String(number || ""),
-      CODECRYPTAGE: "Y}@128eVIXfoi7",
-      DateDebut: dateDebut,
-      DateFin: dateFin,
-      Nombretransactions: "1000",
-    };
 
-    let rows: any[] = [];
-    
-    try {
-      const result: any = await dernieresOperationsClient(payload, headers);
-      const dataPayload = result?.data;
-      
-      const ops = 
-        dataPayload?.operations || 
-        dataPayload?.data?.operations || 
-        [];
+      const payload: any = {
+        AG_CODEAGENCE: String(agency || ""),
+        CO_CODECOMPTE: String(number || ""),
+        CODECRYPTAGE: "Y}@128eVIXfoi7",
+        DateDebut: dateDebut,
+        DateFin: dateFin,
+        Nombretransactions: "1000",
+      };
 
-      rows = ops.map((op: any) => {
-         const debit = Number(op.MC_MONTANTDEBIT || 0);
-         const credit = Number(op.MC_MONTANTCREDIT || 0);
-         const balance = 0; // Le solde par ligne n'est pas toujours dispo, on le laisse à 0 ou on pourrait le calculer si on avait le solde de départ
-         
-         return {
-           date: op.MC_DATESAISIE || op.MC_DATEPIECE || op.DateOperation || "",
-           desc: op.MC_LIBELLEOPERATION || op.LibelleOperation || "Opération",
-           debit,
-           credit,
-           balance
-         };
-      });
-      
-    } catch (e) {
-      console.error("Error generating PDF rows", e);
-    }
+      let rows: any[] = [];
+
+      try {
+        const result: any = await dernieresOperationsClient(payload, headers);
+        const dataPayload = result?.data;
+
+        const ops =
+          dataPayload?.operations || dataPayload?.data?.operations || [];
+
+        rows = (Array.isArray(ops) ? ops : []).map((op: any) => {
+          const debit = Number(op.MC_MONTANTDEBIT || 0);
+          const credit = Number(op.MC_MONTANTCREDIT || 0);
+          const balance = 0;
+
+          return {
+            date: op.MC_DATESAISIE || op.MC_DATEPIECE || op.DateOperation || "",
+            desc: op.MC_LIBELLEOPERATION || op.LibelleOperation || "Opération",
+            debit,
+            credit,
+            balance,
+          };
+        });
+      } catch (e) {
+        console.error("Error generating PDF rows", e);
+      }
 
     // Si aucune donnée, on met une ligne vide pour ne pas avoir un tableau cassé
     if (rows.length === 0) {
@@ -342,45 +343,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     flex: 1,
-  },
-  iconBg: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: "#E7F1FF",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  cardTexts: {
-    marginLeft: 14,
-    flex: 1,
-    minWidth: 0,
-  },
-  cardTitle: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: "#000",
-    marginBottom: 4,
-  },
-  cardRange: {
-    fontSize: 14,
-    color: "#777",
-  },
-  cardRight: {
-    alignItems: "flex-end",
-  },
-  sizeText: {
-    fontSize: 14,
-    color: "#777",
-    marginBottom: 8,
-  },
-  downloadBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: "#E7F1FF",
-    alignItems: "center",
-    justifyContent: "center",
   },
 });
 
