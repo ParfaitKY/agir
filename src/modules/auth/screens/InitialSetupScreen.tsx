@@ -667,23 +667,28 @@ const InitialSetupScreen: React.FC = () => {
       device_id: dev,
       // Callback appelé si l'OTP est validé avec succès
       onSuccess: async () => {
-        console.log("[InitialSetup] OTP Verified Success. Force Redirect to PinLogin.");
+        console.log(`[InitialSetup] OTP Verified Success. isAutoplay=${isAutoplay}`);
         
-        // REGLE UTILISATEUR ABSOLUE:
-        // Quoi qu'il arrive (PIN local ou non, configuré ou non),
-        // c'est le serveur qui gère l'authentification.
-        // On redirige donc SYSTÉMATIQUEMENT vers le PinLoginScreen.
-        
-        // On marque quand même comme configuré pour que le Guard laisse passer vers PinLogin
-        await secureSetItem("is_configured", "true");
-        
-        // Si on a un login, on le sauvegarde pour faciliter la connexion
-        if (loginCandidate) {
-             await secureSetItem("user_login", loginCandidate);
+        if (isAutoplay) {
+             // CAS 1: Autoplay = TRUE
+             // "Le système précharge automatiquement l’OTP... L’utilisateur est ensuite redirigé vers la configuration de ses accès."
+             console.log("[InitialSetup] Autoplay TRUE -> Proceeding to Step 2 (Create/Config Access)");
+             setStep(2);
+        } else {
+             // CAS 2: Autoplay = FALSE
+             // "L’utilisateur doit saisir manuellement l’OTP. Une fois validé, il est redirigé directement vers l’écran PIN Login."
+             console.log("[InitialSetup] Autoplay FALSE -> Redirecting to PinLogin (Access already defined)");
+             
+             // On s'assure que la config est marquée comme faite
+             await secureSetItem("is_configured", "true");
+             
+             // Si on a un login, on le sauvegarde pour faciliter la connexion
+             if (loginCandidate) {
+                  await secureSetItem("user_login", loginCandidate);
+             }
+             
+             navigation.replace("PinLogin");
         }
-
-        console.log("[InitialSetup] Redirecting to PinLogin (Server Auth Strategy)");
-        navigation.replace("PinLogin");
       },
     });
   };
