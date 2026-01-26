@@ -83,9 +83,16 @@ const OtpVerifyScreen: React.FC = () => {
   useEffect(() => {
     const runSilent = async () => {
       if (!numeroCompte || !deviceId) return;
+
+      const isAutoplay = (route as any)?.params?.isAutoplay;
+      console.log(`[OtpVerify] Starting check. isAutoplay=${isAutoplay}`);
+
       setLoadingSilent(true);
       setSilentOk(false);
-      setRequiresManual(false);
+      // Si Autoplay est faux, on force le mode manuel dès le départ
+      // Mais on lance quand même la requête pour générer l'OTP (et l'envoyer par mail)
+      setRequiresManual(isAutoplay === false);
+
       try {
         const { data, error } = await silentOtp(
           {
@@ -96,30 +103,61 @@ const OtpVerifyScreen: React.FC = () => {
           { "X-NO-AUTH": "true" }
         );
         if (error) {
+          console.log("[OtpVerify] silentOtp error:", error);
           setSilentOk(false);
+           // En cas d'erreur, on fallback sur manuel
+          setRequiresManual(true);
           return;
         }
-        const manual =
-          (data as any)?.requires_manual_input === true ||
-          (data as any)?.auto_fill === false;
-        setRequiresManual(Boolean(manual));
+
+        // Log requested by user
+        console.log("[OtpVerify] silentOtp response:", JSON.stringify(data, null, 2));
+
         const otp =
           (data as any)?.otp_code ||
           (data as any)?.otp ||
           (data as any)?.token ||
           (data as any)?.code ||
           "";
-        if (typeof otp === "string" && otp.length >= DIGITS) {
+        
+        console.log("[OtpVerify] OTP FOUND IN LOGS:", otp);
+
+        // Si on est en mode "PAS Autoplay" (Manuel), on ignore le remplissage auto
+        // Sauf pour les logs qu'on vient de faire.
+        if (isAutoplay === false) {
+          setRequiresManual(true);
+          setSilentOk(false); // On ne montre pas "Détecté"
+          return; 
+        }
+
+        // Comportement normal (Autoplay = true ou undefined)
+        const manual =
+          (data as any)?.requires_manual_input === true ||
+          (data as any)?.auto_fill === false;
+        
+        if (manual) {
+           setRequiresManual(true);
+           setSilentOk(false);
+        } else if (typeof otp === "string" && otp.length >= DIGITS) {
           const first6 = otp.slice(0, DIGITS);
           const arr = first6.split("");
           setValues(arr);
           setActive(DIGITS - 1);
           setSilentOk(true);
+          setRequiresManual(false);
+          
+          // Auto-submit après un court délai pour UX
+          setTimeout(() => {
+             verifyOtp();
+          }, 500);
         } else {
           setSilentOk(false);
+          setRequiresManual(true);
         }
-      } catch {
+      } catch (e) {
+        console.log("[OtpVerify] Exception:", e);
         setSilentOk(false);
+        setRequiresManual(true);
       } finally {
         setLoadingSilent(false);
       }

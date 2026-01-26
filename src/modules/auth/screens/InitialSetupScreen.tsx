@@ -640,7 +640,6 @@ const InitialSetupScreen: React.FC = () => {
     if (isAutoplay) {
       // REGLE UTILISATEUR: Autoplay = TRUE -> "Précharger, Définir ses accès"
       // C'est une session de configuration assistée (Autoplay).
-
       try {
         // Sauvegarde du Login pour pré-remplissage (Precharger)
         if (loginCandidate) {
@@ -651,26 +650,42 @@ const InitialSetupScreen: React.FC = () => {
           await secureSetItem("user_login", loginCandidate);
           await new Promise((r) => setTimeout(r, 100));
         }
-
-        console.log(
-          "[InitialSetup] Autoplay TRUE -> Proceeding to Step 2 (Define Access)",
-        );
-        proceedToStep2();
       } catch (e) {
         console.error("Autoplay setup error", e);
-        proceedToStep2();
       }
-    } else {
-      // REGLE UTILISATEUR: Autoplay = FALSE -> "Redirigé sur le PinLoginScreen"
-      // L'utilisateur indique que autoplay: false signifie qu'on doit aller au login.
-      console.log("[InitialSetup] Autoplay FALSE -> Redirecting to PinLogin");
-
-      // On s'assure que la config est marquée comme faite pour permettre l'accès au PinLogin
-      secureSetItem("is_configured", "true").then(() => {
-        if (markConfigured) markConfigured(true);
-        navigation.replace("PinLogin");
-      });
     }
+
+    // NOUVELLE LOGIQUE: On redirige TOUJOURS vers l'écran OTP après vérification du token.
+    // C'est l'écran OTP qui gérera le comportement (Automatique ou Manuel) selon le flag isAutoplay.
+    console.log(
+      `[InitialSetup] Token Verified. Navigating to OtpVerify. isAutoplay=${isAutoplay}`,
+    );
+
+    navigation.navigate("OtpVerify", {
+      isAutoplay: isAutoplay,
+      numero_compte: realAccountNumber || authToken,
+      device_id: dev,
+      // Callback appelé si l'OTP est validé avec succès
+      onSuccess: async () => {
+        console.log("[InitialSetup] OTP Verified Success. Force Redirect to PinLogin.");
+        
+        // REGLE UTILISATEUR ABSOLUE:
+        // Quoi qu'il arrive (PIN local ou non, configuré ou non),
+        // c'est le serveur qui gère l'authentification.
+        // On redirige donc SYSTÉMATIQUEMENT vers le PinLoginScreen.
+        
+        // On marque quand même comme configuré pour que le Guard laisse passer vers PinLogin
+        await secureSetItem("is_configured", "true");
+        
+        // Si on a un login, on le sauvegarde pour faciliter la connexion
+        if (loginCandidate) {
+             await secureSetItem("user_login", loginCandidate);
+        }
+
+        console.log("[InitialSetup] Redirecting to PinLogin (Server Auth Strategy)");
+        navigation.replace("PinLogin");
+      },
+    });
   };
 
   useEffect(() => {
