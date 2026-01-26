@@ -148,7 +148,11 @@ const OtpVerifyScreen: React.FC = () => {
           
           // Auto-submit après un court délai pour UX
           setTimeout(() => {
-             verifyOtp();
+             // FIX: On passe explicitement le code trouvé pour éviter que verifyOtp utilise un state vide
+             // à cause de la closure (si verifyOtp est capturé avec des valeurs vides).
+             // Et on s'assure que c'est une string
+             const codeToUse = typeof otp === 'string' ? otp.slice(0, DIGITS) : String(otp).slice(0, DIGITS);
+             verifyOtp(codeToUse);
           }, 500);
         } else {
           setSilentOk(false);
@@ -195,14 +199,37 @@ const OtpVerifyScreen: React.FC = () => {
   const code = values.join("");
   const canSubmit = code.length === DIGITS;
 
-  const verifyOtp = async () => {
+  const verifyOtp = async (codeOverride?: string) => {
     setVerifyError("");
+    
+    // Utiliser l'override s'il est fourni (cas de l'auto-submit), sinon le state
+    // IMPORTANT: On vérifie si codeOverride est une string valide, sinon on utilise values
+    let codeToVerify = "";
+    if (typeof codeOverride === 'string' && codeOverride.length === DIGITS) {
+        codeToVerify = codeOverride;
+    } else {
+        codeToVerify = values.join("");
+    }
+    
+    // Si on n'a toujours pas de code valide, on ne soumet pas
+    if (codeToVerify.length !== DIGITS) {
+        // Mais si c'est un appel manuel (clic bouton), on laisse passer pour que le serveur renvoie l'erreur
+        // Sauf si c'est un auto-submit vide
+        if (!codeOverride) {
+             // Clic bouton : on laisse faire
+        } else {
+             // Auto-submit raté : on stop
+             return;
+        }
+    }
+    
     try {
+      console.log(`[OtpVerify] Verifying OTP: ${codeToVerify}`);
       const { data, error } = await verifyOtpService(
         {
           numero_compte: numeroCompte,
           device_id: deviceId,
-          otp_code: code,
+          otp_code: codeToVerify,
           code_cryptage: ENCRYPT_CODE,
         },
         { "X-NO-AUTH": "true" }

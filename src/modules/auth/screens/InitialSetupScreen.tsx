@@ -545,20 +545,42 @@ const InitialSetupScreen: React.FC = () => {
       return undefined;
     };
 
-    const foundAutoplay = findAutoplayDeep(info);
+    // LOGIQUE STRICTE SERVEUR :
+    // On récupère uniquement la valeur envoyée par le serveur dans token_info.
+    // Aucune déduction, aucune recherche récursive, aucun fallback local.
+    const rawAutoplay = info.token_info?.autoplay;
 
-    // Check autoplay or token_info
-    // MODIFICATION: On respecte STRICTEMENT la décision du serveur.
-    // Seul le champ 'autoplay' renvoyé par l'API fait foi.
-    // On n'essaie plus de le déduire d'autres champs comme OTP_REQUIRED.
-    const rawAutoplay = foundAutoplay ?? info.token_info?.autoplay;
-
-    // On normalise la valeur reçue (true, "true", 1, "1")
-    const isAutoplay =
+    // Conversion simple pour gérer les formats JSON (booléen ou string "true")
+    let isAutoplay =
       rawAutoplay === true ||
-      rawAutoplay === "true" ||
-      rawAutoplay === 1 ||
-      String(rawAutoplay).toLowerCase() === "true";
+      String(rawAutoplay).toLowerCase() === "true" ||
+      rawAutoplay === 1;
+
+    // GUARD: Gestion de l'état "Déjà Consommé" pour l'Autoplay.
+    // Si le serveur renvoie autoplay=true pour un token qu'on a DÉJÀ traité en autoplay,
+    // on doit forcer false pour éviter une boucle infinie si l'utilisateur revient en arrière.
+    const lastAutoplayToken = await secureGetItem("last_autoplay_token_consumed");
+    
+    if (isAutoplay && lastAutoplayToken === authToken) {
+         console.log(`[InitialSetup] Token ${authToken} already consumed for Autoplay. Forcing FALSE.`);
+         isAutoplay = false;
+    } else if (isAutoplay) {
+         // Si c'est un nouveau token en autoplay, on le marque comme consommé
+         await secureSetItem("last_autoplay_token_consumed", authToken);
+    }
+
+    // GUARD: Si l'utilisateur est déjà configuré localement, on FORCE autoplay à FALSE.
+    // Cela empêche le pré-remplissage automatique (silentOtp) et la redirection vers Step 2
+    // même si le serveur dit "autoplay: true".
+    const localConf = await secureGetItem("is_configured");
+    const localPin = await secureGetItem("pin_user");
+    
+    if (localConf === "true" && localPin) {
+       console.log("[InitialSetup] Local config detected -> FORCING Autoplay=FALSE to prevent silent OTP loop");
+       isAutoplay = false;
+    }
+
+    console.log(`[InitialSetup] Autoplay Decision Final: ${isAutoplay} (Server: ${rawAutoplay}, LocalOverride: ${localConf === "true"})`);
 
     const dev = await secureGetItem("device_id");
     const accStored = await secureGetItem("user_account_number");
@@ -669,6 +691,19 @@ const InitialSetupScreen: React.FC = () => {
       onSuccess: async () => {
         console.log(`[InitialSetup] OTP Verified Success. isAutoplay=${isAutoplay}`);
         
+        // CORRECTION BUG UTILISATEUR:
+        // Si l'utilisateur a déjà configuré son compte (PIN stocké localement),
+        // on ignore le flag isAutoplay (qui pourrait être TRUE à tort selon le serveur)
+        // et on le redirige directement vers le Login pour éviter une boucle de configuration.
+        const isConfigured = await secureGetItem("is_configured");
+        const storedPin = await secureGetItem("pin_user");
+        
+        if (isConfigured === "true" && storedPin) {
+             console.log("[InitialSetup] Already Configured -> Force Redirect to PinLogin (Override Autoplay)");
+             navigation.replace("PinLogin");
+             return;
+        }
+
         if (isAutoplay) {
              // CAS 1: Autoplay = TRUE
              // "Le système précharge automatiquement l’OTP... L’utilisateur est ensuite redirigé vers la configuration de ses accès."
