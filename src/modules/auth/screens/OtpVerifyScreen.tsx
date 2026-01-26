@@ -225,7 +225,9 @@ const OtpVerifyScreen: React.FC = () => {
           {loadingSilent
             ? "Patientez, détection du code…"
             : silentOk
-            ? "Code reçu automatiquement.\nVous pouvez valider."
+            ? "Code détecté automatiquement.\nVous pouvez valider."
+            : requiresManual
+            ? "Un code a été envoyé par e-mail.\nVeuillez le saisir manuellement."
             : "Saisissez le code reçu."}
         </Text>
 
