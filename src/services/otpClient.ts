@@ -1,7 +1,8 @@
 import axios, { AxiosInstance, AxiosResponse } from "axios";
 import { emit } from "../shared/utils/eventBus";
+import { BASE_URL } from "./endpoints";
 
-export const OTP_BASE_URL = "https://zenithmobilereact-serveur-peyrie-test.app.mgdigitalplus.com/api";
+export const OTP_BASE_URL = BASE_URL;
 
 export const httpClientOtp: AxiosInstance = axios.create({
   baseURL: OTP_BASE_URL,
