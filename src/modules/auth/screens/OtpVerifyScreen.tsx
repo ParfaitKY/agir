@@ -100,18 +100,21 @@ const OtpVerifyScreen: React.FC = () => {
             device_id: deviceId,
             code_cryptage: ENCRYPT_CODE,
           },
-          { "X-NO-AUTH": "true" }
+          { "X-NO-AUTH": "true" },
         );
         if (error) {
           console.log("[OtpVerify] silentOtp error:", error);
           setSilentOk(false);
-           // En cas d'erreur, on fallback sur manuel
+          // En cas d'erreur, on fallback sur manuel
           setRequiresManual(true);
           return;
         }
 
         // Log requested by user
-        console.log("[OtpVerify] silentOtp response:", JSON.stringify(data, null, 2));
+        console.log(
+          "[OtpVerify] silentOtp response:",
+          JSON.stringify(data, null, 2),
+        );
 
         const otp =
           (data as any)?.otp_code ||
@@ -119,7 +122,7 @@ const OtpVerifyScreen: React.FC = () => {
           (data as any)?.token ||
           (data as any)?.code ||
           "";
-        
+
         console.log("[OtpVerify] OTP FOUND IN LOGS:", otp);
 
         // Si on est en mode "PAS Autoplay" (Manuel), on ignore le remplissage auto
@@ -127,17 +130,17 @@ const OtpVerifyScreen: React.FC = () => {
         if (isAutoplay === false) {
           setRequiresManual(true);
           setSilentOk(false); // On ne montre pas "Détecté"
-          return; 
+          return;
         }
 
         // Comportement normal (Autoplay = true ou undefined)
         const manual =
           (data as any)?.requires_manual_input === true ||
           (data as any)?.auto_fill === false;
-        
+
         if (manual) {
-           setRequiresManual(true);
-           setSilentOk(false);
+          setRequiresManual(true);
+          setSilentOk(false);
         } else if (typeof otp === "string" && otp.length >= DIGITS) {
           const first6 = otp.slice(0, DIGITS);
           const arr = first6.split("");
@@ -145,14 +148,17 @@ const OtpVerifyScreen: React.FC = () => {
           setActive(DIGITS - 1);
           setSilentOk(true);
           setRequiresManual(false);
-          
+
           // Auto-submit après un court délai pour UX
           setTimeout(() => {
-             // FIX: On passe explicitement le code trouvé pour éviter que verifyOtp utilise un state vide
-             // à cause de la closure (si verifyOtp est capturé avec des valeurs vides).
-             // Et on s'assure que c'est une string
-             const codeToUse = typeof otp === 'string' ? otp.slice(0, DIGITS) : String(otp).slice(0, DIGITS);
-             verifyOtp(codeToUse);
+            // FIX: On passe explicitement le code trouvé pour éviter que verifyOtp utilise un state vide
+            // à cause de la closure (si verifyOtp est capturé avec des valeurs vides).
+            // Et on s'assure que c'est une string
+            const codeToUse =
+              typeof otp === "string"
+                ? otp.slice(0, DIGITS)
+                : String(otp).slice(0, DIGITS);
+            verifyOtp(codeToUse);
           }, 500);
         } else {
           setSilentOk(false);
@@ -201,28 +207,28 @@ const OtpVerifyScreen: React.FC = () => {
 
   const verifyOtp = async (codeOverride?: string) => {
     setVerifyError("");
-    
+
     // Utiliser l'override s'il est fourni (cas de l'auto-submit), sinon le state
     // IMPORTANT: On vérifie si codeOverride est une string valide, sinon on utilise values
     let codeToVerify = "";
-    if (typeof codeOverride === 'string' && codeOverride.length === DIGITS) {
-        codeToVerify = codeOverride;
+    if (typeof codeOverride === "string" && codeOverride.length === DIGITS) {
+      codeToVerify = codeOverride;
     } else {
-        codeToVerify = values.join("");
+      codeToVerify = values.join("");
     }
-    
+
     // Si on n'a toujours pas de code valide, on ne soumet pas
     if (codeToVerify.length !== DIGITS) {
-        // Mais si c'est un appel manuel (clic bouton), on laisse passer pour que le serveur renvoie l'erreur
-        // Sauf si c'est un auto-submit vide
-        if (!codeOverride) {
-             // Clic bouton : on laisse faire
-        } else {
-             // Auto-submit raté : on stop
-             return;
-        }
+      // Mais si c'est un appel manuel (clic bouton), on laisse passer pour que le serveur renvoie l'erreur
+      // Sauf si c'est un auto-submit vide
+      if (!codeOverride) {
+        // Clic bouton : on laisse faire
+      } else {
+        // Auto-submit raté : on stop
+        return;
+      }
     }
-    
+
     try {
       console.log(`[OtpVerify] Verifying OTP: ${codeToVerify}`);
       const { data, error } = await verifyOtpService(
@@ -232,7 +238,7 @@ const OtpVerifyScreen: React.FC = () => {
           otp_code: codeToVerify,
           code_cryptage: ENCRYPT_CODE,
         },
-        { "X-NO-AUTH": "true" }
+        { "X-NO-AUTH": "true" },
       );
       if (error) {
         const errMsg =
@@ -290,10 +296,10 @@ const OtpVerifyScreen: React.FC = () => {
           {loadingSilent
             ? "Patientez, détection du code…"
             : silentOk
-            ? "Code détecté automatiquement.\nVous pouvez valider."
-            : requiresManual
-            ? "Un code a été envoyé par e-mail.\nVeuillez le saisir manuellement."
-            : "Saisissez le code reçu."}
+              ? "Code détecté automatiquement.\nVous pouvez valider."
+              : requiresManual
+                ? "Un code a été envoyé par e-mail.\nVeuillez le saisir manuellement."
+                : "Saisissez le code reçu."}
         </Text>
 
         <Text style={[styles.fieldLabel, { color: themeColors.text }]}>
@@ -332,8 +338,8 @@ const OtpVerifyScreen: React.FC = () => {
                   (silentOk
                     ? themeColors.success
                     : requiresManual
-                    ? themeColors.warning || "#EAB308"
-                    : themeColors.primary) + "18",
+                      ? themeColors.warning || "#EAB308"
+                      : themeColors.primary) + "18",
               },
             ]}
           >
@@ -345,16 +351,16 @@ const OtpVerifyScreen: React.FC = () => {
                   silentOk
                     ? "checkmark-done"
                     : requiresManual
-                    ? "alert"
-                    : "time"
+                      ? "alert"
+                      : "time"
                 }
                 size={16}
                 color={
                   silentOk
                     ? themeColors.success
                     : requiresManual
-                    ? themeColors.warning || "#EAB308"
-                    : themeColors.primary
+                      ? themeColors.warning || "#EAB308"
+                      : themeColors.primary
                 }
               />
             )}
@@ -365,18 +371,18 @@ const OtpVerifyScreen: React.FC = () => {
                   color: silentOk
                     ? themeColors.success
                     : requiresManual
-                    ? themeColors.warning || "#EAB308"
-                    : themeColors.primary,
+                      ? themeColors.warning || "#EAB308"
+                      : themeColors.primary,
                 },
               ]}
             >
               {loadingSilent
                 ? "Détection…"
                 : silentOk
-                ? "Détecté"
-                : requiresManual
-                ? "Saisie manuelle"
-                : "En attente"}
+                  ? "Détecté"
+                  : requiresManual
+                    ? "Saisie manuelle"
+                    : "En attente"}
             </Text>
           </View>
         </View>
@@ -451,7 +457,7 @@ const OtpVerifyScreen: React.FC = () => {
               },
             ]}
             disabled={!canSubmit}
-            onPress={verifyOtp}
+            onPress={() => verifyOtp()}
           >
             <View style={styles.submitInnerRow}>
               <Text style={[styles.submitText, { color: "#fff" }]}>

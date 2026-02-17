@@ -28,6 +28,8 @@ const useRecentStatements = (count: number = 6) => {
   const [items, setItems] = React.useState<
     Array<{ month: string; range: string; size: string }>
   >([]);
+  const [loading, setLoading] = React.useState(true);
+
   React.useEffect(() => {
     const list: Array<{ month: string; range: string; size: string }> = [];
     for (let i = 0; i < count; i++) {
@@ -43,8 +45,9 @@ const useRecentStatements = (count: number = 6) => {
       list.push({ month: monthLabel, range, size: "—" });
     }
     setItems(list);
+    setLoading(false);
   }, [count]);
-  return items;
+  return { items, loading };
 };
 
 export const StatementsScreen: React.FC = () => {
@@ -80,41 +83,40 @@ export const StatementsScreen: React.FC = () => {
     // On s'assure d'utiliser les variables définies plus bas ou directement item.range.
     // Suppression de cette ligne pour éviter la confusion, on utilisera item.range directement dans le payload.
 
+    const payload: any = {
+      AG_CODEAGENCE: String(agency || ""),
+      CO_CODECOMPTE: String(number || ""),
+      CODECRYPTAGE: "Y}@128eVIXfoi7",
+      DateDebut: dateDebut,
+      DateFin: dateFin,
+      Nombretransactions: "1000",
+    };
 
-      const payload: any = {
-        AG_CODEAGENCE: String(agency || ""),
-        CO_CODECOMPTE: String(number || ""),
-        CODECRYPTAGE: "Y}@128eVIXfoi7",
-        DateDebut: dateDebut,
-        DateFin: dateFin,
-        Nombretransactions: "1000",
-      };
+    let rows: any[] = [];
 
-      let rows: any[] = [];
+    try {
+      const result: any = await dernieresOperationsClient(payload, headers);
+      const dataPayload = result?.data;
 
-      try {
-        const result: any = await dernieresOperationsClient(payload, headers);
-        const dataPayload = result?.data;
+      const ops =
+        dataPayload?.operations || dataPayload?.data?.operations || [];
 
-        const ops =
-          dataPayload?.operations || dataPayload?.data?.operations || [];
+      rows = (Array.isArray(ops) ? ops : []).map((op: any) => {
+        const debit = Number(op.MC_MONTANTDEBIT || 0);
+        const credit = Number(op.MC_MONTANTCREDIT || 0);
+        const balance = 0;
 
-        rows = (Array.isArray(ops) ? ops : []).map((op: any) => {
-          const debit = Number(op.MC_MONTANTDEBIT || 0);
-          const credit = Number(op.MC_MONTANTCREDIT || 0);
-          const balance = 0;
-
-          return {
-            date: op.MC_DATESAISIE || op.MC_DATEPIECE || op.DateOperation || "",
-            desc: op.MC_LIBELLEOPERATION || op.LibelleOperation || "Opération",
-            debit,
-            credit,
-            balance,
-          };
-        });
-      } catch (e) {
-        console.error("Error generating PDF rows", e);
-      }
+        return {
+          date: op.MC_DATESAISIE || op.MC_DATEPIECE || op.DateOperation || "",
+          desc: op.MC_LIBELLEOPERATION || op.LibelleOperation || "Opération",
+          debit,
+          credit,
+          balance,
+        };
+      });
+    } catch (e) {
+      console.error("Error generating PDF rows", e);
+    }
 
     // Si aucune donnée, on met une ligne vide pour ne pas avoir un tableau cassé
     if (rows.length === 0) {
@@ -123,7 +125,7 @@ export const StatementsScreen: React.FC = () => {
         desc: "Aucune opération sur cette période",
         debit: 0,
         credit: 0,
-        balance: 0
+        balance: 0,
       });
     }
 
@@ -200,7 +202,7 @@ export const StatementsScreen: React.FC = () => {
                 }</td>
                 <td>${currency(r.balance)}</td>
               </tr>
-            `
+            `,
               )
               .join("")}
             <tr><td colspan="5" class="section-title">Solde de clôture</td></tr>
@@ -208,13 +210,13 @@ export const StatementsScreen: React.FC = () => {
         </table>
         <div class="totals">
           <div>Total des crédits: <span class="credit">+${currency(
-            totalCredit
+            totalCredit,
           )}</span></div>
           <div>Total des débits: <span class="debit">-${currency(
-            totalDebit
+            totalDebit,
           )}</span></div>
           <div>Variation: <span class="variation">${currency(
-            variation
+            variation,
           )}</span></div>
         </div>
         <div class="footer">
@@ -343,6 +345,46 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     flex: 1,
+  },
+  iconBg: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    backgroundColor: "#F0F7FF",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 12,
+  },
+  cardTexts: {
+    flex: 1,
+    justifyContent: "center",
+  },
+  cardTitle: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: "#000",
+    marginBottom: 4,
+  },
+  cardRange: {
+    fontSize: 12,
+    color: "#888",
+  },
+  cardRight: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  sizeText: {
+    fontSize: 12,
+    color: "#888",
+    marginRight: 12,
+  },
+  downloadBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: "#F8F8F8",
+    alignItems: "center",
+    justifyContent: "center",
   },
 });
 
