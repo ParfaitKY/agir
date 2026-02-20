@@ -38,7 +38,7 @@ export const AccountsScreen: React.FC = () => {
 
   const parseAmount = (s: string) => Number(s.replace(/\s/g, ""));
 
-  const accounts = (compteStats?.COMPTES ?? []).map((c, idx) => {
+  const rawAccounts = (compteStats?.COMPTES ?? []).map((c, idx) => {
     const type = String(c.CO_INTITULECOMPTE ?? "").toUpperCase();
     const productLabel = String(c.PD_LIBELLE ?? "").toUpperCase();
     const color = type.includes("EPARGNE") ? colors.success : colors.primary;
@@ -58,6 +58,11 @@ export const AccountsScreen: React.FC = () => {
       // progress will be calculated after portfolioTotal
     } as any;
   });
+
+  // Déduplication des comptes basée sur le numéro de compte
+  const accounts = Array.from(
+    new Map(rawAccounts.map((item) => [item.number, item])).values()
+  );
 
   // Calculate portfolio total dynamically from accounts to ensure consistency
   // Soustraire le montant bloqué du solde total
