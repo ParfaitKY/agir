@@ -18,6 +18,7 @@ import {
   secureSetItem,
 } from "../../../shared/utils/secureStorage";
 import * as Crypto from "expo-crypto";
+import { updateLogin } from "../../../services/auth/updateLogin";
 
 const PasswordRecoveryScreen: React.FC = () => {
   const navigation = useNavigation() as any;
@@ -105,16 +106,47 @@ const PasswordRecoveryScreen: React.FC = () => {
     }
     setPinLoading(true);
     try {
+      // 1. Appel API pour mise à jour sur le serveur
+      const storedLogin = await secureGetItem("user_login");
+
+      if (!storedLogin) {
+        throw new Error(
+          "Login introuvable. Veuillez réinstaller l'application.",
+        );
+      }
+
+      const payload = {
+        nouveau_login: storedLogin,
+        nouveau_motpasse: newPin,
+        cle_secrete: secretKey,
+        code_cryptage: "Y}@128eVIXfoi7",
+      };
+
+      const result: any = await updateLogin(payload, { "X-NO-AUTH": "true" });
+
+      if (result?.error) {
+        const err = result.error;
+        const msg =
+          err?.response?.data?.message ||
+          err?.message ||
+          "Échec de la mise à jour du mot de passe.";
+        throw new Error(msg);
+      }
+
+      // 2. Mise à jour locale seulement si succès API
       const hashed = await Crypto.digestStringAsync(
         Crypto.CryptoDigestAlgorithm.SHA256,
-        newPin
+        newPin,
       );
       await secureSetItem("pin_user", hashed);
       setSuccess("Code PIN réinitialisé avec succès.");
-      if (navigation?.replace) navigation.replace("PinLogin");
-      else if (navigation?.navigate) navigation.navigate("PinLogin");
-    } catch (e) {
-      setPinError("Échec de la réinitialisation.");
+
+      setTimeout(() => {
+        if (navigation?.replace) navigation.replace("PinLogin");
+        else if (navigation?.navigate) navigation.navigate("PinLogin");
+      }, 1000);
+    } catch (e: any) {
+      setPinError(e.message || "Échec de la réinitialisation.");
     } finally {
       setPinLoading(false);
     }
