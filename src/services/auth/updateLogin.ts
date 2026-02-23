@@ -5,7 +5,7 @@ export type UpdateLoginPayload = {
   nouveau_login: string;
   nouveau_motpasse: string;
   cle_secrete: string;
-  code_cryptage: string;
+  code_cryptage?: string;
   [key: string]: any; // Permettre des champs additionnels
 };
 
