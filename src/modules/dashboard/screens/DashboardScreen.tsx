@@ -116,10 +116,10 @@ export const DashboardScreen: React.FC = () => {
     return h >= 5 && h < 12
       ? "Bonjour"
       : h >= 12 && h < 18
-      ? "Bon après-midi"
-      : h >= 18 && h < 23
-      ? "Bonsoir"
-      : "Bonne nuit";
+        ? "Bon après-midi"
+        : h >= 18 && h < 23
+          ? "Bonsoir"
+          : "Bonne nuit";
   })();
   const hexToRgb = (hex: string) => {
     const h = hex.replace("#", "");
@@ -144,29 +144,30 @@ export const DashboardScreen: React.FC = () => {
   const headerTextColor =
     getBrightness(colors.background) < 128 ? "#FFFFFFCC" : colors.background;
   const helloFontSize = Math.round(
-    Math.max(20, Math.min(26, Dimensions.get("window").width * 0.06))
+    Math.max(20, Math.min(26, Dimensions.get("window").width * 0.06)),
   );
   const timeFontSize = Math.round(
-    Math.max(12, Math.min(14, Dimensions.get("window").width * 0.04))
+    Math.max(12, Math.min(14, Dimensions.get("window").width * 0.04)),
   );
   const nombreComptes = Number(
     (compteStats?.NOMBRE_COMPTES ??
       (Array.isArray(compteStats?.COMPTES)
         ? compteStats?.COMPTES?.length
         : 0)) ||
-      0
+      0,
   );
-  
+
   // Calculer le solde total réel en additionnant les soldes des comptes
   // car SOLDE_GLOBAL envoyé par le serveur peut être incohérent (ex: 1000000 vs 1492500)
   // On soustrait également le montant bloqué si demandé
   const realTotalBalance = (compteStats?.COMPTES || []).reduce(
     (sum, account) =>
       sum + (Number(account.SOLDE) || 0) - (Number(account.MONTANTBLOQUE) || 0),
-    0
+    0,
   );
 
-  const soldeGlobalFromStats = realTotalBalance > 0 ? realTotalBalance : compteStats?.SOLDE_GLOBAL;
+  const soldeGlobalFromStats =
+    realTotalBalance > 0 ? realTotalBalance : compteStats?.SOLDE_GLOBAL;
 
   // Fonction pour gérer les restrictions en mode invité
   const handleGuestRestriction = (featureName: string) => {
@@ -181,7 +182,7 @@ export const DashboardScreen: React.FC = () => {
             text: "Se connecter",
             onPress: () => navigation.navigate("Login" as never),
           },
-        ]
+        ],
       );
       return true;
     }
@@ -407,8 +408,8 @@ export const DashboardScreen: React.FC = () => {
             {isGuestMode
               ? t("dashboard.status.guest")
               : isAuthenticated
-              ? t("dashboard.status.connected")
-              : t("dashboard.status.disconnected")}
+                ? t("dashboard.status.connected")
+                : t("dashboard.status.disconnected")}
           </Text>
         </View>
         <View style={styles.headerIcons}>
@@ -716,16 +717,16 @@ export const DashboardScreen: React.FC = () => {
                 {isBalanceHidden
                   ? "••••••••"
                   : loadingCompteStats
-                  ? t("dashboard.loading")
-                  : soldeError
-                  ? "–"
-                  : `${fmt(
-                      soldeGlobalFromStats ??
-                        solde?.solde ??
-                        solde?.balance ??
-                        solde?.montant ??
-                        0
-                    )} XOF`}
+                    ? t("dashboard.loading")
+                    : soldeError
+                      ? "–"
+                      : `${fmt(
+                          soldeGlobalFromStats ??
+                            solde?.solde ??
+                            solde?.balance ??
+                            solde?.montant ??
+                            0,
+                        )} XOF`}
               </Text>
               <View style={styles.subInfo}>
                 <Text
@@ -733,7 +734,7 @@ export const DashboardScreen: React.FC = () => {
                 >{`💼 ${nombreComptes} ${t(
                   nombreComptes > 1
                     ? "dashboard.balance.activeAccountsLabel"
-                    : "dashboard.balance.activeAccountLabel"
+                    : "dashboard.balance.activeAccountLabel",
                 )}`}</Text>
                 <View style={{ flexDirection: "row", alignItems: "center" }}>
                   <TouchableOpacity
@@ -883,41 +884,44 @@ export const DashboardScreen: React.FC = () => {
               </Text>
             </TouchableOpacity>
             {!isGuestMode && (
-            <TouchableOpacity
-              style={[
-                styles.quickActionCard,
-                { backgroundColor: colors.card, borderColor: colors.border },
-              ]}
-              onPress={() => {
-                if (handleGuestRestriction("les bénéficiaires")) return;
-                navigation.navigate("BeneficiairesPage" as never);
-              }}
-            >
-              <View
+              <TouchableOpacity
                 style={[
-                  styles.quickActionIcon,
-                  {
-                    backgroundColor: colors.card,
-                    borderColor: colors.border,
-                    borderWidth: 1,
-                  },
+                  styles.quickActionCard,
+                  { backgroundColor: colors.card, borderColor: colors.border },
                 ]}
+                onPress={() => {
+                  if (handleGuestRestriction("les bénéficiaires")) return;
+                  navigation.navigate("BeneficiairesPage" as never);
+                }}
               >
-                <Ionicons
-                  name="people-outline"
-                  size={24}
-                  color={colors.success}
-                />
-              </View>
-              <Text style={[styles.quickActionTitle, { color: colors.text }]}>
-                {t("dashboard.quick.beneficiaries")}
-              </Text>
-              <Text
-                style={[styles.quickActionSubtitle, { color: colors.primary }]}
-              >
-                {t("dashboard.quick.beneficiaries.subtitle")}
-              </Text>
-            </TouchableOpacity>
+                <View
+                  style={[
+                    styles.quickActionIcon,
+                    {
+                      backgroundColor: colors.card,
+                      borderColor: colors.border,
+                      borderWidth: 1,
+                    },
+                  ]}
+                >
+                  <Ionicons
+                    name="people-outline"
+                    size={24}
+                    color={colors.success}
+                  />
+                </View>
+                <Text style={[styles.quickActionTitle, { color: colors.text }]}>
+                  {t("dashboard.quick.beneficiaries")}
+                </Text>
+                <Text
+                  style={[
+                    styles.quickActionSubtitle,
+                    { color: colors.primary },
+                  ]}
+                >
+                  {t("dashboard.quick.beneficiaries.subtitle")}
+                </Text>
+              </TouchableOpacity>
             )}
             <TouchableOpacity
               style={[
@@ -1200,18 +1204,49 @@ export const DashboardScreen: React.FC = () => {
                     .map((op, i) => {
                       const type = String(op.TypeOperation || "").toUpperCase();
                       const label = String(op.MC_LIBELLEOPERATION || "");
-                      
-                      let isCredit = type === "CREDIT";
 
-                      // SEULEMENT "OUVERTURE" (ouverture de compte) est forcé en DEBIT si ambigu
-                      // On ne modifie PAS les autres types (Retrait, Frais, etc.)
+                      let creditAmount = Number(op.MC_MONTANTCREDIT || 0);
+                      let debitAmount = Number(op.MC_MONTANTDEBIT || 0);
+
+                      // FIX: Les ouvertures de comptes sont toujours des débits (sorties)
+                      if (label.toUpperCase().includes("OUVERTURE")) {
+                        if (creditAmount > 0 && debitAmount === 0) {
+                          debitAmount = creditAmount;
+                          creditAmount = 0;
+                        }
+                      }
+
+                      // On utilise STRICTEMENT les données du serveur :
+                      // MC_SENS indique le sens (D = Débit, C = Crédit)
+
+                      let isCredit = false;
+
+                      if (op.MC_SENS === "C") {
+                        isCredit = true;
+                      } else if (op.MC_SENS === "D") {
+                        isCredit = false;
+                      } else {
+                        // Fallback sur les montants si MC_SENS absent
+                        isCredit = creditAmount > 0;
+                      }
+
+                      // Force debit for Ouverture
                       if (label.toUpperCase().includes("OUVERTURE")) {
                         isCredit = false;
                       }
 
-                      const amt = isCredit
-                        ? op.MC_MONTANTCREDIT
-                        : op.MC_MONTANTDEBIT;
+                      // Correction auto-validation: Si SENS contredit les montants (ex: SENS=C mais Credit=0 et Debit>0)
+                      if (isCredit && creditAmount === 0 && debitAmount > 0) {
+                        isCredit = false;
+                      } else if (
+                        !isCredit &&
+                        debitAmount === 0 &&
+                        creditAmount > 0
+                      ) {
+                        isCredit = true;
+                      }
+
+                      const amt = isCredit ? creditAmount : debitAmount;
                       const color = isCredit ? colors.success : colors.error;
 
                       return (
@@ -1244,7 +1279,7 @@ export const DashboardScreen: React.FC = () => {
                             style={[styles.activityAmount, { color: color }]}
                           >
                             {new Intl.NumberFormat("fr-FR").format(
-                              Number(amt || 0)
+                              Number(amt || 0),
                             )}
                           </Text>
                         </View>

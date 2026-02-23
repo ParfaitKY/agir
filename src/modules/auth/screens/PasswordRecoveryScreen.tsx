@@ -8,6 +8,9 @@ import {
   TouchableOpacity,
   Animated,
   Image,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { MaterialIcons } from "@expo/vector-icons";
@@ -242,246 +245,152 @@ const PasswordRecoveryScreen: React.FC = () => {
   };
 
   return (
-    <SafeAreaView
-      style={[styles.container, { backgroundColor: colors.background }]}
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      style={{ flex: 1 }}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 40 : 0}
     >
-      <View style={[styles.header, { backgroundColor: colors.card }]}>
-        <View style={styles.logoBox}>
-          <Image
-            source={require("../../../../assets/cedaici-transparent.png")}
-            style={styles.logo}
-            resizeMode="contain"
-            onError={() => setLogoError(true)}
-            accessibilityLabel="Logo de l'application"
-          />
-        </View>
-
-        <View style={[styles.headerLine, { backgroundColor: colors.border }]} />
-        <Text style={[styles.headerTitle, { color: colors.text }]}>
-          Récupération de mot de passe
-        </Text>
-      </View>
-      <Animated.View
-        style={[
-          styles.card,
-          { backgroundColor: colors.card, opacity: fadeAnim },
-        ]}
+      <ScrollView
+        contentContainerStyle={{
+          flexGrow: 1,
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
       >
-        <View style={styles.headerRow}>
-          <MaterialIcons name="info" size={18} color={colors.primary} />
-          <Text style={[styles.title, { color: colors.text }]}>
-            Informations requises
-          </Text>
-        </View>
-        <Text style={[styles.subtitle, { color: colors.text }]}>
-          Entrez vos informations pour réinitialiser votre mot de passe.
-        </Text>
-
-        <View style={{ width: "100%", marginTop: 16 }}>
-          <Text style={[styles.label, { color: colors.text }]}>
-            Email ou téléphone
-          </Text>
-          <TextInput
-            value={emailOrPhone}
-            onChangeText={setEmailOrPhone}
-            style={[
-              styles.input,
-              {
-                borderColor: emailFocused ? colors.primary : colors.border,
-                backgroundColor: colors.background,
-                color: colors.text,
-                borderWidth: emailFocused ? 2 : 1.5,
-                shadowOpacity: emailFocused ? 0.1 : 0.05,
-              },
-            ]}
-            placeholder="exemple@domaine.com ou +225…"
-            placeholderTextColor={`${colors.text}80`}
-            autoCapitalize="none"
-            onFocus={() => setEmailFocused(true)}
-            onBlur={() => setEmailFocused(false)}
-          />
-        </View>
-
-        <View style={{ width: "100%", marginTop: 16 }}>
-          <Text style={[styles.label, { color: colors.text }]}>
-            Clé secrète
-          </Text>
-          <View style={{ position: "relative" }}>
-            <TextInput
-              value={secretKey}
-              onChangeText={setSecretKey}
-              style={[
-                styles.input,
-                {
-                  borderColor: secretFocused ? colors.primary : colors.border,
-                  backgroundColor: colors.background,
-                  color: colors.text,
-                  borderWidth: secretFocused ? 2 : 1.5,
-                  shadowOpacity: secretFocused ? 0.1 : 0.05,
-                  paddingRight: 50,
-                },
-              ]}
-              secureTextEntry={!showSecret}
-              placeholder="Votre clé secrète"
-              placeholderTextColor={`${colors.text}80`}
-              autoCapitalize="none"
-              onFocus={() => setSecretFocused(true)}
-              onBlur={() => setSecretFocused(false)}
-            />
-            <TouchableOpacity
-              style={[
-                styles.iconButtonInside,
-                {
-                  backgroundColor: "transparent",
-                },
-              ]}
-              onPress={() => setShowSecret((s) => !s)}
-            >
-              <MaterialIcons
-                name={showSecret ? "visibility-off" : "visibility"}
-                size={22}
-                color={`${colors.text}CC`}
-              />
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        {!!error && (
-          <Text style={[styles.error, { color: colors.error }]}>{error}</Text>
-        )}
-        {!!success && (
-          <Text style={[styles.success, { color: colors.primary }]}>
-            {success}
-          </Text>
-        )}
-        <TouchableOpacity
-          style={[
-            styles.button,
-            { backgroundColor: colors.primary, opacity: loading ? 0.7 : 1 },
-          ]}
-          onPress={handleRecover}
-          disabled={loading}
+        <View style={{ height: 20 }} />
+        <SafeAreaView
+          style={[styles.container, { backgroundColor: colors.background }]}
         >
-          <View style={styles.buttonContent}>
-            <Text style={styles.buttonText}>
-              {loading ? "Vérification..." : "Vérifier et continuer"}
-            </Text>
-            {!loading && (
-              <MaterialIcons
-                name="check-circle"
-                size={16}
-                color="#FFFFFF"
-                style={{ marginLeft: 6 }}
+          <View style={[styles.header, { backgroundColor: colors.card }]}>
+            <View style={styles.logoBox}>
+              <Image
+                source={require("../../../../assets/cedaici-transparent.png")}
+                style={styles.logo}
+                resizeMode="contain"
+                onError={() => setLogoError(true)}
+                accessibilityLabel="Logo de l'application"
               />
-            )}
+            </View>
+
+            <View
+              style={[styles.headerLine, { backgroundColor: colors.border }]}
+            />
+            <Text style={[styles.headerTitle, { color: colors.text }]}>
+              Récupération de mot de passe
+            </Text>
           </View>
-        </TouchableOpacity>
-
-        {validated && (
-          <View style={{ width: "100%", marginTop: 18 }}>
+          <Animated.View
+            style={[
+              styles.card,
+              { backgroundColor: colors.card, opacity: fadeAnim },
+            ]}
+          >
             <View style={styles.headerRow}>
-              <MaterialIcons
-                name="lock-reset"
-                size={18}
-                color={colors.primary}
-              />
+              <MaterialIcons name="info" size={18} color={colors.primary} />
               <Text style={[styles.title, { color: colors.text }]}>
-                Nouveau code PIN
+                Informations requises
               </Text>
             </View>
-
-            <Text style={[styles.label, { color: colors.text }]}>
-              Nouveau PIN
+            <Text style={[styles.subtitle, { color: colors.text }]}>
+              Entrez vos informations pour réinitialiser votre mot de passe.
             </Text>
-            <View style={{ position: "relative" }}>
+
+            <View style={{ width: "100%", marginTop: 16 }}>
+              <Text style={[styles.label, { color: colors.text }]}>
+                Email ou téléphone
+              </Text>
               <TextInput
-                value={newPin}
-                onChangeText={setNewPin}
+                value={emailOrPhone}
+                onChangeText={setEmailOrPhone}
                 style={[
                   styles.input,
                   {
-                    borderColor: colors.border,
+                    borderColor: emailFocused ? colors.primary : colors.border,
                     backgroundColor: colors.background,
                     color: colors.text,
-                    paddingRight: 50,
+                    borderWidth: emailFocused ? 2 : 1.5,
+                    shadowOpacity: emailFocused ? 0.1 : 0.05,
                   },
                 ]}
-                secureTextEntry={!showNewPin}
-                placeholder="•••••"
+                placeholder="exemple@domaine.com ou +225…"
                 placeholderTextColor={`${colors.text}80`}
-                keyboardType="number-pad"
-                maxLength={5}
+                autoCapitalize="none"
+                onFocus={() => setEmailFocused(true)}
+                onBlur={() => setEmailFocused(false)}
               />
-              <TouchableOpacity
-                style={styles.iconButtonInside}
-                onPress={() => setShowNewPin((v) => !v)}
-              >
-                <MaterialIcons
-                  name={showNewPin ? "visibility-off" : "visibility"}
-                  size={22}
-                  color={`${colors.text}CC`}
-                />
-              </TouchableOpacity>
             </View>
 
-            <Text style={[styles.label, { color: colors.text }]}>
-              Confirmer PIN
-            </Text>
-            <View style={{ position: "relative" }}>
-              <TextInput
-                value={confirmPin}
-                onChangeText={setConfirmPin}
-                style={[
-                  styles.input,
-                  {
-                    borderColor: colors.border,
-                    backgroundColor: colors.background,
-                    color: colors.text,
-                    paddingRight: 50,
-                  },
-                ]}
-                secureTextEntry={!showConfirmPin}
-                placeholder="•••••"
-                placeholderTextColor={`${colors.text}80`}
-                keyboardType="number-pad"
-                maxLength={5}
-              />
-              <TouchableOpacity
-                style={styles.iconButtonInside}
-                onPress={() => setShowConfirmPin((v) => !v)}
-              >
-                <MaterialIcons
-                  name={showConfirmPin ? "visibility-off" : "visibility"}
-                  size={22}
-                  color={`${colors.text}CC`}
+            <View style={{ width: "100%", marginTop: 16 }}>
+              <Text style={[styles.label, { color: colors.text }]}>
+                Clé secrète
+              </Text>
+              <View style={{ position: "relative" }}>
+                <TextInput
+                  value={secretKey}
+                  onChangeText={setSecretKey}
+                  style={[
+                    styles.input,
+                    {
+                      borderColor: secretFocused
+                        ? colors.primary
+                        : colors.border,
+                      backgroundColor: colors.background,
+                      color: colors.text,
+                      borderWidth: secretFocused ? 2 : 1.5,
+                      shadowOpacity: secretFocused ? 0.1 : 0.05,
+                      paddingRight: 50,
+                    },
+                  ]}
+                  secureTextEntry={!showSecret}
+                  placeholder="Votre clé secrète"
+                  placeholderTextColor={`${colors.text}80`}
+                  autoCapitalize="none"
+                  onFocus={() => setSecretFocused(true)}
+                  onBlur={() => setSecretFocused(false)}
                 />
-              </TouchableOpacity>
+                <TouchableOpacity
+                  style={[
+                    styles.iconButtonInside,
+                    {
+                      backgroundColor: "transparent",
+                    },
+                  ]}
+                  onPress={() => setShowSecret((s) => !s)}
+                >
+                  <MaterialIcons
+                    name={showSecret ? "visibility-off" : "visibility"}
+                    size={22}
+                    color={`${colors.text}CC`}
+                  />
+                </TouchableOpacity>
+              </View>
             </View>
 
-            {!!pinError && (
+            {!!error && (
               <Text style={[styles.error, { color: colors.error }]}>
-                {pinError}
+                {error}
               </Text>
             )}
-
+            {!!success && (
+              <Text style={[styles.success, { color: colors.primary }]}>
+                {success}
+              </Text>
+            )}
             <TouchableOpacity
               style={[
                 styles.button,
-                {
-                  backgroundColor: colors.primary,
-                  opacity: pinLoading ? 0.7 : 1,
-                },
+                { backgroundColor: colors.primary, opacity: loading ? 0.7 : 1 },
               ]}
-              onPress={handleResetPin}
-              disabled={pinLoading}
+              onPress={handleRecover}
+              disabled={loading}
             >
               <View style={styles.buttonContent}>
                 <Text style={styles.buttonText}>
-                  {pinLoading
-                    ? "Réinitialisation..."
-                    : "Réinitialiser le code PIN"}
+                  {loading ? "Vérification..." : "Vérifier et continuer"}
                 </Text>
-                {!pinLoading && (
+                {!loading && (
                   <MaterialIcons
                     name="check-circle"
                     size={16}
@@ -491,15 +400,138 @@ const PasswordRecoveryScreen: React.FC = () => {
                 )}
               </View>
             </TouchableOpacity>
-          </View>
-        )}
-      </Animated.View>
-    </SafeAreaView>
+
+            {validated && (
+              <View style={{ width: "100%", marginTop: 18 }}>
+                <View style={styles.headerRow}>
+                  <MaterialIcons
+                    name="lock-reset"
+                    size={18}
+                    color={colors.primary}
+                  />
+                  <Text style={[styles.title, { color: colors.text }]}>
+                    Nouveau code PIN
+                  </Text>
+                </View>
+
+                <Text style={[styles.label, { color: colors.text }]}>
+                  Nouveau PIN
+                </Text>
+                <View style={{ position: "relative" }}>
+                  <TextInput
+                    value={newPin}
+                    onChangeText={setNewPin}
+                    style={[
+                      styles.input,
+                      {
+                        borderColor: colors.border,
+                        backgroundColor: colors.background,
+                        color: colors.text,
+                        paddingRight: 50,
+                      },
+                    ]}
+                    secureTextEntry={!showNewPin}
+                    placeholder="•••••"
+                    placeholderTextColor={`${colors.text}80`}
+                    keyboardType="number-pad"
+                    maxLength={5}
+                  />
+                  <TouchableOpacity
+                    style={styles.iconButtonInside}
+                    onPress={() => setShowNewPin((v) => !v)}
+                  >
+                    <MaterialIcons
+                      name={showNewPin ? "visibility-off" : "visibility"}
+                      size={22}
+                      color={`${colors.text}CC`}
+                    />
+                  </TouchableOpacity>
+                </View>
+
+                <Text style={[styles.label, { color: colors.text }]}>
+                  Confirmer PIN
+                </Text>
+                <View style={{ position: "relative" }}>
+                  <TextInput
+                    value={confirmPin}
+                    onChangeText={setConfirmPin}
+                    style={[
+                      styles.input,
+                      {
+                        borderColor: colors.border,
+                        backgroundColor: colors.background,
+                        color: colors.text,
+                        paddingRight: 50,
+                      },
+                    ]}
+                    secureTextEntry={!showConfirmPin}
+                    placeholder="•••••"
+                    placeholderTextColor={`${colors.text}80`}
+                    keyboardType="number-pad"
+                    maxLength={5}
+                  />
+                  <TouchableOpacity
+                    style={styles.iconButtonInside}
+                    onPress={() => setShowConfirmPin((v) => !v)}
+                  >
+                    <MaterialIcons
+                      name={showConfirmPin ? "visibility-off" : "visibility"}
+                      size={22}
+                      color={`${colors.text}CC`}
+                    />
+                  </TouchableOpacity>
+                </View>
+
+                {!!pinError && (
+                  <Text style={[styles.error, { color: colors.error }]}>
+                    {pinError}
+                  </Text>
+                )}
+
+                <TouchableOpacity
+                  style={[
+                    styles.button,
+                    {
+                      backgroundColor: colors.primary,
+                      opacity: pinLoading ? 0.7 : 1,
+                    },
+                  ]}
+                  onPress={handleResetPin}
+                  disabled={pinLoading}
+                >
+                  <View style={styles.buttonContent}>
+                    <Text style={styles.buttonText}>
+                      {pinLoading
+                        ? "Réinitialisation..."
+                        : "Réinitialiser le code PIN"}
+                    </Text>
+                    {!pinLoading && (
+                      <MaterialIcons
+                        name="check-circle"
+                        size={16}
+                        color="#FFFFFF"
+                        style={{ marginLeft: 6 }}
+                      />
+                    )}
+                  </View>
+                </TouchableOpacity>
+              </View>
+            )}
+          </Animated.View>
+        </SafeAreaView>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: "center", alignItems: "center" },
+  container: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    // Ajout d'un paddingBottom pour compenser le clavier
+    paddingBottom: 20,
+  },
   header: {
     width: "92%",
     maxWidth: 420,

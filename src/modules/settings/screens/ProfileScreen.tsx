@@ -40,7 +40,7 @@ const ProfileScreen: React.FC = () => {
   const [startDate, setStartDate] = useState<Date | null>(serverDate);
   const [endDate, setEndDate] = useState<Date | null>(serverDate);
   const [showDatePicker, setShowDatePicker] = useState<"start" | "end" | null>(
-    null
+    null,
   );
 
   const CustomCalendar = ({
@@ -198,8 +198,8 @@ const ProfileScreen: React.FC = () => {
                   backgroundColor: isSelected
                     ? colors.primary
                     : isToday
-                    ? colors.primary + "20"
-                    : "transparent",
+                      ? colors.primary + "20"
+                      : "transparent",
                   borderRadius: 20,
                   borderWidth: isToday && !isSelected ? 1 : 0,
                   borderColor: colors.primary,
@@ -215,8 +215,8 @@ const ProfileScreen: React.FC = () => {
                     color: isSelected
                       ? "#fff"
                       : isToday
-                      ? colors.primary
-                      : colors.text,
+                        ? colors.primary
+                        : colors.text,
                     fontWeight: isSelected || isToday ? "700" : "400",
                   }}
                 >
@@ -433,23 +433,59 @@ const ProfileScreen: React.FC = () => {
 
         // Adaptation pour structure imbriquée : result.data.data.operations
         const dataPayload = result?.data;
-        const ops = 
-          dataPayload?.operations || 
-          dataPayload?.data?.operations || 
-          [];
-        
-        const mapped = ops.map((op: any, index: number) => {
-          const debit = Number(op.MC_MONTANTDEBIT || 0);
-          const credit = Number(op.MC_MONTANTCREDIT || 0);
-          const isCredit = credit > 0;
+        const ops =
+          dataPayload?.operations || dataPayload?.data?.operations || [];
+
+        // Deduplication
+        const uniqueOps = (Array.isArray(ops) ? ops : []).filter(
+          (item: any, index: number, self: any[]) =>
+            index ===
+            self.findIndex((t) => {
+              const titleMatch =
+                String(t.MC_LIBELLEOPERATION || "").trim() ===
+                String(item.MC_LIBELLEOPERATION || "").trim();
+              const dateMatch =
+                String(t.MC_DATESAISIE || t.MC_DATEPIECE || "") ===
+                String(item.MC_DATESAISIE || item.MC_DATEPIECE || "");
+
+              const tAmt = Math.max(
+                Number(t.MC_MONTANTDEBIT || 0),
+                Number(t.MC_MONTANTCREDIT || 0),
+              );
+              const itemAmt = Math.max(
+                Number(item.MC_MONTANTDEBIT || 0),
+                Number(item.MC_MONTANTCREDIT || 0),
+              );
+              const amtMatch = tAmt === itemAmt;
+
+              return titleMatch && dateMatch && amtMatch;
+            }),
+        );
+
+        const mapped = uniqueOps.map((op: any, index: number) => {
+          let debit = Number(op.MC_MONTANTDEBIT || 0);
+          let credit = Number(op.MC_MONTANTCREDIT || 0);
+          const title = String(op.MC_LIBELLEOPERATION || "Opération");
+
+          // FIX: Ouverture = Debit
+          if (title.toUpperCase().includes("OUVERTURE")) {
+            if (credit > 0 && debit === 0) {
+              debit = credit;
+              credit = 0;
+            }
+          }
+
+          let isCredit = credit > 0;
+          if (title.toUpperCase().includes("OUVERTURE")) isCredit = false;
+
           const amountVal = isCredit ? credit : debit;
           const amount = `${isCredit ? "+" : "-"}${amountVal.toLocaleString(
-            "fr-FR"
+            "fr-FR",
           )} XOF`;
 
           return {
             id: String(index),
-            title: op.MC_LIBELLEOPERATION || "Opération",
+            title,
             amount,
             date: op.MC_DATESAISIE || op.DateOperation || "",
             type: isCredit ? "entree" : "sortie",
@@ -484,29 +520,65 @@ const ProfileScreen: React.FC = () => {
           // Fallback silencieux ou gestion d'erreur légère
           console.log(
             "Erreur chargement transactions par défaut",
-            result.error
+            result.error,
           );
         }
 
         // Adaptation pour structure imbriquée
         const dataPayload = result?.data;
-        const ops = 
-          dataPayload?.operations || 
-          dataPayload?.data?.operations || 
-          [];
-        
-        const mapped = ops.map((op: any, index: number) => {
-          const debit = Number(op.MC_MONTANTDEBIT || 0);
-          const credit = Number(op.MC_MONTANTCREDIT || 0);
-          const isCredit = credit > 0; // Ou baser sur TypeOperation === 'CREDIT'
+        const ops =
+          dataPayload?.operations || dataPayload?.data?.operations || [];
+
+        // Deduplication
+        const uniqueOps = (Array.isArray(ops) ? ops : []).filter(
+          (item: any, index: number, self: any[]) =>
+            index ===
+            self.findIndex((t) => {
+              const titleMatch =
+                String(t.MC_LIBELLEOPERATION || "").trim() ===
+                String(item.MC_LIBELLEOPERATION || "").trim();
+              const dateMatch =
+                String(t.MC_DATESAISIE || t.MC_DATEPIECE || "") ===
+                String(item.MC_DATESAISIE || item.MC_DATEPIECE || "");
+
+              const tAmt = Math.max(
+                Number(t.MC_MONTANTDEBIT || 0),
+                Number(t.MC_MONTANTCREDIT || 0),
+              );
+              const itemAmt = Math.max(
+                Number(item.MC_MONTANTDEBIT || 0),
+                Number(item.MC_MONTANTCREDIT || 0),
+              );
+              const amtMatch = tAmt === itemAmt;
+
+              return titleMatch && dateMatch && amtMatch;
+            }),
+        );
+
+        const mapped = uniqueOps.map((op: any, index: number) => {
+          let debit = Number(op.MC_MONTANTDEBIT || 0);
+          let credit = Number(op.MC_MONTANTCREDIT || 0);
+          const title = String(op.MC_LIBELLEOPERATION || "Opération");
+
+          // FIX: Ouverture = Debit
+          if (title.toUpperCase().includes("OUVERTURE")) {
+            if (credit > 0 && debit === 0) {
+              debit = credit;
+              credit = 0;
+            }
+          }
+
+          let isCredit = credit > 0;
+          if (title.toUpperCase().includes("OUVERTURE")) isCredit = false;
+
           const amountVal = isCredit ? credit : debit;
           const amount = `${isCredit ? "+" : "-"}${amountVal.toLocaleString(
-            "fr-FR"
+            "fr-FR",
           )} XOF`;
 
           return {
             id: String(index),
-            title: op.MC_LIBELLEOPERATION || "Opération",
+            title,
             amount,
             date: op.MC_DATESAISIE || op.MC_DATEPIECE || "",
             type: isCredit ? "entree" : "sortie",
@@ -542,7 +614,7 @@ const ProfileScreen: React.FC = () => {
           });
         } catch (error) {
           (navigation as any).navigate(
-            (isGuestMode ? "InitialSetup" : "PinLogin") as never
+            (isGuestMode ? "InitialSetup" : "PinLogin") as never,
           );
         }
         return;
@@ -572,7 +644,7 @@ const ProfileScreen: React.FC = () => {
               }
 
               console.log(
-                "Guest user logged out and redirected to InitialSetupScreen"
+                "Guest user logged out and redirected to InitialSetupScreen",
               );
             },
           },
@@ -644,7 +716,7 @@ const ProfileScreen: React.FC = () => {
     const email = "support@cedaici.com";
     const subject = encodeURIComponent("Demande de modification de profil");
     const body = encodeURIComponent(
-      "Bonjour,\n\nJe souhaite mettre à jour mes informations personnelles. Pourriez-vous m'indiquer la procédure ?\n\nMerci."
+      "Bonjour,\n\nJe souhaite mettre à jour mes informations personnelles. Pourriez-vous m'indiquer la procédure ?\n\nMerci.",
     );
     Linking.openURL(`mailto:${email}?subject=${subject}&body=${body}`);
   };
@@ -1198,8 +1270,8 @@ const ProfileScreen: React.FC = () => {
                                   ? "#1a3d2e"
                                   : "#E9FFF3"
                                 : isDark
-                                ? "#4a1a1a"
-                                : "#FFECEC",
+                                  ? "#4a1a1a"
+                                  : "#FFECEC",
                           },
                         ]}
                       >

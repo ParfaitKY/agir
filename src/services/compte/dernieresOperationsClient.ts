@@ -17,10 +17,12 @@ export type OperationItem = {
   TypeOperation?: "DEBIT" | "CREDIT" | string;
   TS_CODETYPESCHEMACOMPTABLE?: string;
   MC_DATESAISIE?: string;
+  MC_DATEPIECE?: string;
   MC_NUMPIECE?: string | number;
   MC_NUMSEQUENCE?: string | number;
   AG_CODEAGENCE?: string | number;
   CO_CODECOMPTE?: string;
+  MC_SENS?: "D" | "C" | string;
 };
 
 export type DernieresOperationsResponse = {

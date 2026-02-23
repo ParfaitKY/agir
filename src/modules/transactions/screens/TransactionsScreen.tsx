@@ -46,7 +46,7 @@ export const TransactionsScreen: React.FC = () => {
         const login = await secureGetItem("user_login");
         const agency = (await secureGetItem("user_agency")) || "1000";
         const accountCode = (await secureGetItem("user_account_number")) || "";
-        
+
         if (!clientId || !token || !accountCode) {
           setError("Identifiants manquants");
           return;
@@ -71,9 +71,9 @@ export const TransactionsScreen: React.FC = () => {
             CODECRYPTAGE: "Y}@128eVIXfoi7",
             DateDebut: "01/01/2000",
             DateFin: dateFin,
-            Nombretransactions: "50"
+            Nombretransactions: "50",
           } as any,
-          headers
+          headers,
         );
 
         if (result?.error) {
@@ -86,24 +86,58 @@ export const TransactionsScreen: React.FC = () => {
 
         const payload = result?.data;
         // Gestion robuste de la structure de réponse
-        const arr = Array.isArray(payload?.data) 
-             ? payload.data 
-             : Array.isArray(payload?.data?.operations)
-                ? payload.data.operations
-                : Array.isArray(payload?.operations) 
-                    ? payload.operations 
-                    : [];
+        const arr = Array.isArray(payload?.data)
+          ? payload.data
+          : Array.isArray(payload?.data?.operations)
+            ? payload.data.operations
+            : Array.isArray(payload?.operations)
+              ? payload.operations
+              : [];
 
         const normalized = arr.map((r: any, idx: number) => {
-          const debit = parseNum(r?.MC_MONTANTDEBIT);
-          const credit = parseNum(r?.MC_MONTANTCREDIT);
-          // Si débit > 0, c'est une sortie. Sinon (crédit > 0), c'est une entrée.
-          const type = debit > 0 ? "sortie" : "entree";
-          const num = debit > 0 ? debit : credit;
-          
+          let debit = parseNum(r?.MC_MONTANTDEBIT);
+          let credit = parseNum(r?.MC_MONTANTCREDIT);
+          const title = String(r?.MC_LIBELLEOPERATION ?? "Opération");
+
+          // FIX: Les ouvertures de comptes sont toujours des débits (sorties)
+          // Même si la banque les envoie parfois en crédit ou mal formatés
+          if (title.toUpperCase().includes("OUVERTURE")) {
+            if (credit > 0 && debit === 0) {
+              debit = credit;
+              credit = 0;
+            }
+          }
+
+          // Utilisation stricte des données serveur
+          // MC_SENS prime : 'D' = Débit (Sortie), 'C' = Crédit (Entrée)
+          let type: "entree" | "sortie" = "sortie";
+
+          if (r?.MC_SENS === "C") {
+            type = "entree";
+          } else if (r?.MC_SENS === "D") {
+            type = "sortie";
+          } else {
+            // Fallback montant
+            type = credit > 0 ? "entree" : "sortie";
+          }
+
+          // Force type sortie for Ouverture
+          if (title.toUpperCase().includes("OUVERTURE")) {
+            type = "sortie";
+          }
+
+          // Correction auto-validation: Si SENS contredit les montants
+          if (type === "entree" && credit === 0 && debit > 0) {
+            type = "sortie";
+          } else if (type === "sortie" && debit === 0 && credit > 0) {
+            type = "entree";
+          }
+
+          const num = type === "entree" ? credit : debit;
+
           return {
             id: String(r?.MC_NUMSEQUENCE ?? idx),
-            title: String(r?.MC_LIBELLEOPERATION ?? "Opération"),
+            title,
             amountText: `${type === "entree" ? "+" : "-"}${num.toLocaleString()} XOF`,
             amountNum: num,
             date: String(r?.MC_DATEPIECE ?? r?.MC_DATESAISIE ?? ""),
@@ -111,8 +145,21 @@ export const TransactionsScreen: React.FC = () => {
             status: t("common.success"),
           };
         });
-        
-        setItems(normalized);
+
+        // Deduplication basée sur le contenu pour éviter les doublons visuels
+        // (Surtout utile si le backend renvoie des données dupliquées)
+        const uniqueItems = normalized.filter(
+          (item: any, index: number, self: any[]) =>
+            index ===
+            self.findIndex(
+              (t: any) =>
+                t.title === item.title &&
+                t.amountNum === item.amountNum &&
+                t.date === item.date,
+            ),
+        );
+
+        setItems(uniqueItems);
       } catch (e: any) {
         setError(e?.message || "Erreur réseau");
       } finally {
@@ -124,11 +171,11 @@ export const TransactionsScreen: React.FC = () => {
 
   const totalEntrees = items.reduce(
     (s, it) => s + (it.type === "entree" ? it.amountNum : 0),
-    0
+    0,
   );
   const totalSorties = items.reduce(
     (s, it) => s + (it.type === "sortie" ? it.amountNum : 0),
-    0
+    0,
   );
 
   // Filtrer les transactions selon le filtre actif
@@ -313,8 +360,8 @@ export const TransactionsScreen: React.FC = () => {
               activeFilter === "entrees"
                 ? t("transactions.empty.inSuffix")
                 : activeFilter === "sorties"
-                ? t("transactions.empty.outSuffix")
-                : ""
+                  ? t("transactions.empty.outSuffix")
+                  : ""
             }`}
             compact
             style={{ marginTop: 40 }}

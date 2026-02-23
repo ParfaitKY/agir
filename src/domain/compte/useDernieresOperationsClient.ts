@@ -83,30 +83,58 @@ export function useDernieresOperationsClient(count: number = 10) {
       CodeCryptage: "Y}@128eVIXfoi7",
     };
     try {
-      const res: RequestResult<DernieresOperationsResponse> = await dernieresOperationsClient(body, headers);
+      const res: RequestResult<DernieresOperationsResponse> =
+        await dernieresOperationsClient(body, headers);
       const api = res.data;
       if (res.error || !api) {
         setError(res.error);
         return;
       }
       const container = api.data || (api as any).DONNEES || api;
-      const opsArray = container?.operations || container?.OPERATIONS || [];
+      const opsArray =
+        container?.operations || (container as any).OPERATIONS || [];
       const ops: OperationItem[] = Array.isArray(opsArray) ? opsArray : [];
       const stats: Statistiques | undefined = (container?.statistiques ||
-        container?.STATISTIQUES) as Statistiques | undefined;
+        (container as any).STATISTIQUES) as Statistiques | undefined;
 
       const sorted = [...ops].sort(
-        (a, b) => parseDateStr(b.MC_DATESAISIE) - parseDateStr(a.MC_DATESAISIE)
+        (a, b) => parseDateStr(b.MC_DATESAISIE) - parseDateStr(a.MC_DATESAISIE),
       );
 
       // We remove complex deduplication and grouping to ensure all server operations are displayed.
       // The user explicitly requested to see all operations coming from the server.
-      
-      setOperations(sorted);
+      // However, we must filter out EXACT duplicates (backend errors)
+      // FIX: Also filter duplicates where one is Debit and the other Credit if Title and Amount match
+      const uniqueOps = sorted.filter(
+        (item: any, index: number, self: any[]) =>
+          index ===
+          self.findIndex((t: any) => {
+            const titleMatch =
+              String(t.MC_LIBELLEOPERATION || "").trim() ===
+              String(item.MC_LIBELLEOPERATION || "").trim();
+            const dateMatch =
+              String(t.MC_DATESAISIE || t.MC_DATEPIECE || "") ===
+              String(item.MC_DATESAISIE || item.MC_DATEPIECE || "");
+
+            const tAmt = Math.max(
+              Number(t.MC_MONTANTDEBIT || 0),
+              Number(t.MC_MONTANTCREDIT || 0),
+            );
+            const itemAmt = Math.max(
+              Number(item.MC_MONTANTDEBIT || 0),
+              Number(item.MC_MONTANTCREDIT || 0),
+            );
+            const amtMatch = tAmt === itemAmt;
+
+            return titleMatch && dateMatch && amtMatch;
+          }),
+      );
+
+      setOperations(uniqueOps);
       setStatistiques(stats);
 
       const grouped: GroupedDebits = {};
-      for (const op of sorted) {
+      for (const op of uniqueOps) {
         const type = String(op.TypeOperation || "").toUpperCase();
         if (type !== "DEBIT") continue;
         const key = op.TS_CODETYPESCHEMACOMPTABLE || "AUTRE";

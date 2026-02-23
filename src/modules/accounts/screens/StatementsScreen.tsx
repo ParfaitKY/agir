@@ -101,14 +101,52 @@ export const StatementsScreen: React.FC = () => {
       const ops =
         dataPayload?.operations || dataPayload?.data?.operations || [];
 
-      rows = (Array.isArray(ops) ? ops : []).map((op: any) => {
-        const debit = Number(op.MC_MONTANTDEBIT || 0);
-        const credit = Number(op.MC_MONTANTCREDIT || 0);
+      // Deduplication
+      const uniqueOps = (Array.isArray(ops) ? ops : []).filter(
+        (item: any, index: number, self: any[]) =>
+          index ===
+          self.findIndex((t) => {
+            const titleMatch =
+              String(t.MC_LIBELLEOPERATION || "").trim() ===
+              String(item.MC_LIBELLEOPERATION || "").trim();
+            const dateMatch =
+              String(t.MC_DATESAISIE || t.MC_DATEPIECE || "") ===
+              String(item.MC_DATESAISIE || item.MC_DATEPIECE || "");
+
+            const tAmt = Math.max(
+              Number(t.MC_MONTANTDEBIT || 0),
+              Number(t.MC_MONTANTCREDIT || 0)
+            );
+            const itemAmt = Math.max(
+              Number(item.MC_MONTANTDEBIT || 0),
+              Number(item.MC_MONTANTCREDIT || 0)
+            );
+            const amtMatch = tAmt === itemAmt;
+
+            return titleMatch && dateMatch && amtMatch;
+          }),
+      );
+
+      rows = uniqueOps.map((op: any) => {
+        let debit = Number(op.MC_MONTANTDEBIT || 0);
+        let credit = Number(op.MC_MONTANTCREDIT || 0);
+        const desc = String(
+          op.MC_LIBELLEOPERATION || op.LibelleOperation || "Opération",
+        );
+
+        // FIX: Ouverture de compte = Debit
+        if (desc.toUpperCase().includes("OUVERTURE")) {
+          if (credit > 0 && debit === 0) {
+            debit = credit;
+            credit = 0;
+          }
+        }
+
         const balance = 0;
 
         return {
           date: op.MC_DATESAISIE || op.MC_DATEPIECE || op.DateOperation || "",
-          desc: op.MC_LIBELLEOPERATION || op.LibelleOperation || "Opération",
+          desc,
           debit,
           credit,
           balance,

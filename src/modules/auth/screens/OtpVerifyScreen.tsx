@@ -2,14 +2,16 @@ import React, { useEffect, useRef, useState } from "react";
 import {
   View,
   Text,
-  SafeAreaView,
   TouchableOpacity,
   TextInput,
   StyleSheet,
+  KeyboardAvoidingView,
+  ScrollView,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { useTheme } from "../../../shared/styles/ThemeProvider";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   secureGetItem,
   secureSetItem,
@@ -19,6 +21,7 @@ import { silentOtp } from "../../../services/auth/silentOtp";
 import { verifyOtp as verifyOtpService } from "../../../services/auth/verifyOtp";
 
 const OtpVerifyScreen: React.FC = () => {
+  const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
   const { colors } = useTheme();
 
@@ -258,8 +261,11 @@ const OtpVerifyScreen: React.FC = () => {
   };
 
   return (
-    <SafeAreaView
-      style={[styles.screen, { backgroundColor: themeColors.background }]}
+    <View
+      style={[
+        styles.screen,
+        { backgroundColor: themeColors.background, paddingTop: insets.top },
+      ]}
     >
       <View style={styles.headerRow}>
         <TouchableOpacity
@@ -274,254 +280,278 @@ const OtpVerifyScreen: React.FC = () => {
         </Text>
       </View>
 
-      <View style={styles.content}>
-        <View style={styles.lockCircle}>
-          <View
-            style={[
-              styles.lockInner,
-              {
-                backgroundColor: themeColors.primary + "65",
-                borderColor: themeColors.primary + "66",
-                borderWidth: 1,
-              },
-            ]}
-          >
-            <Ionicons name="lock-closed" size={22} color="#FFFF" />
-          </View>
-        </View>
-        <Text style={[styles.title, { color: themeColors.text }]}>
-          Connexion en cours
-        </Text>
-        <Text style={[styles.subtitle, { color: themeColors.textSecondary }]}>
-          {loadingSilent
-            ? "Patientez, détection du code…"
-            : silentOk
-              ? "Code détecté automatiquement.\nVous pouvez valider."
-              : requiresManual
-                ? "Un code a été envoyé par e-mail.\nVeuillez le saisir manuellement."
-                : "Saisissez le code reçu."}
-        </Text>
-
-        <Text style={[styles.fieldLabel, { color: themeColors.text }]}>
-          Numéro de compte
-        </Text>
-        <View
-          style={[
-            styles.accountInput,
-            {
-              borderColor: themeColors.border,
-              backgroundColor: themeColors.background,
-            },
-          ]}
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        style={{ flex: 1 }}
+      >
+        <ScrollView
+          contentContainerStyle={{ flexGrow: 1 }}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
         >
-          <Text
-            style={[styles.accountText, { color: themeColors.textSecondary }]}
-          >
-            {accountMasked || "FR76 •••• •••• ••••  3790"}
-          </Text>
-          <Ionicons
-            name="lock-closed"
-            size={22}
-            color={themeColors.textSecondary}
-          />
-        </View>
-
-        <View style={styles.otpHeaderRow}>
-          <Text style={[styles.fieldLabel, { color: themeColors.text }]}>
-            Code OTP
-          </Text>
-          <View
-            style={[
-              styles.detectPill,
-              {
-                backgroundColor:
-                  (silentOk
-                    ? themeColors.success
-                    : requiresManual
-                      ? themeColors.warning || "#EAB308"
-                      : themeColors.primary) + "18",
-              },
-            ]}
-          >
-            {loadingSilent ? (
-              <ActivityIndicator size="small" color={themeColors.primary} />
-            ) : (
-              <Ionicons
-                name={
-                  silentOk
-                    ? "checkmark-done"
-                    : requiresManual
-                      ? "alert"
-                      : "time"
-                }
-                size={16}
-                color={
-                  silentOk
-                    ? themeColors.success
-                    : requiresManual
-                      ? themeColors.warning || "#EAB308"
-                      : themeColors.primary
-                }
-              />
-            )}
+          <View style={styles.content}>
+            <View style={styles.lockCircle}>
+              <View
+                style={[
+                  styles.lockInner,
+                  {
+                    backgroundColor: themeColors.primary + "65",
+                    borderColor: themeColors.primary + "66",
+                    borderWidth: 1,
+                  },
+                ]}
+              >
+                <Ionicons name="lock-closed" size={22} color="#FFFF" />
+              </View>
+            </View>
+            <Text style={[styles.title, { color: themeColors.text }]}>
+              Connexion en cours
+            </Text>
             <Text
-              style={[
-                styles.detectText,
-                {
-                  color: silentOk
-                    ? themeColors.success
-                    : requiresManual
-                      ? themeColors.warning || "#EAB308"
-                      : themeColors.primary,
-                },
-              ]}
+              style={[styles.subtitle, { color: themeColors.textSecondary }]}
             >
               {loadingSilent
-                ? "Détection…"
+                ? "Patientez, détection du code…"
                 : silentOk
-                  ? "Détecté"
+                  ? "Code détecté automatiquement.\nVous pouvez valider."
                   : requiresManual
-                    ? "Saisie manuelle"
-                    : "En attente"}
+                    ? "Un code a été envoyé par e-mail.\nVeuillez le saisir manuellement."
+                    : "Saisissez le code reçu."}
             </Text>
-          </View>
-        </View>
 
-        <View style={styles.otpRow}>
-          {Array.from({ length: 3 }).map((_, i) => (
+            <Text style={[styles.fieldLabel, { color: themeColors.text }]}>
+              Numéro de compte
+            </Text>
             <View
-              key={`otp-a-${i}`}
               style={[
-                styles.otpItem,
+                styles.accountInput,
                 {
-                  borderColor: themeColors.primary,
+                  borderColor: themeColors.border,
                   backgroundColor: themeColors.background,
-                  ...(i === active
-                    ? { shadowOpacity: 0.1, shadowRadius: 6 }
-                    : {}),
                 },
               ]}
             >
-              <TextInput
-                ref={(r) => (inputs.current[i] = r as any)}
-                value={values[i]}
-                onChangeText={(t) => handleChange(i, t)}
-                onKeyPress={(e) => handleKeyPress(i, e)}
-                keyboardType="number-pad"
-                maxLength={1}
-                style={[styles.otpInput, { color: themeColors.text }]}
-                selectionColor={themeColors.primary}
-              />
-            </View>
-          ))}
-          <Text style={[styles.dash, { color: themeColors.textSecondary }]}>
-            -
-          </Text>
-          {Array.from({ length: 3 }).map((_, j) => (
-            <View
-              key={`otp-b-${j}`}
-              style={[
-                styles.otpItem,
-                {
-                  borderColor: themeColors.primary,
-                  backgroundColor: themeColors.background,
-                  ...(j + 3 === active
-                    ? { shadowOpacity: 0.1, shadowRadius: 6 }
-                    : {}),
-                },
-              ]}
-            >
-              <TextInput
-                ref={(r) => (inputs.current[j + 3] = r as any)}
-                value={values[j + 3]}
-                onChangeText={(t) => handleChange(j + 3, t)}
-                onKeyPress={(e) => handleKeyPress(j + 3, e)}
-                keyboardType="number-pad"
-                maxLength={1}
-                style={[styles.otpInput, { color: themeColors.text }]}
-                selectionColor={themeColors.primary}
-              />
-            </View>
-          ))}
-        </View>
-
-        <View style={styles.spacer} />
-
-        <View style={styles.footer}>
-          <TouchableOpacity
-            style={[
-              styles.submitBtn,
-              {
-                backgroundColor: themeColors.primary,
-                opacity: canSubmit ? 1 : 0.6,
-              },
-            ]}
-            disabled={!canSubmit}
-            onPress={() => verifyOtp()}
-          >
-            <View style={styles.submitInnerRow}>
-              <Text style={[styles.submitText, { color: "#fff" }]}>
-                Valider
+              <Text
+                style={[
+                  styles.accountText,
+                  { color: themeColors.textSecondary },
+                ]}
+              >
+                {accountMasked || "FR76 •••• •••• ••••  3790"}
               </Text>
               <Ionicons
-                name="arrow-forward"
-                size={18}
-                color="#fff"
-                style={{ marginLeft: 12 }}
+                name="lock-closed"
+                size={22}
+                color={themeColors.textSecondary}
               />
             </View>
-          </TouchableOpacity>
 
-          {!!verifyError && (
-            <Text
-              style={{
-                color: themeColors.error || "#ff4d4f",
-                marginTop: 10,
-                textAlign: "center",
-                fontWeight: "600",
-              }}
-            >
-              {verifyError}
-            </Text>
-          )}
+            <View style={styles.otpHeaderRow}>
+              <Text style={[styles.fieldLabel, { color: themeColors.text }]}>
+                Code OTP
+              </Text>
+              <View
+                style={[
+                  styles.detectPill,
+                  {
+                    backgroundColor:
+                      (silentOk
+                        ? themeColors.success
+                        : requiresManual
+                          ? themeColors.warning || "#EAB308"
+                          : themeColors.primary) + "18",
+                  },
+                ]}
+              >
+                {loadingSilent ? (
+                  <ActivityIndicator size="small" color={themeColors.primary} />
+                ) : (
+                  <Ionicons
+                    name={
+                      silentOk
+                        ? "checkmark-done"
+                        : requiresManual
+                          ? "alert"
+                          : "time"
+                    }
+                    size={16}
+                    color={
+                      silentOk
+                        ? themeColors.success
+                        : requiresManual
+                          ? themeColors.warning || "#EAB308"
+                          : themeColors.primary
+                    }
+                  />
+                )}
+                <Text
+                  style={[
+                    styles.detectText,
+                    {
+                      color: silentOk
+                        ? themeColors.success
+                        : requiresManual
+                          ? themeColors.warning || "#EAB308"
+                          : themeColors.primary,
+                    },
+                  ]}
+                >
+                  {loadingSilent
+                    ? "Détection…"
+                    : silentOk
+                      ? "Détecté"
+                      : requiresManual
+                        ? "Saisie manuelle"
+                        : "En attente"}
+                </Text>
+              </View>
+            </View>
 
-          <TouchableOpacity
-            onPress={() => {
-              try {
-                (route as any)?.params?.onCancel?.();
-              } catch {}
-              navigation.goBack();
-            }}
-            style={{ marginTop: 20 }}
-          >
-            <Text
-              style={{
-                color: themeColors.textSecondary,
-                fontWeight: "600",
-                textAlign: "center",
-              }}
-            >
-              Ce n'est pas moi ? Annuler
-            </Text>
-          </TouchableOpacity>
-          <View style={styles.securityRow}>
-            <Ionicons
-              name="shield-checkmark"
-              size={16}
-              color={themeColors.textSecondary}
-            />
-            <Text
-              style={[
-                styles.securityText,
-                { color: themeColors.textSecondary },
-              ]}
-            >
-              Connexion sécurisée par la banque
-            </Text>
+            <View style={styles.otpRow}>
+              {Array.from({ length: 3 }).map((_, i) => (
+                <View
+                  key={`otp-a-${i}`}
+                  style={[
+                    styles.otpItem,
+                    {
+                      borderColor: themeColors.primary,
+                      backgroundColor: themeColors.background,
+                      ...(i === active
+                        ? { shadowOpacity: 0.1, shadowRadius: 6 }
+                        : {}),
+                    },
+                  ]}
+                >
+                  <TextInput
+                    ref={(r) => (inputs.current[i] = r as any)}
+                    value={values[i]}
+                    onChangeText={(t) => handleChange(i, t)}
+                    onKeyPress={(e) => handleKeyPress(i, e)}
+                    keyboardType="number-pad"
+                    maxLength={1}
+                    textContentType="oneTimeCode"
+                    autoComplete="sms-otp"
+                    style={[styles.otpInput, { color: themeColors.text }]}
+                    selectionColor={themeColors.primary}
+                    // includeFontPadding={false} // Removed: Android specific via styles
+                    textAlignVertical="center"
+                  />
+                </View>
+              ))}
+              <Text style={[styles.dash, { color: themeColors.textSecondary }]}>
+                -
+              </Text>
+              {Array.from({ length: 3 }).map((_, j) => (
+                <View
+                  key={`otp-b-${j}`}
+                  style={[
+                    styles.otpItem,
+                    {
+                      borderColor: themeColors.primary,
+                      backgroundColor: themeColors.background,
+                      ...(j + 3 === active
+                        ? { shadowOpacity: 0.1, shadowRadius: 6 }
+                        : {}),
+                    },
+                  ]}
+                >
+                  <TextInput
+                    ref={(r) => (inputs.current[j + 3] = r as any)}
+                    value={values[j + 3]}
+                    onChangeText={(t) => handleChange(j + 3, t)}
+                    onKeyPress={(e) => handleKeyPress(j + 3, e)}
+                    keyboardType="number-pad"
+                    maxLength={1}
+                    textContentType="oneTimeCode"
+                    autoComplete="sms-otp"
+                    style={[styles.otpInput, { color: themeColors.text }]}
+                    selectionColor={themeColors.primary}
+                    // includeFontPadding={false} // Removed: Android specific via styles
+                    textAlignVertical="center"
+                  />
+                </View>
+              ))}
+            </View>
+
+            <View style={styles.spacer} />
+
+            <View style={styles.footer}>
+              <TouchableOpacity
+                style={[
+                  styles.submitBtn,
+                  {
+                    backgroundColor: themeColors.primary,
+                    opacity: canSubmit ? 1 : 0.6,
+                  },
+                ]}
+                disabled={!canSubmit}
+                onPress={() => verifyOtp()}
+              >
+                <View style={styles.submitInnerRow}>
+                  <Text style={[styles.submitText, { color: "#fff" }]}>
+                    Valider
+                  </Text>
+                  <Ionicons
+                    name="arrow-forward"
+                    size={18}
+                    color="#fff"
+                    style={{ marginLeft: 12 }}
+                  />
+                </View>
+              </TouchableOpacity>
+
+              {!!verifyError && (
+                <Text
+                  style={{
+                    color: themeColors.error || "#ff4d4f",
+                    marginTop: 10,
+                    textAlign: "center",
+                    fontWeight: "600",
+                  }}
+                >
+                  {verifyError}
+                </Text>
+              )}
+
+              <TouchableOpacity
+                onPress={() => {
+                  try {
+                    (route as any)?.params?.onCancel?.();
+                  } catch {}
+                  navigation.goBack();
+                }}
+                style={{ marginTop: 20 }}
+              >
+                <Text
+                  style={{
+                    color: themeColors.textSecondary,
+                    fontWeight: "600",
+                    textAlign: "center",
+                  }}
+                >
+                  Ce n'est pas moi ? Annuler
+                </Text>
+              </TouchableOpacity>
+              <View style={styles.securityRow}>
+                <Ionicons
+                  name="shield-checkmark"
+                  size={16}
+                  color={themeColors.textSecondary}
+                />
+                <Text
+                  style={[
+                    styles.securityText,
+                    { color: themeColors.textSecondary },
+                  ]}
+                >
+                  Connexion sécurisée par la banque
+                </Text>
+              </View>
+            </View>
           </View>
-        </View>
-      </View>
-    </SafeAreaView>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </View>
   );
 };
 
@@ -611,19 +641,26 @@ const styles = StyleSheet.create({
   otpItem: {
     width: "14.5%",
     alignItems: "center",
+    justifyContent: "center",
     borderWidth: 2,
     borderRadius: 16,
-    paddingVertical: 6,
+    // paddingVertical: 6, // Removed to let TextInput fill the height
+    height: 60, // Fixed height for container
     shadowColor: "#000",
     shadowOpacity: 0.04,
     shadowRadius: 6,
     elevation: 1,
   },
   otpInput: {
-    fontSize: 22,
+    fontSize: 28,
+    fontWeight: "700",
     textAlign: "center",
-    paddingVertical: 6,
+    padding: 0,
+    height: "100%",
     width: "100%",
+    color: "#000000",
+    includeFontPadding: false,
+    textAlignVertical: "center",
   },
   dash: { marginHorizontal: 8, fontSize: 20, fontWeight: "800" },
   submitBtn: {
