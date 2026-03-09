@@ -10,6 +10,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
+  SafeAreaView,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { useTheme } from "../../../shared/styles/ThemeProvider";
@@ -112,213 +113,214 @@ export const ForgotPasswordScreen: React.FC = () => {
   };
 
   return (
-    <KeyboardAvoidingView
-      style={{ flex: 1 }}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-    >
-      <ScrollView
-        contentContainerStyle={[
-          styles.container,
-          { backgroundColor: colors.background },
-        ]}
+    <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => navigation.goBack()}
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
         >
-          <Ionicons name="arrow-back" size={24} color={colors.text} />
-        </TouchableOpacity>
-
-        <View style={styles.header}>
-          <Text style={[styles.title, { color: colors.text }]}>
-            Récupération
-          </Text>
-          <Text style={[styles.subtitle, { color: colors.text + "80" }]}>
-            Entrez vos informations pour réinitialiser votre PIN.
-          </Text>
-        </View>
-
-        <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
-          {/* LOGIN / PHONE */}
-          <Text style={[styles.label, { color: colors.text }]}>
-            Email ou Téléphone (Login)
-          </Text>
-          <TextInput
-            style={[
-              styles.input,
-              {
-                backgroundColor: colors.background,
-                color: colors.text,
-                borderColor: colors.border,
-              },
-            ]}
-            placeholder="Ex: 0707..."
-            placeholderTextColor={colors.text + "60"}
-            value={login}
-            onChangeText={setLogin}
-            autoCapitalize="none"
-          />
-
-          {/* SECRET KEY */}
-          <Text style={[styles.label, { color: colors.text }]}>
-            Clé secrète
-          </Text>
-          <View style={styles.passwordContainer}>
-            <TextInput
-              style={[
-                styles.input,
-                {
-                  flex: 1,
-                  backgroundColor: colors.background,
-                  color: colors.text,
-                  borderColor: colors.border,
-                  marginBottom: 0,
-                },
-              ]}
-              placeholder="Votre clé secrète"
-              placeholderTextColor={colors.text + "60"}
-              value={secretKey}
-              onChangeText={setSecretKey}
-              secureTextEntry={!showSecret}
-            />
-            <TouchableOpacity
-              style={styles.eyeIcon}
-              onPress={() => setShowSecret(!showSecret)}
-            >
-              <Ionicons
-                name={showSecret ? "eye-off-outline" : "eye-outline"}
-                size={20}
-                color={colors.text + "80"}
-              />
-            </TouchableOpacity>
-          </View>
-
-          {/* NEW PIN */}
-          <Text style={[styles.label, { color: colors.text, marginTop: 16 }]}>
-            Nouveau PIN (5 chiffres)
-          </Text>
-          <View style={styles.passwordContainer}>
-            <TextInput
-              style={[
-                styles.input,
-                {
-                  flex: 1,
-                  backgroundColor: colors.background,
-                  color: colors.text,
-                  borderColor: colors.border,
-                  marginBottom: 0,
-                },
-              ]}
-              placeholder="•••••"
-              placeholderTextColor={colors.text + "60"}
-              value={newPin}
-              onChangeText={setNewPin}
-              keyboardType="number-pad"
-              maxLength={5}
-              secureTextEntry={!showPin}
-            />
-            <TouchableOpacity
-              style={styles.eyeIcon}
-              onPress={() => setShowPin(!showPin)}
-            >
-              <Ionicons
-                name={showPin ? "eye-off-outline" : "eye-outline"}
-                size={20}
-                color={colors.text + "80"}
-              />
-            </TouchableOpacity>
-          </View>
-
-          {/* CONFIRM PIN */}
-          <Text style={[styles.label, { color: colors.text, marginTop: 16 }]}>
-            Confirmer le PIN
-          </Text>
-          <View style={styles.passwordContainer}>
-            <TextInput
-              style={[
-                styles.input,
-                {
-                  flex: 1,
-                  backgroundColor: colors.background,
-                  color: colors.text,
-                  borderColor: colors.border,
-                  marginBottom: 0,
-                },
-              ]}
-              placeholder="•••••"
-              placeholderTextColor={colors.text + "60"}
-              value={confirmPin}
-              onChangeText={setConfirmPin}
-              keyboardType="number-pad"
-              maxLength={5}
-              secureTextEntry={!showConfirm}
-            />
-            <TouchableOpacity
-              style={styles.eyeIcon}
-              onPress={() => setShowConfirm(!showConfirm)}
-            >
-              <Ionicons
-                name={showConfirm ? "eye-off-outline" : "eye-outline"}
-                size={20}
-                color={colors.text + "80"}
-              />
-            </TouchableOpacity>
-          </View>
-
-          {/* ERROR MESSAGE */}
-          {!!error && (
-            <Text style={[styles.errorText, { color: colors.error }]}>
-              {error}
-            </Text>
-          )}
-
-          {/* SUBMIT BUTTON */}
           <TouchableOpacity
-            style={[
-              styles.button,
-              { backgroundColor: colors.primary, opacity: isLoading ? 0.7 : 1 },
-            ]}
-            onPress={handleReset}
-            disabled={isLoading}
+            style={styles.backButton}
+            onPress={() => navigation.goBack()}
           >
-            {isLoading ? (
-              <ActivityIndicator color="#FFF" />
-            ) : (
-              <Text style={styles.buttonText}>Modifier le PIN</Text>
-            )}
+            <Ionicons name="arrow-back" size={24} color={colors.text} />
           </TouchableOpacity>
-        </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+
+          <View style={styles.header}>
+            <Text style={[styles.title, { color: colors.text }]}>
+              Récupération
+            </Text>
+            <Text style={[styles.subtitle, { color: colors.text + "80" }]}>
+              Entrez vos informations pour réinitialiser votre PIN.
+            </Text>
+          </View>
+
+          <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
+            {/* LOGIN / PHONE */}
+            <Text style={[styles.label, { color: colors.text }]}>
+              Email ou Téléphone (Login)
+            </Text>
+            <TextInput
+              style={[
+                styles.input,
+                {
+                  backgroundColor: colors.background,
+                  color: colors.text,
+                  borderColor: colors.border,
+                },
+              ]}
+              placeholder="Ex: 0707..."
+              placeholderTextColor={colors.text + "60"}
+              value={login}
+              onChangeText={setLogin}
+              autoCapitalize="none"
+            />
+
+            {/* SECRET KEY */}
+            <Text style={[styles.label, { color: colors.text }]}>
+              Clé secrète
+            </Text>
+            <View style={styles.passwordContainer}>
+              <TextInput
+                style={[
+                  styles.input,
+                  {
+                    flex: 1,
+                    backgroundColor: colors.background,
+                    color: colors.text,
+                    borderColor: colors.border,
+                    marginBottom: 0,
+                  },
+                ]}
+                placeholder="Votre clé secrète"
+                placeholderTextColor={colors.text + "60"}
+                value={secretKey}
+                onChangeText={setSecretKey}
+                secureTextEntry={!showSecret}
+              />
+              <TouchableOpacity
+                style={styles.eyeIcon}
+                onPress={() => setShowSecret(!showSecret)}
+              >
+                <Ionicons
+                  name={showSecret ? "eye-off-outline" : "eye-outline"}
+                  size={20}
+                  color={colors.text + "80"}
+                />
+              </TouchableOpacity>
+            </View>
+
+            {/* NEW PIN */}
+            <Text style={[styles.label, { color: colors.text, marginTop: 16 }]}>
+              Nouveau PIN (5 chiffres)
+            </Text>
+            <View style={styles.passwordContainer}>
+              <TextInput
+                style={[
+                  styles.input,
+                  {
+                    flex: 1,
+                    backgroundColor: colors.background,
+                    color: colors.text,
+                    borderColor: colors.border,
+                    marginBottom: 0,
+                  },
+                ]}
+                placeholder="•••••"
+                placeholderTextColor={colors.text + "60"}
+                value={newPin}
+                onChangeText={setNewPin}
+                keyboardType="number-pad"
+                maxLength={5}
+                secureTextEntry={!showPin}
+              />
+              <TouchableOpacity
+                style={styles.eyeIcon}
+                onPress={() => setShowPin(!showPin)}
+              >
+                <Ionicons
+                  name={showPin ? "eye-off-outline" : "eye-outline"}
+                  size={20}
+                  color={colors.text + "80"}
+                />
+              </TouchableOpacity>
+            </View>
+
+            {/* CONFIRM PIN */}
+            <Text style={[styles.label, { color: colors.text, marginTop: 16 }]}>
+              Confirmer le PIN
+            </Text>
+            <View style={styles.passwordContainer}>
+              <TextInput
+                style={[
+                  styles.input,
+                  {
+                    flex: 1,
+                    backgroundColor: colors.background,
+                    color: colors.text,
+                    borderColor: colors.border,
+                    marginBottom: 0,
+                  },
+                ]}
+                placeholder="•••••"
+                placeholderTextColor={colors.text + "60"}
+                value={confirmPin}
+                onChangeText={setConfirmPin}
+                keyboardType="number-pad"
+                maxLength={5}
+                secureTextEntry={!showConfirm}
+              />
+              <TouchableOpacity
+                style={styles.eyeIcon}
+                onPress={() => setShowConfirm(!showConfirm)}
+              >
+                <Ionicons
+                  name={showConfirm ? "eye-off-outline" : "eye-outline"}
+                  size={20}
+                  color={colors.text + "80"}
+                />
+              </TouchableOpacity>
+            </View>
+
+            {/* ERROR MESSAGE */}
+            {!!error && (
+              <Text style={[styles.errorText, { color: colors.error }]}>
+                {error}
+              </Text>
+            )}
+
+            {/* SUBMIT BUTTON */}
+            <TouchableOpacity
+              style={[
+                styles.button,
+                { backgroundColor: colors.primary, opacity: isLoading ? 0.7 : 1 },
+              ]}
+              onPress={handleReset}
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <ActivityIndicator color="#FFF" />
+              ) : (
+                <Text style={styles.buttonText}>Modifier le PIN</Text>
+              )}
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
+  scrollContent: {
     flexGrow: 1,
     padding: 20,
-    justifyContent: "center",
+    paddingBottom: 40,
   },
   backButton: {
-    position: "absolute",
-    top: 50,
-    left: 20,
-    zIndex: 10,
+    alignSelf: 'flex-start',
     padding: 8,
+    marginLeft: -8,
+    marginBottom: 20,
   },
   header: {
     marginBottom: 30,
     alignItems: "center",
-    marginTop: 60,
   },
   title: {
     fontSize: 24,
     fontWeight: "bold",
     marginBottom: 10,
+    textAlign: "center",
   },
   subtitle: {
     fontSize: 16,
     textAlign: "center",
+    lineHeight: 24,
   },
   card: {
     borderRadius: 16,
@@ -329,6 +331,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.05,
     shadowRadius: 8,
     elevation: 2,
+    marginBottom: 20,
   },
   label: {
     fontSize: 14,
@@ -369,5 +372,6 @@ const styles = StyleSheet.create({
     marginTop: 10,
     textAlign: "center",
     fontSize: 14,
+    marginBottom: 10,
   },
 });

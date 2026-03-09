@@ -1210,8 +1210,8 @@ export const DashboardScreen: React.FC = () => {
 
                       // FIX: Les ouvertures de comptes sont toujours des débits (sorties)
                       if (label.toUpperCase().includes("OUVERTURE")) {
-                        if (creditAmount > 0 && debitAmount === 0) {
-                          debitAmount = creditAmount;
+                        if (creditAmount > 0 || debitAmount > 0) {
+                          debitAmount = creditAmount + debitAmount;
                           creditAmount = 0;
                         }
                       }
@@ -1236,14 +1236,13 @@ export const DashboardScreen: React.FC = () => {
                       }
 
                       // Correction auto-validation: Si SENS contredit les montants (ex: SENS=C mais Credit=0 et Debit>0)
-                      if (isCredit && creditAmount === 0 && debitAmount > 0) {
-                        isCredit = false;
-                      } else if (
-                        !isCredit &&
-                        debitAmount === 0 &&
-                        creditAmount > 0
-                      ) {
-                        isCredit = true;
+                      // Sauf si c'est une OUVERTURE (déjà gérée)
+                      if (!label.toUpperCase().includes("OUVERTURE")) {
+                        if (isCredit && creditAmount === 0 && debitAmount > 0) {
+                          isCredit = false;
+                        } else if (!isCredit && debitAmount === 0 && creditAmount > 0) {
+                          isCredit = true;
+                        }
                       }
 
                       const amt = isCredit ? creditAmount : debitAmount;

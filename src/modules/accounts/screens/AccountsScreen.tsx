@@ -42,12 +42,17 @@ export const AccountsScreen: React.FC = () => {
     const type = String(c.CO_INTITULECOMPTE ?? "").toUpperCase();
     const productLabel = String(c.PD_LIBELLE ?? "").toUpperCase();
     const color = type.includes("EPARGNE") ? colors.success : colors.primary;
+    // Nettoyage du numéro de compte pour éviter les doublons dus aux espaces/formatage
+    const cleanNumber = String(c.NUMEROCOMPTE ?? "")
+      .replace(/[^a-zA-Z0-9]/g, "")
+      .toUpperCase();
+
     return {
       id: c.id ?? idx,
       type,
       productLabel,
       CO_CODECOMPTE: String(c.CO_CODECOMPTE ?? ""),
-      number: String(c.NUMEROCOMPTE ?? ""),
+      number: cleanNumber,
       balance: String(c.SOLDE ?? c.SOLDE_GLOBAL ?? 0),
       blocked: Number(c.MONTANTBLOQUE ?? 0),
       currency: "XOF",
@@ -55,11 +60,11 @@ export const AccountsScreen: React.FC = () => {
       color,
       duration: c.duration || "24 mois",
       nextDueDate: c.nextDueDate || "15/05/2024",
-      // progress will be calculated after portfolioTotal
     } as any;
   });
 
-  // Déduplication des comptes basée sur le numéro de compte
+  // Déduplication stricte basée sur le numéro de compte nettoyé
+  // On utilise un Map pour ne garder qu'une seule occurrence par numéro
   const accounts = Array.from(
     new Map(rawAccounts.map((item) => [item.number, item])).values()
   );

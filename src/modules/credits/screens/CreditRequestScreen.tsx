@@ -21,6 +21,7 @@ import {
   secureGetItem,
   secureSetItem,
 } from "../../../shared/utils/secureStorage";
+import { demandeCredit } from "../../../services/credit/demandeCredit";
 
 // Composant Helper pour les sélecteurs (Dropdowns)
 const FormPicker = ({
@@ -46,7 +47,7 @@ const FormPicker = ({
 
   const filteredOptions = searchable
     ? options.filter((opt) =>
-        opt.toLowerCase().includes(searchText.toLowerCase())
+        opt.toLowerCase().includes(searchText.toLowerCase()),
       )
     : options;
 
@@ -476,9 +477,46 @@ export const CreditRequestScreen: React.FC = () => {
       if (missingFields.length > 0) {
         Alert.alert(
           t("common.error"),
-          `${t("common.fillAllFields")}\n\n${missingFields.join(", ")}`
+          `${t("common.fillAllFields")}\n\n${missingFields.join(", ")}`,
         );
         return;
+      }
+
+      const clientId = await secureGetItem("client_id");
+      const userAgency = await secureGetItem("user_agency");
+      const userOperator = await secureGetItem("user_operator");
+
+      const response = await demandeCredit({
+        LG_CODELANGUE: "FR",
+        AG_CODEAGENCE: userAgency || "1000",
+        OF_CODEOBJETFINANCEMENT: "01", // TODO: Rendre dynamique si besoin
+        PS_CODESOUSPRODUIT: "00153", // TODO: Rendre dynamique si besoin
+        TA_CODETYPEACTIVITE: "09", // TODO: Rendre dynamique si besoin
+        AC_CODEACTIVITE: "0007", // TODO: Rendre dynamique si besoin
+        AT_CODEACTIVITE: "00013", // TODO: Rendre dynamique si besoin
+        CL_IDCLIENT: clientId || "100000002495",
+        CR_DESCRIPTIONACTIVITE: descActivity || "Achat de matériel agricole",
+        CO_CODECOMMUNE: "0000000005", // TODO: Mapper avec commune selectionnée
+        CR_ADRESSEGEOGRAPHIQUEACTIVITE:
+          location || "Rue principale, quartier centre",
+        CR_MONTANTCREDIT: amount.replace(/[^0-9]/g, ""),
+        CR_DATEREMBOURSEMENT: "31/12/2025", // TODO: Calculer
+        CR_TAUX: "12",
+        CR_DUREE: duration,
+        CR_DIFFERE: deferred || "0",
+        PE_CODEPERIODICITE: "01", // TODO: Mapper avec periodicity
+        OP_CODEOPERATEUR: userOperator || "100000006",
+        TYPEOPERATION: "0",
+        CR_DATEMISEENPLACE: new Date().toLocaleDateString("fr-FR"), // Aujourd'hui
+        CODECRYPTAGE: "Y}@128eVIXfoi7",
+      });
+
+      if (response.error) {
+        throw new Error(
+          (response.error as any)?.response?.data?.message ||
+            (response.error as any)?.message ||
+            "Erreur lors de la demande",
+        );
       }
 
       // Create a simulated credit account
@@ -527,7 +565,7 @@ export const CreditRequestScreen: React.FC = () => {
       console.error("Erreur handleFinish", e);
       Alert.alert(
         "Erreur",
-        "Une erreur est survenue lors de la soumission: " + e.message
+        "Une erreur est survenue lors de la soumission: " + e.message,
       );
     }
   };
@@ -636,8 +674,8 @@ export const CreditRequestScreen: React.FC = () => {
                     item.status === "APPROVED"
                       ? { backgroundColor: colors.success + "15" }
                       : item.status === "REJECTED"
-                      ? { backgroundColor: colors.error + "15" }
-                      : { backgroundColor: colors.primary + "15" },
+                        ? { backgroundColor: colors.error + "15" }
+                        : { backgroundColor: colors.primary + "15" },
                   ]}
                 >
                   <Text
@@ -646,15 +684,15 @@ export const CreditRequestScreen: React.FC = () => {
                       item.status === "APPROVED"
                         ? { color: colors.success }
                         : item.status === "REJECTED"
-                        ? { color: colors.error }
-                        : { color: colors.primary },
+                          ? { color: colors.error }
+                          : { color: colors.primary },
                     ]}
                   >
                     {item.status === "APPROVED"
                       ? "Validée"
                       : item.status === "REJECTED"
-                      ? "Rejetée"
-                      : "En cours"}
+                        ? "Rejetée"
+                        : "En cours"}
                   </Text>
                 </View>
               </View>

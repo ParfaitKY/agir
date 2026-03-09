@@ -62,19 +62,25 @@ httpClient.interceptors.response.use(
     try {
       const status = error?.response?.status;
       const msg = String(
-        error?.response?.data?.message || error?.message || ""
+        error?.response?.data?.message || error?.message || "",
       ).toLowerCase();
-      const tokenIssue = /token/.test(msg) && /(expir|invalid|expire)/.test(msg);
+      // Détection des erreurs de token (401, 403 ou message explicite)
+      const tokenIssue =
+        /token/.test(msg) && /(expir|invalid|expire|invalide)/.test(msg);
+
       if (status === 401 || status === 403 || tokenIssue) {
+        console.log("[http] Auth expired or invalid, triggering global logout");
         emit("auth:expired", { status, msg });
       }
-    } catch {}
+    } catch (e) {
+      console.error("[http] Error in interceptor", e);
+    }
     return Promise.reject(error);
-  }
+  },
 );
 
 export async function handleRequest<T = any>(
-  request: Promise<AxiosResponse<T>>
+  request: Promise<AxiosResponse<T>>,
 ): Promise<RequestResult<T>> {
   try {
     const res = await request;
@@ -84,4 +90,3 @@ export async function handleRequest<T = any>(
     return { error: err };
   }
 }
-

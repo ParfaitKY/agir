@@ -101,6 +101,12 @@ const InitialSetupScreen: React.FC = () => {
   // on le redirige immédiatement vers le PIN.
   useEffect(() => {
     const checkConfig = async () => {
+      // Si on vient d'un reset (déconnexion explicite), on ne redirige pas
+      if (route.params?.reset) {
+         console.log("[InitialSetup] Reset requested - staying on setup screen");
+         return;
+      }
+
       try {
         const conf = await secureGetItem("is_configured");
         const pin = await secureGetItem("pin_user");
@@ -111,7 +117,7 @@ const InitialSetupScreen: React.FC = () => {
       } catch {}
     };
     checkConfig();
-  }, []);
+  }, [route.params]);
 
   useEffect(() => {
     Animated.parallel([

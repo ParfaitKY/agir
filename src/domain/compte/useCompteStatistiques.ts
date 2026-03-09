@@ -75,10 +75,34 @@ export const useCompteStatistiques = () => {
       const payload = result?.data;
       let stats: CompteStatsData | null = payload?.data ?? null;
 
+      // Correction : Déduplication des comptes basée sur le numéro de compte nettoyé (alphanumeric only)
+      // Cela empêche les comptes en double d'apparaître dans l'interface utilisateur
+      if (stats && Array.isArray(stats.COMPTES)) {
+        const uniqueAccounts = Array.from(
+          new Map(
+            stats.COMPTES.map((item) => {
+              // Nettoyage agressif : garde uniquement chiffres et lettres, majuscules
+              const rawNum = String(item.NUMEROCOMPTE || "");
+              const num = rawNum.replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
+              
+              // Fallback sur CO_CODECOMPTE si le numéro est vide
+              const code = String(item.CO_CODECOMPTE || "").replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
+              
+              // Clé unique : Priorité au Numéro, sinon Code, sinon ID aléatoire
+              const key = num || code || `id_${item.id || Math.random()}`;
+              
+              return [key, item];
+            }),
+          ).values(),
+        );
+        stats.COMPTES = uniqueAccounts;
+        stats.NOMBRE_COMPTES = uniqueAccounts.length;
+      }
+
       setData(stats);
       await secureSetItem(
         "compte_statistiques",
-        JSON.stringify(stats ?? payload)
+        JSON.stringify(stats ?? payload),
       );
       return true;
     } catch (e: any) {

@@ -690,13 +690,17 @@ const ProfileScreen: React.FC = () => {
 
               console.log("User logged out AND data wiped");
               try {
-                // Redirection vers l'écran de saisie de token (InitialSetup)
+                // Redirection explicite vers l'écran de saisie de token (InitialSetup)
+                // On passe le paramètre 'reset: true' pour forcer l'état initial
                 (navigation as any).reset({
                   index: 0,
-                  routes: [{ name: "InitialSetup" }],
+                  routes: [{ 
+                    name: "InitialSetup",
+                    params: { reset: true }
+                  }],
                 });
               } catch (error) {
-                (navigation as any).navigate("InitialSetup" as never);
+                (navigation as any).navigate("InitialSetup", { reset: true });
               }
             },
           },
