@@ -45,9 +45,9 @@ const FormPicker = ({
       <TouchableOpacity
         style={[
           styles.pickerButton,
-          { 
-            borderColor: colors.border, 
-            backgroundColor: colors.background + '80' // Slightly transparent background
+          {
+            borderColor: colors.border,
+            backgroundColor: colors.background + "80", // Slightly transparent background
           },
         ]}
         onPress={() => setModalVisible(true)}
@@ -142,7 +142,7 @@ export const AccountOpeningScreen: React.FC = () => {
     if (!lastName || !firstName || !phone || !email) {
       Alert.alert(
         "Attention",
-        "Veuillez remplir tous les champs obligatoires."
+        "Veuillez remplir tous les champs obligatoires.",
       );
       return;
     }
@@ -162,7 +162,7 @@ export const AccountOpeningScreen: React.FC = () => {
         if (permissionResult.granted === false) {
           Alert.alert(
             "Permission requise",
-            "L'accès à la caméra est nécessaire."
+            "L'accès à la caméra est nécessaire.",
           );
           return;
         }
@@ -177,7 +177,7 @@ export const AccountOpeningScreen: React.FC = () => {
         if (permissionResult.granted === false) {
           Alert.alert(
             "Permission requise",
-            "L'accès à la galerie est nécessaire."
+            "L'accès à la galerie est nécessaire.",
           );
           return;
         }
@@ -199,7 +199,7 @@ export const AccountOpeningScreen: React.FC = () => {
       console.error("Image picker error:", error);
       Alert.alert(
         "Erreur",
-        "Une erreur est survenue lors de la sélection de l'image."
+        "Une erreur est survenue lors de la sélection de l'image.",
       );
     }
   };
@@ -208,14 +208,14 @@ export const AccountOpeningScreen: React.FC = () => {
     if (!idType || !idNumber) {
       Alert.alert(
         "Attention",
-        "Veuillez remplir tous les champs obligatoires."
+        "Veuillez remplir tous les champs obligatoires.",
       );
       return;
     }
     if (!docImageRecto || !docImageVerso) {
       Alert.alert(
         t("common.error"),
-        "Veuillez joindre une photo de votre pièce d'identité."
+        "Veuillez joindre une photo de votre pièce d'identité.",
       );
       return;
     }
@@ -289,7 +289,9 @@ export const AccountOpeningScreen: React.FC = () => {
                     placeholder="Entrez votre nom"
                     placeholderTextColor={colors.text + "60"}
                     value={lastName}
-                    onChangeText={(text) => setLastName(text.replace(/[^a-zA-ZÀ-ÿ\s'-]/g, ""))}
+                    onChangeText={(text) =>
+                      setLastName(text.replace(/[^a-zA-ZÀ-ÿ\s'-]/g, ""))
+                    }
                   />
                 </View>
 
@@ -330,7 +332,9 @@ export const AccountOpeningScreen: React.FC = () => {
                     placeholderTextColor={colors.text + "60"}
                     keyboardType="numeric"
                     value={phone}
-                    onChangeText={(text) => setPhone(text.replace(/[^0-9]/g, ""))}
+                    onChangeText={(text) =>
+                      setPhone(text.replace(/[^0-9]/g, ""))
+                    }
                   />
                 </View>
 
@@ -346,7 +350,7 @@ export const AccountOpeningScreen: React.FC = () => {
                         color: colors.text,
                         backgroundColor: colors.background,
                       },
-                    ]}Enrz vore adresse e
+                    ]}
                     placeholder="test@mail.com"
                     placeholderTextColor={colors.text + "60"}
                     keyboardType="email-address"
@@ -423,16 +427,29 @@ export const AccountOpeningScreen: React.FC = () => {
                     maxLength={15}
                     onChangeText={setIdNumber}
                   />
-                  <Text style={{ fontSize: 12, color: colors.text + "80", marginTop: 4 }}>
+                  <Text
+                    style={{
+                      fontSize: 12,
+                      color: colors.text + "80",
+                      marginTop: 4,
+                    }}
+                  >
                     15 caractères requis
                   </Text>
                 </View>
 
                 <View style={styles.fieldGroup}>
                   <Text style={[styles.label, { color: colors.text }]}>
-                    Photo du document (Recto) <Text style={{ color: "red" }}>*</Text>
+                    Photo du document (Recto){" "}
+                    <Text style={{ color: "red" }}>*</Text>
                   </Text>
-                  <Text style={{ fontSize: 12, color: colors.text + "80", marginBottom: 8 }}>
+                  <Text
+                    style={{
+                      fontSize: 12,
+                      color: colors.text + "80",
+                      marginBottom: 8,
+                    }}
+                  >
                     Taille max: 5 Mo. Formats: JPG, PNG.
                   </Text>
                   <View style={styles.imagePickerContainer}>
@@ -503,9 +520,16 @@ export const AccountOpeningScreen: React.FC = () => {
 
                 <View style={styles.fieldGroup}>
                   <Text style={[styles.label, { color: colors.text }]}>
-                    Photo du document (Verso) <Text style={{ color: "red" }}>*</Text>
+                    Photo du document (Verso){" "}
+                    <Text style={{ color: "red" }}>*</Text>
                   </Text>
-                  <Text style={{ fontSize: 12, color: colors.text + "80", marginBottom: 8 }}>
+                  <Text
+                    style={{
+                      fontSize: 12,
+                      color: colors.text + "80",
+                      marginBottom: 8,
+                    }}
+                  >
                     Taille max: 5 Mo. Formats: JPG, PNG.
                   </Text>
                   <View style={styles.imagePickerContainer}>
