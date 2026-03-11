@@ -48,7 +48,7 @@ const PinLoginScreen: React.FC = () => {
     };
   }, []);
   const { width } = useWindowDimensions();
-  const { loginWithPin, login, isLoading } = useAuth() as any;
+  const { loginWithPin, login, isLoading, fullLogout } = useAuth() as any;
   const [pin, setPin] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [showPin, setShowPin] = useState(false);
@@ -138,12 +138,23 @@ const PinLoginScreen: React.FC = () => {
         const newAttempts = attempts + 1;
         setAttempts(newAttempts);
         const remaining = MAX_ATTEMPTS - newAttempts;
-        
         if (remaining <= 0) {
-          setError("Nombre de tentatives épuisé. Veuillez contacter votre gestionnaire pour réinitialiser votre accès.");
-        } else {
-          setError(`Code PIN incorrect. ${remaining} tentative(s) restante(s).`);
+          try {
+            await fullLogout();
+          } catch {}
+          setPin("");
+          setAttempts(0);
+          if ((navigation as any)?.reset) {
+            (navigation as any).reset({
+              index: 0,
+              routes: [{ name: "InitialSetup" }],
+            });
+          } else if ((navigation as any)?.navigate) {
+            (navigation as any).navigate("InitialSetup");
+          }
+          return;
         }
+        setError(`Code PIN incorrect. ${remaining} tentative(s) restante(s).`);
 
         setPinSuccess(false);
         setPin("");
