@@ -107,6 +107,26 @@ export const DashboardScreen: React.FC = () => {
     const id = setInterval(() => setNow(new Date()), 60000);
     return () => clearInterval(id);
   }, []);
+
+  // Fonction pour basculer la visibilité du solde et rafraîchir les données
+  const toggleBalanceVisibility = async () => {
+    const nextHiddenState = !isBalanceHidden;
+    setIsBalanceHidden(nextHiddenState);
+
+    // Si on s'apprête à afficher le solde (nextHiddenState est false)
+    if (!nextHiddenState) {
+      if (handleGuestRestriction("la vérification du solde")) return;
+
+      try {
+        // Déclencher les appels API pour mettre à jour le solde
+        // On utilise fetchCompteStats car realTotalBalance dépend de compteStats
+        await Promise.all([fetchSolde(), fetchCompteStats()]);
+      } catch (err) {
+        console.error("Erreur lors de la mise à jour du solde:", err);
+        // L'erreur est déjà gérée dans les hooks (soldeError, compteStatsError)
+      }
+    }
+  };
   const timeText = new Intl.DateTimeFormat("fr-FR", {
     hour: "2-digit",
     minute: "2-digit",
@@ -700,7 +720,7 @@ export const DashboardScreen: React.FC = () => {
               </View>
               <TouchableOpacity
                 style={styles.eyeBtn}
-                onPress={() => setIsBalanceHidden((v) => !v)}
+                onPress={toggleBalanceVisibility}
               >
                 <Ionicons
                   name={isBalanceHidden ? "eye-off-outline" : "eye-outline"}
@@ -1240,7 +1260,11 @@ export const DashboardScreen: React.FC = () => {
                       if (!label.toUpperCase().includes("OUVERTURE")) {
                         if (isCredit && creditAmount === 0 && debitAmount > 0) {
                           isCredit = false;
-                        } else if (!isCredit && debitAmount === 0 && creditAmount > 0) {
+                        } else if (
+                          !isCredit &&
+                          debitAmount === 0 &&
+                          creditAmount > 0
+                        ) {
                           isCredit = true;
                         }
                       }
