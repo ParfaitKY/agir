@@ -799,7 +799,7 @@ export const DashboardScreen: React.FC = () => {
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.actionBtn}
-                onPress={() => navigation.navigate("Cards" as never)}
+                onPress={() => setShowFeatureUnavailableModal(true)}
               >
                 <Ionicons
                   name="card-outline"
@@ -982,10 +982,7 @@ export const DashboardScreen: React.FC = () => {
                 styles.quickActionCard,
                 { backgroundColor: colors.card, borderColor: colors.border },
               ]}
-              onPress={() => {
-                if (handleGuestRestriction("les cartes")) return;
-                navigation.navigate("Cards" as never);
-              }}
+              onPress={() => setShowFeatureUnavailableModal(true)}
             >
               <View
                 style={[
