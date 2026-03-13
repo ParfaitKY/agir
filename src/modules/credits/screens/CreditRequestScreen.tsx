@@ -405,24 +405,26 @@ export const CreditRequestScreen: React.FC = () => {
   const placeholderColor = "#9E9E9E";
 
   // Form State
-  const [type, setType] = useState("");
-  const [nature, setNature] = useState("");
-  const [product, setProduct] = useState("");
-  const [activity, setActivity] = useState("");
-  const [object, setObject] = useState("");
-  const [descActivity, setDescActivity] = useState("");
-  const [amount, setAmount] = useState("");
+  const [type, setType] = useState("Particulier");
+  const [nature, setNature] = useState("Consommation");
+  const [product, setProduct] = useState("Produit A");
+  const [activity, setActivity] = useState("Commerce");
+  const [object, setObject] = useState("Achat équipement");
+  const [descActivity, setDescActivity] = useState(
+    "Achat de matériel agricole",
+  );
+  const [amount, setAmount] = useState("20000");
 
-  const [periodicity, setPeriodicity] = useState("");
-  const [duration, setDuration] = useState("");
-  const [deferred, setDeferred] = useState("");
+  const [periodicity, setPeriodicity] = useState("Mensuelle");
+  const [duration, setDuration] = useState("2");
+  const [deferred, setDeferred] = useState("0");
   const [country, setCountry] = useState("CÔTE D'IVOIRE");
   const [birthCountry, setBirthCountry] = useState("CÔTE D'IVOIRE");
-  const [idType, setIdType] = useState("");
-  const [idNumber, setIdNumber] = useState("");
-  const [city, setCity] = useState("");
-  const [commune, setCommune] = useState("");
-  const [location, setLocation] = useState("");
+  const [idType, setIdType] = useState("CNI");
+  const [idNumber, setIdNumber] = useState("123456789");
+  const [city, setCity] = useState("ABIDJAN");
+  const [commune, setCommune] = useState("COCODY");
+  const [location, setLocation] = useState("Rue principale, quartier centre");
 
   // Setup Header
   useLayoutEffect(() => {
@@ -486,35 +488,50 @@ export const CreditRequestScreen: React.FC = () => {
       const userAgency = await secureGetItem("user_agency");
       const userOperator = await secureGetItem("user_operator");
 
+      const placementDate = new Date();
+      const durationNum = parseInt(duration) || 2;
+      const reimbursementDate = new Date(placementDate);
+      reimbursementDate.setMonth(reimbursementDate.getMonth() + durationNum);
+
+      const formatDate = (date: Date) => {
+        const day = String(date.getDate()).padStart(2, "0");
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const year = date.getFullYear();
+        return `${day}/${month}/${year}`;
+      };
+
       const response = await demandeCredit({
         LG_CODELANGUE: "FR",
         AG_CODEAGENCE: userAgency || "1000",
-        OF_CODEOBJETFINANCEMENT: "01", // TODO: Rendre dynamique si besoin
-        PS_CODESOUSPRODUIT: "00153", // TODO: Rendre dynamique si besoin
-        TA_CODETYPEACTIVITE: "09", // TODO: Rendre dynamique si besoin
-        AC_CODEACTIVITE: "0007", // TODO: Rendre dynamique si besoin
-        AT_CODEACTIVITE: "00013", // TODO: Rendre dynamique si besoin
-        CL_IDCLIENT: clientId || "100000002495",
+        OF_CODEOBJETFINANCEMENT: "01",
+        PS_CODESOUSPRODUIT: "00153",
+        TA_CODETYPEACTIVITE: "09",
+        AC_CODEACTIVITE: "0007",
+        AT_CODEACTIVITE: "00013",
+        CL_IDCLIENT: clientId || "100000000011",
         CR_DESCRIPTIONACTIVITE: descActivity || "Achat de matériel agricole",
-        CO_CODECOMMUNE: "0000000005", // TODO: Mapper avec commune selectionnée
+        CO_CODECOMMUNE: "0000000005",
         CR_ADRESSEGEOGRAPHIQUEACTIVITE:
           location || "Rue principale, quartier centre",
         CR_MONTANTCREDIT: amount.replace(/[^0-9]/g, ""),
-        CR_DATEREMBOURSEMENT: "31/12/2025", // TODO: Calculer
+        CR_DATEREMBOURSEMENT: formatDate(reimbursementDate),
         CR_TAUX: "12",
         CR_DUREE: duration,
         CR_DIFFERE: deferred || "0",
-        PE_CODEPERIODICITE: "01", // TODO: Mapper avec periodicity
-        OP_CODEOPERATEUR: userOperator || "100000006",
+        PE_CODEPERIODICITE: "01",
+        OP_CODEOPERATEUR: userOperator || "100000033",
         TYPEOPERATION: "0",
-        CR_DATEMISEENPLACE: new Date().toLocaleDateString("fr-FR"), // Aujourd'hui
+        CR_DATEMISEENPLACE: formatDate(placementDate),
         CODECRYPTAGE: "Y}@128eVIXfoi7",
       });
 
       if (response.error) {
         // En mode démo/test, si le serveur n'a pas encore la route (404) ou est inaccessible,
         // on continue quand même pour simuler le parcours.
-        console.log("Mode Démo: Simulation de succès malgré l'erreur API:", (response.error as any)?.message);
+        console.log(
+          "Mode Démo: Simulation de succès malgré l'erreur API:",
+          (response.error as any)?.message,
+        );
       }
 
       // Create a simulated credit account
