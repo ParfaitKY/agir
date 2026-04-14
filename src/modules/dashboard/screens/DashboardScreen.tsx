@@ -179,15 +179,15 @@ export const DashboardScreen: React.FC = () => {
 
   // Calculer le solde total réel en additionnant les soldes des comptes
   // car SOLDE_GLOBAL envoyé par le serveur peut être incohérent (ex: 1000000 vs 1492500)
-  // On soustrait également le montant bloqué si demandé
   const realTotalBalance = (compteStats?.COMPTES || []).reduce(
-    (sum, account) =>
-      sum + (Number(account.SOLDE) || 0) - (Number(account.MONTANTBLOQUE) || 0),
+    (sum, account) => sum + (Number(account.SOLDE) || 0),
     0,
   );
 
   const soldeGlobalFromStats =
-    realTotalBalance > 0 ? realTotalBalance : compteStats?.SOLDE_GLOBAL;
+    (compteStats?.COMPTES || []).length > 0
+      ? realTotalBalance
+      : (compteStats?.SOLDE_GLOBAL ?? 0);
 
   // Fonction pour gérer les restrictions en mode invité
   const handleGuestRestriction = (featureName: string) => {

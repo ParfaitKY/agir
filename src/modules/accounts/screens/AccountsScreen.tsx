@@ -70,9 +70,8 @@ export const AccountsScreen: React.FC = () => {
   );
 
   // Calculate portfolio total dynamically from accounts to ensure consistency
-  // Soustraire le montant bloqué du solde total
   const portfolioTotal = accounts.reduce(
-    (sum, a) => sum + parseAmount(a.balance) - (Number(a.blocked) || 0),
+    (sum, a) => sum + parseAmount(a.balance),
     0
   );
 
