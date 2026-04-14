@@ -142,18 +142,11 @@ const PasswordRecoveryScreen: React.FC = () => {
         nouveau_login: cleanLogin,
         nouveau_motpasse: cleanPin,
         cle_secrete: cleanSecret,
-        device_id: deviceId, // AJOUTÉ CAR REQUIS
+        device_id: deviceId,
+        // On double les champs si le serveur attend des variantes
         SL_LOGIN: cleanLogin,
         LOGIN: cleanLogin,
-        sl_login: cleanLogin,
-        // On remet code_cryptage car "Invalid crypto padding" a disparu quand on l'a enlevé,
-        // MAIS maintenant on a d'autres erreurs.
-        // Si le serveur demande device_id, c'est bon signe, on avance.
-        // "Not enough segments" vient du header Authorization.
       };
-
-      // On s'assure que code_cryptage est bien absent pour éviter le retour de "Invalid crypto padding"
-      delete payload.code_cryptage;
 
       // 2. Préparation du header Authorization
       // Pour éviter "Invalid crypto padding" (dû à un Dummy JWT) ou "Not enough segments" (dû à un token mal formé),
@@ -211,7 +204,7 @@ const PasswordRecoveryScreen: React.FC = () => {
       const headers = {
         "Content-Type": "application/json",
         Authorization: `Bearer ${tokenToSend}`,
-        "X-NO-AUTH": "true", // On gère l'auth manuellement ici
+        "X-NO-AUTH": "true",
       };
 
       const result: any = await updateLogin(payload, headers);
@@ -253,8 +246,7 @@ const PasswordRecoveryScreen: React.FC = () => {
       <ScrollView
         contentContainerStyle={{
           flexGrow: 1,
-          justifyContent: "center",
-          alignItems: "center",
+          paddingVertical: 20,
         }}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
@@ -278,7 +270,7 @@ const PasswordRecoveryScreen: React.FC = () => {
               style={[styles.headerLine, { backgroundColor: colors.border }]}
             />
             <Text style={[styles.headerTitle, { color: colors.text }]}>
-              Récupération de mot de passe
+              Réinitialisation du code de sécurité
             </Text>
           </View>
           <Animated.View
@@ -294,7 +286,8 @@ const PasswordRecoveryScreen: React.FC = () => {
               </Text>
             </View>
             <Text style={[styles.subtitle, { color: colors.text }]}>
-              Entrez vos informations pour réinitialiser votre mot de passe.
+              Entrez vos informations pour réinitialiser votre code PIN de
+              connexion.
             </Text>
 
             <View style={{ width: "100%", marginTop: 16 }}>
@@ -378,28 +371,33 @@ const PasswordRecoveryScreen: React.FC = () => {
                 {success}
               </Text>
             )}
-            <TouchableOpacity
-              style={[
-                styles.button,
-                { backgroundColor: colors.primary, opacity: loading ? 0.7 : 1 },
-              ]}
-              onPress={handleRecover}
-              disabled={loading}
-            >
-              <View style={styles.buttonContent}>
-                <Text style={styles.buttonText}>
-                  {loading ? "Vérification..." : "Vérifier et continuer"}
-                </Text>
-                {!loading && (
-                  <MaterialIcons
-                    name="check-circle"
-                    size={16}
-                    color="#FFFFFF"
-                    style={{ marginLeft: 6 }}
-                  />
-                )}
-              </View>
-            </TouchableOpacity>
+            {!validated && (
+              <TouchableOpacity
+                style={[
+                  styles.button,
+                  {
+                    backgroundColor: colors.primary,
+                    opacity: loading ? 0.7 : 1,
+                  },
+                ]}
+                onPress={handleRecover}
+                disabled={loading}
+              >
+                <View style={styles.buttonContent}>
+                  <Text style={styles.buttonText}>
+                    {loading ? "Vérification..." : "Vérifier et continuer"}
+                  </Text>
+                  {!loading && (
+                    <MaterialIcons
+                      name="check-circle"
+                      size={16}
+                      color="#FFFFFF"
+                      style={{ marginLeft: 6 }}
+                    />
+                  )}
+                </View>
+              </TouchableOpacity>
+            )}
 
             {validated && (
               <View style={{ width: "100%", marginTop: 18 }}>
@@ -502,8 +500,8 @@ const PasswordRecoveryScreen: React.FC = () => {
                   <View style={styles.buttonContent}>
                     <Text style={styles.buttonText}>
                       {pinLoading
-                        ? "Réinitialisation..."
-                        : "Réinitialiser le code PIN"}
+                        ? "Mise à jour..."
+                        : "Valider le nouveau code PIN"}
                     </Text>
                     {!pinLoading && (
                       <MaterialIcons

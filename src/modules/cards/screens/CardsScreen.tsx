@@ -14,15 +14,39 @@ import { Ionicons } from "@expo/vector-icons";
 import { useI18n } from "../../../app/providers/I18nProvider";
 import { useTheme } from "../../../shared/styles/ThemeProvider";
 import { EmptyState } from "../../../shared/components/EmptyState";
+import { useDernieresOperationsClient } from "../../../domain/compte/useDernieresOperationsClient";
+import { useCompteStatistiques } from "../../../domain/compte/useCompteStatistiques";
+import { useAuth } from "../../../app/hooks/useAuth";
 
 export const CardsScreen: React.FC = () => {
   const { t } = useI18n();
   const { colors } = useTheme();
+  const { isAuthenticated } = useAuth();
   const styles = getStyles(colors);
+
+  const {
+    data: compteStats,
+    isLoading: loadingStats,
+    fetchData: fetchStats,
+  } = useCompteStatistiques();
+
+  const {
+    operations: recentOps,
+    isLoading: loadingOps,
+    fetchData: fetchRecent,
+  } = useDernieresOperationsClient(10);
+
+  React.useEffect(() => {
+    if (isAuthenticated) {
+      fetchStats();
+      fetchRecent();
+    }
+  }, [isAuthenticated]);
+
   const stats = [
     {
       id: 1,
-      value: "2",
+      value: String(compteStats?.NOMBRE_COMPTES ?? 0),
       label: t("cards.stats.cards"),
       icon: "card-outline",
       iconBg: "#EAF2FF",
@@ -30,7 +54,9 @@ export const CardsScreen: React.FC = () => {
     },
     {
       id: 2,
-      value: "228k",
+      value: new Intl.NumberFormat("fr-FR").format(
+        Number(compteStats?.SOLDE_GLOBAL ?? 0),
+      ),
       label: t("cards.stats.totalBalance"),
       icon: "wallet-outline",
       iconBg: "#EAF7EA",
@@ -38,7 +64,7 @@ export const CardsScreen: React.FC = () => {
     },
     {
       id: 3,
-      value: "8",
+      value: String(recentOps?.length ?? 0),
       label: t("cards.stats.transactions"),
       icon: "flash-outline",
       iconBg: "#FFF5E5",
@@ -85,32 +111,14 @@ export const CardsScreen: React.FC = () => {
     const idx = info?.viewableItems?.[0]?.index ?? 0;
     setActiveIndex(idx);
   }).current;
-  const transactions = [
-    {
-      id: 1,
-      name: "Amazon",
-      time: t("dashboard.date.today"),
-      amount: -15000,
-      icon: "bag-handle-outline",
-      iconBg: "#FDF3F3",
-    },
-    {
-      id: 2,
-      name: "Restaurant",
-      time: t("dashboard.date.yesterday"),
-      amount: -8500,
-      icon: "close-circle-outline",
-      iconBg: "#FFF4F4",
-    },
-    {
-      id: 3,
-      name: "Station service",
-      time: t("dashboard.date.3days"),
-      amount: -12000,
-      icon: "car-sport-outline",
-      iconBg: "#FDF7F0",
-    },
-  ];
+
+  const getTxIcon = (label: string) => {
+    const l = label.toUpperCase();
+    if (l.includes("AMAZON") || l.includes("ACHAT")) return "bag-handle-outline";
+    if (l.includes("RESTAURANT") || l.includes("REPAS")) return "close-circle-outline";
+    if (l.includes("STATION") || l.includes("CARBURANT")) return "car-sport-outline";
+    return "swap-horizontal-outline";
+  };
 
   const hexToRgb = (hex: string) => {
     const clean = hex.replace("#", "");
@@ -677,28 +685,50 @@ export const CardsScreen: React.FC = () => {
           <Text style={styles.sectionLink}>{t("cards.recent.seeAll")}</Text>
         </TouchableOpacity>
       </View>
-      {transactions.length > 0 ? (
-        transactions.map((t) => (
-          <View key={t.id} style={styles.txCard}>
-            <View style={[styles.txIconBg, { backgroundColor: t.iconBg }]}>
-              <Ionicons
-                name={t.icon as any}
-                size={20}
-                color={t.amount > 0 ? colors.success : colors.error}
-              />
+      {loadingOps ? (
+        <View style={{ padding: 20, alignItems: "center" }}>
+          <Text style={{ color: colors.text }}>{t("dashboard.loading")}</Text>
+        </View>
+      ) : recentOps && recentOps.length > 0 ? (
+        recentOps.slice(0, 5).map((op, idx) => {
+          const label = String(op.MC_LIBELLEOPERATION || "Opération");
+          const credit = Number(op.MC_MONTANTCREDIT || 0);
+          const debit = Number(op.MC_MONTANTDEBIT || 0);
+          const isCredit = op.MC_SENS === "C" || credit > 0;
+          const amount = isCredit ? credit : debit;
+          const color = isCredit ? colors.success : colors.error;
+          const icon = getTxIcon(label);
+
+          return (
+            <View key={idx} style={styles.txCard}>
+              <View
+                style={[
+                  styles.txIconBg,
+                  { backgroundColor: color + "10" },
+                ]}
+              >
+                <Ionicons
+                  name={icon as any}
+                  size={20}
+                  color={color}
+                />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.txTitle}>{label}</Text>
+                <Text style={styles.txSub}>
+                  {String(op.MC_DATESAISIE || op.MC_DATEPIECE || "")}
+                </Text>
+              </View>
+              <View style={{ alignItems: "flex-end" }}>
+                <Text style={[styles.txAmount, { color }]}>
+                  {isCredit ? "+" : "-"}
+                  {amount.toLocaleString("fr-FR")}
+                </Text>
+                <Text style={styles.txCurrency}>XOF</Text>
+              </View>
             </View>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.txTitle}>{t.name}</Text>
-              <Text style={styles.txSub}>{t.time}</Text>
-            </View>
-            <View style={{ alignItems: "flex-end" }}>
-              <Text style={styles.txAmount}>
-                {t.amount.toLocaleString("fr-FR")}{" "}
-              </Text>
-              <Text style={styles.txCurrency}>XOF</Text>
-            </View>
-          </View>
-        ))
+          );
+        })
       ) : (
         <EmptyState
           type="empty"

@@ -474,7 +474,7 @@ export const AppNavigator: React.FC = () => {
         component={PasswordRecoveryScreen}
         options={{
           headerShown: true,
-          title: "Récupération de mot de passe",
+          title: "Code de sécurité oublié",
         }}
       />
       {isAuthenticated ? (

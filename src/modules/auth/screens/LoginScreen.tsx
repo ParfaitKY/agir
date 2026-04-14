@@ -9,9 +9,11 @@ import {
   Vibration,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useNavigation } from "@react-navigation/native";
 import { useAuth } from "../../../app/hooks/useAuth";
 
 export const LoginScreen: React.FC = () => {
+  const navigation = useNavigation<any>();
   const [code, setCode] = useState("");
   const [isError, setIsError] = useState(false);
   const shakeAnim = useRef(new Animated.Value(0)).current;
@@ -30,7 +32,7 @@ export const LoginScreen: React.FC = () => {
   };
 
   const handleForgotCode = () => {
-    Alert.alert("Mot de passe oublié", "Fonctionnalité à venir");
+    navigation.navigate("PasswordRecovery");
   };
 
   const shakeAnimation = () => {

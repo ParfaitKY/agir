@@ -17,8 +17,12 @@ import { useTheme } from "../../../shared/styles/ThemeProvider";
 import { useI18n } from "../../../app/providers/I18nProvider";
 import { Ionicons } from "@expo/vector-icons";
 import { updateLogin } from "../../../services/auth/updateLogin";
+import { clientByCompte } from "../../../services/auth/clientByCompte";
 import * as Crypto from "expo-crypto";
-import { secureSetItem } from "../../../shared/utils/secureStorage";
+import {
+  secureSetItem,
+  secureGetItem,
+} from "../../../shared/utils/secureStorage";
 
 export const ForgotPasswordScreen: React.FC = () => {
   const { colors } = useTheme();
@@ -29,7 +33,7 @@ export const ForgotPasswordScreen: React.FC = () => {
   const [secretKey, setSecretKey] = useState("");
   const [newPin, setNewPin] = useState("");
   const [confirmPin, setConfirmPin] = useState("");
-  
+
   const [showSecret, setShowSecret] = useState(false);
   const [showPin, setShowPin] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -57,54 +61,78 @@ export const ForgotPasswordScreen: React.FC = () => {
 
     setIsLoading(true);
     try {
-      // 1. Hash the new PIN locally for storage (if successful)
-      const hashedPin = await Crypto.digestStringAsync(
-        Crypto.CryptoDigestAlgorithm.SHA256,
-        newPin
-      );
+      const deviceId = (await secureGetItem("device_id")) || "unknown_device";
+      const storedAccount = await secureGetItem("user_account_number");
+      let tokenToSend = await secureGetItem("auth_token");
+
+      // 1. Si on n'a pas de token valide, on tente d'en récupérer un temporaire
+      if (!tokenToSend || String(tokenToSend).split(".").length !== 3) {
+        try {
+          const identifier = storedAccount || login;
+          if (identifier) {
+            const clientInfo = await clientByCompte({
+              numero_compte: identifier,
+              device_id: deviceId,
+            });
+            const newToken =
+              clientInfo?.data?.token ||
+              clientInfo?.data?.access_token ||
+              clientInfo?.data?.jwt;
+            if (newToken && String(newToken).split(".").length === 3) {
+              tokenToSend = newToken;
+            }
+          }
+        } catch (err) {
+          console.warn("[Forgot] Failed to fetch temporary token:", err);
+        }
+      }
+
+      if (!tokenToSend) {
+        tokenToSend = storedAccount || login || "guest";
+      }
 
       // 2. Prepare payload for updateLogin
-      // Note: "nouveau_login" is the username/phone we want to update (or keep same)
-      // "nouveau_motpasse" is the new PIN (in clear text usually for this API, based on InitialSetupScreen)
       const payload = {
-        nouveau_login: login,
-        nouveau_motpasse: newPin,
-        cle_secrete: secretKey,
-        code_cryptage: "Y}@128eVIXfoi7", // Same static key used in InitialSetupScreen
+        nouveau_login: login.trim(),
+        nouveau_motpasse: newPin.trim(),
+        cle_secrete: secretKey.trim(),
+        device_id: deviceId, // REQUIS PAR LE SERVEUR
       };
 
       // 3. Call the API
-      // We might need X-NO-AUTH header since we are likely not logged in
       const headers = {
         "X-NO-AUTH": "true",
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${tokenToSend}`,
       };
 
       const result = await updateLogin(payload, headers);
 
       if ((result as any).error) {
         const err = (result as any).error;
-        const msg = err?.response?.data?.message || err?.message || "Échec de la réinitialisation";
+        const msg =
+          err?.response?.data?.message ||
+          err?.message ||
+          "Échec de la réinitialisation";
         throw new Error(msg);
       }
 
       // 4. Success handling
-      Alert.alert(
-        "Succès",
-        "Votre code PIN a été mis à jour avec succès.",
-        [
-          {
-            text: "OK",
-            onPress: () => {
-              // Optionally update local storage if we want to pre-fill login
-              secureSetItem("user_login", login);
-              // secureSetItem("pin_user", hashedPin); // Better to let them login to sync
-              navigation.goBack();
-            },
-          },
-        ]
+      const hashedPin = await Crypto.digestStringAsync(
+        Crypto.CryptoDigestAlgorithm.SHA256,
+        newPin,
       );
-
+      Alert.alert("Succès", "Votre code PIN a été mis à jour avec succès.", [
+        {
+          text: "OK",
+          onPress: () => {
+            // Optionally update local storage if we want to pre-fill login
+            secureSetItem("user_login", login);
+            // secureSetItem("pin_user", hashedPin); // Better to let them login to sync
+            navigation.goBack();
+          },
+        },
+      ]);
     } catch (e: any) {
       setError(e.message);
     } finally {
@@ -132,17 +160,22 @@ export const ForgotPasswordScreen: React.FC = () => {
 
           <View style={styles.header}>
             <Text style={[styles.title, { color: colors.text }]}>
-              Récupération
+              Code de sécurité oublié
             </Text>
             <Text style={[styles.subtitle, { color: colors.text + "80" }]}>
-              Entrez vos informations pour réinitialiser votre PIN.
+              Réinitialisez votre code PIN de connexion.
             </Text>
           </View>
 
-          <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
+          <View
+            style={[
+              styles.card,
+              { backgroundColor: colors.card, borderColor: colors.border },
+            ]}
+          >
             {/* LOGIN / PHONE */}
             <Text style={[styles.label, { color: colors.text }]}>
-              Email ou Téléphone (Login)
+              Email ou Téléphone
             </Text>
             <TextInput
               style={[
@@ -277,7 +310,10 @@ export const ForgotPasswordScreen: React.FC = () => {
             <TouchableOpacity
               style={[
                 styles.button,
-                { backgroundColor: colors.primary, opacity: isLoading ? 0.7 : 1 },
+                {
+                  backgroundColor: colors.primary,
+                  opacity: isLoading ? 0.7 : 1,
+                },
               ]}
               onPress={handleReset}
               disabled={isLoading}
@@ -302,7 +338,7 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
   backButton: {
-    alignSelf: 'flex-start',
+    alignSelf: "flex-start",
     padding: 8,
     marginLeft: -8,
     marginBottom: 20,
