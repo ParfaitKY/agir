@@ -143,21 +143,33 @@ export const TransactionsScreen: React.FC = () => {
             date: String(r?.MC_DATEPIECE ?? r?.MC_DATESAISIE ?? ""),
             type,
             status: t("common.success"),
+            MC_NUMPIECE: r?.MC_NUMPIECE,
           };
         });
 
         // Deduplication basée sur le contenu pour éviter les doublons visuels
-        // (Surtout utile si le backend renvoie des données dupliquées)
-        const uniqueItems = normalized.filter(
-          (item: any, index: number, self: any[]) =>
-            index ===
-            self.findIndex(
-              (t: any) =>
-                t.title === item.title &&
-                t.amountNum === item.amountNum &&
-                t.date === item.date,
-            ),
-        );
+        // 1. Clé technique MC_NUMPIECE
+        // 2. Fallback Miroir (Libellé + Date + Montant)
+        const seenPieces = new Set<string>();
+        const seenMirrors = new Set<string>();
+
+        const uniqueItems = normalized.filter((item: any) => {
+          const numPiece = String(item.MC_NUMPIECE || "").trim();
+          const title = String(item.title || "").trim();
+          const date = String(item.date || "").split(" ")[0].trim();
+          const amount = item.amountNum;
+
+          if (numPiece) {
+            if (seenPieces.has(numPiece)) return false;
+            seenPieces.add(numPiece);
+          }
+
+          const mirrorKey = `${title}_${date}_${amount}`;
+          if (seenMirrors.has(mirrorKey)) return false;
+          seenMirrors.add(mirrorKey);
+
+          return true;
+        });
 
         setItems(uniqueItems);
       } catch (e: any) {

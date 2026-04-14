@@ -103,44 +103,37 @@ export function useDernieresOperationsClient(count: number = 10) {
 
       // Déduplication des opérations :
       // 1. Si MC_NUMPIECE est disponible, on l'utilise comme clé unique primaire.
-      //    Cela évite les doublons comptables (débit + crédit pour la même pièce).
-      // 2. Sinon, on compare libellé + date normalisée + montant max.
+      // 2. Détection des opérations miroirs (virements internes/remboursements) : 
+      //    Si on voit un Débit et un Crédit avec le même Libellé, Date et Montant, on ne garde qu'un seul.
       const seenPieces = new Set<string>();
-      const uniqueOps = sorted.filter((item: any, index: number, self: any[]) => {
-        // Clé primaire : numéro de pièce (identifiant unique côté serveur)
+      const seenMirrors = new Set<string>(); // Key: Label_Date_Amount
+      
+      const uniqueOps = sorted.filter((item: any) => {
         const numPiece = String(item.MC_NUMPIECE || "").trim();
+        const label = String(item.MC_LIBELLEOPERATION || "").trim();
+        const date = String(item.MC_DATESAISIE || item.MC_DATEPIECE || "").split(" ")[0].trim();
+        const debit = Number(item.MC_MONTANTDEBIT || 0);
+        const credit = Number(item.MC_MONTANTCREDIT || 0);
+        const amount = Math.max(debit, credit);
+        const type = String(item.TypeOperation || item.MC_SENS || "").toUpperCase();
+        const isDebit = type === "DEBIT" || type === "D" || (debit > 0 && credit === 0);
+
+        // 1. Vérification par Numéro de Pièce (Identifiant technique unique)
         if (numPiece) {
           if (seenPieces.has(numPiece)) return false;
           seenPieces.add(numPiece);
-          return true;
         }
 
-        // Fallback : comparaison libellé + date + montant
-        return (
-          index ===
-          self.findIndex((t: any) => {
-            const titleMatch =
-              String(t.MC_LIBELLEOPERATION || "").trim() ===
-              String(item.MC_LIBELLEOPERATION || "").trim();
-
-            // Normaliser les deux dates de la même façon pour éviter les faux positifs
-            const tDate = String(t.MC_DATESAISIE || t.MC_DATEPIECE || "").trim();
-            const itemDate = String(item.MC_DATESAISIE || item.MC_DATEPIECE || "").trim();
-            const dateMatch = tDate === itemDate && tDate !== "";
-
-            const tAmt = Math.max(
-              Number(t.MC_MONTANTDEBIT || 0),
-              Number(t.MC_MONTANTCREDIT || 0),
-            );
-            const itemAmt = Math.max(
-              Number(item.MC_MONTANTDEBIT || 0),
-              Number(item.MC_MONTANTCREDIT || 0),
-            );
-            const amtMatch = tAmt === itemAmt && tAmt > 0;
-
-            return titleMatch && dateMatch && amtMatch;
-          })
-        );
+        // 2. Détection de miroir (Même Label, Même Date, Même Montant)
+        const mirrorKey = `${label}_${date}_${amount}`;
+        if (seenMirrors.has(mirrorKey)) {
+          // Si on a déjà vu cette opération (même label/date/montant), c'est probablement le miroir (crédit)
+          // On ne l'affiche pas pour éviter les doubles dans l'activité récente.
+          return false;
+        }
+        
+        seenMirrors.add(mirrorKey);
+        return true;
       });
 
       setOperations(uniqueOps);
