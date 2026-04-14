@@ -101,20 +101,32 @@ export function useDernieresOperationsClient(count: number = 10) {
         (a, b) => parseDateStr(b.MC_DATESAISIE) - parseDateStr(a.MC_DATESAISIE),
       );
 
-      // We remove complex deduplication and grouping to ensure all server operations are displayed.
-      // The user explicitly requested to see all operations coming from the server.
-      // However, we must filter out EXACT duplicates (backend errors)
-      // FIX: Also filter duplicates where one is Debit and the other Credit if Title and Amount match
-      const uniqueOps = sorted.filter(
-        (item: any, index: number, self: any[]) =>
+      // Déduplication des opérations :
+      // 1. Si MC_NUMPIECE est disponible, on l'utilise comme clé unique primaire.
+      //    Cela évite les doublons comptables (débit + crédit pour la même pièce).
+      // 2. Sinon, on compare libellé + date normalisée + montant max.
+      const seenPieces = new Set<string>();
+      const uniqueOps = sorted.filter((item: any, index: number, self: any[]) => {
+        // Clé primaire : numéro de pièce (identifiant unique côté serveur)
+        const numPiece = String(item.MC_NUMPIECE || "").trim();
+        if (numPiece) {
+          if (seenPieces.has(numPiece)) return false;
+          seenPieces.add(numPiece);
+          return true;
+        }
+
+        // Fallback : comparaison libellé + date + montant
+        return (
           index ===
           self.findIndex((t: any) => {
             const titleMatch =
               String(t.MC_LIBELLEOPERATION || "").trim() ===
               String(item.MC_LIBELLEOPERATION || "").trim();
-            const dateMatch =
-              String(t.MC_DATESAISIE || t.MC_DATEPIECE || "") ===
-              String(item.MC_DATESAISIE || item.MC_DATEPIECE || "");
+
+            // Normaliser les deux dates de la même façon pour éviter les faux positifs
+            const tDate = String(t.MC_DATESAISIE || t.MC_DATEPIECE || "").trim();
+            const itemDate = String(item.MC_DATESAISIE || item.MC_DATEPIECE || "").trim();
+            const dateMatch = tDate === itemDate && tDate !== "";
 
             const tAmt = Math.max(
               Number(t.MC_MONTANTDEBIT || 0),
@@ -124,11 +136,12 @@ export function useDernieresOperationsClient(count: number = 10) {
               Number(item.MC_MONTANTDEBIT || 0),
               Number(item.MC_MONTANTCREDIT || 0),
             );
-            const amtMatch = tAmt === itemAmt;
+            const amtMatch = tAmt === itemAmt && tAmt > 0;
 
             return titleMatch && dateMatch && amtMatch;
-          }),
-      );
+          })
+        );
+      });
 
       setOperations(uniqueOps);
       setStatistiques(stats);

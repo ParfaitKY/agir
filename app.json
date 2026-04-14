@@ -5,9 +5,8 @@
     "scheme": "cedaici",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon_cedaici.jpg",
+    "icon": "./assets/ICON-PHONE.png",
     "userInterfaceStyle": "light",
-    "newArchEnabled": false,
     "splash": {
       "image": "./assets/cedaici-transparent.png",
       "resizeMode": "contain",
@@ -22,10 +21,9 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/logo-cedaici.jpg",
-        "backgroundColor": "#ffffff"
+        "foregroundImage": "./assets/ICON-PHONE.png",
+        "backgroundColor": "#000000"
       },
-      "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
       "package": "com.cedaici.mobile",
       "versionCode": 2
@@ -33,9 +31,7 @@
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "plugins": [
-      "expo-secure-store"
-    ],
+    "plugins": ["expo-secure-store"],
     "extra": {
       "eas": {
         "projectId": "dbd6ac2a-1434-40a4-be56-e02bc58ff82a"
