@@ -14,6 +14,7 @@ import {
   Animated,
   Platform,
   KeyboardAvoidingView,
+  Modal,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
@@ -103,8 +104,8 @@ const InitialSetupScreen: React.FC = () => {
     const checkConfig = async () => {
       // Si on vient d'un reset (déconnexion explicite), on ne redirige pas
       if (route.params?.reset) {
-         console.log("[InitialSetup] Reset requested - staying on setup screen");
-         return;
+        console.log("[InitialSetup] Reset requested - staying on setup screen");
+        return;
       }
 
       try {
@@ -248,6 +249,8 @@ const InitialSetupScreen: React.FC = () => {
 
   const [lastFailedToken, setLastFailedToken] = useState("");
   const [attempts, setAttempts] = useState(0);
+  const [acceptedPolicies, setAcceptedPolicies] = useState(false);
+  const [showPoliciesModal, setShowPoliciesModal] = useState(false);
   const MAX_ATTEMPTS = 3;
 
   // Fonction vérification token
@@ -565,14 +568,18 @@ const InitialSetupScreen: React.FC = () => {
     // GUARD: Gestion de l'état "Déjà Consommé" pour l'Autoplay.
     // Si le serveur renvoie autoplay=true pour un token qu'on a DÉJÀ traité en autoplay,
     // on doit forcer false pour éviter une boucle infinie si l'utilisateur revient en arrière.
-    const lastAutoplayToken = await secureGetItem("last_autoplay_token_consumed");
-    
+    const lastAutoplayToken = await secureGetItem(
+      "last_autoplay_token_consumed",
+    );
+
     if (isAutoplay && lastAutoplayToken === authToken) {
-         console.log(`[InitialSetup] Token ${authToken} already consumed for Autoplay. Forcing FALSE.`);
-         isAutoplay = false;
+      console.log(
+        `[InitialSetup] Token ${authToken} already consumed for Autoplay. Forcing FALSE.`,
+      );
+      isAutoplay = false;
     } else if (isAutoplay) {
-         // Si c'est un nouveau token en autoplay, on le marque comme consommé
-         await secureSetItem("last_autoplay_token_consumed", authToken);
+      // Si c'est un nouveau token en autoplay, on le marque comme consommé
+      await secureSetItem("last_autoplay_token_consumed", authToken);
     }
 
     // GUARD: Si l'utilisateur est déjà configuré localement, on FORCE autoplay à FALSE.
@@ -580,13 +587,17 @@ const InitialSetupScreen: React.FC = () => {
     // même si le serveur dit "autoplay: true".
     const localConf = await secureGetItem("is_configured");
     const localPin = await secureGetItem("pin_user");
-    
+
     if (localConf === "true" && localPin) {
-       console.log("[InitialSetup] Local config detected -> FORCING Autoplay=FALSE to prevent silent OTP loop");
-       isAutoplay = false;
+      console.log(
+        "[InitialSetup] Local config detected -> FORCING Autoplay=FALSE to prevent silent OTP loop",
+      );
+      isAutoplay = false;
     }
 
-    console.log(`[InitialSetup] Autoplay Decision Final: ${isAutoplay} (Server: ${rawAutoplay}, LocalOverride: ${localConf === "true"})`);
+    console.log(
+      `[InitialSetup] Autoplay Decision Final: ${isAutoplay} (Server: ${rawAutoplay}, LocalOverride: ${localConf === "true"})`,
+    );
 
     const dev = await secureGetItem("device_id");
     const accStored = await secureGetItem("user_account_number");
@@ -597,7 +608,7 @@ const InitialSetupScreen: React.FC = () => {
       AutoplayRecu: rawAutoplay,
       IsAutoplayFinal: isAutoplay,
       LoginRecu: loginCandidate,
-      FullTokenInfo: info.token_info
+      FullTokenInfo: info.token_info,
     });
 
     if (isAutoplay) {
@@ -695,40 +706,48 @@ const InitialSetupScreen: React.FC = () => {
       device_id: dev,
       // Callback appelé si l'OTP est validé avec succès
       onSuccess: async () => {
-        console.log(`[InitialSetup] OTP Verified Success. isAutoplay=${isAutoplay}`);
-        
+        console.log(
+          `[InitialSetup] OTP Verified Success. isAutoplay=${isAutoplay}`,
+        );
+
         // CORRECTION BUG UTILISATEUR:
         // Si l'utilisateur a déjà configuré son compte (PIN stocké localement),
         // on ignore le flag isAutoplay (qui pourrait être TRUE à tort selon le serveur)
         // et on le redirige directement vers le Login pour éviter une boucle de configuration.
         const isConfigured = await secureGetItem("is_configured");
         const storedPin = await secureGetItem("pin_user");
-        
+
         if (isConfigured === "true" && storedPin) {
-             console.log("[InitialSetup] Already Configured -> Force Redirect to PinLogin (Override Autoplay)");
-             navigation.replace("PinLogin");
-             return;
+          console.log(
+            "[InitialSetup] Already Configured -> Force Redirect to PinLogin (Override Autoplay)",
+          );
+          navigation.replace("PinLogin");
+          return;
         }
 
         if (isAutoplay) {
-             // CAS 1: Autoplay = TRUE
-             // "Le système précharge automatiquement l’OTP... L’utilisateur est ensuite redirigé vers la configuration de ses accès."
-             console.log("[InitialSetup] Autoplay TRUE -> Proceeding to Step 2 (Create/Config Access)");
-             setStep(2);
+          // CAS 1: Autoplay = TRUE
+          // "Le système précharge automatiquement l’OTP... L’utilisateur est ensuite redirigé vers la configuration de ses accès."
+          console.log(
+            "[InitialSetup] Autoplay TRUE -> Proceeding to Step 2 (Create/Config Access)",
+          );
+          setStep(2);
         } else {
-             // CAS 2: Autoplay = FALSE
-             // "L’utilisateur doit saisir manuellement l’OTP. Une fois validé, il est redirigé directement vers l’écran PIN Login."
-             console.log("[InitialSetup] Autoplay FALSE -> Redirecting to PinLogin (Access already defined)");
-             
-             // On s'assure que la config est marquée comme faite
-             await secureSetItem("is_configured", "true");
-             
-             // Si on a un login, on le sauvegarde pour faciliter la connexion
-             if (loginCandidate) {
-                  await secureSetItem("user_login", loginCandidate);
-             }
-             
-             navigation.replace("PinLogin");
+          // CAS 2: Autoplay = FALSE
+          // "L’utilisateur doit saisir manuellement l’OTP. Une fois validé, il est redirigé directement vers l’écran PIN Login."
+          console.log(
+            "[InitialSetup] Autoplay FALSE -> Redirecting to PinLogin (Access already defined)",
+          );
+
+          // On s'assure que la config est marquée comme faite
+          await secureSetItem("is_configured", "true");
+
+          // Si on a un login, on le sauvegarde pour faciliter la connexion
+          if (loginCandidate) {
+            await secureSetItem("user_login", loginCandidate);
+          }
+
+          navigation.replace("PinLogin");
         }
       },
     });
@@ -1106,9 +1125,22 @@ const InitialSetupScreen: React.FC = () => {
                   <TouchableOpacity
                     style={[
                       styles.button,
-                      { marginTop: 12, backgroundColor: palette.primary },
+                      {
+                        marginTop: 12,
+                        backgroundColor: acceptedPolicies
+                          ? palette.primary
+                          : palette.border,
+                      },
                     ]}
-                    onPress={handleVerifyToken}
+                    onPress={() => {
+                      if (!acceptedPolicies) {
+                        setVerifyError(
+                          "Veuillez accepter les politiques de confidentialité.",
+                        );
+                        return;
+                      }
+                      handleVerifyToken();
+                    }}
                   >
                     {loadingVerify ? (
                       <ActivityIndicator color="#FFF" />
@@ -1119,6 +1151,38 @@ const InitialSetupScreen: React.FC = () => {
                     )}
                   </TouchableOpacity>
                 )}
+
+                <View style={styles.policyRow}>
+                  <TouchableOpacity
+                    style={[
+                      styles.checkbox,
+                      {
+                        borderColor: acceptedPolicies
+                          ? palette.primary
+                          : palette.border,
+                        backgroundColor: acceptedPolicies
+                          ? palette.primary
+                          : "transparent",
+                      },
+                    ]}
+                    onPress={() => setAcceptedPolicies(!acceptedPolicies)}
+                  >
+                    {acceptedPolicies && (
+                      <MaterialIcons name="check" size={14} color="#FFF" />
+                    )}
+                  </TouchableOpacity>
+                  <RNText
+                    style={[styles.policyText, { color: palette.textSub }]}
+                  >
+                    J'accepte les{" "}
+                    <RNText
+                      style={{ color: palette.primary, fontWeight: "600" }}
+                      onPress={() => setShowPoliciesModal(true)}
+                    >
+                      politiques de confidentialité et d'utilisation
+                    </RNText>
+                  </RNText>
+                </View>
 
                 <TouchableOpacity
                   style={[
@@ -1366,6 +1430,92 @@ const InitialSetupScreen: React.FC = () => {
             )}
           </Animated.View>
         </ScrollView>
+
+        <Modal
+          visible={showPoliciesModal}
+          animationType="slide"
+          transparent={true}
+          onRequestClose={() => setShowPoliciesModal(false)}
+        >
+          <View style={styles.modalOverlay}>
+            <View
+              style={[
+                styles.modalContent,
+                { backgroundColor: palette.card, borderColor: palette.border },
+              ]}
+            >
+              <View style={styles.modalHeader}>
+                <RNText
+                  style={[styles.modalTitle, { color: palette.textMain }]}
+                >
+                  Politiques de confidentialité
+                </RNText>
+                <TouchableOpacity onPress={() => setShowPoliciesModal(false)}>
+                  <MaterialIcons
+                    name="close"
+                    size={24}
+                    color={palette.textMain}
+                  />
+                </TouchableOpacity>
+              </View>
+              <ScrollView style={styles.modalBody}>
+                <RNText
+                  style={[styles.policyBody, { color: palette.textMain }]}
+                >
+                  {"\n"}**POLITIQUE DE CONFIDENTIALITÉ**{"\n\n"}
+                  Bienvenue sur l'application mobile Zenith. La protection de
+                  vos données personnelles est une priorité pour nous.{"\n\n"}
+                  **1. Collecte des données**{"\n"}
+                  Nous collectons des informations nécessaires au bon
+                  fonctionnement de vos services bancaires : identifiants de
+                  connexion, informations de compte, et données de transactions.
+                  {"\n\n"}
+                  **2. Utilisation des données**{"\n"}
+                  Vos données sont utilisées exclusivement pour :{"\n"}-
+                  Sécuriser l'accès à vos comptes.{"\n"}- Traiter vos opérations
+                  bancaires.{"\n"}- Améliorer votre expérience utilisateur.
+                  {"\n\n"}
+                  **3. Partage des données**{"\n"}
+                  Zenith ne partage pas vos données personnelles avec des tiers
+                  à des fins commerciales. Le partage ne s'effectue que dans le
+                  cadre légal et réglementaire strict lié aux activités
+                  bancaires.{"\n\n"}
+                  **4. Sécurité**{"\n"}
+                  Nous mettons en œuvre des mesures de sécurité de pointe
+                  (chiffrement, protocoles sécurisés) pour protéger vos
+                  informations contre tout accès non autorisé.{"\n\n"}
+                  **5. Vos droits**{"\n"}
+                  Conformément à la réglementation, vous disposez d'un droit
+                  d'accès, de rectification et de suppression de vos données.
+                  {"\n\n"}
+                  ---{"\n\n"}
+                  **CONDITIONS D'UTILISATION**{"\n\n"}
+                  L'utilisation de cette application est soumise à l'acceptation
+                  pleine et entière des présentes conditions.{"\n\n"}- Vous êtes
+                  responsable de la confidentialité de votre code PIN.{"\n"}-
+                  L'application doit être utilisée uniquement sur des appareils
+                  sécurisés.{"\n"}- Toute utilisation frauduleuse pourra
+                  entraîner la suspension immédiate de l'accès.{"\n\n"}
+                  ---{"\n\n"}
+                  *Note : Ces politiques pourront être mises à jour conformément
+                  aux documents officiels qui nous seront transmis.*
+                </RNText>
+              </ScrollView>
+              <TouchableOpacity
+                style={[
+                  styles.button,
+                  { marginTop: 16, backgroundColor: palette.primary },
+                ]}
+                onPress={() => {
+                  setAcceptedPolicies(true);
+                  setShowPoliciesModal(false);
+                }}
+              >
+                <RNText style={styles.buttonText}>J'ai lu et j'accepte</RNText>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
       </SafeAreaView>
     </KeyboardAvoidingView>
   );
@@ -1472,6 +1622,54 @@ const styles = StyleSheet.create({
   },
   hintIcon: {
     marginLeft: 8,
+  },
+  policyRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 16,
+    paddingHorizontal: 4,
+  },
+  checkbox: {
+    width: 20,
+    height: 20,
+    borderRadius: 4,
+    borderWidth: 2,
+    marginRight: 10,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  policyText: {
+    fontSize: 13,
+    flex: 1,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "flex-end",
+  },
+  modalContent: {
+    height: "80%",
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    padding: 24,
+    borderWidth: 1,
+  },
+  modalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 20,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+  },
+  modalBody: {
+    flex: 1,
+  },
+  policyBody: {
+    fontSize: 14,
+    lineHeight: 22,
   },
 });
 

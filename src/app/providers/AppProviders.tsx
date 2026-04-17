@@ -9,6 +9,7 @@ import { AuthProvider } from "../providers/AuthProvider";
 import { InactivityProvider } from "./InactivityProvider";
 import { I18nProvider } from "./I18nProvider";
 import { NetworkProvider } from "./NetworkProvider";
+import { PrivacyProvider } from "./PrivacyProvider";
 import {
   ThemeProvider,
   useTheme,
@@ -58,11 +59,13 @@ export const AppProviders: React.FC<AppProvidersProps> = ({ children }) => {
     <ThemeProvider>
       <I18nProvider>
         <NetworkProvider>
-          <AuthProvider>
-            <InactivityProvider>
-              <ThemedNavigation>{children}</ThemedNavigation>
-            </InactivityProvider>
-          </AuthProvider>
+          <PrivacyProvider>
+            <AuthProvider>
+              <InactivityProvider>
+                <ThemedNavigation>{children}</ThemedNavigation>
+              </InactivityProvider>
+            </AuthProvider>
+          </PrivacyProvider>
         </NetworkProvider>
       </I18nProvider>
     </ThemeProvider>

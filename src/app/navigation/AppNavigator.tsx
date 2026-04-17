@@ -1,6 +1,3 @@
-// Ancie
-
-// Nouveau
 import React from "react";
 import {
   TouchableOpacity,
@@ -58,6 +55,7 @@ import PinLoginScreen from "../../modules/auth/screens/PinLoginScreen";
 import PasswordRecoveryScreen from "../../modules/auth/screens/PasswordRecoveryScreen";
 import OtpVerifyScreen from "../../modules/auth/screens/OtpVerifyScreen";
 import { useTheme } from "../../shared/styles/ThemeProvider";
+import { usePrivacy } from "../providers/PrivacyProvider";
 import { AnalyticsScreen } from "../../modules/analytics/screens/AnalyticsScreen";
 import { CreditSimulatorScreen } from "../../modules/credits/screens/CreditSimulatorScreen";
 import { CreditRequestScreen } from "../../modules/credits/screens/CreditRequestScreen";
@@ -87,7 +85,7 @@ const CustomTabBar = ({
       [
         { text: "Annuler", style: "cancel" },
         { text: "Se connecter", onPress: () => navigation.navigate("Login") },
-      ]
+      ],
     );
   };
 
@@ -108,8 +106,8 @@ const CustomTabBar = ({
           options.tabBarLabel !== undefined
             ? options.tabBarLabel
             : options.title !== undefined
-            ? options.title
-            : route.name;
+              ? options.title
+              : route.name;
 
         const isFocused = state.index === index;
         const iconName = options.tabBarIcon?.({
@@ -327,6 +325,7 @@ export const AppNavigator: React.FC = () => {
   const isGuestMode = isAuthenticated && user?.username === "invite";
   const navigation = useNavigation<any>();
   const { fetchClientInfo } = useClientByTokenV2();
+  const { privacyAccepted, privacyChecked } = usePrivacy();
 
   React.useEffect(() => {
     const handleDeepLink = async (event: { url: string }) => {
@@ -343,14 +342,14 @@ export const AppNavigator: React.FC = () => {
           if (clientInfo?.token_info?.autoplay === false) {
             console.log(
               "[DeepLink] Autoplay disabled. Redirecting to PinLogin. Info:",
-              JSON.stringify(clientInfo?.token_info)
+              JSON.stringify(clientInfo?.token_info),
             );
 
             // Si l'utilisateur est connecté (ou en mode invité), on déconnecte d'abord
             // pour éviter que le logout() ne supprime les nouvelles données qu'on va écrire.
             if (isAuthenticated || isGuestMode) {
               console.log(
-                "[DeepLink] Clearing previous session before binding..."
+                "[DeepLink] Clearing previous session before binding...",
               );
               await logout();
             }
@@ -395,7 +394,7 @@ export const AppNavigator: React.FC = () => {
           } else {
             console.log(
               "[DeepLink] Autoplay is NOT false (or undefined). Value:",
-              clientInfo?.token_info?.autoplay
+              clientInfo?.token_info?.autoplay,
             );
             // TODO: Gérer le cas autoplay = true si nécessaire (auto-login ?)
           }
@@ -417,9 +416,13 @@ export const AppNavigator: React.FC = () => {
 
   React.useEffect(() => {
     try {
+      if (!privacyChecked || !privacyAccepted) {
+        return;
+      }
+
       console.log(
         "[nav] appNavigator",
-        JSON.stringify({ isAuthenticated, user, isGuestMode, isConfigured })
+        JSON.stringify({ isAuthenticated, user, isGuestMode, isConfigured }),
       );
       // Redirection automatique vers PinLogin si déconnecté mais configuré
       if (!isAuthenticated && isConfigured && !isGuestMode) {
@@ -438,14 +441,8 @@ export const AppNavigator: React.FC = () => {
       } else if (!isAuthenticated && !isConfigured && !isGuestMode) {
         // Si l'utilisateur n'est pas connecté et n'est PAS configuré (cas de suppression de données),
         // on le redirige explicitement vers InitialSetup pour saisir son token.
-         setTimeout(() => {
+        setTimeout(() => {
           if (navigation && navigation.reset) {
-            // On vérifie qu'on n'est pas déjà sur InitialSetup ou Login
-            // Pour éviter les boucles, on force le reset vers InitialSetup
-            // qui est le point d'entrée pour un utilisateur "vierge".
-            // Mais attention, LoginScreen est aussi une option si on utilise le login classique.
-            // Vu le flow demandé : "écran de saisie de token" -> InitialSetupScreen.
-            
             // On ne fait le reset que si on n'est pas sur le Splash
             navigation.reset({
               index: 0,
@@ -455,14 +452,23 @@ export const AppNavigator: React.FC = () => {
         }, 100);
       }
     } catch {}
-  }, [isAuthenticated, user?.username, isConfigured]);
+  }, [
+    isAuthenticated,
+    user?.username,
+    isConfigured,
+    privacyChecked,
+    privacyAccepted,
+  ]);
+
+  if (!privacyChecked) {
+    return null;
+  }
 
   return (
     <Stack.Navigator
       screenOptions={{ headerShown: false }}
       initialRouteName="Splash"
     >
-      {/* Écran Splash affiché au démarrage, redirige vers Main ou Login */}
       <Stack.Screen name="Splash" component={SplashScreen} />
       <Stack.Screen name="InitialSetup" component={InitialSetupScreen} />
       <Stack.Screen name="OtpVerify" component={OtpVerifyScreen} />
