@@ -32,32 +32,40 @@ const SplashScreen: React.FC = () => {
   const textOpacity = useRef(new Animated.Value(0)).current;
   const textTranslateY = useRef(new Animated.Value(100)).current;
 
+  // Animation de flottement séparée pour éviter les conflits
+  const floatingAnim = useRef(new Animated.Value(0)).current;
+  const logoScale = useRef(new Animated.Value(0.5)).current;
+  const bgGlowAnim = useRef(new Animated.Value(0)).current;
+
   // Animations pour la section privacy
   const privacyOpacity = useRef(new Animated.Value(0)).current;
-  const privacyTranslateY = useRef(new Animated.Value(20)).current;
+  const privacyTranslateY = useRef(new Animated.Value(50)).current;
+  const iconScale = useRef(new Animated.Value(0)).current;
+  const buttonScale = useRef(new Animated.Value(1)).current;
+  const textRevealAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     // Initial animations
     Animated.parallel([
       Animated.timing(fadeAnim, {
         toValue: 1,
-        duration: 900,
+        duration: 1000,
         useNativeDriver: true,
       }),
-      Animated.spring(scaleAnim, {
+      Animated.spring(logoScale, {
         toValue: 1,
-        friction: 5,
-        tension: 60,
+        friction: 8,
+        tension: 40,
         useNativeDriver: true,
       }),
       Animated.timing(translateY, {
         toValue: 0,
-        duration: 900,
+        duration: 1000,
         useNativeDriver: true,
       }),
       // Animation du texte avec un léger délai
       Animated.sequence([
-        Animated.delay(300),
+        Animated.delay(600),
         Animated.parallel([
           Animated.timing(textOpacity, {
             toValue: 1,
@@ -66,13 +74,49 @@ const SplashScreen: React.FC = () => {
           }),
           Animated.timing(textTranslateY, {
             toValue: 0,
-            duration: 1000,
-            easing: Easing.out(Easing.cubic),
+            duration: 1200,
+            easing: Easing.out(Easing.back(1.5)),
             useNativeDriver: true,
           }),
         ]),
       ]),
-    ]).start();
+    ]).start(() => {
+      // Démarrer le flottement seulement après l'entrée
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(floatingAnim, {
+            toValue: -15,
+            duration: 2500,
+            easing: Easing.inOut(Easing.sin),
+            useNativeDriver: true,
+          }),
+          Animated.timing(floatingAnim, {
+            toValue: 0,
+            duration: 2500,
+            easing: Easing.inOut(Easing.sin),
+            useNativeDriver: true,
+          }),
+        ]),
+      ).start();
+    });
+
+    // Animation du halo de fond
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(bgGlowAnim, {
+          toValue: 1,
+          duration: 4000,
+          easing: Easing.inOut(Easing.sin),
+          useNativeDriver: true,
+        }),
+        Animated.timing(bgGlowAnim, {
+          toValue: 0,
+          duration: 4000,
+          easing: Easing.inOut(Easing.sin),
+          useNativeDriver: true,
+        }),
+      ]),
+    ).start();
 
     // Démarrer la rotation infinie du cercle de chargement
     Animated.loop(
@@ -87,24 +131,41 @@ const SplashScreen: React.FC = () => {
 
   useEffect(() => {
     if (privacyChecked && !privacyAccepted) {
-      console.log("[splash] showing privacy overlay");
-      // Afficher le message de confidentialité
+      console.log("[splash] showing privacy overlay with wow animations");
+
+      // Animation d'entrée séquentielle "Waouh"
       Animated.sequence([
-        Animated.delay(1000),
+        Animated.delay(800),
         Animated.parallel([
           Animated.timing(privacyOpacity, {
             toValue: 1,
-            duration: 600,
+            duration: 800,
+            easing: Easing.out(Easing.cubic),
             useNativeDriver: true,
           }),
-          Animated.timing(privacyTranslateY, {
+          Animated.spring(privacyTranslateY, {
             toValue: 0,
+            friction: 7,
+            tension: 30,
+            useNativeDriver: true,
+          }),
+        ]),
+        Animated.parallel([
+          Animated.spring(iconScale, {
+            toValue: 1,
+            friction: 5,
+            tension: 40,
+            useNativeDriver: true,
+          }),
+          Animated.timing(textRevealAnim, {
+            toValue: 1,
             duration: 600,
             useNativeDriver: true,
           }),
         ]),
       ]).start();
-      return; // Ne pas rediriger tant que pas accepté
+
+      return;
     }
 
     let redirectTimeout: ReturnType<typeof setTimeout> | undefined;
@@ -183,7 +244,12 @@ const SplashScreen: React.FC = () => {
             opacity: fadeAnim,
             width: "100%",
             height: "100%",
-            transform: [{ scale: scaleAnim }, { translateY }],
+            justifyContent: "center",
+            alignItems: "center",
+            transform: [
+              { scale: logoScale },
+              { translateY: Animated.add(translateY, floatingAnim) },
+            ],
           }}
         >
           <Image
@@ -191,6 +257,7 @@ const SplashScreen: React.FC = () => {
             style={styles.image}
             resizeMode="contain"
           />
+
           {!privacyAccepted && privacyChecked ? (
             <Animated.View
               style={[
@@ -202,35 +269,68 @@ const SplashScreen: React.FC = () => {
               ]}
             >
               <View style={styles.privacyContent}>
-                <View
+                <Animated.View
                   style={[
                     styles.iconBadge,
-                    { backgroundColor: colors.primary + "20" },
+                    {
+                      backgroundColor: "rgba(255, 255, 255, 0.08)",
+                      transform: [{ scale: iconScale }],
+                    },
                   ]}
                 >
-                  <Ionicons
-                    name="shield-checkmark"
-                    size={32}
-                    color={colors.primary}
-                  />
-                </View>
-                <Text style={[styles.message, { color: "#FFFFFF" }]}>
-                  {getMessage()}
-                </Text>
+                  <Ionicons name="shield-checkmark" size={28} color="#FFFFFF" />
+                </Animated.View>
+
+                <Animated.View
+                  style={{
+                    opacity: textRevealAnim,
+                    transform: [
+                      {
+                        translateY: textRevealAnim.interpolate({
+                          inputRange: [0, 1],
+                          outputRange: [8, 0],
+                        }),
+                      },
+                    ],
+                  }}
+                >
+                  <Text style={styles.message}>{getMessage()}</Text>
+                </Animated.View>
 
                 <TouchableOpacity
                   style={[styles.button, { backgroundColor: colors.primary }]}
                   onPress={handleContinue}
-                  activeOpacity={0.8}
+                  activeOpacity={0.9}
+                  onPressIn={() =>
+                    Animated.spring(buttonScale, {
+                      toValue: 0.96,
+                      useNativeDriver: true,
+                    }).start()
+                  }
+                  onPressOut={() =>
+                    Animated.spring(buttonScale, {
+                      toValue: 1,
+                      useNativeDriver: true,
+                    }).start()
+                  }
                 >
-                  <Text style={styles.buttonText}>
-                    {language === "zh"
-                      ? "继续"
-                      : language === "en"
-                        ? "Continue"
-                        : "Continuer"}
-                  </Text>
-                  <Ionicons name="arrow-forward" size={20} color="#FFFFFF" />
+                  <Animated.View
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      gap: 10,
+                      transform: [{ scale: buttonScale }],
+                    }}
+                  >
+                    <Text style={styles.buttonText}>
+                      {language === "zh"
+                        ? "继续"
+                        : language === "en"
+                          ? "Continue"
+                          : "Continuer"}
+                    </Text>
+                    <Ionicons name="arrow-forward" size={18} color="#FFFFFF" />
+                  </Animated.View>
                 </TouchableOpacity>
               </View>
             </Animated.View>
@@ -267,96 +367,85 @@ const SplashScreen: React.FC = () => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#0B1220" }, // ou bleu CEDAICI SA
+  container: { flex: 1, backgroundColor: "#0B1220" },
   center: {
     flex: 1,
   },
-  image: { width: "100%", height: "100%" }, // plein écran via cover
+  image: { width: 200, height: 200 },
   spinnerOverlay: {
     position: "absolute",
-    top: 0,
+    bottom: 80,
     left: 0,
     right: 0,
-    bottom: 0,
     alignItems: "center",
-    justifyContent: "flex-end",
-    paddingBottom: 100,
   },
   spinner: {
-    width: 54,
-    height: 54,
-    borderRadius: 27,
-    borderWidth: 4,
-    borderColor: "#E0E0E0",
-    borderTopColor: "#0066CC",
-    borderLeftColor: "#E0E0E0",
-    borderRightColor: "#E0E0E0",
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    borderWidth: 2,
+    borderColor: "rgba(255, 255, 255, 0.1)",
+    borderTopColor: "#FFFFFF",
     backgroundColor: "transparent",
   },
   textContainer: {
     position: "absolute",
-    top: 0,
+    bottom: 160,
     left: 0,
     right: 0,
-    bottom: 0,
-    justifyContent: "center",
     alignItems: "center",
-    zIndex: 10,
   },
   appName: {
-    marginTop: 150,
-    fontSize: 32,
-    fontWeight: "700",
+    fontSize: 28,
+    fontWeight: "600",
     color: "#FFFFFF",
-    letterSpacing: 4,
-
-    textShadowColor: "rgba(0, 0, 0, 0.3)",
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 4,
+    letterSpacing: 6,
+    textTransform: "uppercase",
   },
   privacyOverlay: {
     position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    padding: 32,
-    paddingBottom: 60,
-    backgroundColor: "rgba(11, 18, 32, 0.85)", // Semi-transparent overlay on splash
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
+    bottom: 40,
+    left: 24,
+    right: 24,
+    padding: 28,
+    borderRadius: 24,
+    backgroundColor: "rgba(255, 255, 255, 0.05)",
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.1)",
   },
   privacyContent: {
     alignItems: "center",
   },
   iconBadge: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
     justifyContent: "center",
     alignItems: "center",
     marginBottom: 20,
   },
   message: {
-    fontSize: 16,
+    fontSize: 15,
     textAlign: "center",
-    lineHeight: 24,
-    fontWeight: "500",
-    marginBottom: 32,
+    lineHeight: 22,
+    fontWeight: "400",
+    color: "rgba(255, 255, 255, 0.9)",
+    marginBottom: 28,
+    paddingHorizontal: 12,
   },
   button: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: 16,
-    paddingHorizontal: 48,
-    borderRadius: 12,
-    gap: 8,
+    paddingVertical: 14,
+    paddingHorizontal: 32,
+    borderRadius: 16,
     width: "100%",
   },
   buttonText: {
     color: "#FFFFFF",
     fontSize: 16,
-    fontWeight: "700",
+    fontWeight: "600",
   },
 });
 

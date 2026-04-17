@@ -249,8 +249,6 @@ const InitialSetupScreen: React.FC = () => {
 
   const [lastFailedToken, setLastFailedToken] = useState("");
   const [attempts, setAttempts] = useState(0);
-  const [acceptedPolicies, setAcceptedPolicies] = useState(false);
-  const [showPoliciesModal, setShowPoliciesModal] = useState(false);
   const MAX_ATTEMPTS = 3;
 
   // Fonction vérification token
@@ -1127,18 +1125,10 @@ const InitialSetupScreen: React.FC = () => {
                       styles.button,
                       {
                         marginTop: 12,
-                        backgroundColor: acceptedPolicies
-                          ? palette.primary
-                          : palette.border,
+                        backgroundColor: palette.primary,
                       },
                     ]}
                     onPress={() => {
-                      if (!acceptedPolicies) {
-                        setVerifyError(
-                          "Veuillez accepter les politiques de confidentialité.",
-                        );
-                        return;
-                      }
                       handleVerifyToken();
                     }}
                   >
@@ -1151,38 +1141,6 @@ const InitialSetupScreen: React.FC = () => {
                     )}
                   </TouchableOpacity>
                 )}
-
-                <View style={styles.policyRow}>
-                  <TouchableOpacity
-                    style={[
-                      styles.checkbox,
-                      {
-                        borderColor: acceptedPolicies
-                          ? palette.primary
-                          : palette.border,
-                        backgroundColor: acceptedPolicies
-                          ? palette.primary
-                          : "transparent",
-                      },
-                    ]}
-                    onPress={() => setAcceptedPolicies(!acceptedPolicies)}
-                  >
-                    {acceptedPolicies && (
-                      <MaterialIcons name="check" size={14} color="#FFF" />
-                    )}
-                  </TouchableOpacity>
-                  <RNText
-                    style={[styles.policyText, { color: palette.textSub }]}
-                  >
-                    J'accepte les{" "}
-                    <RNText
-                      style={{ color: palette.primary, fontWeight: "600" }}
-                      onPress={() => setShowPoliciesModal(true)}
-                    >
-                      politiques de confidentialité et d'utilisation
-                    </RNText>
-                  </RNText>
-                </View>
 
                 <TouchableOpacity
                   style={[
@@ -1430,92 +1388,6 @@ const InitialSetupScreen: React.FC = () => {
             )}
           </Animated.View>
         </ScrollView>
-
-        <Modal
-          visible={showPoliciesModal}
-          animationType="slide"
-          transparent={true}
-          onRequestClose={() => setShowPoliciesModal(false)}
-        >
-          <View style={styles.modalOverlay}>
-            <View
-              style={[
-                styles.modalContent,
-                { backgroundColor: palette.card, borderColor: palette.border },
-              ]}
-            >
-              <View style={styles.modalHeader}>
-                <RNText
-                  style={[styles.modalTitle, { color: palette.textMain }]}
-                >
-                  Politiques de confidentialité
-                </RNText>
-                <TouchableOpacity onPress={() => setShowPoliciesModal(false)}>
-                  <MaterialIcons
-                    name="close"
-                    size={24}
-                    color={palette.textMain}
-                  />
-                </TouchableOpacity>
-              </View>
-              <ScrollView style={styles.modalBody}>
-                <RNText
-                  style={[styles.policyBody, { color: palette.textMain }]}
-                >
-                  {"\n"}**POLITIQUE DE CONFIDENTIALITÉ**{"\n\n"}
-                  Bienvenue sur l'application mobile Zenith. La protection de
-                  vos données personnelles est une priorité pour nous.{"\n\n"}
-                  **1. Collecte des données**{"\n"}
-                  Nous collectons des informations nécessaires au bon
-                  fonctionnement de vos services bancaires : identifiants de
-                  connexion, informations de compte, et données de transactions.
-                  {"\n\n"}
-                  **2. Utilisation des données**{"\n"}
-                  Vos données sont utilisées exclusivement pour :{"\n"}-
-                  Sécuriser l'accès à vos comptes.{"\n"}- Traiter vos opérations
-                  bancaires.{"\n"}- Améliorer votre expérience utilisateur.
-                  {"\n\n"}
-                  **3. Partage des données**{"\n"}
-                  Zenith ne partage pas vos données personnelles avec des tiers
-                  à des fins commerciales. Le partage ne s'effectue que dans le
-                  cadre légal et réglementaire strict lié aux activités
-                  bancaires.{"\n\n"}
-                  **4. Sécurité**{"\n"}
-                  Nous mettons en œuvre des mesures de sécurité de pointe
-                  (chiffrement, protocoles sécurisés) pour protéger vos
-                  informations contre tout accès non autorisé.{"\n\n"}
-                  **5. Vos droits**{"\n"}
-                  Conformément à la réglementation, vous disposez d'un droit
-                  d'accès, de rectification et de suppression de vos données.
-                  {"\n\n"}
-                  ---{"\n\n"}
-                  **CONDITIONS D'UTILISATION**{"\n\n"}
-                  L'utilisation de cette application est soumise à l'acceptation
-                  pleine et entière des présentes conditions.{"\n\n"}- Vous êtes
-                  responsable de la confidentialité de votre code PIN.{"\n"}-
-                  L'application doit être utilisée uniquement sur des appareils
-                  sécurisés.{"\n"}- Toute utilisation frauduleuse pourra
-                  entraîner la suspension immédiate de l'accès.{"\n\n"}
-                  ---{"\n\n"}
-                  *Note : Ces politiques pourront être mises à jour conformément
-                  aux documents officiels qui nous seront transmis.*
-                </RNText>
-              </ScrollView>
-              <TouchableOpacity
-                style={[
-                  styles.button,
-                  { marginTop: 16, backgroundColor: palette.primary },
-                ]}
-                onPress={() => {
-                  setAcceptedPolicies(true);
-                  setShowPoliciesModal(false);
-                }}
-              >
-                <RNText style={styles.buttonText}>J'ai lu et j'accepte</RNText>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </Modal>
       </SafeAreaView>
     </KeyboardAvoidingView>
   );
@@ -1622,54 +1494,6 @@ const styles = StyleSheet.create({
   },
   hintIcon: {
     marginLeft: 8,
-  },
-  policyRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginTop: 16,
-    paddingHorizontal: 4,
-  },
-  checkbox: {
-    width: 20,
-    height: 20,
-    borderRadius: 4,
-    borderWidth: 2,
-    marginRight: 10,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  policyText: {
-    fontSize: 13,
-    flex: 1,
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.5)",
-    justifyContent: "flex-end",
-  },
-  modalContent: {
-    height: "80%",
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    padding: 24,
-    borderWidth: 1,
-  },
-  modalHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 20,
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: "700",
-  },
-  modalBody: {
-    flex: 1,
-  },
-  policyBody: {
-    fontSize: 14,
-    lineHeight: 22,
   },
 });
 
