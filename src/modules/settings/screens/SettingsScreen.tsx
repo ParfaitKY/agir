@@ -354,70 +354,52 @@ export const SettingsScreen: React.FC = () => {
         {/* Settings Sections */}
         {settingsSections.map((section, sectionIndex) => (
           <View key={sectionIndex} style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: colors.text + "90" }]}>
+            <Text style={[styles.sectionTitle, { color: colors.text + "50" }]}>
               {tText(section.title)}
             </Text>
             <View
-              style={[styles.sectionContent, { backgroundColor: colors.card }]}
+              style={[styles.sectionContent, { backgroundColor: colors.card, borderColor: colors.border }]}
             >
               {section.items.map((item, itemIndex) => {
                 const restricted = isGuestMode && item.isRestricted;
+                const isLast = itemIndex === section.items.length - 1;
                 return (
                   <TouchableOpacity
                     key={itemIndex}
                     style={[
                       styles.settingItem,
-                      itemIndex === section.items.length - 1 &&
-                        styles.settingItemLast,
-                      { borderBottomColor: colors.border },
+                      !isLast && { borderBottomWidth: 1, borderBottomColor: colors.border },
                     ]}
                     onPress={() => {
-                      if (restricted) {
-                        guestAlert();
-                        return;
-                      }
+                      if (restricted) { guestAlert(); return; }
                       if (item.onPress) item.onPress();
                     }}
                     activeOpacity={restricted ? 1 : 0.7}
                   >
-                    <View style={styles.settingLeft}>
+                    <View style={[styles.settingIconWrap, { backgroundColor: restricted ? colors.border + "40" : (item.iconColor || colors.primary) + "15" }]}>
                       <Ionicons
                         name={item.icon as any}
-                        size={22}
-                        color={
-                          restricted
-                            ? colors.text + "60"
-                            : item.iconColor || colors.primary
-                        }
+                        size={18}
+                        color={restricted ? colors.text + "40" : (item.iconColor || colors.primary)}
                       />
-                      <Text
-                        style={[
-                          styles.settingTitle,
-                          {
-                            color: restricted
-                              ? colors.text + "60"
-                              : colors.text,
-                          },
-                        ]}
-                      >
-                        {tText(item.title)}
-                      </Text>
                     </View>
-                    {("rightElement" in item && item.rightElement) ||
-                      (!restricted && item.showChevron && (
-                        <Ionicons
-                          name="chevron-forward"
-                          size={20}
-                          color={colors.border}
-                        />
-                      ))}
-                    {restricted && (
-                      <Ionicons
-                        name="lock-closed"
-                        size={20}
-                        color={colors.text + "60"}
-                      />
-                    )}
+                    <Text
+                      style={[
+                        styles.settingTitle,
+                        { color: restricted ? colors.text + "50" : colors.text },
+                      ]}
+                    >
+                      {tText(item.title)}
+                    </Text>
+                    <View style={styles.settingRight}>
+                      {("rightElement" in item && item.rightElement) ||
+                        (restricted
+                          ? <Ionicons name="lock-closed" size={16} color={colors.text + "40"} />
+                          : item.showChevron
+                            ? <Ionicons name="chevron-forward" size={16} color={colors.text + "25"} />
+                            : null
+                        )}
+                    </View>
                   </TouchableOpacity>
                 );
               })}
@@ -427,38 +409,24 @@ export const SettingsScreen: React.FC = () => {
 
         {/* Déconnexion Section */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.text + "90" }]}>
+          <Text style={[styles.sectionTitle, { color: colors.text + "50" }]}>
             {tText("DÉCONNEXION")}
           </Text>
-          <View
-            style={[styles.sectionContent, { backgroundColor: colors.card }]}
-          >
+          <View style={[styles.sectionContent, { backgroundColor: colors.card, borderColor: colors.border }]}>
             <TouchableOpacity
-              style={[styles.settingItem, styles.settingItemLast]}
+              style={styles.settingItem}
               onPress={() => setShowLogoutModal(true)}
               activeOpacity={0.7}
             >
-              <View style={styles.settingLeft}>
-                <Ionicons
-                  name="log-out-outline"
-                  size={22}
-                  color={colors.error}
-                />
-                <Text
-                  style={[
-                    styles.settingTitle,
-                    styles.logoutText,
-                    { color: colors.text },
-                  ]}
-                >
-                  {tText("Se déconnecter")}
-                </Text>
+              <View style={[styles.settingIconWrap, { backgroundColor: colors.error + "15" }]}>
+                <Ionicons name="log-out-outline" size={18} color={colors.error} />
               </View>
-              <Ionicons
-                name="chevron-forward"
-                size={20}
-                color={colors.border}
-              />
+              <Text style={[styles.settingTitle, { color: colors.error }]}>
+                {tText("Se déconnecter")}
+              </Text>
+              <View style={styles.settingRight}>
+                <Ionicons name="chevron-forward" size={16} color={colors.error + "50"} />
+              </View>
             </TouchableOpacity>
           </View>
         </View>
@@ -1255,31 +1223,42 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   section: {
-    marginTop: 24,
+    marginTop: 20,
+    paddingHorizontal: 16,
   },
   sectionTitle: {
-    fontSize: 12,
-    fontWeight: "600",
-    color: "#999",
+    fontSize: 11,
+    fontWeight: "700",
+    letterSpacing: 1,
     marginBottom: 8,
-    marginLeft: 20,
-    letterSpacing: 0.5,
+    marginLeft: 4,
   },
   sectionContent: {
-    backgroundColor: "#fff",
-    marginHorizontal: 0,
+    borderRadius: 18,
+    borderWidth: 1,
+    overflow: "hidden",
+    shadowColor: "#000",
+    shadowOpacity: 0.04,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 8,
+    elevation: 2,
   },
   settingItem: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
-    paddingVertical: 16,
-    paddingHorizontal: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: "#F0F0F0",
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    gap: 12,
   },
   settingItemLast: {
     borderBottomWidth: 0,
+  },
+  settingIconWrap: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: "center",
+    alignItems: "center",
   },
   settingLeft: {
     flexDirection: "row",
@@ -1287,10 +1266,13 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   settingTitle: {
-    fontSize: 15,
-    fontWeight: "400",
-    color: "#000",
-    marginLeft: 16,
+    fontSize: 14,
+    fontWeight: "500",
+    flex: 1,
+  },
+  settingRight: {
+    alignItems: "center",
+    justifyContent: "center",
   },
   logoutText: {
     color: "#FF3B30",
