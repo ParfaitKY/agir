@@ -2,7 +2,7 @@ import React, { useRef, useEffect, useState } from "react";
 import { View, PanResponder, AppState, AppStateStatus } from "react-native";
 import { useAuth } from "./AuthProvider";
 
-const TIMEOUT = 1 * 60 * 1000; // 1 minute
+const TIMEOUT = 5 * 60 * 1000; // 5 minutes
 
 export const InactivityProvider: React.FC<{ children: React.ReactNode }> = ({
   children,

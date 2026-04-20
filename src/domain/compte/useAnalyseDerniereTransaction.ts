@@ -1,6 +1,7 @@
 import { useState, useCallback } from "react";
 import { analyseDerniereTransaction } from "../../services/compte/analyseDerniereTransaction";
 import { secureGetItem, secureSetItem } from "../../shared/utils/secureStorage";
+import { extractErrorMessage } from "../../services/httpClient";
 
 export type AnalyseData = {
   NOMBRE_OPERATIONS_CREDIT: number;
@@ -25,7 +26,7 @@ export const useAnalyseDerniereTransaction = (nombreTransactions: number = 50) =
       const token = await secureGetItem("auth_token");
       const login = await secureGetItem("user_login");
       if (!clientId || !token) {
-        setError("Identifiants manquants");
+        setError("Session expirée. Reconnectez-vous.");
         return false;
       }
       const headers = {
@@ -36,14 +37,7 @@ export const useAnalyseDerniereTransaction = (nombreTransactions: number = 50) =
         headers
       );
       if (result?.error) {
-        const err: any = result.error;
-        const server = err?.response?.data;
-        const msg =
-          server?.message ||
-          (Array.isArray(server?.errors) ? server.errors.join(", ") : undefined) ||
-          err?.message ||
-          "Erreur analyse";
-        setError(msg);
+        setError(extractErrorMessage(result.error, "Impossible de charger l'analyse"));
         return false;
       }
       const payload = result?.data;
@@ -52,7 +46,7 @@ export const useAnalyseDerniereTransaction = (nombreTransactions: number = 50) =
       await secureSetItem("analyse_derniere_transaction", JSON.stringify(analyse ?? payload));
       return true;
     } catch (e: any) {
-      setError(e?.message || "Erreur réseau");
+      setError(extractErrorMessage(e, "Impossible de charger l'analyse"));
       return false;
     } finally {
       setIsLoading(false);

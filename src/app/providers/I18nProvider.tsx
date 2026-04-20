@@ -1053,9 +1053,9 @@ const TRANSLATIONS: Translations = {
   "settings.logout": { fr: "Se déconnecter", en: "Log out", zh: "退出登录" },
   "settings.version": { fr: "Version", en: "Version", zh: "版本" },
   "settings.copyright": {
-    fr: "© 2025 CEDAICI SA",
-    en: "© 2025 CEDAICI SA",
-    zh: "© 2025 CEDAICI SA",
+    fr: `© ${new Date().getFullYear()} CEDAICI SA`,
+    en: `© ${new Date().getFullYear()} CEDAICI SA`,
+    zh: `© ${new Date().getFullYear()} CEDAICI SA`,
   },
 
   // Navigator titles

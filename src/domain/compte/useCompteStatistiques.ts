@@ -1,6 +1,7 @@
 import { useState, useCallback } from "react";
 import { compteStatistiques } from "../../services/compte/compteStatistiques";
 import { secureGetItem, secureSetItem } from "../../shared/utils/secureStorage";
+import { extractErrorMessage } from "../../services/httpClient";
 
 type CompteItem = {
   AG_CODEAGENCE?: string;
@@ -56,7 +57,7 @@ export const useCompteStatistiques = () => {
       }
 
       if (!resolvedClientId || !token) {
-        setError("Identifiants manquants");
+        setError("Session expirée. Reconnectez-vous.");
         return false;
       }
 
@@ -77,16 +78,7 @@ export const useCompteStatistiques = () => {
       } as any;
       const result: any = await compteStatistiques(body, headers);
       if (result?.error) {
-        const err: any = result.error;
-        const server = err?.response?.data;
-        const msg =
-          server?.message ||
-          (Array.isArray(server?.errors)
-            ? server.errors.join(", ")
-            : undefined) ||
-          err?.message ||
-          "Échec des statistiques de comptes";
-        setError(msg);
+        setError(extractErrorMessage(result.error, "Impossible de charger les comptes"));
         return false;
       }
       const payload = result?.data;
@@ -131,7 +123,7 @@ export const useCompteStatistiques = () => {
       );
       return true;
     } catch (e: any) {
-      setError(e?.message || "Erreur réseau");
+      setError(extractErrorMessage(e, "Impossible de charger les comptes"));
       return false;
     } finally {
       setIsLoading(false);

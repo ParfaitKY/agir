@@ -100,3 +100,33 @@ export async function handleRequest<T = any>(
     return { error: err };
   }
 }
+
+/**
+ * Extrait un message d'erreur lisible depuis une erreur axios.
+ * Distingue les erreurs réseau/CORS des erreurs serveur.
+ */
+export function extractErrorMessage(err: any, fallback = "Une erreur est survenue"): string {
+  if (!err) return fallback;
+
+  // Erreur réseau (pas de réponse du serveur — CORS, timeout, hors ligne)
+  if (err.message === "Network Error" || !err.response) {
+    return "Impossible de contacter le serveur. Vérifiez votre connexion.";
+  }
+
+  // Timeout
+  if (err.code === "ECONNABORTED" || err.message?.includes("timeout")) {
+    return "La requête a pris trop de temps. Réessayez.";
+  }
+
+  // Message serveur explicite
+  const serverMsg = err?.response?.data?.message || err?.response?.data?.error;
+  if (serverMsg) return String(serverMsg);
+
+  // Code HTTP
+  const status = err?.response?.status;
+  if (status === 401 || status === 403) return "Session expirée. Reconnectez-vous.";
+  if (status === 404) return "Ressource introuvable.";
+  if (status >= 500) return "Erreur serveur. Réessayez plus tard.";
+
+  return err?.message || fallback;
+}

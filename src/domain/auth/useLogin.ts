@@ -1,6 +1,7 @@
 import { useState, useCallback } from "react";
 import { login as loginApi, LoginPayload } from "../../services/auth/login";
-import { secureSetItem, secureGetItem } from "../../shared/utils/secureStorage";
+import { secureSetItem } from "../../shared/utils/secureStorage";
+import { normalize, pick } from "../../shared/utils/apiNormalizer";
 
 export type LoginResult = {
   token?: string;
@@ -155,6 +156,12 @@ export const useLogin = () => {
 
       if (clientId) {
         await secureSetItem("client_id", String(clientId));
+      }
+
+      // Sauvegarder le code opérateur pour les virements (champ exact du serveur)
+      const codeOperateur = block?.OP_CODEOPERATEURGESTIONNAIRECOMPTEMOBILE;
+      if (codeOperateur) {
+        await secureSetItem("code_operateur", String(codeOperateur));
       }
 
       await secureSetItem("user_login", username);

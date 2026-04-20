@@ -14,20 +14,17 @@ import {
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useTheme } from "../../../shared/styles/ThemeProvider";
 import { verifyOtpSimple } from "../../../services/auth/verifyOtpSimple";
 import { useAuth } from "../../../app/hooks/useAuth";
 import { secureSetItem } from "../../../shared/utils/secureStorage";
 
 const DIGITS = 4;
 const PRIMARY = "#0066CC";
-const BG = "#F0F4FF";
 
 const OtpSimpleScreen: React.FC = () => {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
-  const { colors } = useTheme();
 
   const userId: string = route.params?.user_id ?? "";
   const debugOtp: string = route.params?.debug_otp ?? "";
@@ -44,20 +41,26 @@ const OtpSimpleScreen: React.FC = () => {
   const resetFields = () => {
     setValues(Array(DIGITS).fill(""));
     setActive(0);
-    setTimeout(() => inputs.current[0]?.focus(), 50);
+    setTimeout(() => inputs.current[0]?.focus(), 100);
   };
 
   const handleChange = (index: number, text: string) => {
-    const v = text.replace(/\D/g, "").slice(0, 1);
+    // Sur Android, text peut contenir plusieurs caractères — on prend le dernier saisi
+    const digits = text.replace(/\D/g, "");
+    const v = digits.slice(-1); // dernier chiffre saisi
     const next = [...values];
     next[index] = v;
     setValues(next);
     if (v && index < DIGITS - 1) {
-      inputs.current[index + 1]?.focus();
-      setActive(index + 1);
+      setTimeout(() => {
+        inputs.current[index + 1]?.focus();
+      }, 10);
     } else if (v && index === DIGITS - 1) {
       const code = next.join("");
-      if (code.length === DIGITS) submitOtp(code);
+      if (code.length === DIGITS) {
+        inputs.current[index]?.blur();
+        submitOtp(code);
+      }
     }
   };
 
@@ -70,8 +73,9 @@ const OtpSimpleScreen: React.FC = () => {
       } else if (index > 0) {
         next[index - 1] = "";
         setValues(next);
-        setActive(index - 1);
-        inputs.current[index - 1]?.focus();
+        setTimeout(() => {
+          inputs.current[index - 1]?.focus();
+        }, 10);
       }
     }
   };
@@ -105,6 +109,31 @@ const OtpSimpleScreen: React.FC = () => {
         setError(msg);
         resetFields();
         return;
+      }
+
+      // Sauvegarder le nouveau token post-OTP si le serveur en renvoie un
+      const newToken =
+        data?.access_token ||
+        data?.token ||
+        data?.jwt ||
+        data?.data?.access_token ||
+        data?.data?.token;
+
+      if (newToken) {
+        await secureSetItem("auth_token", String(newToken));
+      }
+
+      // Sauvegarder les données opérateur renvoyées post-OTP si présentes
+      const postOtpData = data?.data;
+      if (postOtpData) {
+        const codeOp = postOtpData.OP_CODEOPERATEURGESTIONNAIRECOMPTEMOBILE;
+        if (codeOp) await secureSetItem("code_operateur", String(codeOp));
+
+        const clientId = postOtpData.CL_IDCLIENT;
+        if (clientId) await secureSetItem("client_id", String(clientId));
+
+        const login = postOtpData.SL_LOGIN;
+        if (login) await secureSetItem("user_login", String(login));
       }
 
       // Marquer la session comme authentifiée
@@ -201,15 +230,20 @@ const OtpSimpleScreen: React.FC = () => {
                       onChangeText={(t) => handleChange(i, t)}
                       onKeyPress={(e) => handleKeyPress(i, e)}
                       onFocus={() => setActive(i)}
+                      onBlur={() => {}}
                       keyboardType="number-pad"
-                      maxLength={1}
+                      maxLength={2}
                       textContentType="oneTimeCode"
+                      autoComplete="one-time-code"
+                      importantForAutofill="yes"
                       style={[
                         styles.otpInput,
                         { color: isFilled ? PRIMARY : "#1E293B" },
                       ]}
                       selectionColor={PRIMARY}
                       editable={!loading}
+                      caretHidden={true}
+                      contextMenuHidden={true}
                     />
                   </View>
                 );

@@ -1,6 +1,7 @@
 import { useState, useCallback } from "react";
 import { getDerniereTransaction } from "../../services/compte/derniereTransaction";
 import { secureGetItem, secureSetItem } from "../../shared/utils/secureStorage";
+import { extractErrorMessage } from "../../services/httpClient";
 
 export const useDerniereTransaction = () => {
   const [data, setData] = useState<any | null>(null);
@@ -14,7 +15,7 @@ export const useDerniereTransaction = () => {
       const clientId = await secureGetItem("client_id");
       const token = await secureGetItem("auth_token");
       if (!clientId || !token) {
-        setError("Identifiants manquants");
+        setError("Session expirée. Reconnectez-vous.");
         return false;
       }
       const accountNumber = await secureGetItem("user_account_number");
@@ -52,16 +53,7 @@ export const useDerniereTransaction = () => {
         headers
       );
       if (result?.error) {
-        const err: any = result.error;
-        const server = err?.response?.data;
-        const msg =
-          server?.message ||
-          (Array.isArray(server?.errors)
-            ? server.errors.join(", ")
-            : undefined) ||
-          err?.message ||
-          "Erreur transaction";
-        setError(msg);
+        setError(extractErrorMessage(result.error, "Impossible de charger la transaction"));
         return false;
       }
       const payload = result?.data;
@@ -90,7 +82,7 @@ export const useDerniereTransaction = () => {
       );
       return true;
     } catch (e: any) {
-      setError(e?.message || "Erreur réseau");
+      setError(extractErrorMessage(e, "Impossible de charger la transaction"));
       return false;
     } finally {
       setIsLoading(false);

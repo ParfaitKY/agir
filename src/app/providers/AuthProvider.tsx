@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
-import * as SecureStore from "expo-secure-store";
 import * as Crypto from "expo-crypto";
+import NetInfo from "@react-native-community/netinfo";
 import { login as loginApi, LoginPayload } from "../../services/auth/login";
 import {
   secureGetItem,
@@ -71,11 +71,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       // Step 2: Verify Initial Token (V2 Requirement)
       // "lorsque l’utilisateur s’est déjà connecte ... il faut toujour verifirer le authtoken"
       if (configured === "true") {
+        // Vérifier la connectivité avant d'appeler le serveur.
+        // Si hors ligne, on garde la session locale sans déconnecter.
+        let isOnline = true;
+        try {
+          const netState = await NetInfo.fetch();
+          isOnline = !!(netState.isConnected && netState.isInternetReachable !== false);
+        } catch {}
+
+        if (!isOnline) {
+          console.log("Offline at startup — skipping token verification, keeping local session");
+          const token = await secureGetItem("auth_token");
+          const userData = await secureGetItem("user_data");
+          if (token && userData) {
+            setIsAuthenticated(true);
+            setUser(JSON.parse(userData));
+          }
+          setIsConfigured(true);
+          setIsLoading(false);
+          return;
+        }
+
         const isValid = await verifyToken();
         if (!isValid) {
           console.log("Initial Token Invalid -> Soft Logout (Pin preserved)");
-          // On ne supprime pas is_configured ici, on laisse logout() gérer la déconnexion "douce"
-          // pour permettre à l'utilisateur de se reconnecter avec son PIN.
           await logout();
           return;
         }
@@ -509,6 +528,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
             "WORK_DATE",
           ]) || "";
         if (workDate) await secureSetItem("work_date", String(workDate));
+
+        // Sauvegarder le code opérateur pour les virements
+        const codeOp = block?.OP_CODEOPERATEURGESTIONNAIRECOMPTEMOBILE;
+        if (codeOp) await secureSetItem("code_operateur", String(codeOp));
 
         let finalUser: User | null = null;
         if (userData) {

@@ -1,11 +1,6 @@
 import React, { useState } from "react";
 import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  Modal,
+  View, Text, StyleSheet, ScrollView, TouchableOpacity,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
@@ -14,864 +9,337 @@ import { useTheme } from "../../../shared/styles/ThemeProvider";
 import { useCompteStatistiques } from "../../../domain/compte/useCompteStatistiques";
 import { EmptyState } from "../../../shared/components/EmptyState";
 
+type FilterKey = "tous" | "ordinaire" | "projet" | "dat" | "credit";
+
 export const AccountsScreen: React.FC = () => {
   const navigation = useNavigation();
-  const [filter, setFilter] = useState<
-    "tous" | "ordinaire" | "projet" | "dat" | "credit"
-  >("tous");
+  const [filter, setFilter] = useState<FilterKey>("tous");
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const { t, tText } = useI18n();
   const { colors } = useTheme();
-  const {
-    data: compteStats,
-    isLoading,
-    error,
-    fetchData,
-  } = useCompteStatistiques();
-  React.useEffect(() => {
-    fetchData();
-  }, []);
+  const { data: compteStats, isLoading, error, fetchData } = useCompteStatistiques();
+
+  React.useEffect(() => { fetchData(); }, []);
   React.useEffect(() => {
     const unsub = (navigation as any).addListener("focus", () => fetchData());
     return unsub;
   }, [navigation]);
 
-  const parseAmount = (s: string) => Number(s.replace(/\s/g, ""));
+  React.useLayoutEffect(() => {
+    navigation.setOptions({
+      headerShown: true,
+      headerStyle: { backgroundColor: colors.card, elevation: 0, shadowOpacity: 0, borderBottomWidth: 1, borderBottomColor: colors.border },
+      headerLeft: () => (
+        <TouchableOpacity onPress={() => navigation.goBack()} style={{ marginLeft: 8, width: 38, height: 38, borderRadius: 19, backgroundColor: colors.background, justifyContent: "center", alignItems: "center" }}>
+          <Ionicons name="arrow-back" size={20} color={colors.text} />
+        </TouchableOpacity>
+      ),
+      headerTitle: () => (
+        <View style={{ alignItems: "center" }}>
+          <Text style={{ fontSize: 11, fontWeight: "700", color: colors.text + "45", letterSpacing: 1.5, textTransform: "uppercase" }}>Finances</Text>
+          <Text style={{ fontSize: 17, fontWeight: "800", color: colors.text, letterSpacing: -0.3 }}>Mes Comptes</Text>
+        </View>
+      ),
+      headerRight: () => (
+        <TouchableOpacity onPress={fetchData} style={{ marginRight: 12, width: 38, height: 38, borderRadius: 19, backgroundColor: colors.primary + "15", justifyContent: "center", alignItems: "center" }}>
+          <Ionicons name="refresh-outline" size={18} color={colors.primary} />
+        </TouchableOpacity>
+      ),
+    });
+  }, [navigation, colors]);
+
+  const parseAmount = (s: string) => Number(String(s).replace(/\s/g, ""));
 
   const rawAccounts = (compteStats?.COMPTES ?? []).map((c, idx) => {
     const type = String(c.CO_INTITULECOMPTE ?? "").toUpperCase();
     const productLabel = String(c.PD_LIBELLE ?? "").toUpperCase();
-    const color = type.includes("EPARGNE") ? colors.success : colors.primary;
-    // Nettoyage du numéro de compte pour éviter les doublons dus aux espaces/formatage
-    const cleanNumber = String(c.NUMEROCOMPTE ?? "")
-      .replace(/[^a-zA-Z0-9]/g, "")
-      .toUpperCase();
-
+    const isEpargne = type.includes("EPARGNE");
+    const color = isEpargne ? colors.success : colors.primary;
+    const cleanNumber = String(c.NUMEROCOMPTE ?? "").replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
     return {
-      id: c.id ?? idx,
-      type,
-      productLabel,
+      id: c.id ?? idx, type, productLabel,
       CO_CODECOMPTE: String(c.CO_CODECOMPTE ?? ""),
       number: cleanNumber,
       balance: String(c.SOLDE ?? c.SOLDE_GLOBAL ?? 0),
       blocked: Number(c.MONTANTBLOQUE ?? 0),
       currency: "XOF",
       active: !c.CO_DATECLOTURE || String(c.CO_DATECLOTURE).includes("1900"),
-      color,
-      duration: c.duration || "24 mois",
-      nextDueDate: c.nextDueDate || "15/05/2024",
+      color, duration: c.duration || "24 mois", nextDueDate: c.nextDueDate || "—",
     } as any;
   });
 
-  // Déduplication stricte basée sur le numéro de compte nettoyé
-  // On utilise un Map pour ne garder qu'une seule occurrence par numéro
-  const accounts = Array.from(
-    new Map(rawAccounts.map((item) => [item.number, item])).values()
-  );
+  const accounts = Array.from(new Map(rawAccounts.map((a: any) => [a.number, a])).values()) as any[];
+  const portfolioTotal = accounts.reduce((s, a) => s + parseAmount(a.balance), 0);
+  const blockedTotal = (compteStats?.COMPTES ?? []).reduce((s: number, c: any) => s + Number(c?.MONTANTBLOQUE || 0), 0);
+  const fmt = (n: number) => new Intl.NumberFormat("fr-FR").format(n);
 
-  // Calculate portfolio total dynamically from accounts to ensure consistency
-  const portfolioTotal = accounts.reduce(
-    (sum, a) => sum + parseAmount(a.balance),
-    0
-  );
-
-  // Update progress now that we have portfolioTotal
-  accounts.forEach((a) => {
-    const b = parseAmount(a.balance);
-    a.progress =
-      portfolioTotal > 0 ? Math.max(0, Math.min(1, b / portfolioTotal)) : 0;
-  });
-
-  const stats = [
-    {
-      id: 1,
-      label: `${new Intl.NumberFormat("fr-FR").format(portfolioTotal)} XOF`,
-      sub: tText("Total"),
-      icon: "wallet-outline",
-      bg: colors.primary + "15",
-      iconColor: colors.primary,
-    },
-    {
-      id: 2,
-      label: String(compteStats?.NOMBRE_COMPTES ?? 0),
-      sub: t("accounts.stats.accounts"),
-      icon: "list-outline",
-      bg: colors.success + "15",
-      iconColor: colors.success,
-    },
-    {
-      id: 3,
-      label: `${new Intl.NumberFormat("fr-FR").format(
-        (compteStats?.COMPTES ?? []).reduce(
-          (s: number, c: any) => s + Number(c?.MONTANTBLOQUE || 0),
-          0
-        )
-      )} XOF`,
-      sub: tText("Bloqué"),
-      icon: "lock-closed-outline",
-      bg: colors.warning + "15",
-      iconColor: colors.warning,
-    },
+  const FILTERS: { key: FilterKey; label: string; icon: string }[] = [
+    { key: "tous", label: "Tous", icon: "apps-outline" },
+    { key: "ordinaire", label: "Ordinaire", icon: "wallet-outline" },
+    { key: "projet", label: "Projet", icon: "construct-outline" },
+    { key: "dat", label: "DAT", icon: "time-outline" },
+    { key: "credit", label: "Crédit", icon: "cash-outline" },
   ];
 
-  const renderStat = (s: any) => (
-    <View
-      key={s.id}
-      style={[
-        styles.statCard,
-        { backgroundColor: colors.card, borderColor: colors.border },
-      ]}
-    >
-      <View style={[styles.statIcon, { backgroundColor: s.bg }]}>
-        <Ionicons
-          name={s.icon as any}
-          size={20}
-          color={s.iconColor || colors.text}
-        />
-      </View>
-      <Text
-        style={[styles.statValue, { color: colors.text }]}
-        adjustsFontSizeToFit
-        numberOfLines={1}
-      >
-        {s.label}
-      </Text>
-      <Text style={[styles.statSub, { color: colors.text + "70" }]}>
-        {s.sub}
-      </Text>
-    </View>
-  );
+  const isCredit = (a: any) =>
+    ["CREDIT","PRET","CRÉDIT","PRÊT"].some(k => a.type.includes(k) || a.productLabel.includes(k));
 
-  const renderFilter = (
-    key: "tous" | "ordinaire" | "projet" | "dat" | "credit",
-    label: string,
-    icon?: any
-  ) => (
-    <TouchableOpacity
-      key={key}
-      style={[
-        styles.chip,
-        { backgroundColor: colors.card, borderColor: colors.border },
-        filter === key && {
-          backgroundColor: colors.primary,
-          borderColor: colors.primary,
-        },
-      ]}
-      onPress={() => setFilter(key)}
-      activeOpacity={0.8}
-    >
-      {icon && (
-        <Ionicons
-          name={icon}
-          size={16}
-          color={filter === key ? "#fff" : colors.primary}
-          style={{ marginRight: 6 }}
-        />
-      )}
-      <Text
-        style={[
-          styles.chipText,
-          { color: colors.text },
-          filter === key && styles.chipTextActive,
-        ]}
-      >
-        {label}
-      </Text>
-    </TouchableOpacity>
-  );
+  const filtered = accounts.filter((a) => {
+    const type = a.type.toUpperCase();
+    if (filter === "ordinaire") return (type.includes("COURANT") || type.includes("EPARGNE")) && !type.includes("PROJET") && !type.includes("DAT") && !type.includes("TERME");
+    if (filter === "projet") return type.includes("PROJET");
+    if (filter === "dat") return type.includes("DAT") || type.includes("TERME");
+    if (filter === "credit") return isCredit(a);
+    return true;
+  });
 
   return (
     <ScrollView
-      style={[styles.container, { backgroundColor: colors.background }]}
-      contentContainerStyle={styles.scrollContent}
-      showsVerticalScrollIndicator={true}
+      style={[s.root, { backgroundColor: colors.background }]}
+      contentContainerStyle={s.scroll}
+      showsVerticalScrollIndicator={false}
     >
-      {/* Bande blanche avec Portfolio Total */}
-      <View
-        style={[
-          styles.whiteHeader,
-          { backgroundColor: colors.card, borderColor: colors.border },
-        ]}
-      >
-        <View>
-          <Text style={[styles.portfolioLabel, { color: colors.text + "70" }]}>
-            Portefeuille Total
-          </Text>
-          <Text style={[styles.portfolioValue, { color: colors.primary }]}>
-            {new Intl.NumberFormat("fr-FR").format(portfolioTotal)} XOF
-          </Text>
+      {/* ── Portfolio hero ── */}
+      <View style={[s.hero, { backgroundColor: colors.primary }]}>
+        <Text style={s.heroEyebrow}>PORTEFEUILLE TOTAL</Text>
+        <Text style={s.heroAmount}>{fmt(portfolioTotal)}</Text>
+        <Text style={s.heroCurrency}>XOF</Text>
+
+        <View style={s.heroStats}>
+          <View style={s.heroStat}>
+            <Ionicons name="layers-outline" size={14} color="rgba(255,255,255,0.7)" />
+            <Text style={s.heroStatVal}>{compteStats?.NOMBRE_COMPTES ?? accounts.length}</Text>
+            <Text style={s.heroStatLbl}>Comptes</Text>
+          </View>
+          <View style={s.heroSep} />
+          <View style={s.heroStat}>
+            <Ionicons name="lock-closed-outline" size={14} color="rgba(255,255,255,0.7)" />
+            <Text style={s.heroStatVal}>{fmt(blockedTotal)}</Text>
+            <Text style={s.heroStatLbl}>Bloqué (XOF)</Text>
+          </View>
+          <View style={s.heroSep} />
+          <View style={s.heroStat}>
+            <Ionicons name="checkmark-circle-outline" size={14} color="rgba(255,255,255,0.7)" />
+            <Text style={s.heroStatVal}>{accounts.filter(a => a.active).length}</Text>
+            <Text style={s.heroStatLbl}>Actifs</Text>
+          </View>
         </View>
-        <TouchableOpacity
-          style={[
-            styles.notifyBtn,
-            { backgroundColor: colors.card, borderColor: colors.border },
-          ]}
-          onPress={fetchData}
-        >
-          <Ionicons name="refresh-outline" size={20} color={colors.primary} />
-          <View style={[styles.notifyDot, { backgroundColor: colors.error }]} />
-        </TouchableOpacity>
       </View>
 
-      <View style={styles.statsRow}>{stats.map(renderStat)}</View>
-
-      {/* Titre + Filtres */}
-      <View style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>
-          {t("accounts.list")}
-        </Text>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.filtersRow}
-        >
-          {renderFilter("tous", t("accounts.filters.all"))}
-          {renderFilter(
-            "ordinaire",
-            "Ordinaire",
-            "wallet-outline"
-          )}
-          {renderFilter(
-            "projet",
-            "Projet",
-            "construct-outline"
-          )}
-          {renderFilter(
-            "dat",
-            "Dat",
-            "time-outline"
-          )}
-          {renderFilter("credit", "Crédit", "cash-outline")}
-        </ScrollView>
-      </View>
-
-      {/* Carte compte */}
-      {isLoading && (
-        <View style={{ padding: 16 }}>
-          <Text style={{ color: colors.text }}>Chargement…</Text>
-        </View>
-      )}
-      {!!error && (
-        <EmptyState
-          type="error"
-          message={String(error)}
-          onRetry={fetchData}
-          style={{ marginTop: 20 }}
-        />
-      )}
-      {!isLoading && !error && accounts.length === 0 && (
-        <EmptyState
-          type="empty"
-          message="Aucun compte trouvé"
-          style={{ marginTop: 20 }}
-        />
-      )}
-      {(accounts || [])
-        .filter((a) => {
-          const type = a.type.toUpperCase();
-          if (filter === "ordinaire")
-            return (
-              (type.includes("COURANT") || type.includes("EPARGNE")) &&
-              !type.includes("PROJET") &&
-              !type.includes("DAT") &&
-              !type.includes("TERME")
-            );
-          if (filter === "projet") return type.includes("PROJET");
-          if (filter === "dat")
-            return type.includes("DAT") || type.includes("TERME");
-          if (filter === "credit")
-            return (
-              type.includes("CREDIT") ||
-              type.includes("PRET") ||
-              type.includes("CRÉDIT") ||
-              type.includes("PRÊT") ||
-              a.productLabel.includes("CREDIT") ||
-              a.productLabel.includes("PRET") ||
-              a.productLabel.includes("CRÉDIT") ||
-              a.productLabel.includes("PRÊT")
-            );
-          return true;
-        })
-        .map((a) => {
-          const isCredit =
-            a.type.toUpperCase().includes("CREDIT") ||
-            a.type.toUpperCase().includes("PRET") ||
-            a.type.toUpperCase().includes("CRÉDIT") ||
-            a.type.toUpperCase().includes("PRÊT") ||
-            a.productLabel.includes("CREDIT") ||
-            a.productLabel.includes("PRET") ||
-            a.productLabel.includes("CRÉDIT") ||
-            a.productLabel.includes("PRÊT");
+      {/* ── Filters ── */}
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.filtersRow}>
+        {FILTERS.map(({ key, label, icon }) => {
+          const active = filter === key;
           return (
             <TouchableOpacity
-              key={a.id}
-              style={[
-                styles.accountCard,
-                { backgroundColor: colors.card, borderColor: colors.border },
-              ]}
-              activeOpacity={0.85}
-              onPress={() => {
-                if (isCredit) {
-                  setExpandedId(expandedId === a.id ? null : a.id);
-                } else {
-                  // Ouvrir l'écran de détails pour tout type de compte
-                  (navigation as any).navigate("AccountDetails", {
-                    account: a,
-                    sharePct: Math.round(
-                      (parseAmount(a.balance) / portfolioTotal) * 100
-                    ),
-                    total: portfolioTotal,
-                  });
-                }
-              }}
+              key={key}
+              style={[s.chip, { backgroundColor: active ? colors.primary : colors.card, borderColor: active ? colors.primary : colors.border }]}
+              onPress={() => setFilter(key)}
+              activeOpacity={0.8}
             >
-              <View style={styles.accountTop}>
-                <View
-                  style={[
-                    styles.accountIcon,
-                    { backgroundColor: colors.background },
-                  ]}
-                >
-                  <Ionicons
-                    name={
-                      (a.type.includes("Courant")
-                        ? "briefcase"
-                        : "wallet") as any
-                    }
-                    size={22}
-                    color={a.color}
-                  />
-                </View>
-                <View style={styles.accountInfo}>
-                  <Text style={[styles.accountType, { color: colors.text }]}>
-                    {a.type.toUpperCase().includes("COURANT")
-                      ? "COMPTE ORDINAIRE"
-                      : tText(a.type)}
-                  </Text>
-                  <Text
-                    style={[
-                      styles.accountNumber,
-                      { color: colors.text + "70" },
-                    ]}
-                  >
-                    {a.number}
-                  </Text>
-                </View>
-                <View style={{ flexDirection: "row", gap: 6 }}>
-                  <View
-                    style={[
-                      styles.statusPill,
-                      {
-                        backgroundColor: a.active
-                          ? colors.success + "15"
-                          : colors.error + "15",
-                      },
-                    ]}
-                  >
-                    <Ionicons
-                      name={a.active ? "checkmark-circle" : "close-circle"}
-                      size={14}
-                      color={a.active ? colors.success : colors.error}
-                    />
-                    <Text
-                      style={[
-                        styles.statusText,
-                        { color: a.active ? colors.success : colors.error },
-                      ]}
-                    >
-                      {a.active
-                        ? t("accounts.status.active")
-                        : tText("Clôturé")}
-                    </Text>
-                  </View>
-                  {Number(a.blocked) > 0 && (
-                    <View
-                      style={[
-                        styles.statusPill,
-                        { backgroundColor: colors.warning + "15" },
-                      ]}
-                    >
-                      <Ionicons
-                        name="lock-closed"
-                        size={14}
-                        color={colors.warning}
-                      />
-                      <Text
-                        style={[
-                          styles.statusText,
-                          { color: colors.warning },
-                        ]}
-                      >
-                        {tText("Bloqué")}
-                      </Text>
-                    </View>
-                  )}
-                </View>
-              </View>
-
-              <View style={styles.accountBalanceRow}>
-                <View>
-                  <Text
-                    style={[styles.balanceLabel, { color: colors.text + "70" }]}
-                  >
-                    {isCredit
-                      ? "Solde à rembourser"
-                      : t("accounts.balance.available")}
-                  </Text>
-                  <View
-                    style={{ flexDirection: "row", alignItems: "baseline" }}
-                  >
-                    <Text
-                      style={[styles.balanceValue, { color: colors.text }]}
-                    >
-                      {new Intl.NumberFormat("fr-FR").format(
-                        parseAmount(a.balance)
-                      )}
-                    </Text>
-                    <Text
-                      style={[
-                        styles.balanceCurrency,
-                        { color: colors.primary, marginLeft: 4 },
-                      ]}
-                    >
-                      {a.currency}
-                    </Text>
-                  </View>
-                  {Number(a.blocked) > 0 && (
-                    <View
-                      style={{
-                        flexDirection: "row",
-                        alignItems: "center",
-                        marginTop: 4,
-                      }}
-                    >
-                      <Ionicons
-                        name="lock-closed"
-                        size={12}
-                        color={colors.warning}
-                      />
-                      <Text
-                        style={{
-                          marginLeft: 4,
-                          color: colors.warning,
-                          fontWeight: "700",
-                          fontSize: 12,
-                        }}
-                      >
-                        {tText("Bloqué:")}{" "}
-                        {new Intl.NumberFormat("fr-FR").format(
-                          Number(a.blocked)
-                        )}{" "}
-                        {a.currency}
-                      </Text>
-                    </View>
-                  )}
-                </View>
-                <TouchableOpacity
-                  style={[
-                    styles.roundActionBtn,
-                    { backgroundColor: a.color },
-                  ]}
-                  onPress={() =>
-                    (navigation as any).navigate("Transfer", { account: a })
-                  }
-                  activeOpacity={0.85}
-                >
-                  <Ionicons name="swap-horizontal" size={20} color="#fff" />
-                </TouchableOpacity>
-              </View>
-
-              <View style={styles.progressBarWrapper}>
-                <View
-                  style={[
-                    styles.progressTrack,
-                    { backgroundColor: colors.border },
-                  ]}
-                />
-                <View
-                  style={[
-                    styles.progressFill,
-                    {
-                      width: `${Math.round(
-                        (parseAmount(a.balance) / portfolioTotal) * 100
-                      )}%`,
-                      backgroundColor: a.color,
-                    },
-                  ]}
-                />
-              </View>
-              <Text
-                style={[styles.progressText, { color: colors.text + "70" }]}
-              >
-                {isCredit
-                  ? `Crédit accordé: ${new Intl.NumberFormat("fr-FR").format(
-                      parseAmount(a.balance)
-                    )} ${a.currency}`
-                  : `${Math.round(
-                      (parseAmount(a.balance) / portfolioTotal) * 100
-                    )}% du portefeuille`}
-              </Text>
-
-              {isCredit && expandedId === a.id && (
-                <View
-                  style={{
-                    marginTop: 16,
-                    paddingTop: 16,
-                    borderTopWidth: 1,
-                    borderTopColor: colors.border,
-                  }}
-                >
-                  <View style={styles.modalRow}>
-                    <Text
-                      style={[styles.modalLabel, { color: colors.text + "90" }]}
-                    >
-                      Durée du crédit
-                    </Text>
-                    <Text style={[styles.modalValue, { color: colors.text }]}>
-                      {a.duration}
-                    </Text>
-                  </View>
-                  <View style={styles.modalRow}>
-                    <Text
-                      style={[styles.modalLabel, { color: colors.text + "90" }]}
-                    >
-                      Prochaine échéance
-                    </Text>
-                    <Text style={[styles.modalValue, { color: colors.text }]}>
-                      {a.nextDueDate}
-                    </Text>
-                  </View>
-                  <View style={styles.modalRow}>
-                    <Text
-                      style={[styles.modalLabel, { color: colors.text + "90" }]}
-                    >
-                      Montant restant
-                    </Text>
-                    <Text
-                      style={[
-                        styles.modalValue,
-                        { color: colors.primary, fontWeight: "bold" },
-                      ]}
-                    >
-                      {new Intl.NumberFormat("fr-FR").format(
-                        parseAmount(a.balance)
-                      )}{" "}
-                      {a.currency}
-                    </Text>
-                  </View>
-                </View>
-              )}
+              <Ionicons name={icon as any} size={14} color={active ? "#fff" : colors.text + "70"} />
+              <Text style={[s.chipText, { color: active ? "#fff" : colors.text + "80" }]}>{label}</Text>
             </TouchableOpacity>
           );
         })}
+      </ScrollView>
 
-      {/* Floating add button */}
-      <View style={styles.bottomSpacer} />
-      <TouchableOpacity
-        style={[styles.fab, { backgroundColor: colors.primary }]}
-        activeOpacity={0.85}
-      >
-        <Ionicons name="add" size={24} color="#fff" />
-      </TouchableOpacity>
+      {/* ── Section title ── */}
+      <View style={s.sectionRow}>
+        <Text style={[s.sectionTitle, { color: colors.text }]}>{t("accounts.list")}</Text>
+        <Text style={[s.sectionCount, { color: colors.text + "50" }]}>{filtered.length} compte{filtered.length > 1 ? "s" : ""}</Text>
+      </View>
+
+      {/* ── States ── */}
+      {isLoading && (
+        <View style={s.loadingRow}>
+          {[1,2].map(i => (
+            <View key={i} style={[s.skeleton, { backgroundColor: colors.card, borderColor: colors.border }]} />
+          ))}
+        </View>
+      )}
+      {!!error && <EmptyState type="error" message={String(error)} onRetry={fetchData} style={{ marginTop: 20 }} />}
+      {!isLoading && !error && accounts.length === 0 && <EmptyState type="empty" message="Aucun compte trouvé" style={{ marginTop: 20 }} />}
+
+      {/* ── Account cards ── */}
+      {filtered.map((a) => {
+        const credit = isCredit(a);
+        const pct = portfolioTotal > 0 ? Math.round((parseAmount(a.balance) / portfolioTotal) * 100) : 0;
+        const expanded = expandedId === a.id;
+
+        return (
+          <TouchableOpacity
+            key={a.id}
+            style={[s.card, { backgroundColor: colors.card, borderColor: colors.border }]}
+            activeOpacity={0.85}
+            onPress={() => {
+              if (credit) { setExpandedId(expanded ? null : a.id); }
+              else { (navigation as any).navigate("AccountDetails", { account: a, sharePct: pct, total: portfolioTotal }); }
+            }}
+          >
+            {/* Left accent */}
+            <View style={[s.cardAccent, { backgroundColor: a.color }]} />
+
+            <View style={s.cardBody}>
+              {/* Top row */}
+              <View style={s.cardTop}>
+                <View style={[s.cardIconWrap, { backgroundColor: a.color + "18" }]}>
+                  <Ionicons name={a.type.includes("COURANT") ? "briefcase-outline" : "wallet-outline"} size={20} color={a.color} />
+                </View>
+                <View style={s.cardTitleWrap}>
+                  <Text style={[s.cardType, { color: colors.text }]} numberOfLines={1}>
+                    {a.type.includes("COURANT") ? "COMPTE ORDINAIRE" : tText(a.type)}
+                  </Text>
+                  <Text style={[s.cardNumber, { color: colors.text + "50" }]}>{a.number}</Text>
+                </View>
+                <View style={[s.statusBadge, { backgroundColor: a.active ? colors.success + "15" : colors.error + "15" }]}>
+                  <View style={[s.statusDot, { backgroundColor: a.active ? colors.success : colors.error }]} />
+                  <Text style={[s.statusText, { color: a.active ? colors.success : colors.error }]}>
+                    {a.active ? t("accounts.status.active") : tText("Clôturé")}
+                  </Text>
+                </View>
+              </View>
+
+              {/* Balance */}
+              <View style={s.balanceRow}>
+                <View>
+                  <Text style={[s.balanceLabel, { color: colors.text + "50" }]}>
+                    {credit ? "Solde à rembourser" : t("accounts.balance.available")}
+                  </Text>
+                  <View style={s.balanceAmountRow}>
+                    <Text style={[s.balanceAmount, { color: colors.text }]}>{fmt(parseAmount(a.balance))}</Text>
+                    <Text style={[s.balanceCurrency, { color: a.color }]}> {a.currency}</Text>
+                  </View>
+                  {a.blocked > 0 && (
+                    <View style={s.blockedRow}>
+                      <Ionicons name="lock-closed" size={11} color={colors.warning} />
+                      <Text style={[s.blockedText, { color: colors.warning }]}>
+                        {fmt(a.blocked)} {a.currency} bloqué
+                      </Text>
+                    </View>
+                  )}
+                </View>
+
+                <TouchableOpacity
+                  style={[s.transferBtn, { backgroundColor: a.color }]}
+                  onPress={() => (navigation as any).navigate("Transfer", { account: a })}
+                  activeOpacity={0.85}
+                >
+                  <Ionicons name="swap-horizontal" size={18} color="#fff" />
+                </TouchableOpacity>
+              </View>
+
+              {/* Progress bar */}
+              {!credit && (
+                <View style={s.progressWrap}>
+                  <View style={[s.progressTrack, { backgroundColor: colors.border }]}>
+                    <View style={[s.progressFill, { width: `${pct}%`, backgroundColor: a.color }]} />
+                  </View>
+                  <Text style={[s.progressText, { color: colors.text + "45" }]}>{pct}% du portefeuille</Text>
+                </View>
+              )}
+
+              {/* Credit expanded */}
+              {credit && expanded && (
+                <View style={[s.creditExpanded, { borderTopColor: colors.border }]}>
+                  {[
+                    { label: "Durée du crédit", value: a.duration },
+                    { label: "Prochaine échéance", value: a.nextDueDate },
+                    { label: "Montant restant", value: `${fmt(parseAmount(a.balance))} ${a.currency}`, highlight: true },
+                  ].map((row, i) => (
+                    <View key={i} style={s.creditRow}>
+                      <Text style={[s.creditLabel, { color: colors.text + "60" }]}>{row.label}</Text>
+                      <Text style={[s.creditValue, { color: row.highlight ? colors.primary : colors.text }]}>{row.value}</Text>
+                    </View>
+                  ))}
+                </View>
+              )}
+
+              {/* Credit chevron */}
+              {credit && (
+                <View style={s.chevronRow}>
+                  <Ionicons name={expanded ? "chevron-up" : "chevron-down"} size={16} color={colors.text + "40"} />
+                </View>
+              )}
+            </View>
+          </TouchableOpacity>
+        );
+      })}
+
+      <View style={{ height: 100 }} />
     </ScrollView>
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#F8F9FB", // Sera remplacé par le thème
+const s = StyleSheet.create({
+  root: { flex: 1 },
+  scroll: { paddingBottom: 40 },
+
+  // Hero
+  hero: {
+    margin: 16, borderRadius: 24, padding: 24,
+    shadowColor: "#000", shadowOpacity: 0.18, shadowOffset: { width: 0, height: 8 }, shadowRadius: 20, elevation: 7,
   },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.5)",
-    justifyContent: "flex-end",
+  heroEyebrow: { color: "rgba(255,255,255,0.65)", fontSize: 11, fontWeight: "700", letterSpacing: 1.5, textTransform: "uppercase" },
+  heroAmount: { color: "#fff", fontSize: 38, fontWeight: "800", letterSpacing: -1.5, marginTop: 6 },
+  heroCurrency: { color: "rgba(255,255,255,0.65)", fontSize: 14, marginTop: 2, marginBottom: 20 },
+  heroStats: { flexDirection: "row", alignItems: "center", paddingTop: 16, borderTopWidth: 1, borderTopColor: "rgba(255,255,255,0.2)" },
+  heroStat: { flex: 1, alignItems: "center", gap: 3 },
+  heroStatVal: { color: "#fff", fontSize: 14, fontWeight: "700" },
+  heroStatLbl: { color: "rgba(255,255,255,0.6)", fontSize: 10 },
+  heroSep: { width: 1, height: 28, backgroundColor: "rgba(255,255,255,0.2)" },
+
+  // Filters
+  filtersRow: { paddingHorizontal: 16, paddingBottom: 4, gap: 8, paddingTop: 4 },
+  chip: { flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20, borderWidth: 1 },
+  chipText: { fontSize: 12, fontWeight: "600" },
+
+  // Section
+  sectionRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingHorizontal: 16, marginTop: 16, marginBottom: 8 },
+  sectionTitle: { fontSize: 16, fontWeight: "700" },
+  sectionCount: { fontSize: 12 },
+
+  // Loading skeleton
+  loadingRow: { paddingHorizontal: 16, gap: 12 },
+  skeleton: { height: 130, borderRadius: 20, borderWidth: 1 },
+
+  // Account card
+  card: {
+    flexDirection: "row", marginHorizontal: 16, marginBottom: 12,
+    borderRadius: 20, borderWidth: 1, overflow: "hidden",
+    shadowColor: "#000", shadowOpacity: 0.05, shadowOffset: { width: 0, height: 3 }, shadowRadius: 10, elevation: 3,
   },
-  modalContent: {
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    padding: 20,
-    minHeight: 250,
-  },
-  modalHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 20,
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-  },
-  modalBody: {
-    gap: 15,
-  },
-  modalRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingVertical: 5,
-  },
-  modalLabel: {
-    fontSize: 16,
-  },
-  modalValue: {
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  divider: {
-    height: 1,
-    width: "100%",
-  },
-  scrollContent: {
-    paddingBottom: 120,
-  },
-  whiteHeader: {
-    backgroundColor: "#fff", // Sera remplacé par le thème
-    marginHorizontal: 16,
-    marginTop: 12,
-    borderRadius: 16,
-    padding: 16,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOpacity: 0.08,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 8,
-    elevation: 3,
-    borderWidth: 1,
-    borderColor: "#f0f0f0", // Sera remplacé par le thème
-  },
-  portfolioLabel: {
-    fontSize: 13,
-    color: "#7F8C8D", // Sera remplacé par le thème
-    marginBottom: 6,
-  },
-  portfolioValue: {
-    fontSize: 24,
-    fontWeight: "800",
-    color: "#007AFF", // Sera remplacé par le thème
-  },
-  notifyBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: "#F4F8FF", // Sera remplacé par le thème
-    borderColor: "#E0E0E0", // Sera remplacé par le thème
-    borderWidth: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    position: "relative",
-  },
-  notifyDot: {
-    position: "absolute",
-    top: 6,
-    right: 6,
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: "#FF3B30", // Sera remplacé par le thème
-  },
-  statsRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginTop: 16,
-    paddingHorizontal: 16,
-  },
-  statCard: {
-    backgroundColor: "#fff", // Sera remplacé par le thème
-    borderRadius: 16,
-    padding: 16,
-    width: "31%",
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOpacity: 0.08,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 8,
-    elevation: 3,
-    borderWidth: 1,
-    borderColor: "#f0f0f0", // Sera remplacé par le thème
-  },
-  statIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 8,
-  },
-  statValue: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: "#1A1A1A", // Sera remplacé par le thème
-    textAlign: "center",
-  },
-  statSub: {
-    fontSize: 12,
-    color: "#7F8C8D", // Sera remplacé par le thème
-  },
-  section: {
-    paddingHorizontal: 16,
-    marginTop: 22,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: "800",
-    color: "#1A1A1A", // Sera remplacé par le thème
-    marginBottom: 12,
-  },
-  filtersRow: {
-    flexDirection: "row",
-    gap: 10,
-  },
-  chip: {
-    backgroundColor: "#fff", // Sera remplacé par le thème
-    borderRadius: 20,
-    paddingVertical: 8,
-    paddingHorizontal: 14,
-    borderWidth: 1,
-    borderColor: "#E0E0E0", // Sera remplacé par le thème
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  chipText: {
-    fontSize: 13,
-    color: "#7F8C8D", // Sera remplacé par le thème
-    fontWeight: "600",
-  },
-  chipTextActive: {
-    color: "#fff",
-  },
-  accountCard: {
-    backgroundColor: "#fff", // Sera remplacé par le thème
-    marginHorizontal: 16,
-    marginTop: 16,
-    borderRadius: 16,
-    padding: 16,
-    shadowColor: "#000",
-    shadowOpacity: 0.08,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 8,
-    elevation: 3,
-    borderWidth: 1,
-    borderColor: "#f0f0f0", // Sera remplacé par le thème
-  },
-  accountTop: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  accountIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 12,
-  },
-  accountInfo: {
-    flex: 1,
-  },
-  accountType: {
-    fontSize: 16,
-    fontWeight: "800",
-    color: "#1A1A1A", // Sera remplacé par le thème
-  },
-  accountNumber: {
-    fontSize: 12,
-    color: "#7F8C8D", // Sera remplacé par le thème
-    marginTop: 2,
-  },
-  statusPill: {
-    flexDirection: "row",
-    alignItems: "center",
-    borderRadius: 12,
-    backgroundColor: "#F0FFF5", // Sera remplacé par le thème
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    gap: 6,
-  },
-  statusText: {
-    fontSize: 12,
-    color: "#34C759", // Sera remplacé par le thème
-    fontWeight: "700",
-  },
-  accountBalanceRow: {
-    marginTop: 16,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  balanceLabel: {
-    fontSize: 13,
-    color: "#7F8C8D", // Sera remplacé par le thème
-  },
-  balanceValue: {
-    fontSize: 22,
-    fontWeight: "800",
-    color: "#1A1A1A", // Sera remplacé par le thème
-    marginTop: 6,
-  },
-  balanceCurrency: {
-    color: "#007AFF", // Sera remplacé par le thème
-    fontWeight: "800",
-  },
-  roundActionBtn: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    justifyContent: "center",
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOpacity: 0.12,
-    shadowOffset: { width: 0, height: 4 },
-    shadowRadius: 10,
-    elevation: 4,
-  },
-  progressBarWrapper: {
-    position: "relative",
-    marginTop: 12,
-    height: 6,
-  },
-  progressTrack: {
-    position: "absolute",
-    left: 0,
-    right: 0,
-    top: 0,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: "#F0F0F0", // Sera remplacé par le thème
-  },
-  progressFill: {
-    position: "absolute",
-    left: 0,
-    top: 0,
-    height: 6,
-    borderRadius: 3,
-  },
-  progressText: {
-    marginTop: 6,
-    fontSize: 12,
-    color: "#7F8C8D", // Sera remplacé par le thème
-    textAlign: "right",
-  },
-  fab: {
-    position: "absolute",
-    right: 20,
-    bottom: 30,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: "#0A84FF", // Sera remplacé par le thème
-    justifyContent: "center",
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOpacity: 0.15,
-    shadowOffset: { width: 0, height: 6 },
-    shadowRadius: 12,
-    elevation: 6,
-  },
-  bottomSpacer: {
-    height: 0,
-  },
+  cardAccent: { width: 4 },
+  cardBody: { flex: 1, padding: 16 },
+  cardTop: { flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 14 },
+  cardIconWrap: { width: 40, height: 40, borderRadius: 20, justifyContent: "center", alignItems: "center" },
+  cardTitleWrap: { flex: 1 },
+  cardType: { fontSize: 13, fontWeight: "700", letterSpacing: 0.2 },
+  cardNumber: { fontSize: 11, marginTop: 1 },
+  statusBadge: { flexDirection: "row", alignItems: "center", gap: 5, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 10 },
+  statusDot: { width: 6, height: 6, borderRadius: 3 },
+  statusText: { fontSize: 11, fontWeight: "700" },
+
+  // Balance
+  balanceRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-end" },
+  balanceLabel: { fontSize: 11, marginBottom: 3 },
+  balanceAmountRow: { flexDirection: "row", alignItems: "baseline" },
+  balanceAmount: { fontSize: 22, fontWeight: "800", letterSpacing: -0.5 },
+  balanceCurrency: { fontSize: 14, fontWeight: "700" },
+  blockedRow: { flexDirection: "row", alignItems: "center", gap: 4, marginTop: 4 },
+  blockedText: { fontSize: 11, fontWeight: "600" },
+  transferBtn: { width: 42, height: 42, borderRadius: 21, justifyContent: "center", alignItems: "center", shadowColor: "#000", shadowOpacity: 0.12, shadowOffset: { width: 0, height: 3 }, shadowRadius: 8, elevation: 3 },
+
+  // Progress
+  progressWrap: { marginTop: 14 },
+  progressTrack: { height: 5, borderRadius: 3, overflow: "hidden" },
+  progressFill: { height: "100%", borderRadius: 3 },
+  progressText: { fontSize: 10, marginTop: 4, textAlign: "right" },
+
+  // Credit expanded
+  creditExpanded: { marginTop: 14, paddingTop: 14, borderTopWidth: 1, gap: 8 },
+  creditRow: { flexDirection: "row", justifyContent: "space-between" },
+  creditLabel: { fontSize: 13 },
+  creditValue: { fontSize: 13, fontWeight: "600" },
+  chevronRow: { alignItems: "center", marginTop: 8 },
 });

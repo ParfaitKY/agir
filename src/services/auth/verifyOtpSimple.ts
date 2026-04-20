@@ -10,6 +10,18 @@ export type VerifyOtpSimplePayload = {
 export type VerifyOtpSimpleResponse = {
   success: boolean;
   message: string;
+  // Champs optionnels renvoyés après validation OTP
+  access_token?: string;
+  token?: string;
+  jwt?: string;
+  data?: {
+    access_token?: string;
+    token?: string;
+    OP_CODEOPERATEURGESTIONNAIRECOMPTEMOBILE?: string;
+    CL_IDCLIENT?: string | number;
+    SL_LOGIN?: string;
+    [key: string]: any;
+  };
 };
 
 export const verifyOtpSimple = (

@@ -1,6 +1,7 @@
 import { useState, useCallback } from "react";
 import { soldeGlobale } from "../../services/compte/soldeGlobale";
 import { secureGetItem, secureSetItem } from "../../shared/utils/secureStorage";
+import { extractErrorMessage } from "../../services/httpClient";
 
 export const useSoldeGlobale = () => {
   const [data, setData] = useState<any | null>(null);
@@ -26,7 +27,7 @@ export const useSoldeGlobale = () => {
       }
 
       if (!resolvedClientId || !token) {
-        setError("Identifiants manquants");
+        setError("Session expirée. Reconnectez-vous.");
         return false;
       }
 
@@ -42,16 +43,7 @@ export const useSoldeGlobale = () => {
         headers
       );
       if (result?.error) {
-        const err: any = result.error;
-        const server = err?.response?.data;
-        const msg =
-          server?.message ||
-          (Array.isArray(server?.errors)
-            ? server.errors.join(", ")
-            : undefined) ||
-          err?.message ||
-          "Erreur solde";
-        setError(msg);
+        setError(extractErrorMessage(result.error, "Impossible de charger le solde"));
         return false;
       }
       const payload = result?.data;
@@ -60,7 +52,7 @@ export const useSoldeGlobale = () => {
       await secureSetItem("solde_globale", JSON.stringify(payload));
       return true;
     } catch (e: any) {
-      setError(e?.message || "Erreur réseau");
+      setError(extractErrorMessage(e, "Impossible de charger le solde"));
       return false;
     } finally {
       setIsLoading(false);

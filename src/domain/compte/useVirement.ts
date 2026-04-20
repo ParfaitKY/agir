@@ -1,6 +1,7 @@
 import { useState, useCallback } from "react";
 import { virement } from "../../services/compte/virement";
 import { secureGetItem } from "../../shared/utils/secureStorage";
+import { extractErrorMessage } from "../../services/httpClient";
 
 export const useVirement = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -18,11 +19,12 @@ export const useVirement = () => {
       try {
         const clientId = await secureGetItem("client_id");
         const token = await secureGetItem("auth_token");
-        const login = await secureGetItem("user_login");
         const codeOperateur = await secureGetItem("code_operateur");
+        // Fallback sur client_id si code_operateur absent
+        const operateur = codeOperateur || clientId || "100000006";
 
         if (!clientId || !token) {
-          setError("Identifiants manquants");
+          setError("Session expirée. Reconnectez-vous.");
           return false;
         }
         const headers = {
@@ -51,20 +53,17 @@ export const useVirement = () => {
           MC_AUTRE1: "",
           MC_AUTRE2: "",
           MC_AUTRE3: "",
-          OP_CODEOPERATEUR: codeOperateur || "100000006",
+          OP_CODEOPERATEUR: operateur,
         };
         const result: any = await virement(body, headers);
         if (result?.error) {
-          const err: any = result.error;
-          const server = err?.response?.data;
-          const msg = server?.message || err?.message || "Échec virement";
-          setError(msg);
+          setError(extractErrorMessage(result.error, "Échec du virement"));
           return false;
         }
         setData(result?.data ?? null);
         return true;
       } catch (e: any) {
-        setError(e?.message || "Erreur réseau");
+        setError(extractErrorMessage(e, "Échec du virement"));
         return false;
       } finally {
         setIsLoading(false);

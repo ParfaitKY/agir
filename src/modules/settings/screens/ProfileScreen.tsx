@@ -34,11 +34,8 @@ const ProfileScreen: React.FC = () => {
   const [txVisible, setTxVisible] = useState(false);
   const [dateInfoVisible, setDateInfoVisible] = useState(false);
   const [displayName, setDisplayName] = useState("");
-  // Initialiser avec la date du serveur (11/07/2025)
-  // Note: Idéalement cette date devrait venir d'un endpoint /server-time ou de JT_DATEJOURNEETRAVAIL
-  const serverDate = new Date(2025, 6, 11); // Mois 6 = Juillet (0-indexed)
-  const [startDate, setStartDate] = useState<Date | null>(serverDate);
-  const [endDate, setEndDate] = useState<Date | null>(serverDate);
+  const [startDate, setStartDate] = useState<Date | null>(null);
+  const [endDate, setEndDate] = useState<Date | null>(null);
   const [showDatePicker, setShowDatePicker] = useState<"start" | "end" | null>(
     null,
   );
@@ -56,8 +53,8 @@ const ProfileScreen: React.FC = () => {
     minDate?: Date | null;
     maxDate?: Date | null;
   }) => {
-    // Utiliser la date du serveur (11/07/2025) comme référence "Aujourd'hui"
-    const today = new Date(2025, 6, 11);
+    // Utiliser la date du serveur (work_date) comme référence "Aujourd'hui"
+    const today = startDate ?? new Date();
     const [viewDate, setViewDate] = useState(initialDate || today);
     const [selected, setSelected] = useState<Date | null>(initialDate || null);
 
@@ -241,6 +238,31 @@ const ProfileScreen: React.FC = () => {
   const [phoneValue, setPhoneValue] = useState("");
   const [addressValue, setAddressValue] = useState("");
   const [initials, setInitials] = useState("--");
+
+  useEffect(() => {
+    (async () => {
+      const workDateStr = await secureGetItem("work_date");
+      let serverDate: Date;
+      if (workDateStr) {
+        // Format attendu : DD/MM/YYYY
+        const parts = workDateStr.split("/");
+        if (parts.length === 3) {
+          serverDate = new Date(
+            Number(parts[2]),
+            Number(parts[1]) - 1,
+            Number(parts[0]),
+          );
+        } else {
+          serverDate = new Date(workDateStr);
+        }
+        if (isNaN(serverDate.getTime())) serverDate = new Date();
+      } else {
+        serverDate = new Date();
+      }
+      setStartDate(serverDate);
+      setEndDate(serverDate);
+    })();
+  }, []);
 
   const loadProfile = async () => {
     const fn = (await secureGetItem("user_firstname")) || "";
@@ -1346,9 +1368,9 @@ const ProfileScreen: React.FC = () => {
               }
               maxDate={
                 showDatePicker === "start"
-                  ? new Date(2025, 6, 11) // Impossible de sélectionner après le 11/07/2025
+                  ? (startDate ?? new Date()) // Impossible de sélectionner après la date serveur
                   : (() => {
-                      const today = new Date(2025, 6, 11);
+                      const today = startDate ?? new Date();
                       if (startDate) {
                         const limit = new Date(startDate);
                         limit.setDate(limit.getDate() + 30);
