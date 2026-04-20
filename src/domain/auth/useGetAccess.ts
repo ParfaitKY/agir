@@ -22,8 +22,6 @@ export const useGetAccess = () => {
       }
       const headers = {
         Authorization: `Bearer ${token}`,
-        "X-CLIENT-ID": clientId,
-        ...(login ? { "X-LOGIN": login } : {}),
       } as any;
       const body = {
         LG_CODELANGUE: "FR",

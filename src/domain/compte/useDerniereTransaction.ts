@@ -25,8 +25,6 @@ export const useDerniereTransaction = () => {
       const login = await secureGetItem("user_login");
       const headers = {
         Authorization: `Bearer ${token}`,
-        "X-CLIENT-ID": clientId,
-        ...(login ? { "X-LOGIN": login } : {}),
       } as any;
       if (!sanitizedAccount || !/^\d+$/.test(sanitizedAccount)) {
         setError("Numéro de compte invalide");

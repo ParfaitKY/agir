@@ -47,7 +47,7 @@ export const TransactionsScreen: React.FC = () => {
         const agency = (await secureGetItem("user_agency")) || "1000";
         const accountCode = (await secureGetItem("user_account_number")) || "";
 
-        if (!clientId || !token || !accountCode) {
+        if (!token) {
           setError("Identifiants manquants");
           return;
         }
@@ -60,14 +60,13 @@ export const TransactionsScreen: React.FC = () => {
 
         const headers: any = {
           Authorization: `Bearer ${token}`,
-          "X-CLIENT-ID": clientId,
-          ...(login ? { "X-LOGIN": login } : {}),
         };
 
         const result: any = await dernieresOperationsClient(
           {
             AG_CODEAGENCE: String(agency).replace(/\D/g, ""),
-            CO_CODECOMPTE: String(accountCode).replace(/\D/g, ""),
+            ...(accountCode ? { CO_CODECOMPTE: String(accountCode).replace(/\D/g, "") } : {}),
+            ...(clientId ? { CLIENT_ID: clientId } : {}),
             CODECRYPTAGE: "Y}@128eVIXfoi7",
             DateDebut: "01/01/2000",
             DateFin: dateFin,

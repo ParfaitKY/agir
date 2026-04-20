@@ -384,15 +384,13 @@ const ProfileScreen: React.FC = () => {
       const loginSaved = await secureGetItem("user_login");
       const agency = (await secureGetItem("user_agency")) || "";
       const account = (await secureGetItem("user_account_number")) || "";
-      if (!token || !clientId || !account) {
+      if (!token) {
         setTxError(t("common.missingCredentials"));
         setTxLoading(false);
         return;
       }
       const headers: any = {
         Authorization: `Bearer ${token}`,
-        "X-CLIENT-ID": clientId,
-        ...(loginSaved ? { "X-LOGIN": loginSaved } : {}),
       };
 
       if (start && end) {
@@ -420,6 +418,8 @@ const ProfileScreen: React.FC = () => {
           DateDebut: formatDate(start),
           DateFin: formatDate(end),
           Nombretransactions: "20",
+          ...(clientId ? { CLIENT_ID: clientId } : {}),
+          ...(account ? { CO_CODECOMPTE: String(account).replace(/\D/g, "") } : {}),
         };
 
         const result: any = await dernieresOperationsClient(payload, headers);
@@ -509,9 +509,11 @@ const ProfileScreen: React.FC = () => {
 
         const payload = {
           CodeCryptage: "Y}@128eVIXfoi7",
-          DateDebut: "01/01/1900", // Date fixe demandée
+          DateDebut: "01/01/1900",
           DateFin: formatDate(today),
           Nombretransactions: "10",
+          ...(clientId ? { CLIENT_ID: clientId } : {}),
+          ...(account ? { CO_CODECOMPTE: String(account).replace(/\D/g, "") } : {}),
         };
 
         const result: any = await dernieresOperationsClient(payload, headers);

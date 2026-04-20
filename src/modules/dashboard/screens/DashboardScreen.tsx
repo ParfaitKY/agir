@@ -55,6 +55,7 @@ export const DashboardScreen: React.FC = () => {
   const clientCodeFromStats = compteStats?.COMPTES?.[0]?.CL_CODECLIENT;
   const {
     operations: recentOps,
+    statistiques: recentStats,
     isLoading: loadingRecent,
     error: recentError,
     fetchData: fetchRecent,
@@ -177,17 +178,19 @@ export const DashboardScreen: React.FC = () => {
       0,
   );
 
-  // Calculer le solde total réel en additionnant les soldes des comptes
-  // car SOLDE_GLOBAL envoyé par le serveur peut être incohérent (ex: 1000000 vs 1492500)
+  // Solde global : priorité à SOLDE_GLOBAL du serveur (2212500 dans les logs)
+  const soldeFromRecent = recentStats?.solde ?? recentStats?.SOLDE ?? null;
+
   const realTotalBalance = (compteStats?.COMPTES || []).reduce(
     (sum, account) => sum + (Number(account.SOLDE) || 0),
     0,
   );
 
   const soldeGlobalFromStats =
-    (compteStats?.COMPTES || []).length > 0
-      ? realTotalBalance
-      : (compteStats?.SOLDE_GLOBAL ?? 0);
+    (compteStats?.SOLDE_GLOBAL != null ? Number(compteStats.SOLDE_GLOBAL) : null) ??
+    soldeFromRecent ??
+    (realTotalBalance > 0 ? realTotalBalance : null) ??
+    0;
 
   // Fonction pour gérer les restrictions en mode invité
   const handleGuestRestriction = (featureName: string) => {
@@ -736,17 +739,9 @@ export const DashboardScreen: React.FC = () => {
               <Text style={[styles.balance, { color: colors.primary }]}>
                 {isBalanceHidden
                   ? "••••••••"
-                  : loadingCompteStats
+                  : loadingRecent && !soldeGlobalFromStats
                     ? t("dashboard.loading")
-                    : soldeError
-                      ? "–"
-                      : `${fmt(
-                          soldeGlobalFromStats ??
-                            solde?.solde ??
-                            solde?.balance ??
-                            solde?.montant ??
-                            0,
-                        )} XOF`}
+                    : `${fmt(soldeGlobalFromStats)} XOF`}
               </Text>
               <View style={styles.subInfo}>
                 <Text

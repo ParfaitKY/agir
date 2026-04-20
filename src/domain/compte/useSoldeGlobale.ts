@@ -13,17 +13,29 @@ export const useSoldeGlobale = () => {
     try {
       const clientId = await secureGetItem("client_id");
       const token = await secureGetItem("auth_token");
-      if (!clientId || !token) {
+
+      let resolvedClientId = clientId;
+      if (!resolvedClientId) {
+        try {
+          const userData = await secureGetItem("user_data");
+          if (userData) {
+            const parsed = JSON.parse(userData);
+            resolvedClientId = parsed?.id || parsed?.CL_IDCLIENT || parsed?.client_id || null;
+          }
+        } catch {}
+      }
+
+      if (!resolvedClientId || !token) {
         setError("Identifiants manquants");
         return false;
       }
+
       const headers = {
         Authorization: `Bearer ${token}`,
-        "X-CLIENT-ID": clientId,
       } as any;
       const result: any = await soldeGlobale(
         {
-          CLIENT_ID: clientId,
+          CLIENT_ID: resolvedClientId,
           LG_CODELANGUE: "FR",
           CODECRYPTAGE: "Y}@128eVIXfoi7",
         },
@@ -43,6 +55,7 @@ export const useSoldeGlobale = () => {
         return false;
       }
       const payload = result?.data;
+      console.log("[SoldeGlobale] raw response:", JSON.stringify(payload));
       setData(payload);
       await secureSetItem("solde_globale", JSON.stringify(payload));
       return true;

@@ -42,20 +42,37 @@ export const useCompteStatistiques = () => {
     try {
       const clientId = await secureGetItem("client_id");
       const token = await secureGetItem("auth_token");
-      const login = await secureGetItem("user_login");
-      if (!clientId || !token) {
+
+      // Fallback : chercher le client_id dans user_data si absent
+      let resolvedClientId = clientId;
+      if (!resolvedClientId) {
+        try {
+          const userData = await secureGetItem("user_data");
+          if (userData) {
+            const parsed = JSON.parse(userData);
+            resolvedClientId = parsed?.id || parsed?.CL_IDCLIENT || parsed?.client_id || null;
+          }
+        } catch {}
+      }
+
+      if (!resolvedClientId || !token) {
         setError("Identifiants manquants");
         return false;
       }
+
+      // Sauvegarder pour les prochains appels
+      if (!clientId && resolvedClientId) {
+        const { secureSetItem: save } = await import("../../shared/utils/secureStorage");
+        await save("client_id", String(resolvedClientId));
+      }
+
       const headers = {
         Authorization: `Bearer ${token}`,
-        "X-CLIENT-ID": clientId,
-        ...(login ? { "X-LOGIN": login } : {}),
       } as any;
       const body = {
         DateReference: "",
         LG_CODELANGUE: "FR",
-        CLIENT_ID: clientId,
+        CLIENT_ID: resolvedClientId,
         CODECRYPTAGE: "Y}@128eVIXfoi7",
       } as any;
       const result: any = await compteStatistiques(body, headers);
@@ -73,7 +90,15 @@ export const useCompteStatistiques = () => {
         return false;
       }
       const payload = result?.data;
-      let stats: CompteStatsData | null = payload?.data ?? null;
+      console.log("[CompteStats] raw response:", JSON.stringify(payload));
+
+      // Normalisation flexible de la réponse
+      let stats: CompteStatsData | null =
+        payload?.data ??
+        payload?.DONNEES ??
+        payload?.result ??
+        (payload?.COMPTES ? payload : null) ??
+        null;
 
       // Correction : Déduplication des comptes basée sur le numéro de compte nettoyé (alphanumeric only)
       // Cela empêche les comptes en double d'apparaître dans l'interface utilisateur

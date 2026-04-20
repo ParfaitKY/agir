@@ -27,8 +27,6 @@ export const useVirement = () => {
         }
         const headers = {
           Authorization: `Bearer ${token}`,
-          "X-CLIENT-ID": clientId,
-          ...(login ? { "X-LOGIN": login } : {}),
         } as any;
         const d = new Date();
         const dd = String(d.getDate()).padStart(2, "0");

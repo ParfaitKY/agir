@@ -30,8 +30,6 @@ export const useAnalyseDerniereTransaction = (nombreTransactions: number = 50) =
       }
       const headers = {
         Authorization: `Bearer ${token}`,
-        "X-CLIENT-ID": clientId,
-        ...(login ? { "X-LOGIN": login } : {}),
       } as any;
       const result: any = await analyseDerniereTransaction(
         { Nombretransactions: nombreTransactions },

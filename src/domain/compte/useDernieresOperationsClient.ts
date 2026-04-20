@@ -73,14 +73,14 @@ export function useDernieresOperationsClient(count: number = 10) {
 
     const headers: any = {};
     if (token) headers["Authorization"] = `Bearer ${token}`;
-    if (clientId) headers["X-CLIENT-ID"] = clientId;
-    if (loginSaved) headers["X-LOGIN"] = loginSaved;
+    // X-CLIENT-ID et X-LOGIN retirés : bloqués par CORS — client_id passé dans le body
 
     const body = {
       Nombretransactions: String(count),
       DateDebut: "01/01/1900",
       DateFin: dateFin,
       CodeCryptage: "Y}@128eVIXfoi7",
+      ...(clientId ? { CLIENT_ID: clientId } : {}),
     };
     try {
       const res: RequestResult<DernieresOperationsResponse> =

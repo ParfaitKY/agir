@@ -147,9 +147,10 @@ export const useLogin = () => {
       if (phone) await secureSetItem("user_phone", String(phone));
 
       const clientId =
+        block?.CL_IDCLIENT ||
         block?.IDCLIENT ||
         block?.CLIENT_ID ||
-        pick(block, ["IDCLIENT", "CLIENT_ID", "CODECLIENT"]) ||
+        pick(block, ["CL_IDCLIENT", "IDCLIENT", "CLIENT_ID", "CODECLIENT"]) ||
         data?.id;
 
       if (clientId) {
