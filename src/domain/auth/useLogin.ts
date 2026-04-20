@@ -131,7 +131,11 @@ export const useLogin = () => {
           "MOBILE",
           "CONTACT",
         ]) || "";
-      const id = data?.id || username || "";
+      const id =
+        block?.CL_IDCLIENT ||
+        pick(block, ["CL_IDCLIENT", "IDCLIENT", "CLIENT_ID", "id"]) ||
+        username ||
+        "";
       const userData = {
         id,
         username,

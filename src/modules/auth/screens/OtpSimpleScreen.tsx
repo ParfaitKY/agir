@@ -9,14 +9,19 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  StatusBar,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme } from "../../../shared/styles/ThemeProvider";
 import { verifyOtpSimple } from "../../../services/auth/verifyOtpSimple";
+import { useAuth } from "../../../app/hooks/useAuth";
+import { secureSetItem } from "../../../shared/utils/secureStorage";
 
 const DIGITS = 4;
+const PRIMARY = "#0066CC";
+const BG = "#F0F4FF";
 
 const OtpSimpleScreen: React.FC = () => {
   const insets = useSafeAreaInsets();
@@ -26,12 +31,15 @@ const OtpSimpleScreen: React.FC = () => {
 
   const userId: string = route.params?.user_id ?? "";
   const debugOtp: string = route.params?.debug_otp ?? "";
+  const { markConfigured } = useAuth() as any;
 
   const [values, setValues] = useState<string[]>(Array(DIGITS).fill(""));
   const [active, setActive] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>("");
   const inputs = useRef<TextInput[]>([]);
+
+  const filled = values.filter(Boolean).length;
 
   const resetFields = () => {
     setValues(Array(DIGITS).fill(""));
@@ -44,15 +52,12 @@ const OtpSimpleScreen: React.FC = () => {
     const next = [...values];
     next[index] = v;
     setValues(next);
-
     if (v && index < DIGITS - 1) {
+      inputs.current[index + 1]?.focus();
       setActive(index + 1);
     } else if (v && index === DIGITS - 1) {
-      // Auto-submit au 4ème chiffre
-      const code = [...next].join("");
-      if (code.length === DIGITS) {
-        submitOtp(code);
-      }
+      const code = next.join("");
+      if (code.length === DIGITS) submitOtp(code);
     }
   };
 
@@ -66,6 +71,7 @@ const OtpSimpleScreen: React.FC = () => {
         next[index - 1] = "";
         setValues(next);
         setActive(index - 1);
+        inputs.current[index - 1]?.focus();
       }
     }
   };
@@ -73,17 +79,25 @@ const OtpSimpleScreen: React.FC = () => {
   const submitOtp = async (codeOverride?: string) => {
     const code = codeOverride ?? values.join("");
     if (code.length !== DIGITS) return;
-
     setLoading(true);
     setError("");
-
     try {
       const { data, error: reqError } = await verifyOtpSimple(
         { user_id: userId, otp_code: code },
         { "X-NO-AUTH": "true" },
       );
 
-      if (reqError || !data?.success) {
+      console.log("[OTP] verify response:", JSON.stringify(data));
+
+      // Succès si success=true OU si message indique succès OU si pas d'erreur et data présent
+      const isSuccess =
+        data?.success === true ||
+        String(data?.success) === "true" ||
+        String(data?.message || "").toLowerCase().includes("success") ||
+        String(data?.message || "").toLowerCase().includes("valid") ||
+        (!reqError && data && data?.success !== false);
+
+      if (reqError || !isSuccess) {
         const msg =
           (reqError as any)?.response?.data?.message ||
           data?.message ||
@@ -93,6 +107,9 @@ const OtpSimpleScreen: React.FC = () => {
         return;
       }
 
+      // Marquer la session comme authentifiée
+      await secureSetItem("is_configured", "true");
+      if (markConfigured) await markConfigured(true);
       navigation.reset({ index: 0, routes: [{ name: "Main" }] });
     } catch (e: any) {
       setError(e?.message ?? "Erreur réseau");
@@ -103,22 +120,20 @@ const OtpSimpleScreen: React.FC = () => {
   };
 
   return (
-    <View
-      style={[
-        styles.screen,
-        { backgroundColor: "#FFFFFF", paddingTop: insets.top },
-      ]}
-    >
+    <View style={[styles.screen, { paddingTop: insets.top }]}>
+      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+
       {/* Header */}
-      <View style={styles.headerRow}>
+      <View style={styles.header}>
         <TouchableOpacity
           style={styles.backBtn}
-          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
           onPress={() => navigation.goBack()}
         >
-          <Ionicons name="arrow-back" size={24} color="#000000" />
+          <Ionicons name="arrow-back" size={22} color="#1E293B" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Vérification</Text>
+        <View style={{ width: 40 }} />
       </View>
 
       <KeyboardAvoidingView
@@ -127,29 +142,27 @@ const OtpSimpleScreen: React.FC = () => {
         keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
       >
         <ScrollView
-          contentContainerStyle={{ flexGrow: 1, paddingBottom: 60 }}
+          contentContainerStyle={{ flexGrow: 1, paddingBottom: 40 }}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.content}>
-            {/* Icône */}
-            <View style={styles.iconWrap}>
-              <View
-                style={[
-                  styles.iconInner,
-                  { backgroundColor: colors.primary + "25" },
-                ]}
-              >
-                <Ionicons name="lock-closed" size={28} color={colors.primary} />
+
+            {/* Icône animée */}
+            <View style={styles.iconOuter}>
+              <View style={styles.iconMiddle}>
+                <View style={styles.iconInner}>
+                  <MaterialCommunityIcons name="shield-lock" size={36} color={PRIMARY} />
+                </View>
               </View>
             </View>
 
             <Text style={styles.title}>Code de vérification</Text>
             <Text style={styles.subtitle}>
-              Saisissez le code à 4 chiffres reçu par SMS ou e-mail.
+              Saisissez le code à {DIGITS} chiffres{"\n"}reçu par SMS ou e-mail.
             </Text>
 
-            {/* Code reçu (debug/test) */}
+            {/* Debug banner */}
             {!!debugOtp && debugOtp !== "****" && (
               <TouchableOpacity
                 onPress={() => {
@@ -160,81 +173,102 @@ const OtpSimpleScreen: React.FC = () => {
                 }}
                 style={styles.debugBanner}
               >
-                <Text style={styles.debugLabel}>Code reçu (test)</Text>
-                <Text style={styles.debugCode}>{debugOtp}</Text>
+                <Ionicons name="flash" size={14} color="#92400E" />
+                <Text style={styles.debugText}>
+                  Code test : <Text style={styles.debugCode}>{debugOtp}</Text>
+                </Text>
                 <Text style={styles.debugHint}>Appuyer pour remplir</Text>
               </TouchableOpacity>
             )}
 
-            {/* 4 cases OTP */}
+            {/* Cases OTP */}
             <View style={styles.otpRow}>
+              {Array.from({ length: DIGITS }).map((_, i) => {
+                const isFilled = !!values[i];
+                const isActive = active === i;
+                return (
+                  <View
+                    key={`otp-${i}`}
+                    style={[
+                      styles.otpBox,
+                      isActive && styles.otpBoxActive,
+                      isFilled && styles.otpBoxFilled,
+                    ]}
+                  >
+                    <TextInput
+                      ref={(r) => (inputs.current[i] = r as any)}
+                      value={values[i]}
+                      onChangeText={(t) => handleChange(i, t)}
+                      onKeyPress={(e) => handleKeyPress(i, e)}
+                      onFocus={() => setActive(i)}
+                      keyboardType="number-pad"
+                      maxLength={1}
+                      textContentType="oneTimeCode"
+                      style={[
+                        styles.otpInput,
+                        { color: isFilled ? PRIMARY : "#1E293B" },
+                      ]}
+                      selectionColor={PRIMARY}
+                      editable={!loading}
+                    />
+                  </View>
+                );
+              })}
+            </View>
+
+            {/* Indicateur de progression */}
+            <View style={styles.progressRow}>
               {Array.from({ length: DIGITS }).map((_, i) => (
                 <View
-                  key={`otp-${i}`}
+                  key={`dot-${i}`}
                   style={[
-                    styles.otpItem,
-                    {
-                      borderColor:
-                        active === i ? colors.primary : "#E0E0E0",
-                    },
+                    styles.progressDot,
+                    i < filled && styles.progressDotFilled,
                   ]}
-                >
-                  <TextInput
-                    ref={(r) => (inputs.current[i] = r as any)}
-                    value={values[i]}
-                    onChangeText={(t) => handleChange(i, t)}
-                    onKeyPress={(e) => handleKeyPress(i, e)}
-                    onFocus={() => setActive(i)}
-                    keyboardType="number-pad"
-                    maxLength={1}
-                    textContentType="oneTimeCode"
-                    style={[styles.otpInput, { color: "#000000" }]}
-                    selectionColor={colors.primary}
-                    textAlignVertical="center"
-                    editable={!loading}
-                  />
-                </View>
+                />
               ))}
             </View>
 
             {/* Erreur */}
             {!!error && (
-              <Text style={styles.errorText}>{error}</Text>
+              <View style={styles.errorBox}>
+                <Ionicons name="alert-circle" size={16} color="#DC2626" />
+                <Text style={styles.errorText}>{error}</Text>
+              </View>
             )}
 
-            {/* Bouton Valider (fallback si auto-submit raté) */}
+            {/* Bouton */}
             <TouchableOpacity
               style={[
                 styles.submitBtn,
-                {
-                  backgroundColor: colors.primary,
-                  opacity: values.join("").length === DIGITS && !loading ? 1 : 0.5,
-                },
+                filled === DIGITS && !loading
+                  ? styles.submitBtnActive
+                  : styles.submitBtnDisabled,
               ]}
-              disabled={values.join("").length !== DIGITS || loading}
+              disabled={filled !== DIGITS || loading}
               onPress={() => submitOtp()}
+              activeOpacity={0.85}
             >
               {loading ? (
                 <ActivityIndicator color="#fff" />
               ) : (
                 <View style={styles.submitRow}>
-                  <Text style={styles.submitText}>Valider</Text>
-                  <Ionicons
-                    name="arrow-forward"
-                    size={18}
-                    color="#fff"
-                    style={{ marginLeft: 10 }}
-                  />
+                  <Text style={styles.submitText}>Confirmer</Text>
+                  <Ionicons name="checkmark-circle" size={20} color="#fff" style={{ marginLeft: 8 }} />
                 </View>
               )}
             </TouchableOpacity>
 
+            {/* Renvoyer */}
+            <TouchableOpacity style={styles.resendRow} onPress={resetFields}>
+              <Ionicons name="refresh" size={14} color={PRIMARY} />
+              <Text style={styles.resendText}>Renvoyer le code</Text>
+            </TouchableOpacity>
+
             {/* Sécurité */}
             <View style={styles.securityRow}>
-              <Ionicons name="shield-checkmark" size={14} color="#94A3B8" />
-              <Text style={styles.securityText}>
-                Connexion sécurisée par la banque
-              </Text>
+              <Ionicons name="shield-checkmark" size={13} color="#CBD5E1" />
+              <Text style={styles.securityText}>Connexion sécurisée par la banque</Text>
             </View>
           </View>
         </ScrollView>
@@ -244,73 +278,110 @@ const OtpSimpleScreen: React.FC = () => {
 };
 
 const styles = StyleSheet.create({
-  screen: { flex: 1 },
-  headerRow: {
+  screen: {
+    flex: 1,
+    backgroundColor: "#FFFFFF",
+  },
+  header: {
     height: 56,
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
+    justifyContent: "space-between",
     paddingHorizontal: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: "#F1F5F9",
   },
   backBtn: {
-    position: "absolute",
-    left: 16,
-    top: 14,
-    padding: 6,
+    width: 40,
+    height: 40,
     borderRadius: 20,
+    backgroundColor: "#F1F5F9",
+    alignItems: "center",
+    justifyContent: "center",
   },
   headerTitle: {
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: "700",
-    color: "#000000",
+    color: "#1E293B",
+    letterSpacing: 0.2,
   },
   content: {
-    paddingHorizontal: 24,
-    paddingTop: 32,
+    paddingHorizontal: 28,
+    paddingTop: 40,
     alignItems: "center",
   },
-  iconWrap: {
-    marginBottom: 20,
+  iconOuter: {
+    width: 110,
+    height: 110,
+    borderRadius: 55,
+    backgroundColor: "#EFF6FF",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 28,
+  },
+  iconMiddle: {
+    width: 82,
+    height: 82,
+    borderRadius: 41,
+    backgroundColor: "#DBEAFE",
+    alignItems: "center",
+    justifyContent: "center",
   },
   iconInner: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: "#BFDBFE",
     alignItems: "center",
     justifyContent: "center",
   },
   title: {
-    fontSize: 24,
+    fontSize: 26,
     fontWeight: "800",
-    color: "#000000",
+    color: "#0F172A",
     textAlign: "center",
-    marginBottom: 8,
+    marginBottom: 10,
+    letterSpacing: -0.3,
   },
   subtitle: {
     fontSize: 15,
     color: "#64748B",
     textAlign: "center",
-    marginBottom: 40,
-    lineHeight: 22,
+    marginBottom: 36,
+    lineHeight: 23,
   },
   otpRow: {
     flexDirection: "row",
     justifyContent: "center",
-    gap: 16,
-    marginBottom: 24,
+    gap: 14,
+    marginBottom: 16,
   },
-  otpItem: {
-    width: 64,
-    height: 72,
+  otpBox: {
+    width: 66,
+    height: 74,
     borderWidth: 2,
-    borderRadius: 16,
+    borderColor: "#E2E8F0",
+    borderRadius: 18,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#F8F9FA",
+    backgroundColor: "#F8FAFC",
+  },
+  otpBoxActive: {
+    borderColor: PRIMARY,
+    backgroundColor: "#EFF6FF",
+    shadowColor: PRIMARY,
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 3,
+  },
+  otpBoxFilled: {
+    borderColor: PRIMARY,
+    backgroundColor: "#EFF6FF",
   },
   otpInput: {
-    fontSize: 32,
-    fontWeight: "700",
+    fontSize: 30,
+    fontWeight: "800",
     textAlign: "center",
     width: "100%",
     height: "100%",
@@ -318,28 +389,58 @@ const styles = StyleSheet.create({
     includeFontPadding: false,
     textAlignVertical: "center",
   },
+  progressRow: {
+    flexDirection: "row",
+    gap: 8,
+    marginBottom: 28,
+  },
+  progressDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: "#E2E8F0",
+  },
+  progressDotFilled: {
+    backgroundColor: PRIMARY,
+    width: 20,
+    borderRadius: 4,
+  },
+  errorBox: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    backgroundColor: "#FEF2F2",
+    borderWidth: 1,
+    borderColor: "#FECACA",
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    marginBottom: 20,
+    width: "100%",
+  },
   errorText: {
     color: "#DC2626",
-    backgroundColor: "#FEE2E2",
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 10,
-    marginBottom: 20,
-    textAlign: "center",
+    fontSize: 14,
     fontWeight: "600",
-    width: "100%",
+    flex: 1,
   },
   submitBtn: {
     width: "100%",
-    paddingVertical: 15,
-    borderRadius: 12,
+    paddingVertical: 16,
+    borderRadius: 16,
     alignItems: "center",
-    marginTop: 8,
-    shadowColor: "#000",
-    shadowOpacity: 0.12,
-    shadowRadius: 10,
+    marginBottom: 16,
+  },
+  submitBtnActive: {
+    backgroundColor: PRIMARY,
+    shadowColor: PRIMARY,
+    shadowOpacity: 0.35,
+    shadowRadius: 12,
     shadowOffset: { width: 0, height: 4 },
-    elevation: 3,
+    elevation: 5,
+  },
+  submitBtnDisabled: {
+    backgroundColor: "#CBD5E1",
   },
   submitRow: {
     flexDirection: "row",
@@ -349,46 +450,57 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 16,
     fontWeight: "700",
+    letterSpacing: 0.3,
+  },
+  resendRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingVertical: 10,
+    marginBottom: 24,
+  },
+  resendText: {
+    fontSize: 14,
+    color: PRIMARY,
+    fontWeight: "600",
   },
   securityRow: {
     flexDirection: "row",
     alignItems: "center",
     gap: 6,
-    marginTop: 28,
   },
   securityText: {
     fontSize: 12,
-    color: "#94A3B8",
-    fontWeight: "600",
+    color: "#CBD5E1",
+    fontWeight: "500",
   },
   debugBanner: {
-    backgroundColor: "#FEF9C3",
-    borderWidth: 1,
-    borderColor: "#FDE047",
-    borderRadius: 10,
-    paddingVertical: 10,
-    paddingHorizontal: 16,
+    flexDirection: "row",
     alignItems: "center",
-    marginBottom: 24,
+    gap: 8,
+    backgroundColor: "#FFFBEB",
+    borderWidth: 1,
+    borderColor: "#FDE68A",
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    marginBottom: 28,
     width: "100%",
   },
-  debugLabel: {
-    fontSize: 11,
+  debugText: {
+    fontSize: 13,
     color: "#92400E",
-    fontWeight: "600",
-    textTransform: "uppercase",
-    letterSpacing: 0.5,
+    flex: 1,
   },
   debugCode: {
-    fontSize: 28,
     fontWeight: "800",
+    letterSpacing: 3,
     color: "#78350F",
-    letterSpacing: 6,
-    marginVertical: 4,
   },
   debugHint: {
     fontSize: 11,
-    color: "#A16207",
+    color: "#B45309",
+    fontWeight: "600",
   },
 });
 

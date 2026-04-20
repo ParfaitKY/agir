@@ -584,6 +584,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const markConfigured = async (configured: boolean) => {
     await secureSetItem("is_configured", configured ? "true" : "false");
     setIsConfigured(configured);
+
+    // Si on marque comme configuré, on tente aussi de restaurer la session
+    if (configured) {
+      try {
+        const token = await secureGetItem("auth_token");
+        const userData = await secureGetItem("user_data");
+        if (token && userData) {
+          setIsAuthenticated(true);
+          setUser(JSON.parse(userData));
+        }
+      } catch {}
+    }
   };
 
   return (

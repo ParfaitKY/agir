@@ -808,15 +808,6 @@ const InitialSetupScreen: React.FC = () => {
         TERMINALUUID: deviceId,
       });
 
-      if (!result.success) {
-        const errMsg =
-          (result as any)?.error?.response?.data?.message ||
-          (result as any)?.error?.message ||
-          "Identifiants incorrects.";
-        setLoginError(errMsg);
-        return;
-      }
-
       const responseData = (result as any)?.data;
 
       // La réponse API retourne data comme tableau : data[0] contient les infos
@@ -824,7 +815,7 @@ const InitialSetupScreen: React.FC = () => {
         ? responseData.data[0]
         : responseData?.data ?? responseData;
 
-      // Détection CodeOtp (présent dans data[0].CodeOtp selon l'API)
+      // Détection CodeOtp — priorité sur l'erreur de token car OTP = flux normal
       const codeOtpPresent =
         dataRecord?.CodeOtp ||
         dataRecord?.code_otp ||
@@ -851,7 +842,17 @@ const InitialSetupScreen: React.FC = () => {
         return;
       }
 
-      // Pas d'OTP → flux normal
+      // Pas d'OTP → vérifier le succès avant de continuer
+      if (!result.success) {
+        const errMsg =
+          (result as any)?.error?.response?.data?.message ||
+          (result as any)?.error?.message ||
+          "Identifiants incorrects.";
+        setLoginError(errMsg);
+        return;
+      }
+
+      // Flux normal sans OTP
       await markConfigured(true);
       navigation.reset({ index: 0, routes: [{ name: "Main" }] });
     } catch (e: any) {
@@ -1162,11 +1163,11 @@ const InitialSetupScreen: React.FC = () => {
                     styles.input,
                     {
                       borderColor: palette.border,
-                      backgroundColor: isDark ? "#111827" : "#FFFFFF",
-                      color: palette.textMain,
+                      backgroundColor: "#FFFFFF",
+                      color: "#0F172A",
                     },
                   ]}
-                  placeholderTextColor={palette.textSub}
+                  placeholderTextColor="#94A3B8"
                   autoCapitalize="none"
                   editable={!loginLoading}
                 />
@@ -1181,12 +1182,12 @@ const InitialSetupScreen: React.FC = () => {
                       styles.input,
                       {
                         borderColor: palette.border,
-                        backgroundColor: isDark ? "#111827" : "#FFFFFF",
-                        color: palette.textMain,
+                        backgroundColor: "#FFFFFF",
+                        color: "#0F172A",
                         paddingRight: 40,
                       },
                     ]}
-                    placeholderTextColor={palette.textSub}
+                    placeholderTextColor="#94A3B8"
                     secureTextEntry={!showPassword}
                     editable={!loginLoading}
                   />
