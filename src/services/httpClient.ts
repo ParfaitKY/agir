@@ -19,6 +19,12 @@ export const httpClient: AxiosInstance = axios.create({
   },
 });
 
+// Force la baseURL à chaque requête pour éviter le cache du bundler web
+httpClient.interceptors.request.use((config) => {
+  config.baseURL = BASE_URL;
+  return config;
+});
+
 httpClient.interceptors.request.use(async (config) => {
   try {
     const noAuth =
@@ -30,6 +36,10 @@ httpClient.interceptors.request.use(async (config) => {
     if (token && !noAuth) {
       config.headers = config.headers || {};
       (config.headers as any)["Authorization"] = `Bearer ${token}`;
+    }
+    // Sur web, supprimer X-NO-AUTH après lecture pour éviter le blocage CORS preflight
+    if (typeof document !== "undefined") {
+      delete (config.headers as any)["X-NO-AUTH"];
     }
     console.log("[http] request", {
       url: config.url,

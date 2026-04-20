@@ -1,7 +1,8 @@
 export const BASE_URL =
-  //"https://zenithmobilereact-serveur-mgd.app.mgdigitalplus.com/api";
-  "https://zenithmobilereact-serveur-peyrie-test.app.mgdigitalplus.com/api";
+//"https://zenithmobilereact-serveur-mgd.app.mgdigitalplus.com/api";
+//"https://zenithmobilereact-serveur-peyrie-test.app.mgdigitalplus.com/api";
 //"https://zenithmobile-serveurreact-cedaiciprod.app.mgdigitalplus.com/api";
+"https://zenithmobile-serveurreact-cedaicitest.app.mgdigitalplus.com/api";
 
 export const ENDPOINTS = {
   LOGIN: "/auth/login",
@@ -22,4 +23,5 @@ export const ENDPOINTS = {
   BLOQUE_COMPTE: "/compte/blocages-compte",
   DERNIERES_OPERATIONS_CLIENT: "/compte/dernieres-operations-client",
   CREDIT_DEMANDE: "/credit/demande",
+  VERIFY_OTP_SIMPLE: "/auth/verify-otp-simple",
 };

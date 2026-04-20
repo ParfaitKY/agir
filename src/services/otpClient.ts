@@ -15,6 +15,10 @@ export const httpClientOtp: AxiosInstance = axios.create({
 
 httpClientOtp.interceptors.request.use(async (config) => {
   try {
+    // Sur web, supprimer X-NO-AUTH pour éviter le blocage CORS preflight
+    if (typeof document !== "undefined") {
+      delete (config.headers as any)["X-NO-AUTH"];
+    }
     console.log("[otp] request", {
       url: config.url,
       method: config.method,

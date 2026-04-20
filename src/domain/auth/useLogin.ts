@@ -155,7 +155,7 @@ export const useLogin = () => {
       await secureSetItem("user_login", username);
 
       setUserInfo({ token, user: userData });
-      return { success: true };
+      return { success: true, data: result?.data };
     } catch (e: any) {
       const msg = e?.response?.data?.message || e?.message || "Erreur réseau";
       setError(msg);

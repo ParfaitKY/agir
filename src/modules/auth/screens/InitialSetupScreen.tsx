@@ -251,6 +251,13 @@ const InitialSetupScreen: React.FC = () => {
   const [attempts, setAttempts] = useState(0);
   const MAX_ATTEMPTS = 3;
 
+  // États pour le formulaire login/mot de passe (CAS 1)
+  const [loginInput, setLoginInput] = useState("");
+  const [passwordInput, setPasswordInput] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [loginLoading, setLoginLoading] = useState(false);
+  const [loginError, setLoginError] = useState<string | null>(null);
+
   // Fonction vérification token
   const handleVerifyToken = async () => {
     setVerifyError(null);
@@ -781,6 +788,79 @@ const InitialSetupScreen: React.FC = () => {
     lastFailedToken,
   ]);
 
+  // Fonction login + détection CodeOtp (CAS 1)
+  const handleLoginSubmit = async () => {
+    setLoginError(null);
+    if (!loginInput.trim() || !passwordInput.trim()) {
+      setLoginError("Veuillez saisir votre login et votre mot de passe.");
+      return;
+    }
+    setLoginLoading(true);
+    try {
+      const deviceId = (await secureGetItem("device_id")) || "";
+      const result = await loginUser({
+        LG_CODELANGUE: "FR",
+        SL_LOGIN: loginInput.trim().toUpperCase(),
+        SL_MOTPASSE: passwordInput.trim(),
+        TYPEOPERATEUR: "01",
+        TYPEOPERATION: "01",
+        CODECRYPTAGE: "Y}@128eVIXfoi7",
+        TERMINALUUID: deviceId,
+      });
+
+      if (!result.success) {
+        const errMsg =
+          (result as any)?.error?.response?.data?.message ||
+          (result as any)?.error?.message ||
+          "Identifiants incorrects.";
+        setLoginError(errMsg);
+        return;
+      }
+
+      const responseData = (result as any)?.data;
+
+      // La réponse API retourne data comme tableau : data[0] contient les infos
+      const dataRecord = Array.isArray(responseData?.data)
+        ? responseData.data[0]
+        : responseData?.data ?? responseData;
+
+      // Détection CodeOtp (présent dans data[0].CodeOtp selon l'API)
+      const codeOtpPresent =
+        dataRecord?.CodeOtp ||
+        dataRecord?.code_otp ||
+        responseData?.CodeOtp ||
+        responseData?.otp_required === true;
+
+      if (codeOtpPresent) {
+        const userIdForOtp =
+          dataRecord?.CL_IDCLIENT ||
+          dataRecord?.user_id ||
+          dataRecord?.id ||
+          responseData?.user_id ||
+          loginInput.trim();
+        const otpCode =
+          dataRecord?.CodeOtp ||
+          dataRecord?.code_otp ||
+          responseData?.CodeOtp ||
+          "";
+        console.log(`[OTP] CodeOtp reçu : "${otpCode}" | user_id : "${userIdForOtp}"`);
+        navigation.navigate("OtpSimple", {
+          user_id: String(userIdForOtp),
+          debug_otp: String(otpCode),
+        });
+        return;
+      }
+
+      // Pas d'OTP → flux normal
+      await markConfigured(true);
+      navigation.reset({ index: 0, routes: [{ name: "Main" }] });
+    } catch (e: any) {
+      setLoginError(e?.message ?? "Erreur réseau.");
+    } finally {
+      setLoginLoading(false);
+    }
+  };
+
   // Fonction mode invité
   const handleGuestMode = async () => {
     try {
@@ -1071,15 +1151,13 @@ const InitialSetupScreen: React.FC = () => {
                 </RNText>
               </View>
             ) : step === 1 ? (
+              <>
               <View style={[styles.card, { backgroundColor: palette.card }]}>
-                <RNText style={[styles.label, { color: palette.textMain }]}>
-                  {t("initial.labels.accountNumber")}
-                </RNText>
+                <RNText style={[styles.label, { color: palette.textMain }]}>Login</RNText>
                 <TextInput
-                  ref={authTokenRef}
-                  value={authToken}
-                  onChangeText={(t) => setAuthToken(t.toUpperCase())}
-                  placeholder={t("initial.placeholders.accountNumber")}
+                  value={loginInput}
+                  onChangeText={setLoginInput}
+                  placeholder="Votre identifiant"
                   style={[
                     styles.input,
                     {
@@ -1089,58 +1167,63 @@ const InitialSetupScreen: React.FC = () => {
                     },
                   ]}
                   placeholderTextColor={palette.textSub}
-                  autoCapitalize="characters"
-                  editable={!loadingVerify && !isLoading}
+                  autoCapitalize="none"
+                  editable={!loginLoading}
                 />
-                {(loadingVerify || isLoading) && (
-                  <View
-                    style={{
-                      flexDirection: "row",
-                      alignItems: "center",
-                      marginTop: 8,
-                    }}
-                  >
-                    <ActivityIndicator color={palette.primary} />
-                    <RNText style={{ marginLeft: 8, color: palette.textSub }}>
-                      {t("initial.status.loadingAccount")}
-                    </RNText>
-                  </View>
-                )}
 
-                {verifyError && (
+                <RNText style={[styles.label, { color: palette.textMain }]}>Mot de passe</RNText>
+                <View style={styles.inputContainer}>
+                  <TextInput
+                    value={passwordInput}
+                    onChangeText={setPasswordInput}
+                    placeholder="Votre mot de passe"
+                    style={[
+                      styles.input,
+                      {
+                        borderColor: palette.border,
+                        backgroundColor: isDark ? "#111827" : "#FFFFFF",
+                        color: palette.textMain,
+                        paddingRight: 40,
+                      },
+                    ]}
+                    placeholderTextColor={palette.textSub}
+                    secureTextEntry={!showPassword}
+                    editable={!loginLoading}
+                  />
+                  <TouchableOpacity
+                    onPress={() => setShowPassword((v) => !v)}
+                    style={styles.iconOverlay}
+                  >
+                    <MaterialIcons
+                      name={showPassword ? "visibility" : "visibility-off"}
+                      size={20}
+                      color={palette.primary}
+                    />
+                  </TouchableOpacity>
+                </View>
+
+                {loginError && (
                   <RNText
                     style={[
                       styles.error,
-                      isDark
-                        ? { backgroundColor: "#7F1D1D", color: "#FCA5A5" }
-                        : {},
+                      isDark ? { backgroundColor: "#7F1D1D", color: "#FCA5A5" } : {},
                     ]}
                   >
-                    {verifyError}
+                    {loginError}
                   </RNText>
                 )}
-                {showVerifyButton && (
-                  <TouchableOpacity
-                    style={[
-                      styles.button,
-                      {
-                        marginTop: 12,
-                        backgroundColor: palette.primary,
-                      },
-                    ]}
-                    onPress={() => {
-                      handleVerifyToken();
-                    }}
-                  >
-                    {loadingVerify ? (
-                      <ActivityIndicator color="#FFF" />
-                    ) : (
-                      <RNText style={styles.buttonText}>
-                        {t("initial.actions.verify")}
-                      </RNText>
-                    )}
-                  </TouchableOpacity>
-                )}
+
+                <TouchableOpacity
+                  style={[styles.button, { marginTop: 4, backgroundColor: palette.primary }]}
+                  onPress={handleLoginSubmit}
+                  disabled={loginLoading}
+                >
+                  {loginLoading ? (
+                    <ActivityIndicator color="#FFF" />
+                  ) : (
+                    <RNText style={styles.buttonText}>Se connecter</RNText>
+                  )}
+                </TouchableOpacity>
 
                 <TouchableOpacity
                   style={[
@@ -1162,6 +1245,7 @@ const InitialSetupScreen: React.FC = () => {
                   </RNText>
                 </TouchableOpacity>
               </View>
+              </>
             ) : (
               <View style={[styles.card, { backgroundColor: palette.card }]}>
                 <RNText style={[styles.label, { color: palette.textMain }]}>

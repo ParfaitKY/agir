@@ -61,6 +61,8 @@ import { CreditSimulatorScreen } from "../../modules/credits/screens/CreditSimul
 import { CreditRequestScreen } from "../../modules/credits/screens/CreditRequestScreen";
 import { Linking } from "react-native";
 import useClientByTokenV2 from "../../domain/auth/useClientByTokenV2";
+import { BASE_URL } from "../../services/endpoints";
+import OtpSimpleScreen from "../../modules/auth/screens/OtpSimpleScreen";
 
 import { AccountOpeningScreen } from "../../modules/guest/screens/AccountOpeningScreen";
 
@@ -331,8 +333,88 @@ export const AppNavigator: React.FC = () => {
     const handleDeepLink = async (event: { url: string }) => {
       try {
         console.log("[DeepLink] Received:", event.url);
+
+        // ── CAS 2 : SMS / WhatsApp ──────────────────────────────────────────
+        const handleSmsDeepLink = async (url: string) => {
+          try {
+            const regex = /[?&]token=([^&#]*)/;
+            const match = regex.exec(url);
+            const token = match ? match[1] : null;
+            if (!token) return;
+            const linkPath = url.replace(/^cedaici:\/\//, "");
+            const serverUrl = `${BASE_URL}/${linkPath}`;
+            console.log("[DeepLink SMS] GET →", serverUrl);
+            const response = await fetch(serverUrl, {
+              method: "GET",
+              headers: { "X-NO-AUTH": "true" },
+            });
+            const data = await response.json();
+            if (data?.success === true) {
+              navigation.reset({ index: 0, routes: [{ name: "Main" }] });
+            } else {
+              Alert.alert(
+                "Lien invalide",
+                data?.message || "Ce lien n'est plus valide.",
+              );
+            }
+          } catch (e) {
+            console.error("[DeepLink SMS] Erreur:", e);
+            Alert.alert("Erreur", "Impossible de traiter ce lien.");
+          }
+        };
+
+        // ── CAS 3 : Callback web email ──────────────────────────────────────
+        const handleWebCallbackDeepLink = async (url: string) => {
+          try {
+            const tokenMatch = /[?&]token=([^&#]*)/.exec(url);
+            const uidMatch = /[?&]uid=([^&#]*)/.exec(url);
+            const authtoken = tokenMatch?.[1] || uidMatch?.[1] || null;
+            if (!authtoken) return;
+            console.log("[DeepLink Web] Token reçu, vérification...");
+            const clientInfo = await fetchClientInfo({ authtoken });
+            if (!clientInfo) {
+              Alert.alert(
+                "Session expirée",
+                "Le lien de connexion n'est plus valide.",
+              );
+              return;
+            }
+            if (clientInfo?.token_info?.autoplay === false) {
+              await markConfigured(true);
+              navigation.reset({ index: 0, routes: [{ name: "PinLogin" }] });
+            } else {
+              navigation.reset({
+                index: 0,
+                routes: [{ name: "InitialSetup" }],
+              });
+            }
+          } catch (e) {
+            console.error("[DeepLink Web] Erreur:", e);
+          }
+        };
+
+        // ── Ordre de priorité ───────────────────────────────────────────────
+        const url = event.url;
+
+        // 1. SMS / WhatsApp
+        if (url.includes("verify-sms") || url.includes("sms-verify")) {
+          await handleSmsDeepLink(url);
+          return;
+        }
+
+        // 2. Callback web email
+        if (
+          url.includes("callback") ||
+          url.includes("web-verify") ||
+          url.includes("auth-success")
+        ) {
+          await handleWebCallbackDeepLink(url);
+          return;
+        }
+
+        // 3. Magic link email direct (comportement existant inchangé)
         const regex = /[?&]token=([^&#]*)/;
-        const match = regex.exec(event.url);
+        const match = regex.exec(url);
         const token = match ? match[1] : null;
 
         if (token) {
@@ -472,6 +554,7 @@ export const AppNavigator: React.FC = () => {
       <Stack.Screen name="Splash" component={SplashScreen} />
       <Stack.Screen name="InitialSetup" component={InitialSetupScreen} />
       <Stack.Screen name="OtpVerify" component={OtpVerifyScreen} />
+      <Stack.Screen name="OtpSimple" component={OtpSimpleScreen} />
       {!isGuestMode && (
         <Stack.Screen name="PinLogin" component={PinLoginScreen} />
       )}
