@@ -13,6 +13,7 @@ import {
   Platform,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAuth } from "../../../app/hooks/useAuth";
 import { secureDeleteItem, secureGetItem, secureSetItem } from "../../../shared/utils/secureStorage";
 import * as Crypto from "expo-crypto";
@@ -21,7 +22,6 @@ import { clearAppCache } from "../../../shared/utils/cacheManager";
 import { useNavigation } from "@react-navigation/native";
 import { useI18n } from "../../../app/providers/I18nProvider";
 import { useTheme, useThemeMode } from "../../../shared/styles/ThemeProvider";
-// Intégration ThemeProvider pour le mode sombre/système
 
 export const SettingsScreen: React.FC = () => {
   const { user, logout } = useAuth();
@@ -29,6 +29,7 @@ export const SettingsScreen: React.FC = () => {
   const { t, tText } = useI18n();
   const { colors } = useTheme();
   const { preference, isDark, setPreference } = useThemeMode();
+  const insets = useSafeAreaInsets();
   const isGuestMode = user?.username === "invite";
   const guestAlert = () => {
     Alert.alert(
@@ -45,7 +46,7 @@ export const SettingsScreen: React.FC = () => {
     rightElement?: React.ReactNode;
     isRestricted?: boolean;
   };
-  type SettingsSection = { title: string; items: SettingItem[] };
+  type SettingsSection = { title: string; accent: string; icon: string; items: SettingItem[] };
   // Styles statiques uniquement
   const [biometricEnabled, setBiometricEnabled] = React.useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = React.useState(true);
@@ -113,6 +114,8 @@ export const SettingsScreen: React.FC = () => {
   const settingsSections: SettingsSection[] = [
     {
       title: "COMPTE",
+      accent: colors.primary,
+      icon: "person-circle-outline",
       items: [
         {
           icon: "person-outline",
@@ -142,10 +145,12 @@ export const SettingsScreen: React.FC = () => {
     },
     {
       title: "SERVICES FINANCIERS",
+      accent: colors.success,
+      icon: "wallet-outline",
       items: [
         {
           icon: "wallet-outline",
-          iconColor: colors.primary,
+          iconColor: colors.success,
           title: "Mon Wallet",
           onPress: () => (navigation as any).navigate("WalletScreens"),
           showChevron: true,
@@ -153,7 +158,7 @@ export const SettingsScreen: React.FC = () => {
         },
         {
           icon: "phone-portrait-outline",
-          iconColor: colors.primary,
+          iconColor: colors.success,
           title: "Souscriptions Mobile",
           onPress: () => (navigation as any).navigate("WalletMobileScreens"),
           showChevron: true,
@@ -161,7 +166,7 @@ export const SettingsScreen: React.FC = () => {
         },
         {
           icon: "card-outline",
-          iconColor: colors.primary,
+          iconColor: colors.success,
           title: "Gérer mes comptes",
           onPress: () => (navigation as any).navigate("Accounts"),
           showChevron: true,
@@ -169,7 +174,7 @@ export const SettingsScreen: React.FC = () => {
         },
         {
           icon: "people-outline",
-          iconColor: colors.primary,
+          iconColor: colors.success,
           title: "Mes bénéficiaires",
           onPress: () => (navigation as any).navigate("BeneficiairesPage"),
           showChevron: true,
@@ -177,7 +182,7 @@ export const SettingsScreen: React.FC = () => {
         },
         {
           icon: "grid-outline",
-          iconColor: colors.primary,
+          iconColor: colors.success,
           title: "Mes produits",
           onPress: () => setShowFeatureUnavailableModal(true),
           showChevron: true,
@@ -187,47 +192,38 @@ export const SettingsScreen: React.FC = () => {
     },
     {
       title: "PRÉFÉRENCES",
+      accent: "#F59E0B",
+      icon: "options-outline",
       items: [
         {
           icon: "notifications-outline",
-          iconColor: colors.primary,
+          iconColor: "#F59E0B",
           title: "Notifications",
           rightElement: (
             <Switch
               value={notificationsEnabled}
               onValueChange={setNotificationsEnabled}
-              trackColor={{ false: colors.border, true: colors.primary }}
+              trackColor={{ false: colors.border, true: "#F59E0B" }}
               thumbColor="#fff"
             />
           ),
         },
         {
           icon: "language-outline",
-          iconColor: colors.primary,
+          iconColor: "#F59E0B",
           title: t("settings.language"),
           onPress: () => (navigation as any).navigate("Language"),
           showChevron: true,
         },
         {
           icon: "moon-outline",
-          iconColor: colors.primary,
+          iconColor: "#F59E0B",
           title: t("settings.darkMode"),
           onPress: () => setShowThemeModal(true),
           rightElement: (
-            <View
-              style={{
-                paddingHorizontal: 8,
-                paddingVertical: 4,
-                borderRadius: 8,
-                backgroundColor: colors.card,
-              }}
-            >
-              <Text style={{ color: colors.text, fontSize: 12 }}>
-                {preference === "system"
-                  ? t("theme.system")
-                  : preference === "dark"
-                    ? t("theme.dark")
-                    : t("theme.light")}
+            <View style={[st.themePill, { backgroundColor: "#F59E0B18" }]}>
+              <Text style={{ color: "#F59E0B", fontSize: 12, fontWeight: "700" }}>
+                {preference === "system" ? t("theme.system") : preference === "dark" ? t("theme.dark") : t("theme.light")}
               </Text>
             </View>
           ),
@@ -237,23 +233,25 @@ export const SettingsScreen: React.FC = () => {
     },
     {
       title: "SÉCURITÉ",
+      accent: "#6366F1",
+      icon: "shield-checkmark-outline",
       items: [
         {
           icon: "finger-print-outline",
-          iconColor: colors.primary,
+          iconColor: "#6366F1",
           title: "Authentification biométrique",
           rightElement: (
             <Switch
               value={biometricEnabled}
               onValueChange={setBiometricEnabled}
-              trackColor={{ false: colors.border, true: colors.primary }}
+              trackColor={{ false: colors.border, true: "#6366F1" }}
               thumbColor="#fff"
             />
           ),
         },
         {
           icon: "shield-checkmark-outline",
-          iconColor: colors.primary,
+          iconColor: "#6366F1",
           title: "Confidentialité",
           onPress: () => (navigation as any).navigate("PrivacySettings"),
           showChevron: true,
@@ -262,38 +260,40 @@ export const SettingsScreen: React.FC = () => {
     },
     {
       title: "SUPPORT",
+      accent: "#06B6D4",
+      icon: "headset-outline",
       items: [
         {
           icon: "headset-outline",
-          iconColor: colors.primary,
+          iconColor: "#06B6D4",
           title: "Service client",
           onPress: () => (navigation as any).navigate("CustomerSupport"),
           showChevron: true,
         },
         {
           icon: "chatbubble-outline",
-          iconColor: colors.primary,
+          iconColor: "#06B6D4",
           title: "Chat en ligne",
           onPress: () => setShowChatUnavailableModal(true),
           showChevron: true,
         },
         {
           icon: "mail-outline",
-          iconColor: colors.primary,
+          iconColor: "#06B6D4",
           title: "Envoyer un email",
           onPress: () => (navigation as any).navigate("EmailSupport"),
           showChevron: true,
         },
         {
           icon: "help-circle-outline",
-          iconColor: colors.primary,
+          iconColor: "#06B6D4",
           title: "Centre d'aide / FAQ",
           onPress: () => (navigation as any).navigate("HelpCenter"),
           showChevron: true,
         },
         {
           icon: "warning-outline",
-          iconColor: colors.primary,
+          iconColor: "#06B6D4",
           title: "Signaler un problème",
           onPress: () => (navigation as any).navigate("ReportProblem"),
           showChevron: true,
@@ -302,38 +302,40 @@ export const SettingsScreen: React.FC = () => {
     },
     {
       title: "APPLICATION",
+      accent: "#8B5CF6",
+      icon: "information-circle-outline",
       items: [
         {
           icon: "information-circle-outline",
-          iconColor: colors.primary,
+          iconColor: "#8B5CF6",
           title: "À propos",
           onPress: () => (navigation as any).navigate("AboutApp"),
           showChevron: true,
         },
         {
           icon: "document-text-outline",
-          iconColor: colors.primary,
+          iconColor: "#8B5CF6",
           title: "Conditions d'utilisation",
           onPress: () => (navigation as any).navigate("TermsOfUse"),
           showChevron: true,
         },
         {
           icon: "shield-outline",
-          iconColor: colors.primary,
+          iconColor: "#8B5CF6",
           title: "Politique de confidentialité",
           onPress: () => (navigation as any).navigate("PrivacyPolicy"),
           showChevron: true,
         },
         {
           icon: "star-outline",
-          iconColor: colors.primary,
+          iconColor: "#8B5CF6",
           title: "Évaluer l'application",
           onPress: () => (navigation as any).navigate("RateApp"),
           showChevron: true,
         },
         {
           icon: "share-social-outline",
-          iconColor: colors.primary,
+          iconColor: "#8B5CF6",
           title: "Partager l'application",
           onPress: () => (navigation as any).navigate("ShareApp"),
           showChevron: true,
@@ -344,22 +346,54 @@ export const SettingsScreen: React.FC = () => {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
+      {/* ── Hero Header ── */}
+      <View style={[st.hero, { backgroundColor: colors.primary, paddingTop: insets.top + 16 }]}>
+        <View style={st.heroBlob1} />
+        <View style={st.heroBlob2} />
+        <View style={st.heroRow}>
+          <View>
+            <Text style={st.heroEyebrow}>CEDAICI</Text>
+            <Text style={st.heroTitle}>Paramètres</Text>
+          </View>
+          <View style={[st.heroAvatar, { backgroundColor: "rgba(255,255,255,0.2)" }]}>
+            <Text style={st.heroAvatarText}>
+              {(user?.username || user?.name || "U").slice(0, 2).toUpperCase()}
+            </Text>
+          </View>
+        </View>
+        {isGuestMode && (
+          <View style={st.guestBanner}>
+            <Ionicons name="information-circle-outline" size={14} color="#fff" />
+            <Text style={st.guestBannerText}>Mode invité — certaines fonctions sont limitées</Text>
+          </View>
+        )}
+      </View>
+
       <ScrollView
         style={[styles.content, { backgroundColor: colors.background }]}
         showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 40 }}
       >
         {/* Settings Sections */}
         {settingsSections.map((section, sectionIndex) => (
           <View key={sectionIndex} style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: colors.text + "50" }]}>
-              {tText(section.title)}
-            </Text>
+            {/* Section header with accent */}
+            <View style={st.sectionHead}>
+              <View style={[st.sectionAccentBar, { backgroundColor: section.accent }]} />
+              <View style={[st.sectionIconWrap, { backgroundColor: section.accent + "18" }]}>
+                <Ionicons name={section.icon as any} size={14} color={section.accent} />
+              </View>
+              <Text style={[styles.sectionTitle, { color: section.accent }]}>
+                {tText(section.title)}
+              </Text>
+            </View>
             <View
-              style={[styles.sectionContent, { backgroundColor: colors.card, borderColor: colors.border }]}
+              style={[styles.sectionContent, { backgroundColor: colors.card, borderColor: section.accent + "25" }]}
             >
               {section.items.map((item, itemIndex) => {
                 const restricted = isGuestMode && item.isRestricted;
                 const isLast = itemIndex === section.items.length - 1;
+                const accent = item.iconColor ?? section.accent;
                 return (
                   <TouchableOpacity
                     key={itemIndex}
@@ -373,11 +407,11 @@ export const SettingsScreen: React.FC = () => {
                     }}
                     activeOpacity={restricted ? 1 : 0.7}
                   >
-                    <View style={[styles.settingIconWrap, { backgroundColor: restricted ? colors.border + "40" : (item.iconColor || colors.primary) + "15" }]}>
+                    <View style={[styles.settingIconWrap, { backgroundColor: restricted ? colors.border + "40" : accent + "18" }]}>
                       <Ionicons
                         name={item.icon as any}
                         size={18}
-                        color={restricted ? colors.text + "40" : (item.iconColor || colors.primary)}
+                        color={restricted ? colors.text + "40" : accent}
                       />
                     </View>
                     <Text
@@ -406,10 +440,16 @@ export const SettingsScreen: React.FC = () => {
 
         {/* Déconnexion Section */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.text + "50" }]}>
-            {tText("DÉCONNEXION")}
-          </Text>
-          <View style={[styles.sectionContent, { backgroundColor: colors.card, borderColor: colors.border }]}>
+          <View style={st.sectionHead}>
+            <View style={[st.sectionAccentBar, { backgroundColor: colors.error }]} />
+            <View style={[st.sectionIconWrap, { backgroundColor: colors.error + "18" }]}>
+              <Ionicons name="log-out-outline" size={14} color={colors.error} />
+            </View>
+            <Text style={[styles.sectionTitle, { color: colors.error }]}>
+              {tText("DÉCONNEXION")}
+            </Text>
+          </View>
+          <View style={[styles.sectionContent, { backgroundColor: colors.card, borderColor: colors.error + "25" }]}>
             <TouchableOpacity
               style={styles.settingItem}
               onPress={() => setShowLogoutModal(true)}
@@ -1386,4 +1426,36 @@ const styles = StyleSheet.create({
     color: "#1A1A1A",
     fontWeight: "600",
   },
+});
+
+// ── Extra styles (inline object to avoid StyleSheet limitations with dynamic values) ──
+const st = StyleSheet.create({
+  hero: {
+    paddingHorizontal: 20,
+    paddingBottom: 24,
+    overflow: "hidden",
+  },
+  heroBlob1: {
+    position: "absolute", width: 220, height: 220, borderRadius: 110,
+    backgroundColor: "rgba(255,255,255,0.07)", top: -60, right: -50,
+  },
+  heroBlob2: {
+    position: "absolute", width: 140, height: 140, borderRadius: 70,
+    backgroundColor: "rgba(255,255,255,0.05)", bottom: -30, left: -20,
+  },
+  heroRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
+  heroEyebrow: { color: "rgba(255,255,255,0.6)", fontSize: 11, fontWeight: "700", letterSpacing: 2, textTransform: "uppercase" },
+  heroTitle: { color: "#fff", fontSize: 26, fontWeight: "800", letterSpacing: -0.5, marginTop: 2 },
+  heroAvatar: { width: 46, height: 46, borderRadius: 23, alignItems: "center", justifyContent: "center" },
+  heroAvatarText: { color: "#fff", fontSize: 16, fontWeight: "800" },
+  guestBanner: {
+    flexDirection: "row", alignItems: "center", gap: 6,
+    backgroundColor: "rgba(255,255,255,0.15)",
+    borderRadius: 12, paddingHorizontal: 12, paddingVertical: 8, marginTop: 14,
+  },
+  guestBannerText: { color: "#fff", fontSize: 12, fontWeight: "500", flex: 1 },
+  sectionHead: { flexDirection: "row", alignItems: "center", gap: 7, marginBottom: 8, marginLeft: 2 },
+  sectionAccentBar: { width: 3, height: 14, borderRadius: 2 },
+  sectionIconWrap: { width: 22, height: 22, borderRadius: 6, alignItems: "center", justifyContent: "center" },
+  themePill: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20 },
 });

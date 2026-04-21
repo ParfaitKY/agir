@@ -4,6 +4,7 @@ import {
   TextInput, StatusBar, Dimensions,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { useI18n } from "../../../app/providers/I18nProvider";
 import { useTheme } from "../../../shared/styles/ThemeProvider";
@@ -18,6 +19,7 @@ export const AccountDetailsScreen: React.FC = () => {
   const route = useRoute() as any;
   const { t, tText } = useI18n();
   const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
   const [showBlockModal, setShowBlockModal] = React.useState(false);
   const [blockDate, setBlockDate] = React.useState(new Date().toISOString().slice(0, 10));
   const [blockTiers, setBlockTiers] = React.useState("");
@@ -111,7 +113,7 @@ export const AccountDetailsScreen: React.FC = () => {
       <StatusBar barStyle="light-content" />
 
       {/* ── Immersive hero header ── */}
-      <View style={[s.hero, { backgroundColor: cardColor }]}>
+      <View style={[s.hero, { backgroundColor: cardColor, paddingTop: insets.top + 12 }]}>
         {/* Decorative blobs */}
         <View style={s.blob1} />
         <View style={s.blob2} />
@@ -167,9 +169,9 @@ export const AccountDetailsScreen: React.FC = () => {
               activeOpacity={0.7}
             >
               <View style={[s.actionIcon, { backgroundColor: a.color + "18" }]}>
-                <Ionicons name={a.icon as any} size={19} color={a.color} />
+                <Ionicons name={a.icon as any} size={20} color={a.color} />
               </View>
-              <Text style={[s.actionLabel, { color: colors.text + "80" }]}>{a.label}</Text>
+              <Text style={[s.actionLabel, { color: colors.text + "90" }]}>{a.label}</Text>
             </TouchableOpacity>
           ))}
         </View>
@@ -250,8 +252,13 @@ export const AccountDetailsScreen: React.FC = () => {
           <View style={s.sectionHead}>
             <View style={[s.sectionDot, { backgroundColor: "#F43F5E" }]} />
             <Text style={[s.sectionTitle, { color: colors.text }]}>Blocages du compte</Text>
+            {blockedCount > 0 && (
+              <View style={[s.blockedCountBadge, { backgroundColor: "#F43F5E18" }]}>
+                <Text style={s.blockedCountText}>{blockedCount}</Text>
+              </View>
+            )}
           </View>
-          <View style={[s.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
+          <View style={[s.card, { backgroundColor: colors.card, borderColor: blockedCount > 0 ? "#F43F5E30" : colors.border }]}>
             {loadingBlocks && (
               <View style={s.stateRow}>
                 <Ionicons name="hourglass-outline" size={18} color={colors.text + "40"} />
@@ -279,19 +286,28 @@ export const AccountDetailsScreen: React.FC = () => {
             {!loadingBlocks && !errorBlocks && blockedCount > 0 && (
               <>
                 <View style={[s.blockedTotal, { backgroundColor: "#F43F5E08", borderBottomColor: colors.border }]}>
-                  <Text style={[s.blockedTotalLabel, { color: colors.text + "60" }]}>Total bloqué</Text>
+                  <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+                    <View style={[s.stateIconWrap, { backgroundColor: "#F43F5E18" }]}>
+                      <Ionicons name="lock-closed" size={14} color="#F43F5E" />
+                    </View>
+                    <Text style={[s.blockedTotalLabel, { color: colors.text + "60" }]}>Total bloqué</Text>
+                  </View>
                   <Text style={[s.blockedTotalVal, { color: "#F43F5E" }]}>{formatAmt(blockedAmountTotal)}</Text>
                 </View>
                 {(blockedList || []).map((it, idx) => {
                   const d = displayItem(it);
                   return (
                     <View key={idx} style={[s.blockedItem, { borderTopColor: colors.border }]}>
-                      <View style={[s.blockedItemDot, { backgroundColor: "#F59E0B" }]} />
+                      <View style={[s.blockedItemIcon, { backgroundColor: "#F59E0B18" }]}>
+                        <Ionicons name="alert-circle-outline" size={14} color="#F59E0B" />
+                      </View>
                       <View style={s.blockedItemBody}>
                         <Text style={[s.blockedItemType, { color: colors.text }]}>{d.type || "Blocage"}</Text>
                         <Text style={[s.blockedItemDate, { color: colors.text + "50" }]}>{d.date}</Text>
                       </View>
-                      <Text style={[s.blockedItemAmt, { color: colors.text }]}>{d.amount}</Text>
+                      <View style={[s.blockedItemAmtWrap, { backgroundColor: "#F43F5E10" }]}>
+                        <Text style={[s.blockedItemAmt, { color: "#F43F5E" }]}>{d.amount}</Text>
+                      </View>
                     </View>
                   );
                 })}
@@ -387,7 +403,7 @@ const s = StyleSheet.create({
 
   // Hero
   hero: {
-    paddingTop: 52, paddingBottom: 28, paddingHorizontal: 20,
+    paddingBottom: 28, paddingHorizontal: 20,
     overflow: "hidden",
   },
   blob1: {
@@ -434,8 +450,8 @@ const s = StyleSheet.create({
     shadowColor: "#000", shadowOpacity: 0.06, shadowOffset: { width: 0, height: 4 }, shadowRadius: 12, elevation: 4,
   },
   actionItem: { flex: 1, alignItems: "center", paddingVertical: 18, gap: 7 },
-  actionIcon: { width: 40, height: 40, borderRadius: 20, justifyContent: "center", alignItems: "center" },
-  actionLabel: { fontSize: 10, fontWeight: "600", textAlign: "center" },
+  actionIcon: { width: 44, height: 44, borderRadius: 22, justifyContent: "center", alignItems: "center" },
+  actionLabel: { fontSize: 11, fontWeight: "600", textAlign: "center" },
 
   // Stats strip
   statsStrip: { flexDirection: "row", gap: 10, paddingHorizontal: 16, marginTop: 14 },
@@ -490,6 +506,11 @@ const s = StyleSheet.create({
   blockedItemType: { fontSize: 13, fontWeight: "600" },
   blockedItemDate: { fontSize: 11, marginTop: 2 },
   blockedItemAmt: { fontSize: 13, fontWeight: "700" },
+  // New blocage styles
+  blockedCountBadge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 20, marginLeft: 4 },
+  blockedCountText: { fontSize: 11, fontWeight: "800", color: "#F43F5E" },
+  blockedItemIcon: { width: 28, height: 28, borderRadius: 8, alignItems: "center", justifyContent: "center", flexShrink: 0 },
+  blockedItemAmtWrap: { paddingHorizontal: 10, paddingVertical: 5, borderRadius: 12 },
 
   // Info rows
   infoRow: { flexDirection: "row", alignItems: "center", padding: 14, gap: 12 },

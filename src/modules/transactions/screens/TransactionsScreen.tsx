@@ -285,6 +285,48 @@ export const TransactionsScreen: React.FC = () => {
           <TransactionSkeleton colors={colors} />
         ) : (
           <>
+            {/* ── Stats summary ── */}
+            {items.length > 0 && (() => {
+              const totalIn  = items.filter(x => x.type === "entree").reduce((a, x) => a + x.amountNum, 0);
+              const totalOut = items.filter(x => x.type === "sortie").reduce((a, x) => a + x.amountNum, 0);
+              const countIn  = items.filter(x => x.type === "entree").length;
+              const countOut = items.filter(x => x.type === "sortie").length;
+              return (
+                <View style={styles.statsRow}>
+                  <View style={[styles.statCard, { backgroundColor: colors.success + "12", borderColor: colors.success + "30" }]}>
+                    <View style={[styles.statIconWrap, { backgroundColor: colors.success + "20" }]}>
+                      <Ionicons name="arrow-down" size={16} color={colors.success} />
+                    </View>
+                    <View style={styles.statTexts}>
+                      <Text style={[styles.statLabel, { color: colors.text + "55" }]}>Entrées</Text>
+                      <Text style={[styles.statAmount, { color: colors.success }]}>+{fmt(totalIn)}</Text>
+                      <Text style={[styles.statCount, { color: colors.text + "40" }]}>{countIn} opération{countIn > 1 ? "s" : ""}</Text>
+                    </View>
+                  </View>
+                  <View style={[styles.statCard, { backgroundColor: colors.error + "12", borderColor: colors.error + "30" }]}>
+                    <View style={[styles.statIconWrap, { backgroundColor: colors.error + "20" }]}>
+                      <Ionicons name="arrow-up" size={16} color={colors.error} />
+                    </View>
+                    <View style={styles.statTexts}>
+                      <Text style={[styles.statLabel, { color: colors.text + "55" }]}>Sorties</Text>
+                      <Text style={[styles.statAmount, { color: colors.error }]}>-{fmt(totalOut)}</Text>
+                      <Text style={[styles.statCount, { color: colors.text + "40" }]}>{countOut} opération{countOut > 1 ? "s" : ""}</Text>
+                    </View>
+                  </View>
+                  <View style={[styles.statCard, { backgroundColor: colors.primary + "12", borderColor: colors.primary + "30" }]}>
+                    <View style={[styles.statIconWrap, { backgroundColor: colors.primary + "20" }]}>
+                      <Ionicons name="swap-horizontal" size={16} color={colors.primary} />
+                    </View>
+                    <View style={styles.statTexts}>
+                      <Text style={[styles.statLabel, { color: colors.text + "55" }]}>Total</Text>
+                      <Text style={[styles.statAmount, { color: colors.primary }]}>{items.length}</Text>
+                      <Text style={[styles.statCount, { color: colors.text + "40" }]}>transactions</Text>
+                    </View>
+                  </View>
+                </View>
+              );
+            })()}
+
             {/* ── Filters ── */}
             <View style={styles.filtersRow}>
               {FILTERS.map(({ key, label, icon, color }) => {
@@ -429,4 +471,16 @@ const styles = StyleSheet.create({
   txAmount: { fontSize: 14, fontWeight: "800", letterSpacing: -0.3, marginBottom: 5 },
   txTypeBadge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8 },
   txTypeBadgeText: { fontSize: 10, fontWeight: "700" },
+
+  // Stats summary
+  statsRow: { flexDirection: "row", gap: 8, paddingHorizontal: 16, marginTop: 12, marginBottom: 4 },
+  statCard: {
+    flex: 1, borderRadius: 16, borderWidth: 1, padding: 12, gap: 6,
+    shadowColor: "#000", shadowOpacity: 0.04, shadowOffset: { width: 0, height: 2 }, shadowRadius: 6, elevation: 1,
+  },
+  statIconWrap: { width: 30, height: 30, borderRadius: 9, alignItems: "center", justifyContent: "center" },
+  statTexts: { gap: 1 },
+  statLabel: { fontSize: 10, fontWeight: "600", textTransform: "uppercase", letterSpacing: 0.5 },
+  statAmount: { fontSize: 13, fontWeight: "800", letterSpacing: -0.3 },
+  statCount: { fontSize: 10 },
 });

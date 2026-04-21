@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -9,7 +9,10 @@ import {
   Linking,
   Alert,
   Platform,
+  Animated,
+  Clipboard,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Print from "expo-print";
 import * as Sharing from "expo-sharing";
 import { Ionicons } from "@expo/vector-icons";
@@ -22,12 +25,289 @@ import { getDerniereTransaction } from "../../../services/compte/derniereTransac
 import { dernieresOperationsClient } from "../../../services/compte/dernieresOperationsClient";
 import useClientByCompte from "../../../domain/auth/useClientByCompte";
 
+// ── ThemeOptionCard : carte de sélection de thème animée ──
+type ThemeOpt = {
+  key: "light" | "dark" | "system";
+  icon: string;
+  label: string;
+  desc: string;
+  accent: string;
+  previewBg: string;
+  previewBar: string;
+};
+
+const ThemeOptionCard: React.FC<{
+  opt: ThemeOpt;
+  active: boolean;
+  colors: any;
+  isDark: boolean;
+  onPress: () => void;
+}> = ({ opt, active, colors, isDark, onPress }) => {
+  const scaleAnim = useRef(new Animated.Value(1)).current;
+  const glowAnim  = useRef(new Animated.Value(active ? 1 : 0)).current;
+
+  useEffect(() => {
+    Animated.timing(glowAnim, {
+      toValue: active ? 1 : 0,
+      duration: 250,
+      useNativeDriver: false,
+    }).start();
+  }, [active]);
+
+  const handlePressIn = () =>
+    Animated.spring(scaleAnim, { toValue: 0.97, useNativeDriver: true, speed: 30 }).start();
+  const handlePressOut = () =>
+    Animated.spring(scaleAnim, { toValue: 1, useNativeDriver: true, speed: 20 }).start();
+
+  const borderColor = glowAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [colors.border, opt.accent],
+  });
+
+  return (
+    <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
+      <TouchableOpacity
+        activeOpacity={1}
+        onPress={onPress}
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
+      >
+        <Animated.View
+          style={[
+            styles.themeOptionCard,
+            {
+              backgroundColor: active ? opt.accent + "0D" : colors.card,
+              borderColor,
+              borderWidth: active ? 2 : 1,
+            },
+          ]}
+        >
+          {/* Gauche : icône + textes */}
+          <View style={[styles.themeOptionIconWrap, { backgroundColor: active ? opt.accent + "22" : colors.border + "50" }]}>
+            <Ionicons name={opt.icon as any} size={24} color={active ? opt.accent : colors.text + "55"} />
+          </View>
+
+          <View style={styles.themeOptionTexts}>
+            <Text style={[styles.themeOptionLabel, { color: active ? opt.accent : colors.text }]}>
+              {opt.label}
+            </Text>
+            <Text style={[styles.themeOptionDesc, { color: colors.text + "50" }]}>
+              {opt.desc}
+            </Text>
+          </View>
+
+          {/* Droite : mini preview + check */}
+          <View style={styles.themeOptionRight}>
+            {/* Mini preview UI */}
+            <View style={[styles.themePreview, { backgroundColor: opt.previewBg, borderColor: colors.border }]}>
+              <View style={[styles.themePreviewBar, { backgroundColor: opt.previewBar }]} />
+              <View style={styles.themePreviewLines}>
+                <View style={[styles.themePreviewLine, { backgroundColor: opt.previewBar + "60", width: "70%" }]} />
+                <View style={[styles.themePreviewLine, { backgroundColor: opt.previewBar + "30", width: "45%" }]} />
+              </View>
+            </View>
+
+            {/* Check actif */}
+            {active ? (
+              <View style={[styles.themeOptionCheck, { backgroundColor: opt.accent }]}>
+                <Ionicons name="checkmark" size={12} color="#fff" />
+              </View>
+            ) : (
+              <View style={[styles.themeOptionCheckEmpty, { borderColor: colors.border }]} />
+            )}
+          </View>
+        </Animated.View>
+      </TouchableOpacity>
+    </Animated.View>
+  );
+};
+
+// ── DocCard : carte document animée ──
+type DocCardItem = {
+  icon: string;
+  gradient: string;
+  label: string;
+  sub: string;
+  tag: string;
+  tagColor: string;
+  onPress: () => void;
+};
+
+const DocCard: React.FC<{ item: DocCardItem; colors: any; isDark: boolean }> = ({ item, colors, isDark }) => {
+  const scaleAnim = useRef(new Animated.Value(1)).current;
+
+  const handlePressIn = () => {
+    Animated.spring(scaleAnim, { toValue: 0.95, useNativeDriver: true, speed: 30 }).start();
+  };
+  const handlePressOut = () => {
+    Animated.spring(scaleAnim, { toValue: 1, useNativeDriver: true, speed: 20 }).start();
+  };
+
+  return (
+    <Animated.View style={[styles.docCardWrap, { transform: [{ scale: scaleAnim }] }]}>
+      <TouchableOpacity
+        activeOpacity={1}
+        onPress={item.onPress}
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
+        style={[
+          styles.docCard2,
+          {
+            backgroundColor: colors.card,
+            borderColor: item.gradient + "30",
+          },
+        ]}
+      >
+        {/* Fond décoratif */}
+        <View style={[styles.docCardBg, { backgroundColor: item.gradient + "10" }]} />
+
+        {/* Icône grande */}
+        <View style={[styles.docCardIconCircle, { backgroundColor: item.gradient + "20" }]}>
+          <Ionicons name={item.icon as any} size={28} color={item.gradient} />
+        </View>
+
+        {/* Textes */}
+        <Text style={[styles.docCardTitle, { color: colors.text }]} numberOfLines={2}>
+          {item.label}
+        </Text>
+        <Text style={[styles.docCardSub, { color: colors.text + "55" }]} numberOfLines={1}>
+          {item.sub}
+        </Text>
+
+        {/* Tag action */}
+        <View style={[styles.docCardTag, { backgroundColor: item.tagColor + "18" }]}>
+          <Text style={[styles.docCardTagText, { color: item.tagColor }]}>{item.tag}</Text>
+          <Ionicons name="arrow-forward" size={11} color={item.tagColor} />
+        </View>
+      </TouchableOpacity>
+    </Animated.View>
+  );
+};
+
+// ── InfoCard : carte individuelle animée pour les infos personnelles ──
+type InfoCardField = {
+  icon: string;
+  iconBg: string;
+  iconColor: string;
+  accentColor: string;
+  label: string;
+  value: string;
+  copyable: boolean;
+  fullWidth: boolean;
+};
+
+const InfoCard: React.FC<{
+  field: InfoCardField;
+  colors: any;
+  isDark: boolean;
+  fullWidth: boolean;
+}> = ({ field, colors, isDark, fullWidth }) => {
+  const [copied, setCopied] = useState(false);
+  const scaleAnim = useRef(new Animated.Value(1)).current;
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+
+  const hasValue = field.value && field.value !== "—";
+
+  const handleCopy = () => {
+    if (!field.copyable || !hasValue) return;
+    Clipboard.setString(field.value);
+    setCopied(true);
+    // Animation pulse
+    Animated.sequence([
+      Animated.timing(scaleAnim, { toValue: 0.96, duration: 80, useNativeDriver: true }),
+      Animated.timing(scaleAnim, { toValue: 1, duration: 120, useNativeDriver: true }),
+    ]).start();
+    // Fade in du badge "Copié"
+    Animated.sequence([
+      Animated.timing(fadeAnim, { toValue: 1, duration: 150, useNativeDriver: true }),
+      Animated.delay(1200),
+      Animated.timing(fadeAnim, { toValue: 0, duration: 200, useNativeDriver: true }),
+    ]).start(() => setCopied(false));
+  };
+
+  return (
+    <Animated.View
+      style={[
+        styles.infoCardItem,
+        fullWidth && styles.infoCardFull,
+        {
+          backgroundColor: colors.card,
+          borderColor: hasValue ? field.accentColor + "30" : colors.border,
+          transform: [{ scale: scaleAnim }],
+        },
+      ]}
+    >
+      {/* Accent bar top */}
+      <View style={[styles.infoCardAccentBar, { backgroundColor: field.accentColor, opacity: hasValue ? 1 : 0.25 }]} />
+
+      <View style={styles.infoCardInner}>
+        {/* Icon */}
+        <View style={[styles.infoCardIconWrap, { backgroundColor: field.iconBg }]}>
+          <Ionicons name={field.icon as any} size={20} color={field.iconColor} />
+        </View>
+
+        {/* Textes */}
+        <View style={styles.infoCardTexts}>
+          <Text style={[styles.infoCardLabel, { color: colors.text + "55" }]}>{field.label}</Text>
+          <Text
+            style={[styles.infoCardValue, { color: hasValue ? colors.text : colors.text + "35" }]}
+            numberOfLines={1}
+            ellipsizeMode="tail"
+          >
+            {field.value}
+          </Text>
+        </View>
+
+        {/* Actions droite */}
+        <View style={styles.infoCardActions}>
+          {/* Badge statut */}
+          <View style={[
+            styles.infoCardBadge,
+            { backgroundColor: hasValue ? field.accentColor + "18" : colors.border + "60" }
+          ]}>
+            <Ionicons
+              name={hasValue ? "checkmark-circle" : "ellipse-outline"}
+              size={12}
+              color={hasValue ? field.accentColor : colors.text + "35"}
+            />
+            <Text style={[styles.infoCardBadgeText, { color: hasValue ? field.accentColor : colors.text + "35" }]}>
+              {hasValue ? "Renseigné" : "Manquant"}
+            </Text>
+          </View>
+
+          {/* Bouton copier */}
+          {field.copyable && hasValue && (
+            <TouchableOpacity
+              onPress={handleCopy}
+              style={[styles.infoCardCopyBtn, { backgroundColor: field.accentColor + "12" }]}
+              activeOpacity={0.7}
+            >
+              <Ionicons
+                name={copied ? "checkmark" : "copy-outline"}
+                size={14}
+                color={field.accentColor}
+              />
+            </TouchableOpacity>
+          )}
+        </View>
+      </View>
+
+      {/* Toast "Copié !" */}
+      <Animated.View style={[styles.infoCardToast, { backgroundColor: field.accentColor, opacity: fadeAnim }]}>
+        <Ionicons name="checkmark" size={11} color="#fff" />
+        <Text style={styles.infoCardToastText}>Copié !</Text>
+      </Animated.View>
+    </Animated.View>
+  );
+};
+
 const ProfileScreen: React.FC = () => {
   const navigation = useNavigation();
   const { logout, fullLogout, user } = useAuth();
   const { colors } = useTheme();
   const { preference, isDark, setPreference } = useThemeMode();
   const { t } = useI18n();
+  const insets = useSafeAreaInsets();
   const { fetchClientInfo, clientData } = useClientByCompte();
   const [editVisible, setEditVisible] = useState(false);
   const [txVisible, setTxVisible] = useState(false);
@@ -821,12 +1101,12 @@ const ProfileScreen: React.FC = () => {
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
 
         {/* ── Hero ── */}
-        <View style={[styles.hero, { backgroundColor: colors.primary }]}>
+        <View style={[styles.hero, { backgroundColor: colors.primary, paddingTop: insets.top + 16 }]}>
 
           {/* Back button inside hero */}
           <TouchableOpacity
             onPress={() => (navigation as any).goBack()}
-            style={styles.heroBack}
+            style={[styles.heroBack, { top: insets.top + 8 }]}
           >
             <Ionicons name="arrow-back" size={20} color="#fff" />
           </TouchableOpacity>
@@ -878,118 +1158,181 @@ const ProfileScreen: React.FC = () => {
             </TouchableOpacity>
           </View>
 
-          <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
-            {[
-              { icon: "mail",     iconBg: colors.primary + "18", iconColor: colors.primary,  label: t("profile.labels.email"),   value: emailValue,   copyable: true  },
-              { icon: "call",     iconBg: colors.success + "18", iconColor: colors.success,  label: t("profile.labels.phone"),   value: phoneValue,   copyable: true  },
-              { icon: "location", iconBg: colors.warning + "18", iconColor: colors.warning,  label: t("profile.labels.address"), value: addressValue, copyable: false },
-            ].map((row, i, arr) => (
-              <View key={row.label}>
-                <View style={styles.infoRow}>
-                  <View style={[styles.infoIconBg, { backgroundColor: row.iconBg }]}>
-                    <Ionicons name={row.icon as any} size={18} color={row.iconColor} />
+          {/* Barre de complétion du profil */}
+          {(() => {
+            const fields = [emailValue, phoneValue, addressValue];
+            const filled = fields.filter(v => v && v !== "—").length;
+            const pct = Math.round((filled / fields.length) * 100);
+            const barColor = pct === 100 ? colors.success : pct >= 66 ? colors.primary : colors.warning;
+            return (
+              <View style={[styles.completionWrap, { backgroundColor: colors.card, borderColor: colors.border }]}>
+                <View style={styles.completionHeader}>
+                  <View style={styles.completionLeft}>
+                    <Ionicons
+                      name={pct === 100 ? "checkmark-circle" : "person-circle-outline"}
+                      size={18}
+                      color={barColor}
+                    />
+                    <Text style={[styles.completionTitle, { color: colors.text }]}>
+                      Profil {pct === 100 ? "complet" : `complété à ${pct}%`}
+                    </Text>
                   </View>
-                  <View style={styles.infoTexts}>
-                    <Text style={[styles.infoLabel, { color: colors.text + "50" }]}>{row.label}</Text>
-                    <Text style={[styles.infoValue, { color: colors.text }]} numberOfLines={1}>{row.value}</Text>
-                  </View>
-                  {row.value !== "—" && (
-                    <View style={[styles.infoStatusDot, { backgroundColor: colors.success }]} />
-                  )}
+                  <Text style={[styles.completionPct, { color: barColor }]}>{pct}%</Text>
                 </View>
-                {i < arr.length - 1 && <View style={[styles.divider, { backgroundColor: colors.border }]} />}
+                <View style={[styles.completionTrack, { backgroundColor: colors.border }]}>
+                  <View style={[styles.completionFill, { width: `${pct}%` as any, backgroundColor: barColor }]} />
+                </View>
+                {pct < 100 && (
+                  <Text style={[styles.completionHint, { color: colors.text + "55" }]}>
+                    Contactez le support pour compléter vos informations
+                  </Text>
+                )}
               </View>
+            );
+          })()}
+
+          {/* Cartes individuelles */}
+          <View style={styles.infoCardsGrid}>
+            {[
+              {
+                icon: "mail",
+                iconBg: colors.primary + "18",
+                iconColor: colors.primary,
+                accentColor: colors.primary,
+                label: t("profile.labels.email"),
+                value: emailValue,
+                copyable: true,
+                fullWidth: true,
+              },
+              {
+                icon: "call",
+                iconBg: colors.success + "18",
+                iconColor: colors.success,
+                accentColor: colors.success,
+                label: t("profile.labels.phone"),
+                value: phoneValue,
+                copyable: true,
+                fullWidth: true,
+              },
+              {
+                icon: "location",
+                iconBg: colors.warning + "18",
+                iconColor: colors.warning,
+                accentColor: colors.warning,
+                label: t("profile.labels.address"),
+                value: addressValue,
+                copyable: false,
+                fullWidth: true,
+              },
+            ].map((field) => (
+              <InfoCard
+                key={field.label}
+                field={field}
+                colors={colors}
+                isDark={isDark}
+                fullWidth={field.fullWidth}
+              />
             ))}
           </View>
         </View>
 
         {/* ── Documents ── */}
         <View style={styles.sectionBlock}>
-          <Text style={[styles.sectionLabel, { color: colors.text + "55" }]}>
-            {t("profile.section.documents").toUpperCase()}
-          </Text>
-          <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
+          <View style={styles.sectionLabelRow}>
+            <Text style={[styles.sectionLabel, { color: colors.text + "55" }]}>
+              {t("profile.section.documents").toUpperCase()}
+            </Text>
+            <View style={[styles.docCountBadge, { backgroundColor: colors.primary + "15" }]}>
+              <Text style={[styles.docCountText, { color: colors.primary }]}>3 services</Text>
+            </View>
+          </View>
+
+          <View style={styles.docCardsGrid}>
             {[
               {
-                icon: "document-text-outline",
-                iconBg: colors.primary + "18",
-                iconColor: colors.primary,
+                icon: "document-text",
+                gradient: colors.primary,
                 label: t("profile.docs.statements"),
                 sub: "Relevés mensuels",
+                tag: "PDF",
+                tagColor: colors.primary,
                 onPress: () => navigation.navigate("Statements" as never),
               },
               {
-                icon: "time-outline",
-                iconBg: colors.success + "18",
-                iconColor: colors.success,
+                icon: "time",
+                gradient: colors.success,
                 label: t("profile.docs.history"),
                 sub: "Toutes vos opérations",
+                tag: "Voir",
+                tagColor: colors.success,
                 onPress: () => setTxVisible(true),
               },
               {
-                icon: "download-outline",
-                iconBg: "#8B5CF618",
-                iconColor: "#8B5CF6",
+                icon: "cloud-download",
+                gradient: "#8B5CF6",
                 label: t("profile.docs.downloads"),
                 sub: "Fichiers téléchargés",
+                tag: "Bientôt",
+                tagColor: "#8B5CF6",
                 onPress: () => {},
               },
-            ].map((item, i, arr) => (
-              <View key={item.label}>
-                <TouchableOpacity style={styles.docItem} activeOpacity={0.75} onPress={item.onPress}>
-                  <View style={[styles.docIconWrap, { backgroundColor: item.iconBg }]}>
-                    <Ionicons name={item.icon as any} size={20} color={item.iconColor} />
-                  </View>
-                  <View style={styles.docTexts}>
-                    <Text style={[styles.docTitle, { color: colors.text }]} numberOfLines={1} ellipsizeMode="tail">{item.label}</Text>
-                    <Text style={[styles.docSub, { color: colors.text + "50" }]} numberOfLines={1}>{item.sub}</Text>
-                  </View>
-                  <View style={[styles.docChevronWrap, { backgroundColor: colors.border + "50" }]}>
-                    <Ionicons name="chevron-forward" size={14} color={colors.text + "60"} />
-                  </View>
-                </TouchableOpacity>
-                {i < arr.length - 1 && <View style={[styles.divider, { backgroundColor: colors.border }]} />}
-              </View>
+            ].map((item) => (
+              <DocCard key={item.label} item={item} colors={colors} isDark={isDark} />
             ))}
           </View>
         </View>
 
         {/* ── Apparence ── */}
         <View style={styles.sectionBlock}>
-          <Text style={[styles.sectionLabel, { color: colors.text + "55" }]}>APPARENCE</Text>
-          <View style={styles.themeRow}>
+          <View style={styles.sectionLabelRow}>
+            <Text style={[styles.sectionLabel, { color: colors.text + "55" }]}>APPARENCE</Text>
+            <View style={[styles.docCountBadge, { backgroundColor: colors.primary + "15" }]}>
+              <Text style={[styles.docCountText, { color: colors.primary }]}>
+                {preference === "light" ? "Clair" : preference === "dark" ? "Sombre" : "Système"}
+              </Text>
+            </View>
+          </View>
+
+          <View style={styles.themeCardsCol}>
             {([
-              { key: "light",  icon: "sunny",          label: "Clair",   accent: "#F59E0B" },
-              { key: "dark",   icon: "moon",            label: "Sombre",  accent: "#6366F1" },
-              { key: "system", icon: "phone-portrait",  label: "Système", accent: colors.primary },
+              {
+                key: "light",
+                icon: "sunny",
+                label: "Mode Clair",
+                desc: "Interface lumineuse, idéale en journée",
+                accent: "#F59E0B",
+                previewBg: "#FFF9F0",
+                previewBar: "#F59E0B",
+              },
+              {
+                key: "dark",
+                icon: "moon",
+                label: "Mode Sombre",
+                desc: "Repose les yeux, parfait la nuit",
+                accent: "#6366F1",
+                previewBg: "#1E1E2E",
+                previewBar: "#6366F1",
+              },
+              {
+                key: "system",
+                icon: "phone-portrait",
+                label: "Système",
+                desc: "Suit automatiquement votre téléphone",
+                accent: colors.primary,
+                previewBg: isDark ? "#1E1E2E" : "#FFF9F0",
+                previewBar: colors.primary,
+              },
             ] as const).map((opt) => {
               const active = preference === opt.key;
               return (
-                <TouchableOpacity
+                <ThemeOptionCard
                   key={opt.key}
-                  style={[
-                    styles.themeCard,
-                    {
-                      backgroundColor: active ? opt.accent + "18" : colors.card,
-                      borderColor: active ? opt.accent : colors.border,
-                      borderWidth: active ? 2 : 1,
-                    },
-                  ]}
-                  activeOpacity={0.75}
+                  opt={opt}
+                  active={active}
+                  colors={colors}
+                  isDark={isDark}
                   onPress={() => setPreference(opt.key)}
-                >
-                  <View style={[styles.themeIconWrap, { backgroundColor: active ? opt.accent + "25" : colors.border + "50" }]}>
-                    <Ionicons name={opt.icon as any} size={22} color={active ? opt.accent : colors.text + "50"} />
-                  </View>
-                  <Text style={[styles.themeLabel, { color: active ? opt.accent : colors.text + "70", fontWeight: active ? "700" : "500" }]}>
-                    {opt.label}
-                  </Text>
-                  {active && (
-                    <View style={[styles.themeCheck, { backgroundColor: opt.accent }]}>
-                      <Ionicons name="checkmark" size={10} color="#fff" />
-                    </View>
-                  )}
-                </TouchableOpacity>
+                />
               );
             })}
           </View>
@@ -1087,138 +1430,178 @@ const ProfileScreen: React.FC = () => {
       <Modal
         visible={txVisible}
         transparent
-        animationType="fade"
+        animationType="slide"
         onRequestClose={() => setTxVisible(false)}
       >
-        <View
-          style={[
-            styles.modalOverlay,
-            {
-              backgroundColor: isDark ? "rgba(0,0,0,0.6)" : "rgba(0,0,0,0.35)",
-            },
-          ]}
-        >
-          <View style={[styles.modalBox, { backgroundColor: colors.card }]}>
-            <TouchableOpacity
-              style={[
-                styles.modalClose,
-                { backgroundColor: isDark ? "#333" : "#F7F7F7" },
-              ]}
-              onPress={() => setTxVisible(false)}
-            >
-              <Ionicons name="close" size={24} color={colors.text} />
-            </TouchableOpacity>
-            <View
-              style={[
-                styles.modalHandle,
-                { backgroundColor: isDark ? "#444" : "#EAEAEA" },
-              ]}
-            />
-            <Text style={[styles.modalTitle, { color: colors.text }]}>
-              {t("transactions.history.title")}
-            </Text>
+        <View style={styles.txModalOverlay}>
+          <View style={[styles.txModalSheet, { backgroundColor: colors.background }]}>
 
-            {/* Boutons d'action */}
-            <View style={styles.txActionsRow}>
+            {/* Handle */}
+            <View style={[styles.txModalHandle, { backgroundColor: colors.border }]} />
+
+            {/* Header */}
+            <View style={[styles.txModalHeader, { borderBottomColor: colors.border }]}>
+              <View>
+                <Text style={[styles.txModalTitle, { color: colors.text }]}>
+                  {t("transactions.history.title")}
+                </Text>
+                {txData.length > 0 && (
+                  <Text style={[styles.txModalSubtitle, { color: colors.text + "55" }]}>
+                    {txData.length} opération{txData.length > 1 ? "s" : ""}
+                  </Text>
+                )}
+              </View>
               <TouchableOpacity
-                style={[
-                  styles.actionBtnOutline,
-                  { borderColor: colors.border, backgroundColor: colors.card },
-                ]}
+                onPress={() => setTxVisible(false)}
+                style={[styles.txModalCloseBtn, { backgroundColor: isDark ? "#333" : "#F0F0F0" }]}
+              >
+                <Ionicons name="close" size={20} color={colors.text} />
+              </TouchableOpacity>
+            </View>
+
+            {/* Résumé entrées / sorties */}
+            {txData.length > 0 && (() => {
+              const totalIn  = txData.filter(x => x.type === "entree").reduce((acc, x) => {
+                const n = parseFloat(x.amount.replace(/[^0-9,]/g, "").replace(",", ".")) || 0;
+                return acc + n;
+              }, 0);
+              const totalOut = txData.filter(x => x.type === "sortie").reduce((acc, x) => {
+                const n = parseFloat(x.amount.replace(/[^0-9,]/g, "").replace(",", ".")) || 0;
+                return acc + n;
+              }, 0);
+              return (
+                <View style={styles.txSummaryRow}>
+                  <View style={[styles.txSummaryCard, { backgroundColor: colors.success + "12", borderColor: colors.success + "30" }]}>
+                    <View style={[styles.txSummaryIcon, { backgroundColor: colors.success + "20" }]}>
+                      <Ionicons name="arrow-down" size={16} color={colors.success} />
+                    </View>
+                    <View>
+                      <Text style={[styles.txSummaryLabel, { color: colors.text + "55" }]}>Entrées</Text>
+                      <Text style={[styles.txSummaryAmount, { color: colors.success }]}>
+                        +{totalIn.toLocaleString("fr-FR")} XOF
+                      </Text>
+                    </View>
+                  </View>
+                  <View style={[styles.txSummaryCard, { backgroundColor: colors.error + "12", borderColor: colors.error + "30" }]}>
+                    <View style={[styles.txSummaryIcon, { backgroundColor: colors.error + "20" }]}>
+                      <Ionicons name="arrow-up" size={16} color={colors.error} />
+                    </View>
+                    <View>
+                      <Text style={[styles.txSummaryLabel, { color: colors.text + "55" }]}>Sorties</Text>
+                      <Text style={[styles.txSummaryAmount, { color: colors.error }]}>
+                        -{totalOut.toLocaleString("fr-FR")} XOF
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+              );
+            })()}
+
+            {/* États chargement / erreur / vide */}
+            {txLoading && (
+              <View style={styles.txStateWrap}>
+                <Ionicons name="hourglass-outline" size={40} color={colors.primary + "60"} />
+                <Text style={[styles.txStateText, { color: colors.text + "55" }]}>{t("analytics.loading")}</Text>
+              </View>
+            )}
+            {!txLoading && !!txError && (
+              <View style={styles.txStateWrap}>
+                <Ionicons name="alert-circle-outline" size={40} color={colors.error + "80"} />
+                <Text style={[styles.txStateText, { color: colors.error }]}>{txError}</Text>
+              </View>
+            )}
+            {!txLoading && !txError && txData.length === 0 && (
+              <View style={styles.txStateWrap}>
+                <Ionicons name="receipt-outline" size={48} color={colors.text + "25"} />
+                <Text style={[styles.txStateText, { color: colors.text + "45" }]}>Aucune transaction trouvée</Text>
+                <Text style={[styles.txStateHint, { color: colors.text + "30" }]}>Modifiez la plage de dates</Text>
+              </View>
+            )}
+
+            {/* Liste */}
+            {!txLoading && !txError && txData.length > 0 && (
+              <ScrollView
+                style={styles.txScrollList}
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={{ paddingBottom: 16 }}
+              >
+                {txData.map((item, index) => {
+                  const isEntree = item.type === "entree";
+                  const showDateSep = index === 0 || txData[index - 1].date !== item.date;
+                  return (
+                    <View key={item.id}>
+                      {showDateSep && item.date ? (
+                        <View style={styles.txDateSep}>
+                          <View style={[styles.txDateSepLine, { backgroundColor: colors.border }]} />
+                          <Text style={[styles.txDateSepText, { color: colors.text + "45", backgroundColor: colors.background }]}>
+                            {item.date}
+                          </Text>
+                          <View style={[styles.txDateSepLine, { backgroundColor: colors.border }]} />
+                        </View>
+                      ) : null}
+                      <View style={[styles.txItemNew, { backgroundColor: colors.card, borderColor: colors.border }]}>
+                        <View style={[
+                          styles.txItemIcon,
+                          { backgroundColor: isEntree ? (isDark ? "#1a3d2e" : "#E9FFF3") : (isDark ? "#4a1a1a" : "#FFECEC") }
+                        ]}>
+                          <Ionicons
+                            name={isEntree ? "arrow-down" : "arrow-up"}
+                            size={18}
+                            color={isEntree ? colors.success : colors.error}
+                          />
+                        </View>
+                        <View style={styles.txItemTexts}>
+                          <Text style={[styles.txItemTitle, { color: colors.text }]} numberOfLines={1}>
+                            {item.title}
+                          </Text>
+                          <Text style={[styles.txItemDate, { color: colors.text + "50" }]}>
+                            {item.date}
+                          </Text>
+                        </View>
+                        <View style={styles.txItemRight}>
+                          <Text style={[styles.txItemAmount, { color: isEntree ? colors.success : colors.error }]}>
+                            {item.amount}
+                          </Text>
+                          <View style={[
+                            styles.txItemTypeBadge,
+                            { backgroundColor: isEntree ? colors.success + "15" : colors.error + "15" }
+                          ]}>
+                            <Text style={[styles.txItemTypeText, { color: isEntree ? colors.success : colors.error }]}>
+                              {isEntree ? "Crédit" : "Débit"}
+                            </Text>
+                          </View>
+                        </View>
+                      </View>
+                    </View>
+                  );
+                })}
+              </ScrollView>
+            )}
+
+            {/* Barre d'actions fixe en bas */}
+            <View style={[styles.txBottomBar, { borderTopColor: colors.border, backgroundColor: colors.background }]}>
+              <TouchableOpacity
+                style={[styles.txBottomBtn, { backgroundColor: isDark ? "#2a2a2a" : "#F5F5F5", borderColor: colors.border }]}
                 activeOpacity={0.8}
                 onPress={() => setDateInfoVisible(true)}
               >
-                <Ionicons name="calendar" size={18} color={colors.primary} />
-                <Text
-                  style={[styles.actionTextPrimary, { color: colors.primary }]}
-                >
+                <Ionicons name="calendar-outline" size={18} color={colors.primary} />
+                <Text style={[styles.txBottomBtnText, { color: colors.primary }]}>
                   {t("transactions.filterByDate")}
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[
-                  styles.txActionBtn,
-                  { backgroundColor: colors.primary },
-                ]}
+                style={[styles.txBottomBtn, { backgroundColor: colors.primary, borderColor: colors.primary }]}
                 activeOpacity={0.8}
                 onPress={handleExportTransactionsPdf}
               >
-                <Ionicons name="download" size={18} color="#fff" />
-                <Text style={styles.actionTextLight}>
+                <Ionicons name="download-outline" size={18} color="#fff" />
+                <Text style={[styles.txBottomBtnText, { color: "#fff" }]}>
                   {t("transactions.exportPdf")}
                 </Text>
               </TouchableOpacity>
             </View>
 
-            {txLoading && (
-              <Text style={[styles.infoLabel, { color: colors.text }]}>
-                {t("analytics.loading")}
-              </Text>
-            )}
-            {!!txError && (
-              <Text style={[styles.infoLabel, { color: colors.error }]}>
-                {txError}
-              </Text>
-            )}
-
-            {/* Liste des transactions */}
-            <ScrollView style={{ maxHeight: 300 }}>
-              <View style={styles.txList}>
-                {txData.map((t) => (
-                  <View
-                    key={t.id}
-                    style={[styles.txItem, { backgroundColor: colors.card }]}
-                  >
-                    <View style={styles.txLeft}>
-                      <View
-                        style={[
-                          styles.txIconBg,
-                          {
-                            backgroundColor:
-                              t.type === "entree"
-                                ? isDark
-                                  ? "#1a3d2e"
-                                  : "#E9FFF3"
-                                : isDark
-                                  ? "#4a1a1a"
-                                  : "#FFECEC",
-                          },
-                        ]}
-                      >
-                        <Ionicons
-                          name={t.type === "entree" ? "arrow-down" : "arrow-up"}
-                          size={18}
-                          color={
-                            t.type === "entree" ? colors.success : colors.error
-                          }
-                        />
-                      </View>
-                      <View>
-                        <Text style={[styles.txTitle, { color: colors.text }]}>
-                          {t.title}
-                        </Text>
-                        <Text
-                          style={[styles.txDate, { color: colors.text + "60" }]}
-                        >
-                          {t.date}
-                        </Text>
-                      </View>
-                    </View>
-                    <Text
-                      style={[
-                        styles.txAmount,
-                        {
-                          color:
-                            t.type === "entree" ? colors.success : colors.error,
-                        },
-                      ]}
-                    >
-                      {t.amount}
-                    </Text>
-                  </View>
-                ))}
-              </View>
-            </ScrollView>
           </View>
         </View>
       </Modal>
@@ -1401,7 +1784,7 @@ const styles = StyleSheet.create({
 
   // ── Hero ──
   hero: {
-    paddingTop: 56,
+    paddingTop: 16,
     paddingBottom: 28,
     paddingHorizontal: 24,
     alignItems: "center",
@@ -1493,7 +1876,7 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
 
-  // ── Info rows ──
+  // ── Info rows (legacy) ──
   infoRow: { flexDirection: "row", alignItems: "center", paddingHorizontal: 16, paddingVertical: 14 },
   infoIconBg: { width: 36, height: 36, borderRadius: 10, alignItems: "center", justifyContent: "center" },
   infoTexts: { marginLeft: 12, flex: 1 },
@@ -1501,6 +1884,63 @@ const styles = StyleSheet.create({
   infoValue: { fontSize: 14, fontWeight: "600" },
   infoStatusDot: { width: 7, height: 7, borderRadius: 4, marginLeft: 8 },
   divider: { height: 1, marginHorizontal: 16 },
+
+  // ── Completion bar ──
+  completionWrap: {
+    borderRadius: 16,
+    borderWidth: 1,
+    padding: 14,
+    marginBottom: 12,
+    shadowColor: "#000",
+    shadowOpacity: 0.04,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  completionHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 10 },
+  completionLeft: { flexDirection: "row", alignItems: "center", gap: 7 },
+  completionTitle: { fontSize: 13, fontWeight: "600" },
+  completionPct: { fontSize: 15, fontWeight: "800" },
+  completionTrack: { height: 6, borderRadius: 3, overflow: "hidden", marginBottom: 8 },
+  completionFill: { height: 6, borderRadius: 3 },
+  completionHint: { fontSize: 11, textAlign: "center" },
+
+  // ── Info cards grid ──
+  infoCardsGrid: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
+  infoCardItem: {
+    width: "47.5%",
+    borderRadius: 18,
+    borderWidth: 1,
+    overflow: "hidden",
+    shadowColor: "#000",
+    shadowOpacity: 0.05,
+    shadowOffset: { width: 0, height: 3 },
+    shadowRadius: 10,
+    elevation: 2,
+  },
+  infoCardFull: { width: "100%" },
+  infoCardAccentBar: { height: 3, width: "100%" },
+  infoCardInner: { flexDirection: "row", alignItems: "center", padding: 14, gap: 10 },
+  infoCardIconWrap: { width: 40, height: 40, borderRadius: 12, alignItems: "center", justifyContent: "center", flexShrink: 0 },
+  infoCardTexts: { flex: 1, minWidth: 0 },
+  infoCardLabel: { fontSize: 10, fontWeight: "600", letterSpacing: 0.5, marginBottom: 3, textTransform: "uppercase" },
+  infoCardValue: { fontSize: 13, fontWeight: "700" },
+  infoCardActions: { alignItems: "flex-end", gap: 6, flexShrink: 0 },
+  infoCardBadge: { flexDirection: "row", alignItems: "center", gap: 3, paddingHorizontal: 7, paddingVertical: 3, borderRadius: 20 },
+  infoCardBadgeText: { fontSize: 10, fontWeight: "600" },
+  infoCardCopyBtn: { width: 28, height: 28, borderRadius: 8, alignItems: "center", justifyContent: "center" },
+  infoCardToast: {
+    position: "absolute",
+    bottom: 8,
+    right: 10,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 20,
+  },
+  infoCardToastText: { fontSize: 11, fontWeight: "700", color: "#fff" },
 
   // ── Action row ──
   actionRow: {
@@ -1519,7 +1959,7 @@ const styles = StyleSheet.create({
   },
   actionRowText: { flex: 1, fontSize: 15, fontWeight: "600" },
 
-  // ── Doc items ──
+  // ── Doc items (legacy) ──
   docItem: { flexDirection: "row", alignItems: "center", paddingHorizontal: 16, paddingVertical: 14, gap: 12 },
   docIconWrap: { width: 42, height: 42, borderRadius: 13, alignItems: "center", justifyContent: "center", flexShrink: 0 },
   docTexts: { flex: 1, flexShrink: 1, minWidth: 0 },
@@ -1527,27 +1967,90 @@ const styles = StyleSheet.create({
   docSub: { fontSize: 11 },
   docChevronWrap: { width: 26, height: 26, borderRadius: 13, alignItems: "center", justifyContent: "center", flexShrink: 0 },
 
-  // ── Theme cards ──
-  themeRow: { flexDirection: "row", gap: 10 },
-  themeCard: {
-    flex: 1,
-    alignItems: "center",
-    paddingVertical: 16,
-    paddingHorizontal: 8,
-    borderRadius: 18,
-    gap: 8,
+  // ── Doc cards grid ──
+  docCountBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20 },
+  docCountText: { fontSize: 11, fontWeight: "700" },
+  docCardsGrid: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
+  docCardWrap: { width: "47.5%" },
+  docCard2: {
+    borderRadius: 20,
+    borderWidth: 1.5,
+    padding: 16,
+    gap: 10,
+    overflow: "hidden",
     shadowColor: "#000",
-    shadowOpacity: 0.04,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 8,
-    elevation: 2,
-    position: "relative",
+    shadowOpacity: 0.06,
+    shadowOffset: { width: 0, height: 4 },
+    shadowRadius: 12,
+    elevation: 3,
   },
+  docCardBg: {
+    position: "absolute",
+    top: -20,
+    right: -20,
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+  },
+  docCardIconCircle: {
+    width: 56,
+    height: 56,
+    borderRadius: 18,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  docCardTitle: { fontSize: 14, fontWeight: "700", lineHeight: 19 },
+  docCardSub: { fontSize: 11 },
+  docCardTag: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    alignSelf: "flex-start",
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 20,
+    marginTop: 2,
+  },
+  docCardTagText: { fontSize: 11, fontWeight: "700" },
+
+  // ── Theme option cards ──
+  themeCardsCol: { gap: 10 },
+  themeOptionCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 14,
+    borderRadius: 20,
+    gap: 14,
+    shadowColor: "#000",
+    shadowOpacity: 0.05,
+    shadowOffset: { width: 0, height: 3 },
+    shadowRadius: 10,
+    elevation: 2,
+  },
+  themeOptionIconWrap: { width: 48, height: 48, borderRadius: 15, alignItems: "center", justifyContent: "center", flexShrink: 0 },
+  themeOptionTexts: { flex: 1 },
+  themeOptionLabel: { fontSize: 15, fontWeight: "700", marginBottom: 3 },
+  themeOptionDesc: { fontSize: 12, lineHeight: 16 },
+  themeOptionRight: { alignItems: "center", gap: 8, flexShrink: 0 },
+  themePreview: {
+    width: 52,
+    height: 36,
+    borderRadius: 8,
+    overflow: "hidden",
+    borderWidth: 1,
+  },
+  themePreviewBar: { height: 10, width: "100%" },
+  themePreviewLines: { padding: 5, gap: 4 },
+  themePreviewLine: { height: 4, borderRadius: 2 },
+  themeOptionCheck: { width: 22, height: 22, borderRadius: 11, alignItems: "center", justifyContent: "center" },
+  themeOptionCheckEmpty: { width: 22, height: 22, borderRadius: 11, borderWidth: 2 },
+
+  // ── Theme cards (legacy) ──
+  themeRow: { flexDirection: "row", gap: 10 },
+  themeCard: { flex: 1, alignItems: "center", paddingVertical: 16, paddingHorizontal: 8, borderRadius: 18, gap: 8, position: "relative" },
   themeIconWrap: { width: 48, height: 48, borderRadius: 24, alignItems: "center", justifyContent: "center" },
   themeLabel: { fontSize: 12, textAlign: "center" },
   themeCheck: { position: "absolute", top: 8, right: 8, width: 18, height: 18, borderRadius: 9, alignItems: "center", justifyContent: "center" },
-
-  // ── Theme check (legacy) ──
   activeCheck: { width: 22, height: 22, borderRadius: 11, alignItems: "center", justifyContent: "center" },
 
   // ── Logout ──
@@ -1612,6 +2115,87 @@ const styles = StyleSheet.create({
   txTitle: { fontSize: 15, marginBottom: 2, flexShrink: 1, maxWidth: "72%" },
   txDate: { fontSize: 12 },
   txAmount: { fontSize: 15, fontWeight: "600", marginLeft: 8, flexShrink: 0, textAlign: "right" },
+
+  // ── Tx modal bottom sheet ──
+  txModalOverlay: { flex: 1, justifyContent: "flex-end", backgroundColor: "rgba(0,0,0,0.45)" },
+  txModalSheet: {
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    maxHeight: "92%",
+    paddingTop: 12,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: -6 },
+    shadowOpacity: 0.12,
+    shadowRadius: 20,
+    elevation: 20,
+  },
+  txModalHandle: { width: 44, height: 5, borderRadius: 3, alignSelf: "center", marginBottom: 12 },
+  txModalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 20,
+    paddingBottom: 14,
+    borderBottomWidth: 1,
+    marginBottom: 12,
+  },
+  txModalTitle: { fontSize: 20, fontWeight: "800" },
+  txModalSubtitle: { fontSize: 12, marginTop: 2 },
+  txModalCloseBtn: { width: 36, height: 36, borderRadius: 18, alignItems: "center", justifyContent: "center" },
+  txSummaryRow: { flexDirection: "row", gap: 10, paddingHorizontal: 16, marginBottom: 14 },
+  txSummaryCard: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    padding: 12,
+    borderRadius: 16,
+    borderWidth: 1,
+  },
+  txSummaryIcon: { width: 34, height: 34, borderRadius: 10, alignItems: "center", justifyContent: "center" },
+  txSummaryLabel: { fontSize: 11, marginBottom: 2 },
+  txSummaryAmount: { fontSize: 13, fontWeight: "800" },
+  txStateWrap: { alignItems: "center", justifyContent: "center", paddingVertical: 48, gap: 10 },
+  txStateText: { fontSize: 15, fontWeight: "600" },
+  txStateHint: { fontSize: 12 },
+  txScrollList: { paddingHorizontal: 16 },
+  txDateSep: { flexDirection: "row", alignItems: "center", gap: 8, marginVertical: 10 },
+  txDateSepLine: { flex: 1, height: 1 },
+  txDateSepText: { fontSize: 11, fontWeight: "600", paddingHorizontal: 6 },
+  txItemNew: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 14,
+    borderRadius: 16,
+    borderWidth: 1,
+    marginBottom: 8,
+    gap: 12,
+  },
+  txItemIcon: { width: 40, height: 40, borderRadius: 12, alignItems: "center", justifyContent: "center", flexShrink: 0 },
+  txItemTexts: { flex: 1, minWidth: 0 },
+  txItemTitle: { fontSize: 14, fontWeight: "600", marginBottom: 3 },
+  txItemDate: { fontSize: 11 },
+  txItemRight: { alignItems: "flex-end", gap: 4, flexShrink: 0 },
+  txItemAmount: { fontSize: 14, fontWeight: "800" },
+  txItemTypeBadge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 20 },
+  txItemTypeText: { fontSize: 10, fontWeight: "700" },
+  txBottomBar: {
+    flexDirection: "row",
+    gap: 10,
+    padding: 16,
+    borderTopWidth: 1,
+  },
+  txBottomBtn: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    paddingVertical: 14,
+    borderRadius: 16,
+    borderWidth: 1,
+  },
+  txBottomBtnText: { fontSize: 14, fontWeight: "700" },
 
   // kept for compat
   docItemLast: {},
