@@ -16,7 +16,12 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.cedaici.mobile",
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "CFBundleURLTypes": [
+          {
+            "CFBundleURLSchemes": ["cedaici"]
+          }
+        ]
       }
     },
     "android": {
@@ -30,7 +35,33 @@
       "intentFilters": [
         {
           "action": "VIEW",
-          "data": [{ "scheme": "cedaici" }],
+          "autoVerify": true,
+          "data": [
+            {
+              "scheme": "https",
+              "host": "zenithmobile-serveurreact-cedaicitest.app.mgdigitalplus.com",
+              "pathPrefix": "/api/auth/verify"
+            },
+            {
+              "scheme": "https",
+              "host": "zenithmobile-serveurreact-cedaicitest.app.mgdigitalplus.com",
+              "pathPrefix": "/api/auth/ver"
+            },
+            {
+              "scheme": "https",
+              "host": "zenithmobile-serveurreact-cedaicitest.app.mgdigitalplus.com",
+              "pathPrefix": "/auth/verify"
+            }
+          ],
+          "category": ["BROWSABLE", "DEFAULT"]
+        },
+        {
+          "action": "VIEW",
+          "data": [
+            { "scheme": "cedaici", "host": "api", "pathPrefix": "/auth/verify" },
+            { "scheme": "cedaici", "host": "verify" },
+            { "scheme": "cedaici", "host": "auth" }
+          ],
           "category": ["BROWSABLE", "DEFAULT"]
         }
       ]
