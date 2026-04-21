@@ -8,7 +8,6 @@ import {
   FlatList,
   Modal,
   Dimensions,
-  SafeAreaView,
   Alert,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
@@ -39,15 +38,10 @@ export const DashboardScreen: React.FC = () => {
   const { isAuthenticated, user } = useAuth();
 
   const {
-    data: solde,
-    isLoading: loadingSolde,
-    error: soldeError,
     fetchData: fetchSolde,
   } = useSoldeGlobale();
   const {
     data: compteStats,
-    isLoading: loadingCompteStats,
-    error: compteStatsError,
     fetchData: fetchCompteStats,
   } = useCompteStatistiques();
 
@@ -72,7 +66,6 @@ export const DashboardScreen: React.FC = () => {
   const isGuestMode = isAuthenticated && user?.username === "invite";
   const [loginDisplay, setLoginDisplay] = useState("");
   const [clientIdDisplay, setClientIdDisplay] = useState("");
-  const [accountNumberDisplay, setAccountNumberDisplay] = useState("");
   const [phoneDisplay, setPhoneDisplay] = useState("");
   React.useEffect(() => {
     const run = async () => {
@@ -80,8 +73,6 @@ export const DashboardScreen: React.FC = () => {
       setLoginDisplay(lg);
       const cid = (await secureGetItem("client_id")) || "";
       setClientIdDisplay(cid);
-      const acc = (await secureGetItem("user_account_number")) || "";
-      setAccountNumberDisplay(acc);
       const ph = (await secureGetItem("user_phone")) || "";
       setPhoneDisplay(ph);
     };
@@ -179,7 +170,7 @@ export const DashboardScreen: React.FC = () => {
   );
 
   // Solde global : priorité à SOLDE_GLOBAL du serveur (2212500 dans les logs)
-  const soldeFromRecent = recentStats?.solde ?? recentStats?.SOLDE ?? null;
+  const soldeFromRecent = recentStats?.solde ?? (recentStats as any)?.SOLDE ?? null;
 
   const realTotalBalance = (compteStats?.COMPTES || []).reduce(
     (sum, account) => sum + (Number(account.SOLDE) || 0),
@@ -193,7 +184,7 @@ export const DashboardScreen: React.FC = () => {
     0;
 
   // Fonction pour gérer les restrictions en mode invité
-  const handleGuestRestriction = (featureName: string) => {
+  const handleGuestRestriction = (_featureName: string) => {
     console.log("handleGuestRestriction - isGuestMode:", isGuestMode);
     if (isGuestMode) {
       Alert.alert(
@@ -266,65 +257,81 @@ export const DashboardScreen: React.FC = () => {
       title: "Crédit Express",
       subtitle: "Prêt rapide",
       icon: "rocket-outline",
-      iconColor: colors.primary,
-      backgroundColor: colors.primary + "20",
+      iconColor: "#fff",
+      gradientStart: colors.primary,
+      gradientEnd: colors.primary + "CC",
+      available: true,
+      action: () => navigation.navigate("CreditRequest" as never),
     },
     {
       id: 2,
       title: "Paiement factures",
       subtitle: "Eau, électricité",
       icon: "receipt-outline",
-      iconColor: colors.success,
-      backgroundColor: colors.success + "20",
+      iconColor: "#fff",
+      gradientStart: colors.success,
+      gradientEnd: colors.success + "CC",
+      available: false,
     },
     {
       id: 3,
       title: "Recharge",
       subtitle: "Tous opérateurs",
       icon: "phone-portrait-outline",
-      iconColor: colors.warning,
-      backgroundColor: colors.warning + "20",
+      iconColor: "#fff",
+      gradientStart: colors.warning,
+      gradientEnd: colors.warning + "CC",
+      available: false,
     },
     {
       id: 4,
       title: "Assurance",
       subtitle: "Protection complète",
       icon: "shield-checkmark-outline",
-      iconColor: colors.primary,
-      backgroundColor: colors.primary + "20",
+      iconColor: "#fff",
+      gradientStart: "#8B5CF6",
+      gradientEnd: "#8B5CF6CC",
+      available: false,
     },
-
     {
       id: 5,
       title: "Change",
       subtitle: "Taux avantageux",
       icon: "swap-horizontal",
-      iconColor: colors.success,
-      backgroundColor: colors.success + "20",
+      iconColor: "#fff",
+      gradientStart: "#06B6D4",
+      gradientEnd: "#06B6D4CC",
+      available: false,
     },
     {
       id: 6,
-      title: "Epargne+",
+      title: "Épargne+",
       subtitle: "Taux attractif",
       icon: "trending-up-outline",
-      iconColor: colors.primary,
-      backgroundColor: colors.primary + "20",
+      iconColor: "#fff",
+      gradientStart: colors.success,
+      gradientEnd: colors.success + "CC",
+      available: false,
     },
     {
       id: 7,
       title: "Transfert Int.",
       subtitle: "Monde entier",
       icon: "earth-outline",
-      iconColor: colors.primary,
-      backgroundColor: colors.primary + "20",
+      iconColor: "#fff",
+      gradientStart: "#F59E0B",
+      gradientEnd: "#F59E0BCC",
+      available: false,
     },
     {
       id: 8,
       title: "Tontine",
-      subtitle: "Epargne groupe",
+      subtitle: "Épargne groupe",
       icon: "people-outline",
-      iconColor: colors.primary,
-      backgroundColor: colors.primary + "20",
+      iconColor: "#fff",
+      gradientStart: "#EC4899",
+      gradientEnd: "#EC4899CC",
+      available: false,
     },
   ];
 
@@ -363,41 +370,40 @@ export const DashboardScreen: React.FC = () => {
         styles.serviceCard,
         {
           backgroundColor: colors.card,
-          borderColor: colors.border,
+          borderColor: item.available ? item.gradientStart + "40" : colors.border,
           marginRight: index === services.length - 1 ? 0 : 12,
         },
       ]}
-      onPress={item.action}
+      onPress={() => {
+        if (!item.available) { setShowFeatureUnavailableModal(true); return; }
+        item.action?.();
+      }}
+      activeOpacity={0.8}
     >
-      <View
-        style={[
-          styles.serviceIcon,
-          {
-            backgroundColor: item.backgroundColor,
-            borderColor: colors.border,
-            borderWidth: 1,
-          },
-        ]}
-      >
-        <Ionicons name={item.icon as any} size={24} color={item.iconColor} />
+      {/* Colored icon area */}
+      <View style={[styles.serviceIconWrap, { backgroundColor: item.gradientStart }]}>
+        <Ionicons name={item.icon as any} size={22} color="#fff" />
       </View>
-      <Text
-        style={[styles.serviceTitle, { color: colors.text }]}
-        numberOfLines={1}
-        ellipsizeMode="tail"
-      >
+
+      {/* Text */}
+      <Text style={[styles.serviceTitle, { color: colors.text }]} numberOfLines={1} ellipsizeMode="tail">
         {tText(item.title)}
       </Text>
-      <Text
-        style={[styles.serviceSubtitle, { color: colors.text + "70" }]}
-        numberOfLines={1}
-        ellipsizeMode="tail"
-      >
+      <Text style={[styles.serviceSubtitle, { color: colors.text + "80" }]} numberOfLines={1} ellipsizeMode="tail">
         {tText(item.subtitle)}
       </Text>
-      <View style={{ marginTop: "auto" }}>
-        <Ionicons name="chevron-forward" size={16} color={colors.text} />
-      </View>
+
+      {/* Badge */}
+      {item.available ? (
+        <View style={[styles.serviceAvailBadge, { backgroundColor: colors.success + "20" }]}>
+          <View style={[styles.serviceAvailDot, { backgroundColor: colors.success }]} />
+          <Text style={[styles.serviceAvailText, { color: colors.success }]}>Actif</Text>
+        </View>
+      ) : (
+        <View style={[styles.serviceAvailBadge, { backgroundColor: colors.primary + "15" }]}>
+          <Text style={[styles.serviceAvailText, { color: colors.primary }]}>Bientôt</Text>
+        </View>
+      )}
     </TouchableOpacity>
   );
 
@@ -1141,7 +1147,7 @@ export const DashboardScreen: React.FC = () => {
               ]}
             >
               <Ionicons
-                name="rocket-outline"
+                name="grid-outline"
                 size={18}
                 color={colors.primary}
               />
@@ -1158,160 +1164,142 @@ export const DashboardScreen: React.FC = () => {
               styles.servicesContainer,
               { paddingBottom: 10 },
             ]}
-            snapToAlignment="center"
             decelerationRate="fast"
           />
         </View>
 
-        {/* NOUVELLE SECTION : Activité récente - MASQUÉE SI NON CONNECTÉ OU INVITÉ */}
+        {/* ACTIVITÉ RÉCENTE */}
         {isAuthenticated && !isGuestMode && (
           <View style={[styles.section, { marginTop: 18, marginBottom: 15 }]}>
+            {/* Header */}
             <View style={styles.sectionHeader}>
               <Text style={[styles.sectionTitle, { color: colors.text }]}>
                 {t("dashboard.recent.title")}
               </Text>
               <TouchableOpacity
-                onPress={() => setShowAllTransactions(!showAllTransactions)}
+                onPress={() => navigation.navigate("Transactions" as never)}
+                style={[styles.recentSeeAllBtn, { backgroundColor: colors.primary + "15" }]}
               >
                 <Text style={[styles.seeAllText, { color: colors.primary }]}>
-                  {showAllTransactions
-                    ? t("dashboard.recent.seeLess")
-                    : t("dashboard.recent.seeAll")}
+                  {t("dashboard.recent.seeAll")}
                 </Text>
+                <Ionicons name="arrow-forward" size={12} color={colors.primary} />
               </TouchableOpacity>
             </View>
 
-            <View
-              style={[
-                styles.transactionsList,
-                {
-                  backgroundColor: colors.card,
-                  borderColor: colors.border,
-                  minHeight: 75,
-                },
-              ]}
-            >
-              {loadingRecent && (
-                <View style={{ padding: 16 }}>
-                  <Text style={{ color: colors.text }}>
-                    {t("analytics.loading")}
-                  </Text>
-                </View>
-              )}
-              {!!recentError && (
-                <EmptyState
-                  type="error"
-                  message={String(recentError)}
-                  onRetry={fetchRecent}
-                  compact
-                  style={{ paddingVertical: 20 }}
-                />
-              )}
-              {!loadingRecent && !recentError && (
-                <View>
-                  {(showAllTransactions
-                    ? recentOps // Si showAllTransactions est vrai, on affiche TOUT
-                    : recentOps.slice(0, 3)
-                  ) // Sinon on limite à 3
-                    .map((op, i) => {
-                      const type = String(op.TypeOperation || "").toUpperCase();
-                      const label = String(op.MC_LIBELLEOPERATION || "");
+            {/* Loading skeleton */}
+            {loadingRecent && (
+              <View style={[styles.recentCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+                {[1, 2, 3].map(i => (
+                  <View key={i} style={[styles.recentSkeletonRow, { borderBottomColor: colors.border, borderBottomWidth: i < 3 ? 1 : 0 }]}>
+                    <View style={[styles.recentSkeletonIcon, { backgroundColor: colors.border }]} />
+                    <View style={{ flex: 1, gap: 6 }}>
+                      <View style={[styles.recentSkeletonLine, { width: "60%", backgroundColor: colors.border }]} />
+                      <View style={[styles.recentSkeletonLine, { width: "35%", backgroundColor: colors.border }]} />
+                    </View>
+                    <View style={{ alignItems: "flex-end", gap: 6 }}>
+                      <View style={[styles.recentSkeletonLine, { width: 80, backgroundColor: colors.border }]} />
+                      <View style={[styles.recentSkeletonLine, { width: 45, backgroundColor: colors.border }]} />
+                    </View>
+                  </View>
+                ))}
+              </View>
+            )}
 
-                      let creditAmount = Number(op.MC_MONTANTCREDIT || 0);
-                      let debitAmount = Number(op.MC_MONTANTDEBIT || 0);
+            {/* Error */}
+            {!!recentError && (
+              <EmptyState type="error" message={String(recentError)} onRetry={fetchRecent} compact style={{ paddingVertical: 20 }} />
+            )}
 
-                      // FIX: Les ouvertures de comptes sont toujours des débits (sorties)
-                      if (label.toUpperCase().includes("OUVERTURE")) {
-                        if (creditAmount > 0 || debitAmount > 0) {
-                          debitAmount = creditAmount + debitAmount;
-                          creditAmount = 0;
-                        }
-                      }
+            {/* List */}
+            {!loadingRecent && !recentError && (
+              <View style={[styles.recentCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+                {recentOps.length === 0 ? (
+                  <EmptyState type="empty" message={t("transactions.empty.none")} compact style={{ paddingVertical: 20 }} />
+                ) : (
+                  (showAllTransactions ? recentOps : recentOps.slice(0, 5)).map((op, i, arr) => {
+                    const label = String(op.MC_LIBELLEOPERATION || "");
+                    let creditAmount = Number(op.MC_MONTANTCREDIT || 0);
+                    let debitAmount = Number(op.MC_MONTANTDEBIT || 0);
 
-                      // On utilise STRICTEMENT les données du serveur :
-                      // MC_SENS indique le sens (D = Débit, C = Crédit)
+                    if (label.toUpperCase().includes("OUVERTURE") && (creditAmount > 0 || debitAmount > 0)) {
+                      debitAmount = creditAmount + debitAmount;
+                      creditAmount = 0;
+                    }
 
-                      let isCredit = false;
+                    let isCredit = op.MC_SENS === "C" ? true : op.MC_SENS === "D" ? false : creditAmount > 0;
+                    if (label.toUpperCase().includes("OUVERTURE")) isCredit = false;
+                    if (!label.toUpperCase().includes("OUVERTURE")) {
+                      if (isCredit && creditAmount === 0 && debitAmount > 0) isCredit = false;
+                      else if (!isCredit && debitAmount === 0 && creditAmount > 0) isCredit = true;
+                    }
 
-                      if (op.MC_SENS === "C") {
-                        isCredit = true;
-                      } else if (op.MC_SENS === "D") {
-                        isCredit = false;
-                      } else {
-                        // Fallback sur les montants si MC_SENS absent
-                        isCredit = creditAmount > 0;
-                      }
+                    const amt = isCredit ? creditAmount : debitAmount;
+                    const color = isCredit ? colors.success : colors.error;
+                    const isLast = i === arr.length - 1;
 
-                      // Force debit for Ouverture
-                      if (label.toUpperCase().includes("OUVERTURE")) {
-                        isCredit = false;
-                      }
+                    // Icône contextuelle
+                    const up = label.toUpperCase();
+                    const iconName: any =
+                      up.includes("VIREMENT") || up.includes("TRANSFER") ? "swap-horizontal" :
+                      up.includes("RETRAIT") ? "cash-outline" :
+                      up.includes("DEPOT") || up.includes("DÉPÔT") ? "arrow-down-circle-outline" :
+                      up.includes("OUVERTURE") ? "folder-open-outline" :
+                      up.includes("FRAIS") || up.includes("COMMISSION") ? "receipt-outline" :
+                      isCredit ? "arrow-down-circle-outline" : "arrow-up-circle-outline";
 
-                      // Correction auto-validation: Si SENS contredit les montants (ex: SENS=C mais Credit=0 et Debit>0)
-                      // Sauf si c'est une OUVERTURE (déjà gérée)
-                      if (!label.toUpperCase().includes("OUVERTURE")) {
-                        if (isCredit && creditAmount === 0 && debitAmount > 0) {
-                          isCredit = false;
-                        } else if (
-                          !isCredit &&
-                          debitAmount === 0 &&
-                          creditAmount > 0
-                        ) {
-                          isCredit = true;
-                        }
-                      }
+                    return (
+                      <View
+                        key={`op-${i}`}
+                        style={[
+                          styles.recentRow,
+                          !isLast && { borderBottomWidth: 1, borderBottomColor: colors.border },
+                        ]}
+                      >
+                        {/* Icon */}
+                        <View style={[styles.recentIcon, { backgroundColor: color + "18" }]}>
+                          <Ionicons name={iconName} size={18} color={color} />
+                        </View>
 
-                      const amt = isCredit ? creditAmount : debitAmount;
-                      const color = isCredit ? colors.success : colors.error;
-
-                      return (
-                        <View
-                          key={`op-${i}`}
-                          style={[
-                            styles.activityItem,
-                            {
-                              borderColor: colors.border,
-                              borderBottomWidth: 1,
-                            },
-                          ]}
-                        >
-                          <View
-                            style={[
-                              styles.activityBullet,
-                              { backgroundColor: color },
-                            ]}
-                          />
-                          <Text
-                            numberOfLines={1}
-                            style={[
-                              styles.activityLabel,
-                              { color: colors.text },
-                            ]}
-                          >
+                        {/* Label */}
+                        <View style={styles.recentInfo}>
+                          <Text numberOfLines={1} style={[styles.recentLabel, { color: colors.text }]}>
                             {label}
                           </Text>
-                          <Text
-                            style={[styles.activityAmount, { color: color }]}
-                          >
-                            {new Intl.NumberFormat("fr-FR").format(
-                              Number(amt || 0),
-                            )}
-                          </Text>
+                          <View style={styles.recentMeta}>
+                            <View style={[styles.recentDot, { backgroundColor: colors.success }]} />
+                            <Text style={[styles.recentMetaText, { color: colors.text + "50" }]}>
+                              {isCredit ? "Crédit" : "Débit"}
+                            </Text>
+                          </View>
                         </View>
-                      );
-                    })}
 
-                  {!recentOps || recentOps.length === 0 ? (
-                    <EmptyState
-                      type="empty"
-                      message={t("transactions.empty.none")}
-                      compact
-                      style={{ paddingVertical: 20 }}
-                    />
-                  ) : null}
-                </View>
-              )}
-            </View>
+                        {/* Amount */}
+                        <View style={styles.recentRight}>
+                          <Text style={[styles.recentAmount, { color }]}>
+                            {isCredit ? "+" : "-"}{fmt(amt)}
+                          </Text>
+                          <Text style={[styles.recentCurrency, { color: colors.text + "45" }]}>XOF</Text>
+                        </View>
+                      </View>
+                    );
+                  })
+                )}
+
+                {/* Voir plus / moins inline */}
+                {recentOps.length > 5 && (
+                  <TouchableOpacity
+                    style={[styles.recentToggleBtn, { borderTopColor: colors.border }]}
+                    onPress={() => setShowAllTransactions(!showAllTransactions)}
+                  >
+                    <Text style={[styles.recentToggleText, { color: colors.primary }]}>
+                      {showAllTransactions ? t("dashboard.recent.seeLess") : `Voir les ${recentOps.length - 5} autres`}
+                    </Text>
+                    <Ionicons name={showAllTransactions ? "chevron-up" : "chevron-down"} size={14} color={colors.primary} />
+                  </TouchableOpacity>
+                )}
+              </View>
+            )}
           </View>
         )}
       </ScrollView>
@@ -1634,20 +1622,27 @@ const styles = StyleSheet.create({
     paddingRight: 0,
   },
   serviceCard: {
-    backgroundColor: "#fff",
-    borderRadius: 16,
-    padding: 16,
-    width: 110,
+    borderRadius: 18,
+    padding: 14,
+    width: 120,
     alignItems: "center",
     marginRight: 12,
     shadowColor: "#000",
-    shadowOpacity: 0.08,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 8,
+    shadowOpacity: 0.07,
+    shadowOffset: { width: 0, height: 3 },
+    shadowRadius: 10,
     elevation: 3,
     borderWidth: 1,
-    borderColor: "#F0F0F0",
-    minHeight: 150,
+    minHeight: 160,
+    backgroundColor: "#fff",
+  },
+  serviceIconWrap: {
+    width: 52,
+    height: 52,
+    borderRadius: 16,
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 10,
   },
   serviceIcon: {
     width: 50,
@@ -1659,100 +1654,129 @@ const styles = StyleSheet.create({
   },
   serviceTitle: {
     fontSize: 12,
-    fontWeight: "600",
-    color: "#1A1A1A",
+    fontWeight: "700",
     textAlign: "center",
-    marginBottom: 2,
+    marginBottom: 3,
   },
   serviceSubtitle: {
     fontSize: 10,
-    color: "#666",
     textAlign: "center",
+    marginBottom: 10,
   },
-  // NOUVEAUX STYLES : Activité récente
-  // NOUVEAUX STYLES : Activité récente CORRIGÉE
-  transactionsList: {
-    backgroundColor: "#fff",
-    borderRadius: 16,
-    paddingHorizontal: 16,
-    shadowColor: "#000",
-    shadowOpacity: 0.08,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 8,
-    elevation: 3,
-    borderWidth: 1,
-    borderColor: "#F0F0F0",
-    // maxHeight sera géré dynamiquement via inline style
-  },
-  transactionItem: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingVertical: 16,
-    minHeight: 60,
-  },
-  transactionLeft: {
+  serviceAvailBadge: {
     flexDirection: "row",
     alignItems: "center",
-    flex: 1,
+    gap: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 10,
+    marginTop: "auto",
   },
-  transactionIcon: {
-    width: 40,
-    height: 40,
+  serviceAvailDot: {
+    width: 5,
+    height: 5,
+    borderRadius: 3,
+  },
+  serviceAvailText: {
+    fontSize: 9,
+    fontWeight: "700",
+  },
+  // ACTIVITÉ RÉCENTE
+  recentCard: {
     borderRadius: 20,
+    borderWidth: 1,
+    overflow: "hidden",
+    shadowColor: "#000",
+    shadowOpacity: 0.05,
+    shadowOffset: { width: 0, height: 3 },
+    shadowRadius: 10,
+    elevation: 3,
+  },
+  recentRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+  },
+  recentIcon: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
     justifyContent: "center",
     alignItems: "center",
     marginRight: 12,
   },
-  transactionInfo: {
+  recentInfo: {
     flex: 1,
+    gap: 4,
   },
-  transactionType: {
-    fontSize: 15,
-    fontWeight: "600",
-    color: "#1A1A1A",
-    marginBottom: 4,
-  },
-  transactionDate: {
+  recentLabel: {
     fontSize: 13,
-    color: "#666",
-  },
-  transactionAmount: {
-    fontSize: 16,
     fontWeight: "700",
-    marginLeft: 8,
+    letterSpacing: 0.1,
   },
-  activityItem: {
+  recentMeta: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 12,
-    paddingHorizontal: 4,
-    marginVertical: 0,
+    gap: 5,
   },
-  activityBullet: {
-    width: 6,
-    height: 6,
+  recentDot: {
+    width: 5,
+    height: 5,
     borderRadius: 3,
-    marginRight: 10,
   },
-  activityLabel: {
-    flex: 1,
+  recentMetaText: {
+    fontSize: 11,
+  },
+  recentRight: {
+    alignItems: "flex-end",
+    gap: 3,
+  },
+  recentAmount: {
     fontSize: 14,
-    fontWeight: "500",
-    letterSpacing: 0.2,
+    fontWeight: "800",
+    letterSpacing: -0.3,
   },
-  activityAmount: {
-    fontSize: 15,
+  recentCurrency: {
+    fontSize: 10,
     fontWeight: "600",
-    marginLeft: 12,
   },
-  separator: {
-    height: 1,
-    backgroundColor: "#F0F0F0",
-    marginLeft: 52, // Aligné avec le contenu (40px icon + 12px margin)
+  recentSeeAllBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 12,
   },
-  bottomSpace: {
-    // height sera géré dynamiquement via inline style
+  recentToggleBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    paddingVertical: 12,
+    borderTopWidth: 1,
+  },
+  recentToggleText: {
+    fontSize: 13,
+    fontWeight: "600",
+  },
+  // Skeleton
+  recentSkeletonRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    gap: 12,
+  },
+  recentSkeletonIcon: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+  },
+  recentSkeletonLine: {
+    height: 12,
+    borderRadius: 6,
   },
   qrOverlay: {
     flex: 1,

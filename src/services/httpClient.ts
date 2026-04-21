@@ -41,11 +41,9 @@ httpClient.interceptors.request.use(async (config) => {
     if (typeof document !== "undefined") {
       delete (config.headers as any)["X-NO-AUTH"];
     }
-    console.log("[http] request", {
+    if (__DEV__) console.log("[http] request", {
       url: config.url,
       method: config.method,
-      headers: config.headers,
-      data: config.data,
     });
   } catch {}
   return config;
@@ -53,20 +51,17 @@ httpClient.interceptors.request.use(async (config) => {
 
 httpClient.interceptors.response.use(
   (response) => {
-    console.log("[http] response", {
+    if (__DEV__) console.log("[http] response", {
       url: response.config?.url,
       status: response.status,
-      data: response.data,
     });
     return response;
   },
   (error) => {
     const cfg = error?.config || {};
-    console.error("[http] error", {
+    if (__DEV__) console.error("[http] error", {
       url: cfg.url,
-      method: cfg.method,
       status: error?.response?.status,
-      data: error?.response?.data,
       message: error?.message,
     });
     try {

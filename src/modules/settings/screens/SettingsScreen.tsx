@@ -5,7 +5,6 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  SafeAreaView,
   Switch,
   Modal,
   TextInput,
@@ -344,9 +343,7 @@ export const SettingsScreen: React.FC = () => {
   ];
 
   return (
-    <SafeAreaView
-      style={[styles.container, { backgroundColor: colors.background }]}
-    >
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       <ScrollView
         style={[styles.content, { backgroundColor: colors.background }]}
         showsVerticalScrollIndicator={false}
@@ -433,10 +430,13 @@ export const SettingsScreen: React.FC = () => {
 
         {/* Version Info */}
         <View style={styles.versionContainer}>
-          <Text style={[styles.versionText, { color: colors.text }]}>
-            {t("settings.version")} 1.0.0
-          </Text>
-          <Text style={[styles.copyrightText, { color: colors.text }]}>
+          <View style={[styles.versionBadge, { backgroundColor: colors.card, borderColor: colors.border }]}>
+            <Ionicons name="information-circle-outline" size={14} color={colors.text + "50"} />
+            <Text style={[styles.versionText, { color: colors.text + "60" }]}>
+              {t("settings.version")} 1.0.0
+            </Text>
+          </View>
+          <Text style={[styles.copyrightText, { color: colors.text + "35" }]}>
             {t("settings.copyright")}
           </Text>
         </View>
@@ -1192,7 +1192,7 @@ export const SettingsScreen: React.FC = () => {
           </View>
         </View>
       </Modal>
-    </SafeAreaView>
+    </View>
   );
 };
 
@@ -1280,16 +1280,24 @@ const styles = StyleSheet.create({
   versionContainer: {
     alignItems: "center",
     paddingVertical: 32,
-    paddingBottom: 40,
+    paddingBottom: 48,
+    gap: 8,
+  },
+  versionBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingHorizontal: 14,
+    paddingVertical: 7,
+    borderRadius: 20,
+    borderWidth: 1,
   },
   versionText: {
     fontSize: 13,
-    color: "#999",
     marginBottom: 4,
   },
   copyrightText: {
     fontSize: 12,
-    color: "#CCC",
   },
   // Modal styles
   modalOverlay: {

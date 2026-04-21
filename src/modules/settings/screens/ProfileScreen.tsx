@@ -4,7 +4,6 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  SafeAreaView,
   TouchableOpacity,
   Modal,
   Linking,
@@ -36,9 +35,12 @@ const ProfileScreen: React.FC = () => {
   const [displayName, setDisplayName] = useState("");
   const [startDate, setStartDate] = useState<Date | null>(null);
   const [endDate, setEndDate] = useState<Date | null>(null);
-  const [showDatePicker, setShowDatePicker] = useState<"start" | "end" | null>(
-    null,
-  );
+  const [showDatePicker, setShowDatePicker] = useState<"start" | "end" | null>(null);
+
+  // Hide native header — we render our own inside the hero
+  React.useLayoutEffect(() => {
+    navigation.setOptions({ headerShown: false });
+  }, [navigation]);
 
   const CustomCalendar = ({
     onSelect,
@@ -815,324 +817,204 @@ const ProfileScreen: React.FC = () => {
   };
 
   return (
-    <SafeAreaView
-      style={[styles.container, { backgroundColor: colors.background }]}
-    >
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {/* Header card with avatar and basic info */}
-        <View style={[styles.headerCard, { backgroundColor: colors.card }]}>
-          <View style={styles.avatarWrap}>
-            <View
-              style={[styles.avatarCircle, { backgroundColor: colors.primary }]}
-            >
-              <Text style={[styles.avatarInitials, { color: "#fff" }]}>
-                {initials}
-              </Text>
-            </View>
-            <View
-              style={[styles.avatarCamera, { backgroundColor: colors.success }]}
-            >
-              <Ionicons name="camera" size={14} color="#fff" />
-            </View>
-          </View>
-          <Text style={[styles.profileName, { color: colors.text }]}>
-            {displayName}
-          </Text>
-          <Text style={[styles.profileCode, { color: colors.text + "60" }]}>
-            {t("profile.loginPrefix")}: {loginCode || "—"}
-          </Text>
-          <View
-            style={[
-              styles.memberBadge,
-              {
-                backgroundColor: isDark
-                  ? colors.success + "20"
-                  : colors.success + "10",
-              },
-            ]}
-          >
-            <Ionicons
-              name="shield-checkmark"
-              size={14}
-              color={colors.success}
-            />
-            <Text style={[styles.memberText, { color: colors.success }]}>
-              {t("profile.memberSince")}
-            </Text>
-          </View>
-        </View>
 
-        {/* Contact information card */}
-        <View style={[styles.infoCard, { backgroundColor: colors.card }]}>
-          <View style={styles.infoRow}>
-            <View
-              style={[
-                styles.infoIconBg,
-                {
-                  backgroundColor: isDark
-                    ? colors.primary + "20"
-                    : colors.primary + "10",
-                },
-              ]}
-            >
-              <Ionicons name="mail" size={18} color={colors.primary} />
-            </View>
-            <View style={styles.infoTexts}>
-              <Text style={[styles.infoLabel, { color: colors.text + "60" }]}>
-                {t("profile.labels.email")}
-              </Text>
-              <Text style={[styles.infoValue, { color: colors.text }]}>
-                {emailValue}
-              </Text>
-            </View>
-          </View>
-          <View
-            style={[
-              styles.divider,
-              { backgroundColor: isDark ? colors.border : "#E5E5EA" },
-            ]}
-          />
-          <View style={styles.infoRow}>
-            <View
-              style={[
-                styles.infoIconBg,
-                {
-                  backgroundColor: isDark
-                    ? colors.success + "20"
-                    : colors.success + "10",
-                },
-              ]}
-            >
-              <Ionicons name="call" size={18} color={colors.success} />
-            </View>
-            <View style={styles.infoTexts}>
-              <Text style={[styles.infoLabel, { color: colors.text + "60" }]}>
-                {t("profile.labels.phone")}
-              </Text>
-              <Text style={[styles.infoValue, { color: colors.text }]}>
-                {phoneValue}
-              </Text>
-            </View>
-          </View>
-          <View
-            style={[
-              styles.divider,
-              { backgroundColor: isDark ? "#333" : "#F0F0F0" },
-            ]}
-          />
-          <View style={styles.infoRow}>
-            <View
-              style={[
-                styles.infoIconBg,
-                {
-                  backgroundColor: isDark
-                    ? colors.warning + "20"
-                    : colors.warning + "10",
-                },
-              ]}
-            >
-              <Ionicons name="location" size={18} color={colors.warning} />
-            </View>
-            <View style={styles.infoTexts}>
-              <Text style={[styles.infoLabel, { color: colors.text + "60" }]}>
-                {t("profile.labels.address")}
-              </Text>
-              <Text style={[styles.infoValue, { color: colors.text }]}>
-                {addressValue}
-              </Text>
-            </View>
-          </View>
-        </View>
+        {/* ── Hero ── */}
+        <View style={[styles.hero, { backgroundColor: colors.primary }]}>
 
-        {/* Personal section with edit button */}
-        <View style={styles.sectionBlock}>
-          <Text style={[styles.sectionTitle, { color: colors.text + "80" }]}>
-            {t("profile.section.personalInfo")}
-          </Text>
+          {/* Back button inside hero */}
           <TouchableOpacity
-            style={[styles.editRow, { backgroundColor: colors.card }]}
-            activeOpacity={0.8}
-            onPress={() => setEditVisible(true)}
+            onPress={() => (navigation as any).goBack()}
+            style={styles.heroBack}
           >
-            <View style={styles.editRowLeft}>
-              <View
-                style={[
-                  styles.infoIconBg,
-                  {
-                    backgroundColor: isDark
-                      ? colors.primary + "20"
-                      : colors.primary + "10",
-                  },
-                ]}
-              >
-                <Ionicons name="person" size={18} color={colors.primary} />
-              </View>
-              <Text style={[styles.editRowText, { color: colors.text }]}>
-                {t("profile.action.edit")}
-              </Text>
-            </View>
-            <Ionicons
-              name="chevron-forward"
-              size={18}
-              color={isDark ? "#666" : "#C0C0C0"}
-            />
+            <Ionicons name="arrow-back" size={20} color="#fff" />
           </TouchableOpacity>
-        </View>
 
-        {/* Documents section */}
-        <View style={styles.sectionBlock}>
-          <Text style={[styles.sectionTitle, { color: colors.text + "80" }]}>
-            {t("profile.section.documents")}
-          </Text>
-          <View style={[styles.docCard, { backgroundColor: colors.card }]}>
-            <TouchableOpacity
-              style={styles.docItem}
-              activeOpacity={0.7}
-              onPress={() => navigation.navigate("Statements" as never)}
-            >
-              <View style={styles.docLeft}>
-                <View
-                  style={[
-                    styles.infoIconBg,
-                    {
-                      backgroundColor: isDark
-                        ? colors.primary + "20"
-                        : colors.primary + "10",
-                    },
-                  ]}
-                >
-                  <Ionicons
-                    name="document-text-outline"
-                    size={18}
-                    color={colors.primary}
-                  />
-                </View>
-                <Text style={[styles.docTitle, { color: colors.text }]}>
-                  {t("profile.docs.statements")}
-                </Text>
-              </View>
-              <Ionicons
-                name="chevron-forward"
-                size={18}
-                color={isDark ? "#666" : "#C0C0C0"}
-              />
-            </TouchableOpacity>
+          {/* Avatar */}
+          <View style={styles.avatarWrap}>
+            <View style={[styles.avatarCircle, { borderColor: "rgba(255,255,255,0.5)" }]}>
+              <Text style={styles.avatarInitials}>{initials || "—"}</Text>
+            </View>
+            <View style={[styles.avatarCamera, { backgroundColor: colors.success }]}>
+              <Ionicons name="camera" size={13} color="#fff" />
+            </View>
+          </View>
 
-            <View style={styles.divider} />
+          <Text style={styles.heroName}>{displayName || "—"}</Text>
+          <Text style={styles.heroLogin}>{loginCode || "—"}</Text>
 
-            <TouchableOpacity
-              style={styles.docItem}
-              activeOpacity={0.7}
-              onPress={() => setTxVisible(true)}
-            >
-              <View style={styles.docLeft}>
-                <View
-                  style={[
-                    styles.infoIconBg,
-                    {
-                      backgroundColor: isDark
-                        ? colors.primary + "20"
-                        : colors.primary + "10",
-                    },
-                  ]}
-                >
-                  <Ionicons
-                    name="list-outline"
-                    size={18}
-                    color={colors.primary}
-                  />
-                </View>
-                <Text style={[styles.docTitle, { color: colors.text }]}>
-                  {t("profile.docs.history")}
-                </Text>
-              </View>
-              <Ionicons
-                name="chevron-forward"
-                size={18}
-                color={isDark ? "#666" : "#C0C0C0"}
-              />
-            </TouchableOpacity>
+          <View style={styles.heroBadge}>
+            <Ionicons name="shield-checkmark" size={13} color="#fff" />
+            <Text style={styles.heroBadgeText}>{t("profile.memberSince")}</Text>
+          </View>
 
-            <View style={styles.divider} />
-
-            <TouchableOpacity
-              style={[styles.docItem, styles.docItemLast]}
-              activeOpacity={0.7}
-              onPress={() => console.log("Téléchargements")}
-            >
-              <View style={styles.docLeft}>
-                <View
-                  style={[
-                    styles.infoIconBg,
-                    {
-                      backgroundColor: isDark
-                        ? colors.primary + "20"
-                        : colors.primary + "10",
-                    },
-                  ]}
-                >
-                  <Ionicons
-                    name="download-outline"
-                    size={18}
-                    color={colors.primary}
-                  />
-                </View>
-                <Text style={[styles.docTitle, { color: colors.text }]}>
-                  {t("profile.docs.downloads")}
-                </Text>
-              </View>
-              <Ionicons
-                name="chevron-forward"
-                size={18}
-                color={isDark ? "#666" : "#C0C0C0"}
-              />
-            </TouchableOpacity>
+          {/* Quick stats */}
+          <View style={styles.heroStats}>
+            <View style={styles.heroStat}>
+              <Ionicons name="mail-outline" size={15} color="rgba(255,255,255,0.75)" />
+              <Text style={styles.heroStatVal} numberOfLines={1}>{emailValue}</Text>
+            </View>
+            <View style={styles.heroStatSep} />
+            <View style={styles.heroStat}>
+              <Ionicons name="call-outline" size={15} color="rgba(255,255,255,0.75)" />
+              <Text style={styles.heroStatVal} numberOfLines={1}>{phoneValue}</Text>
+            </View>
           </View>
         </View>
 
-        {/* Logout card */}
+        {/* ── Infos personnelles ── */}
         <View style={styles.sectionBlock}>
-          <TouchableOpacity
-            style={[
-              styles.logoutCard,
+          <View style={styles.sectionLabelRow}>
+            <Text style={[styles.sectionLabel, { color: colors.text + "55" }]}>
+              {t("profile.section.personalInfo").toUpperCase()}
+            </Text>
+            <TouchableOpacity
+              onPress={() => setEditVisible(true)}
+              style={[styles.sectionEditBtn, { backgroundColor: colors.primary + "15" }]}
+            >
+              <Ionicons name="create-outline" size={13} color={colors.primary} />
+              <Text style={[styles.sectionEditText, { color: colors.primary }]}>Modifier</Text>
+            </TouchableOpacity>
+          </View>
+
+          <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
+            {[
+              { icon: "mail",     iconBg: colors.primary + "18", iconColor: colors.primary,  label: t("profile.labels.email"),   value: emailValue,   copyable: true  },
+              { icon: "call",     iconBg: colors.success + "18", iconColor: colors.success,  label: t("profile.labels.phone"),   value: phoneValue,   copyable: true  },
+              { icon: "location", iconBg: colors.warning + "18", iconColor: colors.warning,  label: t("profile.labels.address"), value: addressValue, copyable: false },
+            ].map((row, i, arr) => (
+              <View key={row.label}>
+                <View style={styles.infoRow}>
+                  <View style={[styles.infoIconBg, { backgroundColor: row.iconBg }]}>
+                    <Ionicons name={row.icon as any} size={18} color={row.iconColor} />
+                  </View>
+                  <View style={styles.infoTexts}>
+                    <Text style={[styles.infoLabel, { color: colors.text + "50" }]}>{row.label}</Text>
+                    <Text style={[styles.infoValue, { color: colors.text }]} numberOfLines={1}>{row.value}</Text>
+                  </View>
+                  {row.value !== "—" && (
+                    <View style={[styles.infoStatusDot, { backgroundColor: colors.success }]} />
+                  )}
+                </View>
+                {i < arr.length - 1 && <View style={[styles.divider, { backgroundColor: colors.border }]} />}
+              </View>
+            ))}
+          </View>
+        </View>
+
+        {/* ── Documents ── */}
+        <View style={styles.sectionBlock}>
+          <Text style={[styles.sectionLabel, { color: colors.text + "55" }]}>
+            {t("profile.section.documents").toUpperCase()}
+          </Text>
+          <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
+            {[
               {
-                backgroundColor: colors.error + "10",
-                borderColor: colors.error + "30",
+                icon: "document-text-outline",
+                iconBg: colors.primary + "18",
+                iconColor: colors.primary,
+                label: t("profile.docs.statements"),
+                sub: "Relevés mensuels",
+                onPress: () => navigation.navigate("Statements" as never),
               },
-            ]}
+              {
+                icon: "time-outline",
+                iconBg: colors.success + "18",
+                iconColor: colors.success,
+                label: t("profile.docs.history"),
+                sub: "Toutes vos opérations",
+                onPress: () => setTxVisible(true),
+              },
+              {
+                icon: "download-outline",
+                iconBg: "#8B5CF618",
+                iconColor: "#8B5CF6",
+                label: t("profile.docs.downloads"),
+                sub: "Fichiers téléchargés",
+                onPress: () => {},
+              },
+            ].map((item, i, arr) => (
+              <View key={item.label}>
+                <TouchableOpacity style={styles.docItem} activeOpacity={0.75} onPress={item.onPress}>
+                  <View style={[styles.docIconWrap, { backgroundColor: item.iconBg }]}>
+                    <Ionicons name={item.icon as any} size={20} color={item.iconColor} />
+                  </View>
+                  <View style={styles.docTexts}>
+                    <Text style={[styles.docTitle, { color: colors.text }]} numberOfLines={1} ellipsizeMode="tail">{item.label}</Text>
+                    <Text style={[styles.docSub, { color: colors.text + "50" }]} numberOfLines={1}>{item.sub}</Text>
+                  </View>
+                  <View style={[styles.docChevronWrap, { backgroundColor: colors.border + "50" }]}>
+                    <Ionicons name="chevron-forward" size={14} color={colors.text + "60"} />
+                  </View>
+                </TouchableOpacity>
+                {i < arr.length - 1 && <View style={[styles.divider, { backgroundColor: colors.border }]} />}
+              </View>
+            ))}
+          </View>
+        </View>
+
+        {/* ── Apparence ── */}
+        <View style={styles.sectionBlock}>
+          <Text style={[styles.sectionLabel, { color: colors.text + "55" }]}>APPARENCE</Text>
+          <View style={styles.themeRow}>
+            {([
+              { key: "light",  icon: "sunny",          label: "Clair",   accent: "#F59E0B" },
+              { key: "dark",   icon: "moon",            label: "Sombre",  accent: "#6366F1" },
+              { key: "system", icon: "phone-portrait",  label: "Système", accent: colors.primary },
+            ] as const).map((opt) => {
+              const active = preference === opt.key;
+              return (
+                <TouchableOpacity
+                  key={opt.key}
+                  style={[
+                    styles.themeCard,
+                    {
+                      backgroundColor: active ? opt.accent + "18" : colors.card,
+                      borderColor: active ? opt.accent : colors.border,
+                      borderWidth: active ? 2 : 1,
+                    },
+                  ]}
+                  activeOpacity={0.75}
+                  onPress={() => setPreference(opt.key)}
+                >
+                  <View style={[styles.themeIconWrap, { backgroundColor: active ? opt.accent + "25" : colors.border + "50" }]}>
+                    <Ionicons name={opt.icon as any} size={22} color={active ? opt.accent : colors.text + "50"} />
+                  </View>
+                  <Text style={[styles.themeLabel, { color: active ? opt.accent : colors.text + "70", fontWeight: active ? "700" : "500" }]}>
+                    {opt.label}
+                  </Text>
+                  {active && (
+                    <View style={[styles.themeCheck, { backgroundColor: opt.accent }]}>
+                      <Ionicons name="checkmark" size={10} color="#fff" />
+                    </View>
+                  )}
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </View>
+
+        {/* ── Déconnexion ── */}
+        <View style={[styles.sectionBlock, { marginBottom: 8 }]}>
+          <TouchableOpacity
+            style={[styles.logoutCard, { backgroundColor: colors.error + "10", borderColor: colors.error + "30" }]}
             activeOpacity={0.8}
             onPress={handleLogout}
           >
-            <View style={styles.docLeft}>
-              <View
-                style={[
-                  styles.infoIconBg,
-                  { backgroundColor: colors.error + "20" },
-                ]}
-              >
-                <Ionicons
-                  name="log-out-outline"
-                  size={18}
-                  color={colors.error}
-                />
-              </View>
-              <Text style={[styles.logoutText, { color: colors.error }]}>
-                {user?.username === "invite"
-                  ? t("logout.guest.button")
-                  : t("settings.logout")}
-              </Text>
+            <View style={[styles.infoIconBg, { backgroundColor: colors.error + "20" }]}>
+              <Ionicons name="log-out-outline" size={18} color={colors.error} />
             </View>
+            <Text style={[styles.logoutText, { color: colors.error }]}>
+              {user?.username === "invite" ? t("logout.guest.button") : t("settings.logout")}
+            </Text>
           </TouchableOpacity>
         </View>
 
-        {/* Version info */}
+        {/* ── Version ── */}
         <View style={styles.versionContainer}>
-          <Text style={[styles.versionText, { color: colors.text + "60" }]}>
-            {t("settings.version")} 1.0.0
-          </Text>
-          <Text style={[styles.copyrightText, { color: colors.text + "40" }]}>
-            {t("settings.copyright")}
-          </Text>
+          <Text style={[styles.versionText, { color: colors.text + "50" }]}>{t("settings.version")} 1.0.0</Text>
+          <Text style={[styles.copyrightText, { color: colors.text + "35" }]}>{t("settings.copyright")}</Text>
         </View>
       </ScrollView>
 
@@ -1509,44 +1391,50 @@ const ProfileScreen: React.FC = () => {
           )}
         </View>
       </Modal>
-    </SafeAreaView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  content: {
-    flex: 1,
-  },
-  headerCard: {
-    marginHorizontal: 16,
-    marginTop: 16,
-    borderRadius: 16,
-    paddingVertical: 20,
-    paddingHorizontal: 16,
+  container: { flex: 1 },
+  content: { flex: 1 },
+
+  // ── Hero ──
+  hero: {
+    paddingTop: 56,
+    paddingBottom: 28,
+    paddingHorizontal: 24,
     alignItems: "center",
+    borderBottomLeftRadius: 28,
+    borderBottomRightRadius: 28,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 3,
+    shadowOpacity: 0.18,
+    shadowOffset: { width: 0, height: 8 },
+    shadowRadius: 20,
+    elevation: 7,
   },
-  avatarWrap: {
-    marginBottom: 12,
+  heroBack: {
+    position: "absolute",
+    top: 16,
+    left: 16,
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: "rgba(255,255,255,0.2)",
+    justifyContent: "center",
+    alignItems: "center",
   },
+  avatarWrap: { marginBottom: 14, position: "relative" },
   avatarCircle: {
-    width: 84,
-    height: 84,
-    borderRadius: 42,
+    width: 90,
+    height: 90,
+    borderRadius: 45,
     alignItems: "center",
     justifyContent: "center",
+    borderWidth: 3,
+    backgroundColor: "rgba(255,255,255,0.25)",
   },
-  avatarInitials: {
-    fontSize: 26,
-    fontWeight: "700",
-  },
+  avatarInitials: { fontSize: 30, fontWeight: "800", color: "#fff" },
   avatarCamera: {
     position: "absolute",
     right: -2,
@@ -1559,150 +1447,128 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: "#fff",
   },
-  profileName: {
-    fontSize: 18,
-    fontWeight: "700",
-    marginTop: 6,
-  },
-  profileCode: {
-    fontSize: 12,
-    marginTop: 2,
-  },
-  memberBadge: {
+  heroName: { fontSize: 22, fontWeight: "800", color: "#fff", letterSpacing: -0.3 },
+  heroLogin: { fontSize: 13, color: "rgba(255,255,255,0.65)", marginTop: 3, marginBottom: 10 },
+  heroBadge: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 12,
-    marginTop: 10,
-    gap: 6,
+    gap: 5,
+    backgroundColor: "rgba(255,255,255,0.2)",
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderRadius: 20,
+    marginBottom: 20,
   },
-  memberText: {
-    fontSize: 12,
-    fontWeight: "600",
-  },
-  infoCard: {
-    marginHorizontal: 16,
-    marginTop: 16,
+  heroBadgeText: { fontSize: 12, fontWeight: "600", color: "#fff" },
+  heroStats: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(255,255,255,0.15)",
     borderRadius: 16,
-    padding: 16,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 3,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    width: "100%",
+    gap: 8,
   },
-  infoRow: {
+  heroStat: { flex: 1, flexDirection: "row", alignItems: "center", gap: 7 },
+  heroStatVal: { color: "#fff", fontSize: 12, fontWeight: "600", flex: 1 },
+  heroStatSep: { width: 1, height: 24, backgroundColor: "rgba(255,255,255,0.3)" },
+
+  // ── Sections ──
+  sectionBlock: { marginTop: 20, marginHorizontal: 16 },
+  sectionLabel: { fontSize: 11, fontWeight: "700", letterSpacing: 1.2, marginBottom: 8, marginLeft: 4 },
+  sectionLabelRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 8 },
+  sectionEditBtn: { flexDirection: "row", alignItems: "center", gap: 4, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 12 },
+  sectionEditText: { fontSize: 12, fontWeight: "600" },
+
+  // ── Card ──
+  card: {
+    borderRadius: 18,
+    borderWidth: 1,
+    overflow: "hidden",
+    shadowColor: "#000",
+    shadowOpacity: 0.05,
+    shadowOffset: { width: 0, height: 3 },
+    shadowRadius: 10,
+    elevation: 2,
+  },
+
+  // ── Info rows ──
+  infoRow: { flexDirection: "row", alignItems: "center", paddingHorizontal: 16, paddingVertical: 14 },
+  infoIconBg: { width: 36, height: 36, borderRadius: 10, alignItems: "center", justifyContent: "center" },
+  infoTexts: { marginLeft: 12, flex: 1 },
+  infoLabel: { fontSize: 11, marginBottom: 2 },
+  infoValue: { fontSize: 14, fontWeight: "600" },
+  infoStatusDot: { width: 7, height: 7, borderRadius: 4, marginLeft: 8 },
+  divider: { height: 1, marginHorizontal: 16 },
+
+  // ── Action row ──
+  actionRow: {
     flexDirection: "row",
     alignItems: "center",
-  },
-  infoIconBg: {
-    width: 32,
-    height: 32,
-    borderRadius: 8,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  infoTexts: {
-    marginLeft: 12,
-    flex: 1,
-  },
-  infoLabel: {
-    fontSize: 12,
-  },
-  infoValue: {
-    fontSize: 14,
-    marginTop: 2,
-  },
-  divider: {
-    height: 1,
-    marginVertical: 12,
-  },
-  sectionBlock: {
-    marginTop: 16,
-    marginHorizontal: 16,
-  },
-  sectionTitle: {
-    fontSize: 12,
-    fontWeight: "600",
-    marginBottom: 8,
-    marginLeft: 4,
-    letterSpacing: 0.5,
-  },
-  editRow: {
     paddingHorizontal: 16,
     paddingVertical: 14,
-    borderRadius: 12,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  editRowLeft: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  editRowText: {
-    marginLeft: 12,
-    fontSize: 15,
-  },
-  docCard: {
-    paddingHorizontal: 16,
-    paddingVertical: 6,
-    borderRadius: 16,
+    borderRadius: 18,
+    borderWidth: 1,
+    gap: 12,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.06,
+    shadowOpacity: 0.04,
+    shadowOffset: { width: 0, height: 2 },
     shadowRadius: 8,
-    elevation: 3,
+    elevation: 2,
   },
-  docItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingVertical: 12,
-  },
-  docItemLast: {
-    borderBottomWidth: 0,
-  },
-  docLeft: {
-    flexDirection: "row",
-    alignItems: "center",
+  actionRowText: { flex: 1, fontSize: 15, fontWeight: "600" },
+
+  // ── Doc items ──
+  docItem: { flexDirection: "row", alignItems: "center", paddingHorizontal: 16, paddingVertical: 14, gap: 12 },
+  docIconWrap: { width: 42, height: 42, borderRadius: 13, alignItems: "center", justifyContent: "center", flexShrink: 0 },
+  docTexts: { flex: 1, flexShrink: 1, minWidth: 0 },
+  docTitle: { fontSize: 14, fontWeight: "600", marginBottom: 2 },
+  docSub: { fontSize: 11 },
+  docChevronWrap: { width: 26, height: 26, borderRadius: 13, alignItems: "center", justifyContent: "center", flexShrink: 0 },
+
+  // ── Theme cards ──
+  themeRow: { flexDirection: "row", gap: 10 },
+  themeCard: {
     flex: 1,
+    alignItems: "center",
+    paddingVertical: 16,
+    paddingHorizontal: 8,
+    borderRadius: 18,
+    gap: 8,
+    shadowColor: "#000",
+    shadowOpacity: 0.04,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 8,
+    elevation: 2,
+    position: "relative",
   },
-  docTitle: {
-    marginLeft: 12,
-    fontSize: 15,
-  },
+  themeIconWrap: { width: 48, height: 48, borderRadius: 24, alignItems: "center", justifyContent: "center" },
+  themeLabel: { fontSize: 12, textAlign: "center" },
+  themeCheck: { position: "absolute", top: 8, right: 8, width: 18, height: 18, borderRadius: 9, alignItems: "center", justifyContent: "center" },
+
+  // ── Theme check (legacy) ──
+  activeCheck: { width: 22, height: 22, borderRadius: 11, alignItems: "center", justifyContent: "center" },
+
+  // ── Logout ──
   logoutCard: {
+    flexDirection: "row",
+    alignItems: "center",
     paddingHorizontal: 16,
     paddingVertical: 16,
-    borderRadius: 16,
+    borderRadius: 18,
     borderWidth: 1,
+    gap: 12,
   },
-  logoutText: {
-    marginLeft: 12,
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  versionContainer: {
-    alignItems: "center",
-    paddingVertical: 24,
-    paddingBottom: 40,
-  },
-  versionText: {
-    fontSize: 13,
-    marginBottom: 4,
-  },
-  copyrightText: {
-    fontSize: 12,
-  },
-  // Modal styles
-  modalOverlay: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: 16,
-  },
+  logoutText: { fontSize: 16, fontWeight: "700" },
+
+  // ── Version ──
+  versionContainer: { alignItems: "center", paddingVertical: 24, paddingBottom: 48 },
+  versionText: { fontSize: 13, marginBottom: 4 },
+  copyrightText: { fontSize: 12 },
+
+  // ── Modals ──
+  modalOverlay: { flex: 1, alignItems: "center", justifyContent: "center", paddingHorizontal: 16 },
   modalBox: {
     width: "92%",
     maxWidth: 640,
@@ -1716,39 +1582,11 @@ const styles = StyleSheet.create({
     shadowRadius: 16,
     elevation: 8,
   },
-  modalClose: {
-    position: "absolute",
-    right: 16,
-    top: 12,
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  modalHandle: {
-    width: 56,
-    height: 6,
-    borderRadius: 3,
-    alignSelf: "center",
-    marginBottom: 8,
-  },
-  modalTitle: {
-    fontSize: 26,
-    fontWeight: "800",
-    marginBottom: 12,
-  },
-  modalText: {
-    fontSize: 16,
-    textAlign: "center",
-    lineHeight: 22,
-    marginBottom: 20,
-  },
-  actionsRow: {
-    flexDirection: "row",
-    gap: 16,
-    justifyContent: "center",
-  },
+  modalClose: { position: "absolute", right: 16, top: 12, width: 36, height: 36, borderRadius: 18, alignItems: "center", justifyContent: "center" },
+  modalHandle: { width: 56, height: 6, borderRadius: 3, alignSelf: "center", marginBottom: 8 },
+  modalTitle: { fontSize: 26, fontWeight: "800", marginBottom: 12 },
+  modalText: { fontSize: 16, textAlign: "center", lineHeight: 22, marginBottom: 20 },
+  actionsRow: { flexDirection: "row", gap: 16, justifyContent: "center" },
   actionBtn: {
     flexDirection: "row",
     alignItems: "center",
@@ -1762,96 +1600,33 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
     elevation: 3,
   },
-  actionTextLight: {
-    fontSize: 18,
-    fontWeight: "700",
-  },
-  // Transactions modal styles
-  txActionsRow: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    width: "100%",
-    justifyContent: "space-between",
-    gap: 12,
-    marginBottom: 16,
-  },
-  actionBtnOutline: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    borderRadius: 14,
-    borderWidth: 1,
-    flexBasis: "48%",
-    flexGrow: 1,
-    minHeight: 48,
-  },
-  actionTextPrimary: {
-    fontSize: 16,
-    fontWeight: "700",
-  },
-  txActionBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 10,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderRadius: 14,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.08,
-    shadowRadius: 10,
-    elevation: 3,
-    flexBasis: "48%",
-    flexGrow: 1,
-    minHeight: 48,
-  },
-  txList: {
-    marginTop: 4,
-    gap: 10,
-    paddingBottom: 8,
-  },
-  txItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingVertical: 12,
-    paddingHorizontal: 12,
-    borderRadius: 12,
-  },
-  txLeft: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    flex: 1,
-    flexShrink: 1,
-  },
-  txIconBg: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  txTitle: {
-    fontSize: 15,
-    marginBottom: 2,
-    flexShrink: 1,
-    maxWidth: "72%",
-  },
-  txDate: {
-    fontSize: 12,
-  },
-  txAmount: {
-    fontSize: 15,
-    fontWeight: "600",
-    marginLeft: 8,
-    flexShrink: 0,
-    textAlign: "right",
-  },
+  actionTextLight: { fontSize: 18, fontWeight: "700", color: "#fff" },
+  txActionsRow: { flexDirection: "row", flexWrap: "wrap", width: "100%", justifyContent: "space-between", gap: 12, marginBottom: 16 },
+  actionBtnOutline: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 10, paddingHorizontal: 14, paddingVertical: 12, borderRadius: 14, borderWidth: 1, flexBasis: "48%", flexGrow: 1, minHeight: 48 },
+  actionTextPrimary: { fontSize: 16, fontWeight: "700" },
+  txActionBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 10, paddingHorizontal: 16, paddingVertical: 12, borderRadius: 14, shadowColor: "#000", shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.08, shadowRadius: 10, elevation: 3, flexBasis: "48%", flexGrow: 1, minHeight: 48 },
+  txList: { marginTop: 4, gap: 10, paddingBottom: 8 },
+  txItem: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingVertical: 12, paddingHorizontal: 12, borderRadius: 12 },
+  txLeft: { flexDirection: "row", alignItems: "center", gap: 12, flex: 1, flexShrink: 1 },
+  txIconBg: { width: 28, height: 28, borderRadius: 14, alignItems: "center", justifyContent: "center" },
+  txTitle: { fontSize: 15, marginBottom: 2, flexShrink: 1, maxWidth: "72%" },
+  txDate: { fontSize: 12 },
+  txAmount: { fontSize: 15, fontWeight: "600", marginLeft: 8, flexShrink: 0, textAlign: "right" },
+
+  // kept for compat
+  docItemLast: {},
+  docLeft: { flexDirection: "row", alignItems: "center", flex: 1 },
+  docCard: { paddingHorizontal: 16, paddingVertical: 6, borderRadius: 16 },
+  editRow: { paddingHorizontal: 16, paddingVertical: 14, borderRadius: 12, flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
+  editRowLeft: { flexDirection: "row", alignItems: "center" },
+  editRowText: { marginLeft: 12, fontSize: 15 },
+  headerCard: { marginHorizontal: 16, marginTop: 16, borderRadius: 16, paddingVertical: 20, paddingHorizontal: 16, alignItems: "center" },
+  profileName: { fontSize: 18, fontWeight: "700", marginTop: 6 },
+  profileCode: { fontSize: 12, marginTop: 2 },
+  memberBadge: { flexDirection: "row", alignItems: "center", paddingHorizontal: 10, paddingVertical: 6, borderRadius: 12, marginTop: 10, gap: 6 },
+  memberText: { fontSize: 12, fontWeight: "600" },
+  infoCard: { marginHorizontal: 16, marginTop: 16, borderRadius: 16, padding: 16 },
+  sectionTitle: { fontSize: 12, fontWeight: "600", marginBottom: 8, marginLeft: 4, letterSpacing: 0.5 },
 });
 
 export default ProfileScreen;

@@ -79,6 +79,8 @@ const CustomTabBar = ({
 }: any) => {
   const [showFeatureUnavailableModal, setShowFeatureUnavailableModal] =
     React.useState(false);
+  const { useSafeAreaInsets } = require("react-native-safe-area-context");
+  const insets = useSafeAreaInsets();
 
   const handleGuestRestriction = () => {
     Alert.alert(
@@ -91,15 +93,28 @@ const CustomTabBar = ({
     );
   };
 
+  const TAB_ICONS: Record<string, [string, string]> = {
+    Dashboard:    ["home",             "home-outline"],
+    Transactions: ["swap-horizontal",  "swap-horizontal-outline"],
+    Products:     ["card",             "card-outline"],
+    Settings:     ["settings",         "settings-outline"],
+  };
+
   return (
     <View
       style={{
-        flexDirection: "row",
         backgroundColor: colors.card,
         borderTopColor: colors.border,
         borderTopWidth: 1,
-        paddingBottom: 5,
-        paddingTop: 5,
+        paddingBottom: insets.bottom || 8,
+        paddingTop: 8,
+        paddingHorizontal: 8,
+        flexDirection: "row",
+        shadowColor: "#000",
+        shadowOpacity: 0.08,
+        shadowOffset: { width: 0, height: -3 },
+        shadowRadius: 12,
+        elevation: 12,
       }}
     >
       {state.routes.map((route: any, index: number) => {
@@ -112,23 +127,16 @@ const CustomTabBar = ({
               : route.name;
 
         const isFocused = state.index === index;
-        const iconName = options.tabBarIcon?.({
-          focused: isFocused,
-          color: isFocused ? colors.primary : colors.text,
-          size: 24,
-        });
+        const [iconFocused, iconBlur] = TAB_ICONS[route.name] ?? ["help", "help-outline"];
 
-        // Liste des écrans restreints en mode invité (Settings accessible)
         const restrictedScreens = ["Transactions", "Products"];
-        const isRestricted =
-          isGuestMode && restrictedScreens.includes(route.name);
+        const isRestricted = isGuestMode && restrictedScreens.includes(route.name);
 
         const onPress = () => {
           if (route.name === "Products") {
             setShowFeatureUnavailableModal(true);
             return;
           }
-
           if (isRestricted) {
             handleGuestRestriction();
           } else {
@@ -144,22 +152,54 @@ const CustomTabBar = ({
             accessibilityLabel={options.tabBarAccessibilityLabel}
             testID={options.tabBarTestID}
             onPress={onPress}
-            style={{ flex: 1, alignItems: "center", paddingVertical: 8 }}
+            style={{
+              flex: 1,
+              alignItems: "center",
+              justifyContent: "center",
+              paddingVertical: 4,
+              opacity: isRestricted && route.name !== "Products" ? 0.45 : 1,
+            }}
             disabled={isRestricted && route.name !== "Products"}
           >
+            {/* Active pill indicator */}
+            {isFocused && (
+              <View
+                style={{
+                  position: "absolute",
+                  top: 0,
+                  width: 32,
+                  height: 3,
+                  borderRadius: 2,
+                  backgroundColor: colors.primary,
+                }}
+              />
+            )}
+
+            {/* Icon container */}
             <View
               style={{
-                opacity: isRestricted && route.name !== "Products" ? 0.5 : 1,
+                width: 44,
+                height: 32,
+                borderRadius: 16,
+                justifyContent: "center",
+                alignItems: "center",
+                backgroundColor: isFocused ? colors.primary + "18" : "transparent",
               }}
             >
-              {iconName}
+              <Ionicons
+                name={(isFocused ? iconFocused : iconBlur) as any}
+                size={22}
+                color={isFocused ? colors.primary : colors.text + "70"}
+              />
             </View>
+
             <Text
               style={{
-                color: isFocused ? colors.primary : colors.text,
-                fontSize: 12,
-                marginTop: 4,
-                opacity: isRestricted && route.name !== "Products" ? 0.5 : 1,
+                color: isFocused ? colors.primary : colors.text + "70",
+                fontSize: 11,
+                fontWeight: isFocused ? "700" : "500",
+                marginTop: 2,
+                letterSpacing: 0.2,
               }}
             >
               {label}

@@ -1,6 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
-  View, Text, StyleSheet, ScrollView, TouchableOpacity,
+  View, Text, StyleSheet, ScrollView, TouchableOpacity, Animated,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
@@ -10,6 +10,89 @@ import { useCompteStatistiques } from "../../../domain/compte/useCompteStatistiq
 import { EmptyState } from "../../../shared/components/EmptyState";
 
 type FilterKey = "tous" | "ordinaire" | "projet" | "dat" | "credit";
+
+// ── Skeleton shimmer ──────────────────────────────────────────────────────────
+const SkeletonBox: React.FC<{ width?: any; height?: number; radius?: number; style?: any }> = ({
+  width = "100%", height = 16, radius = 8, style,
+}) => {
+  const anim = useRef(new Animated.Value(0.4)).current;
+  useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(anim, { toValue: 1, duration: 800, useNativeDriver: true }),
+        Animated.timing(anim, { toValue: 0.4, duration: 800, useNativeDriver: true }),
+      ])
+    ).start();
+  }, []);
+  return (
+    <Animated.View
+      style={[{ width, height, borderRadius: radius, backgroundColor: "#E0E0E0", opacity: anim }, style]}
+    />
+  );
+};
+
+const AccountsSkeleton: React.FC<{ colors: any }> = ({ colors }) => (
+  <View>
+    {/* Hero skeleton */}
+    <View style={[s.hero, { backgroundColor: colors.primary + "30" }]}>
+      <SkeletonBox width={140} height={11} radius={6} style={{ marginBottom: 10 }} />
+      <SkeletonBox width={200} height={38} radius={10} style={{ marginBottom: 6 }} />
+      <SkeletonBox width={60} height={14} radius={6} style={{ marginBottom: 24 }} />
+      <View style={{ flexDirection: "row", gap: 12 }}>
+        {[1, 2, 3].map(i => (
+          <View key={i} style={{ flex: 1, alignItems: "center", gap: 6 }}>
+            <SkeletonBox width={40} height={14} radius={6} />
+            <SkeletonBox width={60} height={10} radius={5} />
+          </View>
+        ))}
+      </View>
+    </View>
+
+    {/* Filters skeleton */}
+    <View style={{ flexDirection: "row", paddingHorizontal: 16, gap: 8, marginBottom: 8 }}>
+      {[80, 100, 70, 60, 80].map((w, i) => (
+        <SkeletonBox key={i} width={w} height={34} radius={20} />
+      ))}
+    </View>
+
+    {/* Section title skeleton */}
+    <View style={{ flexDirection: "row", justifyContent: "space-between", paddingHorizontal: 16, marginTop: 16, marginBottom: 12 }}>
+      <SkeletonBox width={100} height={16} radius={6} />
+      <SkeletonBox width={60} height={14} radius={6} />
+    </View>
+
+    {/* Card skeletons */}
+    {[1, 2, 3].map(i => (
+      <View key={i} style={[s.card, { backgroundColor: colors.card, borderColor: colors.border, marginBottom: 12 }]}>
+        <View style={[s.cardAccent, { backgroundColor: colors.border }]} />
+        <View style={[s.cardBody]}>
+          {/* Top row */}
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 14 }}>
+            <SkeletonBox width={40} height={40} radius={20} />
+            <View style={{ flex: 1, gap: 6 }}>
+              <SkeletonBox width="60%" height={13} radius={6} />
+              <SkeletonBox width="40%" height={11} radius={5} />
+            </View>
+            <SkeletonBox width={70} height={26} radius={10} />
+          </View>
+          {/* Balance */}
+          <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-end" }}>
+            <View style={{ gap: 6 }}>
+              <SkeletonBox width={100} height={11} radius={5} />
+              <SkeletonBox width={160} height={26} radius={8} />
+            </View>
+            <SkeletonBox width={42} height={42} radius={21} />
+          </View>
+          {/* Progress */}
+          <View style={{ marginTop: 14, gap: 4 }}>
+            <SkeletonBox width="100%" height={5} radius={3} />
+            <SkeletonBox width={80} height={10} radius={5} style={{ alignSelf: "flex-end" }} />
+          </View>
+        </View>
+      </View>
+    ))}
+  </View>
+);
 
 export const AccountsScreen: React.FC = () => {
   const navigation = useNavigation();
@@ -100,6 +183,7 @@ export const AccountsScreen: React.FC = () => {
       showsVerticalScrollIndicator={false}
     >
       {/* ── Portfolio hero ── */}
+      {!isLoading && (
       <View style={[s.hero, { backgroundColor: colors.primary }]}>
         <Text style={s.heroEyebrow}>PORTEFEUILLE TOTAL</Text>
         <Text style={s.heroAmount}>{fmt(portfolioTotal)}</Text>
@@ -125,8 +209,10 @@ export const AccountsScreen: React.FC = () => {
           </View>
         </View>
       </View>
+      )}
 
       {/* ── Filters ── */}
+      {!isLoading && (
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.filtersRow}>
         {FILTERS.map(({ key, label, icon }) => {
           const active = filter === key;
@@ -143,26 +229,23 @@ export const AccountsScreen: React.FC = () => {
           );
         })}
       </ScrollView>
+      )}
 
       {/* ── Section title ── */}
+      {!isLoading && (
       <View style={s.sectionRow}>
         <Text style={[s.sectionTitle, { color: colors.text }]}>{t("accounts.list")}</Text>
         <Text style={[s.sectionCount, { color: colors.text + "50" }]}>{filtered.length} compte{filtered.length > 1 ? "s" : ""}</Text>
       </View>
+      )}
 
       {/* ── States ── */}
-      {isLoading && (
-        <View style={s.loadingRow}>
-          {[1,2].map(i => (
-            <View key={i} style={[s.skeleton, { backgroundColor: colors.card, borderColor: colors.border }]} />
-          ))}
-        </View>
-      )}
+      {isLoading && <AccountsSkeleton colors={colors} />}
       {!!error && <EmptyState type="error" message={String(error)} onRetry={fetchData} style={{ marginTop: 20 }} />}
       {!isLoading && !error && accounts.length === 0 && <EmptyState type="empty" message="Aucun compte trouvé" style={{ marginTop: 20 }} />}
 
       {/* ── Account cards ── */}
-      {filtered.map((a) => {
+      {!isLoading && filtered.map((a) => {
         const credit = isCredit(a);
         const pct = portfolioTotal > 0 ? Math.round((parseAmount(a.balance) / portfolioTotal) * 100) : 0;
         const expanded = expandedId === a.id;
@@ -301,7 +384,6 @@ const s = StyleSheet.create({
 
   // Loading skeleton
   loadingRow: { paddingHorizontal: 16, gap: 12 },
-  skeleton: { height: 130, borderRadius: 20, borderWidth: 1 },
 
   // Account card
   card: {

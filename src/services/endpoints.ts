@@ -4,6 +4,8 @@ export const BASE_URL =
 //"https://zenithmobile-serveurreact-cedaiciprod.app.mgdigitalplus.com/api";
 "https://zenithmobile-serveurreact-cedaicitest.app.mgdigitalplus.com/api";
 
+export const CODECRYPTAGE = "Y}@128eVIXfoi7";
+
 export const ENDPOINTS = {
   LOGIN: "/auth/login",
   CLIENT_BY_COMPTE: "/auth/client-by-compte",
