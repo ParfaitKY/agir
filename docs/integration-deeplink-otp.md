@@ -1,95 +1,226 @@
-# Intégration du gestionnaire de lien OTP (Deep Link)
+# Intégration Deep Link OTP — `cedaici://api/auth/verify`
 
-## Où intégrer le code ?
+## Vue d'ensemble
 
-**Fichier cible : `src/app/navigation/AppNavigator.tsx`**
+Quand le serveur envoie un lien magique par SMS ou email, l'application l'intercepte, extrait l'OTP et l'UID, puis vérifie automatiquement la connexion sans que l'utilisateur ait à saisir quoi que ce soit.
 
-Ce fichier contient déjà un `handleDeepLink` complet dans le `useEffect` de `AppNavigator`.
-Il gère 3 cas (SMS, callback web, magic link). Il faut ajouter un **4ème cas** pour le lien OTP.
+**Format du lien :**
+
+```
+cedaici://api/auth/verify?token=<BASE64>&otp=<4_CHIFFRES>&uid=<USER_ID>&exp=<TIMESTAMP_UNIX>
+```
 
 ---
 
-## Emplacement exact
+## Fichiers modifiés
 
-Dans la fonction `handleDeepLink`, dans le bloc **"Ordre de priorité"**, **avant** le cas 1 (SMS) :
+| Fichier                                        | Rôle                                                     |
+| ---------------------------------------------- | -------------------------------------------------------- |
+| `app.json`                                     | Déclare le scheme `cedaici` et les intentFilters Android |
+| `src/app/navigation/AppNavigator.tsx`          | Intercepte et route le deep link                         |
+| `src/modules/auth/screens/OtpSimpleScreen.tsx` | Vérifie l'OTP et connecte l'utilisateur                  |
 
-```tsx
-// ── Ordre de priorité ───────────────────────────────────────────────
-const url = event.url;
+---
 
-// 👇 AJOUTER ICI — CAS 0 : Lien OTP direct (cedaici://api/auth/verify?token=...&otp=...&uid=...)
-if (url.includes("/auth/verify") && url.includes("otp=")) {
-  try {
-    const parsed = Linking.parse(url);
-    const otp = parsed.queryParams?.otp as string;
-    const uid = parsed.queryParams?.uid as string;
-    const exp = parsed.queryParams?.exp as string;
+## 1. `app.json` — Configuration du scheme
 
-    console.log("[DeepLink OTP] otp:", otp, "uid:", uid, "exp:", exp);
-
-    // Vérifier expiration
-    if (exp && Date.now() / 1000 > Number(exp)) {
-      Alert.alert("Lien expiré", "Ce lien OTP n'est plus valide.");
-      return;
-    }
-
-    if (!otp || !uid) {
-      Alert.alert("Lien invalide", "Paramètres OTP manquants.");
-      return;
-    }
-
-    // Appeler l'endpoint verify-otp-simple
-    const response = await fetch(`${BASE_URL}/auth/verify-otp-simple`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ user_id: uid, otp_code: otp }),
-    });
-    const data = await response.json();
-
-    if (data?.success) {
-      await markConfigured(true);
-      navigation.reset({ index: 0, routes: [{ name: "Main" }] });
-    } else {
-      Alert.alert("❌ Erreur", data?.message || "Code OTP invalide.");
-    }
-  } catch (e) {
-    console.error("[DeepLink OTP] Erreur:", e);
-    Alert.alert("Erreur", "Impossible de traiter ce lien OTP.");
+```json
+"scheme": "cedaici",
+"android": {
+  "intentFilters": [{
+    "action": "VIEW",
+    "data": [{ "scheme": "cedaici", "host": "api", "pathPrefix": "/auth/verify" }],
+    "category": ["BROWSABLE", "DEFAULT"]
+  }]
+},
+"ios": {
+  "infoPlist": {
+    "CFBundleURLTypes": [{ "CFBundleURLSchemes": ["cedaici"] }]
   }
-  return;
 }
-
-// 1. SMS / WhatsApp (déjà existant)
-if (url.includes("verify-sms") || url.includes("sms-verify")) {
-  ...
 ```
+
+**Ce que ça fait :**
+
+- Sur Android, le système OS intercepte les URLs `cedaici://api/auth/verify*` et ouvre l'app automatiquement.
+- Sur iOS, le scheme `cedaici://` est enregistré auprès du système.
 
 ---
 
-## Import à ajouter en haut du fichier
+## 2. `AppNavigator.tsx` — Interception du lien
 
-`Linking` est déjà importé dans `AppNavigator.tsx` via React Native :
+### Où c'est placé
+
+Dans le `useEffect` qui écoute `Linking.addEventListener("url", handleDeepLink)`, **avant** tous les autres cas (priorité 0).
+
+### Le code
+
+```typescript
+// 0. Magic link avec OTP intégré
+if (url.includes("/auth/verify")) {
+  const tokenMatch = /[?&]token=([^&#]*)/.exec(url);
+  const otpMatch = /[?&]otp=([^&#]*)/.exec(url);
+  const uidMatch = /[?&]uid=([^&#]*)/.exec(url);
+  const expMatch = /[?&]exp=([^&#]*)/.exec(url);
+
+  const token = tokenMatch ? decodeURIComponent(tokenMatch[1]) : null;
+  const otp = otpMatch[1];
+  const uid = uidMatch[1];
+  const exp = Number(expMatch[1]);
+
+  // Vérifier expiration
+  if (exp && Date.now() / 1000 > exp) {
+    Alert.alert("Lien expiré", "...");
+    return;
+  }
+
+  // Naviguer vers OtpSimpleScreen avec les params
+  navigation.reset({
+    index: 0,
+    routes: [
+      {
+        name: "OtpSimple",
+        params: { user_id: uid, debug_otp: otp, from_deeplink: true, token },
+      },
+    ],
+  });
+}
+```
+
+### Étapes détaillées
+
+1. **Détection** — vérifie si l'URL contient `/auth/verify`
+2. **Extraction** — regex sur chaque paramètre (`token`, `otp`, `uid`, `exp`)
+3. **Décodage** — `decodeURIComponent` sur le token (qui est encodé en Base64 URL-safe)
+4. **Vérification d'expiration** — compare `exp` (timestamp Unix en secondes) avec `Date.now() / 1000`
+5. **Navigation** — `navigation.reset()` vers `OtpSimple` pour éviter que l'utilisateur puisse revenir en arrière
+
+---
+
+## 3. `OtpSimpleScreen.tsx` — Vérification automatique
+
+### Nouveaux params reçus
+
+| Param           | Type      | Description                              |
+| --------------- | --------- | ---------------------------------------- |
+| `user_id`       | `string`  | ID de l'utilisateur (ex: `100000002495`) |
+| `debug_otp`     | `string`  | Code OTP à 4 chiffres (ex: `6784`)       |
+| `from_deeplink` | `boolean` | `true` si vient d'un lien magique        |
+| `token`         | `string`  | Token JWT décodé (pour usage futur)      |
+
+### Auto-submit
+
+```typescript
+const fromDeeplink: boolean = route.params?.from_deeplink === true;
+
+useEffect(() => {
+  if (
+    fromDeeplink &&
+    debugOtp &&
+    debugOtp.replace(/\D/g, "").length === DIGITS
+  ) {
+    const digits = debugOtp.replace(/\D/g, "").slice(0, DIGITS);
+    const filled = digits
+      .split("")
+      .concat(Array(DIGITS).fill(""))
+      .slice(0, DIGITS);
+    setValues(filled); // Remplit visuellement les cases
+    setTimeout(() => submitOtp(digits), 400); // Soumet après 400ms
+  }
+}, []);
+```
+
+**Pourquoi 400ms ?** Pour laisser le temps au composant de se monter et à l'animation de s'afficher avant de lancer la requête.
+
+### Flux de vérification (`submitOtp`)
+
+```
+OtpSimpleScreen
+    │
+    ├─ POST /api/auth/verify-otp-simple
+    │     { user_id, otp_code }
+    │
+    ├─ Succès ──► Sauvegarde token + client_id + login
+    │             markConfigured(true)
+    │             navigation.reset → "Main" (Dashboard)
+    │
+    └─ Échec ──► Affiche l'erreur
+                 L'utilisateur peut saisir manuellement
+```
+
+### Subtitle adaptatif
 
 ```tsx
-import { Linking } from "react-native"; // ✅ déjà présent
+{
+  fromDeeplink
+    ? "Vérification automatique de votre lien de connexion…"
+    : `Saisissez le code à ${DIGITS} chiffres\nreçu par SMS ou e-mail.`;
+}
 ```
 
 ---
 
-## Résumé du flux
+## 4. Flux complet end-to-end
 
 ```
-SMS reçu → lien cedaici://api/auth/verify?token=...&otp=6784&uid=100000002495&exp=...
-    └── App ouverte → handleDeepLink()
-            └── Détecte "/auth/verify" + "otp="
-                    └── POST /auth/verify-otp-simple { user_id, otp_code }
-                            ├── success → markConfigured(true) → Dashboard
-                            └── erreur  → Alert message serveur
+Serveur envoie SMS/email
+        │
+        ▼
+Utilisateur clique sur le lien
+cedaici://api/auth/verify?token=...&otp=6784&uid=100000002495&exp=1776451623
+        │
+        ▼
+OS Android/iOS intercepte → ouvre l'app
+        │
+        ▼
+AppNavigator.handleDeepLink()
+  ├─ Vérifie /auth/verify ✓
+  ├─ Extrait token, otp, uid, exp
+  ├─ Vérifie exp > now ✓
+  └─ navigation.reset → OtpSimpleScreen
+        │
+        ▼
+OtpSimpleScreen monte
+  ├─ from_deeplink=true → useEffect déclenché
+  ├─ Cases OTP remplies visuellement (6784)
+  ├─ submitOtp("6784") après 400ms
+  └─ POST /api/auth/verify-otp-simple
+        │
+        ▼
+Réponse serveur success=true
+  ├─ Sauvegarde auth_token, client_id, user_login
+  ├─ markConfigured(true)
+  └─ navigation.reset → Main (Dashboard)
 ```
 
 ---
 
-## Note importante
+## 5. Cas d'erreur gérés
 
-Ne pas remplacer le code existant dans `handleDeepLink` — juste **insérer le nouveau cas avant le cas 1**.
-Les cas existants (SMS, callback web, magic link) restent inchangés.
+| Cas                          | Comportement                                                     |
+| ---------------------------- | ---------------------------------------------------------------- |
+| Lien expiré (`exp < now`)    | Alert "Lien expiré" + arrêt                                      |
+| `uid` ou `otp` manquant      | Alert "Lien invalide" + arrêt                                    |
+| OTP rejeté par le serveur    | Affiche l'erreur, cases réinitialisées, saisie manuelle possible |
+| App fermée au moment du clic | `Linking.getInitialURL()` récupère l'URL au démarrage            |
+
+---
+
+## 6. Tester
+
+### Android (via ADB)
+
+```bash
+adb shell am start -W -a android.intent.action.VIEW \
+  -d "cedaici://api/auth/verify?token=MTAwMDAwMDAyNDk1fDY3ODR8NTQ1NjY2NTU2NTZ8MTc3NjQ1MTYyM3xlM2M2NGVlNTMyZDA4NjdkMmU5ZjZiM2RlNWQ1YTU2Nw%3D%3D&otp=6784&uid=100000002495&exp=9999999999" \
+  com.cedaici.mobile
+```
+
+### iOS (simulateur)
+
+```bash
+xcrun simctl openurl booted \
+  "cedaici://api/auth/verify?token=TEST&otp=6784&uid=100000002495&exp=9999999999"
+```
+
+> **Note :** Utiliser `exp=9999999999` (année 2286) pour les tests afin d'éviter l'expiration.

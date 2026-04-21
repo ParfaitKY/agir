@@ -413,10 +413,9 @@ export const AppNavigator: React.FC = () => {
             console.log("[DeepLink Web] Token reçu, vérification...");
             const clientInfo = await fetchClientInfo({ authtoken });
             if (!clientInfo) {
-              Alert.alert(
-                "Session expirée",
-                "Le lien de connexion n'est plus valide.",
-              );
+              // Fallback silencieux vers PinLogin
+              await markConfigured(true);
+              navigation.reset({ index: 0, routes: [{ name: "PinLogin" }] });
               return;
             }
             if (clientInfo?.token_info?.autoplay === false) {
@@ -435,18 +434,137 @@ export const AppNavigator: React.FC = () => {
 
         // ── Ordre de priorité ───────────────────────────────────────────────
         const url = event.url;
+        let handled = false;
+
+        // 0. Magic link : cedaici://api/auth/verify?token=...&[otp=...]&[uid=...]&[exp=...]
+        if (url.includes("/auth/verify") || url.includes("auth/verify")) {
+          handled = true;
+          try {
+            const tokenMatch = /[?&]token=([^&#]*)/.exec(url);
+            const otpMatch   = /[?&]otp=([^&#]*)/.exec(url);
+            const uidMatch   = /[?&]uid=([^&#]*)/.exec(url);
+            const expMatch   = /[?&]exp=([^&#]*)/.exec(url);
+
+            const token = tokenMatch ? decodeURIComponent(tokenMatch[1]) : null;
+            const otp   = otpMatch   ? otpMatch[1]   : null;
+            const uid   = uidMatch   ? uidMatch[1]   : null;
+            const exp   = expMatch   ? Number(expMatch[1]) : null;
+
+            console.log("[DeepLink OTP] token:", token?.slice(0, 30), "otp:", otp, "uid:", uid, "exp:", exp);
+
+            // Vérifier expiration
+            if (exp && Date.now() / 1000 > exp) {
+              Alert.alert("Lien expiré", "Ce lien de connexion n'est plus valide. Veuillez en demander un nouveau.");
+              return;
+            }
+
+            // ── CAS A : lien avec OTP explicite (token + otp + uid) ──────────
+            if (uid && otp) {
+              navigation.reset({
+                index: 0,
+                routes: [{
+                  name: "OtpSimple",
+                  params: { user_id: uid, debug_otp: otp, from_deeplink: true, token },
+                }],
+              });
+              return;
+            }
+
+            // ── CAS B : lien avec token JWT seul (sans otp) ──────────────────
+            if (token) {
+              console.log("[DeepLink] Token-only link, verifying via fetchClientInfo...");
+              console.log("[DeepLink] Token (50 chars):", token.slice(0, 50));
+
+              const clientInfo = await fetchClientInfo({ authtoken: token });
+
+              console.log("[DeepLink] fetchClientInfo result:", JSON.stringify(clientInfo)?.slice(0, 200));
+
+              const { secureSetItem } = require("../../shared/utils/secureStorage");
+
+              if (!clientInfo || clientInfo === false) {
+                // fetchClientInfo a échoué — on sauvegarde le token brut et on tente PinLogin
+                console.warn("[DeepLink] fetchClientInfo failed, fallback to PinLogin");
+                await secureSetItem("auth_token_init", token);
+                await markConfigured(true);
+                navigation.reset({ index: 0, routes: [{ name: "PinLogin" }] });
+                return;
+              }
+
+              // Extraire les données du client depuis la réponse
+              const normalize = (r: any) => {
+                const d = r?.data ?? r;
+                if (Array.isArray(d)) return d[0] ?? {};
+                if (Array.isArray(d?.data)) return d.data[0] ?? {};
+                if (d?.data && typeof d.data === "object") return d.data;
+                return d ?? {};
+              };
+              const block = normalize(clientInfo);
+
+              const loginCandidate = block.SL_LOGIN ?? block.LOGIN ?? block.login ?? block.username ?? block.USER_LOGIN ?? "";
+              const clientId = block.CL_IDCLIENT ?? block.CL_CODECLIENT ?? block.client_id ?? block.id ?? "";
+              const authToken = block.access_token ?? block.token ?? block.jwt ?? token;
+              const fn = block.CL_PRENOMCLIENT ?? block.PRENOM ?? block.firstName ?? "";
+              const ln = block.CL_NOMCLIENT ?? block.NOM ?? block.lastName ?? "";
+              const email = block.CL_EMAILCLIENT ?? block.EMAIL ?? block.email ?? "";
+              const phone = block.CL_TELEPHONECLIENT ?? block.TELEPHONE ?? block.phone ?? "";
+              const agency = block.AG_CODEAGENCE ?? block.CODE_AGENCE ?? "";
+              const workDate = block.JT_DATEJOURNEETRAVAIL ?? block.WORK_DATE ?? "";
+              const accountNumber = block.CO_CODECOMPTE ?? block.NUMEROCOMPTE ?? "";
+
+              const name = `${fn} ${ln}`.trim() || loginCandidate;
+              const finalUser = { id: loginCandidate, username: loginCandidate, name, email };
+
+              // Sauvegarder TOUT avant markConfigured pour que la session soit restaurée
+              if (authToken) await secureSetItem("auth_token", String(authToken));
+              if (loginCandidate) await secureSetItem("user_login", String(loginCandidate));
+              if (clientId) await secureSetItem("client_id", String(clientId));
+              if (email) await secureSetItem("user_email", String(email));
+              if (phone) await secureSetItem("user_phone", String(phone));
+              if (agency) await secureSetItem("user_agency", String(agency));
+              if (workDate) await secureSetItem("work_date", String(workDate));
+              if (accountNumber) await secureSetItem("user_account_number", String(accountNumber));
+              await secureSetItem("user_data", JSON.stringify(finalUser));
+
+              // markConfigured va détecter auth_token + user_data et appeler setIsAuthenticated(true)
+              await markConfigured(true);
+
+              // Si le serveur renvoie un OTP → OtpSimpleScreen
+              const serverOtp = (clientInfo as any)?.otp ?? (clientInfo as any)?.data?.otp ?? null;
+              const serverUid = uid ?? (clientInfo as any)?.uid ?? (clientInfo as any)?.data?.uid ?? loginCandidate ?? "";
+
+              if (serverOtp && serverUid) {
+                navigation.reset({
+                  index: 0,
+                  routes: [{ name: "OtpSimple", params: { user_id: String(serverUid), debug_otp: String(serverOtp), from_deeplink: true, token } }],
+                });
+              } else if ((clientInfo as any)?.token_info?.autoplay === false) {
+                navigation.reset({ index: 0, routes: [{ name: "PinLogin" }] });
+              } else {
+                // Connexion directe au dashboard
+                navigation.reset({ index: 0, routes: [{ name: "Main" }] });
+              }
+              return;
+            }
+
+            Alert.alert("Lien invalide", "Paramètres manquants dans le lien.");
+            return;
+          } catch (e) {
+            console.error("[DeepLink OTP] Erreur:", e);
+          }
+        }
 
         // 1. SMS / WhatsApp
-        if (url.includes("verify-sms") || url.includes("sms-verify")) {
+        if (!handled && (url.includes("verify-sms") || url.includes("sms-verify"))) {
           await handleSmsDeepLink(url);
           return;
         }
 
         // 2. Callback web email
         if (
-          url.includes("callback") ||
+          !handled &&
+          (url.includes("callback") ||
           url.includes("web-verify") ||
-          url.includes("auth-success")
+          url.includes("auth-success"))
         ) {
           await handleWebCallbackDeepLink(url);
           return;
@@ -457,7 +575,7 @@ export const AppNavigator: React.FC = () => {
         const match = regex.exec(url);
         const token = match ? match[1] : null;
 
-        if (token) {
+        if (!handled && token) {
           console.log("[DeepLink] Token found, verifying...");
           const clientInfo = await fetchClientInfo({ authtoken: token });
 
