@@ -147,7 +147,12 @@ export const TransactionsScreen: React.FC = () => {
       const agency = (await secureGetItem("user_agency")) || "1000";
       const accountCode = (await secureGetItem("user_account_number")) || "";
 
-      if (!token) { setError("Identifiants manquants"); return; }
+      if (!token) { 
+        setError("Session expirée. Veuillez vous reconnecter.");
+        setLoading(false);
+        setRefreshing(false);
+        return; 
+      }
 
       const today = new Date();
       const dd = String(today.getDate()).padStart(2, "0");
@@ -169,7 +174,10 @@ export const TransactionsScreen: React.FC = () => {
 
       if (result?.error) {
         const err: any = result.error;
-        setError(err?.response?.data?.message || err?.message || "Erreur");
+        const errorMsg = err?.response?.data?.message || err?.message || "Erreur lors du chargement des transactions";
+        setError(errorMsg);
+        setLoading(false);
+        setRefreshing(false);
         return;
       }
 
@@ -228,7 +236,8 @@ export const TransactionsScreen: React.FC = () => {
 
       setItems(unique);
     } catch (e: any) {
-      setError(e?.message || "Erreur réseau");
+      console.error("[TransactionsScreen] Error loading transactions:", e);
+      setError(e?.message || "Erreur réseau. Veuillez réessayer.");
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -292,36 +301,32 @@ export const TransactionsScreen: React.FC = () => {
               const countIn  = items.filter(x => x.type === "entree").length;
               const countOut = items.filter(x => x.type === "sortie").length;
               return (
-                <View style={styles.statsRow}>
-                  <View style={[styles.statCard, { backgroundColor: colors.success + "12", borderColor: colors.success + "30" }]}>
-                    <View style={[styles.statIconWrap, { backgroundColor: colors.success + "20" }]}>
-                      <Ionicons name="arrow-down" size={16} color={colors.success} />
+                <View style={styles.statsRowCompact}>
+                  <View style={[styles.statCompact, { borderLeftColor: colors.success }]}>
+                    <View style={styles.statCompactRow}>
+                      <Ionicons name="arrow-down" size={14} color={colors.success} />
+                      <Text style={[styles.statCompactLabel, { color: colors.text + "60" }]}>Entrées</Text>
                     </View>
-                    <View style={styles.statTexts}>
-                      <Text style={[styles.statLabel, { color: colors.text + "55" }]}>Entrées</Text>
-                      <Text style={[styles.statAmount, { color: colors.success }]}>+{fmt(totalIn)}</Text>
-                      <Text style={[styles.statCount, { color: colors.text + "40" }]}>{countIn} opération{countIn > 1 ? "s" : ""}</Text>
-                    </View>
+                    <Text style={[styles.statCompactAmount, { color: colors.success }]}>+{fmt(totalIn)}</Text>
+                    <Text style={[styles.statCompactCount, { color: colors.text + "40" }]}>{countIn} op.</Text>
                   </View>
-                  <View style={[styles.statCard, { backgroundColor: colors.error + "12", borderColor: colors.error + "30" }]}>
-                    <View style={[styles.statIconWrap, { backgroundColor: colors.error + "20" }]}>
-                      <Ionicons name="arrow-up" size={16} color={colors.error} />
+                  
+                  <View style={[styles.statCompact, { borderLeftColor: colors.error }]}>
+                    <View style={styles.statCompactRow}>
+                      <Ionicons name="arrow-up" size={14} color={colors.error} />
+                      <Text style={[styles.statCompactLabel, { color: colors.text + "60" }]}>Sorties</Text>
                     </View>
-                    <View style={styles.statTexts}>
-                      <Text style={[styles.statLabel, { color: colors.text + "55" }]}>Sorties</Text>
-                      <Text style={[styles.statAmount, { color: colors.error }]}>-{fmt(totalOut)}</Text>
-                      <Text style={[styles.statCount, { color: colors.text + "40" }]}>{countOut} opération{countOut > 1 ? "s" : ""}</Text>
-                    </View>
+                    <Text style={[styles.statCompactAmount, { color: colors.error }]}>-{fmt(totalOut)}</Text>
+                    <Text style={[styles.statCompactCount, { color: colors.text + "40" }]}>{countOut} op.</Text>
                   </View>
-                  <View style={[styles.statCard, { backgroundColor: colors.primary + "12", borderColor: colors.primary + "30" }]}>
-                    <View style={[styles.statIconWrap, { backgroundColor: colors.primary + "20" }]}>
-                      <Ionicons name="swap-horizontal" size={16} color={colors.primary} />
+                  
+                  <View style={[styles.statCompact, { borderLeftColor: colors.primary }]}>
+                    <View style={styles.statCompactRow}>
+                      <Ionicons name="list" size={14} color={colors.primary} />
+                      <Text style={[styles.statCompactLabel, { color: colors.text + "60" }]}>Total</Text>
                     </View>
-                    <View style={styles.statTexts}>
-                      <Text style={[styles.statLabel, { color: colors.text + "55" }]}>Total</Text>
-                      <Text style={[styles.statAmount, { color: colors.primary }]}>{items.length}</Text>
-                      <Text style={[styles.statCount, { color: colors.text + "40" }]}>transactions</Text>
-                    </View>
+                    <Text style={[styles.statCompactAmount, { color: colors.primary }]}>{items.length}</Text>
+                    <Text style={[styles.statCompactCount, { color: colors.text + "40" }]}>transactions</Text>
                   </View>
                 </View>
               );
@@ -472,7 +477,20 @@ const styles = StyleSheet.create({
   txTypeBadge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8 },
   txTypeBadgeText: { fontSize: 10, fontWeight: "700" },
 
-  // Stats summary
+  // Stats summary - Compact version
+  statsRowCompact: { flexDirection: "row", gap: 10, paddingHorizontal: 16, marginTop: 12, marginBottom: 8 },
+  statCompact: {
+    flex: 1, 
+    borderLeftWidth: 3, 
+    paddingLeft: 10, 
+    paddingVertical: 8,
+  },
+  statCompactRow: { flexDirection: "row", alignItems: "center", gap: 4, marginBottom: 4 },
+  statCompactLabel: { fontSize: 10, fontWeight: "600", textTransform: "uppercase", letterSpacing: 0.3 },
+  statCompactAmount: { fontSize: 15, fontWeight: "800", letterSpacing: -0.5, marginBottom: 2 },
+  statCompactCount: { fontSize: 9, fontWeight: "500" },
+
+  // Old stats (kept for reference, can be removed)
   statsRow: { flexDirection: "row", gap: 8, paddingHorizontal: 16, marginTop: 12, marginBottom: 4 },
   statCard: {
     flex: 1, borderRadius: 16, borderWidth: 1, padding: 12, gap: 6,

@@ -8,57 +8,107 @@ import {
   TextInput,
   ScrollView,
   Dimensions,
+  Alert,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import AddBeneficiaireModal from "./AddBeneficiaireModal";
 import { useI18n } from "../../../app/providers/I18nProvider";
 import { useTheme } from "../../../shared/styles/ThemeProvider";
+import { useBeneficiaires, Beneficiaire } from "../../../domain/beneficiaires/useBeneficiaires";
+import { useNavigation } from "@react-navigation/native";
 
 const { width } = Dimensions.get("window");
-
-interface Contact {
-  initial: string;
-  name: string;
-  id: string;
-  bank: string;
-  amount: string;
-  time: string;
-  favorite: boolean;
-  color: string;
-}
-
-const CONTACTS: Contact[] = [
-  { initial: "M",  name: "MOUPEPIDI",     id: "100000031002", bank: "CEDAICI SA",   amount: "50 000",  time: "2j",    favorite: true,  color: "#EF4444" },
-  { initial: "D",  name: "DERLY",         id: "100000031003", bank: "NSIA Banque",  amount: "125 000", time: "1sem",  favorite: true,  color: "#10B981" },
-  { initial: "MK", name: "MARIE KOUASSI", id: "200000045001", bank: "Autre Banque", amount: "30 000",  time: "1mois", favorite: false, color: "#F59E0B" },
-  { initial: "JT", name: "JEAN TRAORE",   id: "100000031004", bank: "SGBCI",        amount: "70 000",  time: "3sem",  favorite: false, color: "#8B5CF6" },
-];
 
 const BeneficiairesPage: React.FC = () => {
   const { t } = useI18n();
   const { colors } = useTheme();
+  const navigation = useNavigation();
+  const { 
+    beneficiaires, 
+    isLoading, 
+    stats, 
+    addBeneficiaire, 
+    deleteBeneficiaire, 
+    toggleFavorite,
+    getInitials 
+  } = useBeneficiaires();
+  
   const [showAddModal, setShowAddModal] = useState(false);
   const [activeTab, setActiveTab] = useState<"all" | "fav">("all");
   const [search, setSearch] = useState("");
 
-  const filtered = CONTACTS.filter((c) => {
+  const filtered = beneficiaires.filter((c) => {
     const matchTab = activeTab === "fav" ? c.favorite : true;
     const matchSearch =
       c.name.toLowerCase().includes(search.toLowerCase()) ||
-      c.id.includes(search);
+      c.accountNumber.includes(search);
     return matchTab && matchSearch;
   });
 
-  const favCount = CONTACTS.filter((c) => c.favorite).length;
-  const totalK = Math.round(
-    CONTACTS.reduce((acc, c) => acc + parseInt(c.amount.replace(/\D/g, "")), 0) / 1000
-  );
+  const handleAddBeneficiaire = async (data: any) => {
+    const result = await addBeneficiaire(data);
+    if (result.success) {
+      setShowAddModal(false);
+      Alert.alert("Succès", "Bénéficiaire ajouté avec succès");
+    } else {
+      Alert.alert("Erreur", result.error || "Impossible d'ajouter le bénéficiaire");
+    }
+  };
+
+  const handleDeleteBeneficiaire = (id: string, name: string) => {
+    Alert.alert(
+      "Supprimer le bénéficiaire",
+      `Voulez-vous vraiment supprimer ${name} ?`,
+      [
+        { text: "Annuler", style: "cancel" },
+        {
+          text: "Supprimer",
+          style: "destructive",
+          onPress: async () => {
+            const result = await deleteBeneficiaire(id);
+            if (!result.success) {
+              Alert.alert("Erreur", result.error || "Impossible de supprimer");
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const handleToggleFavorite = async (id: string) => {
+    await toggleFavorite(id);
+  };
+
+  const handleTransfer = (beneficiaire: Beneficiaire) => {
+    // Naviguer vers l'écran de virement avec le bénéficiaire pré-rempli
+    (navigation as any).navigate("Transfer", {
+      beneficiary: {
+        accountNumber: beneficiaire.accountNumber,
+        name: beneficiaire.name,
+        bank: beneficiaire.bank,
+      },
+    });
+  };
+
+  const getTimeAgo = (dateString?: string) => {
+    if (!dateString) return "";
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    
+    if (diffDays === 0) return "Aujourd'hui";
+    if (diffDays === 1) return "Hier";
+    if (diffDays < 7) return `${diffDays}j`;
+    if (diffDays < 30) return `${Math.floor(diffDays / 7)}sem`;
+    return `${Math.floor(diffDays / 30)}mois`;
+  };
 
   return (
     <View style={[s.root, { backgroundColor: colors.background }]}>
       <FlatList
         data={filtered}
-        keyExtractor={(_, i) => String(i)}
+        keyExtractor={(item) => item.id}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={s.list}
         keyboardShouldPersistTaps="handled"
@@ -66,13 +116,15 @@ const BeneficiairesPage: React.FC = () => {
           <Header
             colors={colors}
             t={t}
-            favCount={favCount}
-            totalK={totalK}
+            stats={stats}
+            beneficiaires={beneficiaires}
             activeTab={activeTab}
             setActiveTab={setActiveTab}
             search={search}
             setSearch={setSearch}
             onAdd={() => setShowAddModal(true)}
+            onTransfer={handleTransfer}
+            getInitials={getInitials}
           />
         }
         ListEmptyComponent={
@@ -85,7 +137,16 @@ const BeneficiairesPage: React.FC = () => {
           </View>
         }
         renderItem={({ item, index }) => (
-          <ContactCard contact={item} colors={colors} index={index} />
+          <ContactCard 
+            contact={item} 
+            colors={colors} 
+            index={index}
+            onToggleFavorite={handleToggleFavorite}
+            onDelete={handleDeleteBeneficiaire}
+            onTransfer={handleTransfer}
+            getInitials={getInitials}
+            getTimeAgo={getTimeAgo}
+          />
         )}
         ListFooterComponent={<View style={{ height: 100 }} />}
       />
@@ -102,25 +163,27 @@ const BeneficiairesPage: React.FC = () => {
       <AddBeneficiaireModal
         visible={showAddModal}
         onClose={() => setShowAddModal(false)}
-        onAdd={(benef) => { setShowAddModal(false); }}
+        onAdd={handleAddBeneficiaire}
       />
     </View>
   );
 };
 
 /* ── Header ── */
-function Header({ colors, t, favCount, totalK, activeTab, setActiveTab, search, setSearch, onAdd }: any) {
+function Header({ colors, t, stats, beneficiaires, activeTab, setActiveTab, search, setSearch, onAdd, onTransfer, getInitials }: any) {
+  const totalK = Math.round(stats.totalTransferred / 1000);
+  
   return (
     <View>
       {/* Top summary */}
       <View style={[s.summary, { backgroundColor: colors.card, borderColor: colors.border }]}>
         <View style={s.summaryLeft}>
-          <Text style={[s.summaryCount, { color: colors.text }]}>{CONTACTS.length}</Text>
+          <Text style={[s.summaryCount, { color: colors.text }]}>{stats.total}</Text>
           <Text style={[s.summaryLabel, { color: colors.text + "60" }]}>bénéficiaires</Text>
         </View>
         <View style={s.summaryDivider} />
         <View style={s.summaryMid}>
-          <Text style={[s.summaryCount, { color: "#F59E0B" }]}>{favCount}</Text>
+          <Text style={[s.summaryCount, { color: "#F59E0B" }]}>{stats.favorites}</Text>
           <Text style={[s.summaryLabel, { color: colors.text + "60" }]}>favoris</Text>
         </View>
         <View style={s.summaryDivider} />
@@ -134,38 +197,42 @@ function Header({ colors, t, favCount, totalK, activeTab, setActiveTab, search, 
       </View>
 
       {/* Quick access */}
-      <Text style={[s.section, { color: colors.text }]}>Accès rapide</Text>
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={s.quickRow}
-      >
-        {CONTACTS.map((c, i) => (
-          <TouchableOpacity key={i} style={s.quickItem}>
-            <View style={[s.quickRing, { borderColor: c.color + "50" }]}>
-              <View style={[s.quickAvatar, { backgroundColor: c.color }]}>
-                <Text style={s.quickInitial}>{c.initial}</Text>
+      {beneficiaires.length > 0 && (
+        <>
+          <Text style={[s.section, { color: colors.text }]}>Accès rapide</Text>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={s.quickRow}
+          >
+            {beneficiaires.slice(0, 6).map((c: any) => (
+              <TouchableOpacity key={c.id} style={s.quickItem} onPress={() => onTransfer(c)}>
+                <View style={[s.quickRing, { borderColor: c.color + "50" }]}>
+                  <View style={[s.quickAvatar, { backgroundColor: c.color }]}>
+                    <Text style={s.quickInitial}>{getInitials(c.name)}</Text>
+                  </View>
+                </View>
+                {c.favorite && (
+                  <View style={[s.quickStar, { backgroundColor: colors.background }]}>
+                    <Ionicons name="star" size={9} color="#F59E0B" />
+                  </View>
+                )}
+                <Text style={[s.quickName, { color: colors.text }]} numberOfLines={1}>
+                  {c.name.split(" ")[0]}
+                </Text>
+              </TouchableOpacity>
+            ))}
+            <TouchableOpacity style={s.quickItem} onPress={onAdd}>
+              <View style={[s.quickRing, { borderColor: colors.border }]}>
+                <View style={[s.quickAvatar, { backgroundColor: colors.card }]}>
+                  <Ionicons name="add" size={20} color={colors.primary} />
+                </View>
               </View>
-            </View>
-            {c.favorite && (
-              <View style={[s.quickStar, { backgroundColor: colors.background }]}>
-                <Ionicons name="star" size={9} color="#F59E0B" />
-              </View>
-            )}
-            <Text style={[s.quickName, { color: colors.text }]} numberOfLines={1}>
-              {c.name.split(" ")[0]}
-            </Text>
-          </TouchableOpacity>
-        ))}
-        <TouchableOpacity style={s.quickItem} onPress={onAdd}>
-          <View style={[s.quickRing, { borderColor: colors.border }]}>
-            <View style={[s.quickAvatar, { backgroundColor: colors.card }]}>
-              <Ionicons name="add" size={20} color={colors.primary} />
-            </View>
-          </View>
-          <Text style={[s.quickName, { color: colors.primary }]}>Ajouter</Text>
-        </TouchableOpacity>
-      </ScrollView>
+              <Text style={[s.quickName, { color: colors.primary }]}>Ajouter</Text>
+            </TouchableOpacity>
+          </ScrollView>
+        </>
+      )}
 
       {/* Search */}
       <View style={[s.searchWrap, { backgroundColor: colors.card, borderColor: colors.border }]}>
@@ -188,6 +255,7 @@ function Header({ colors, t, favCount, totalK, activeTab, setActiveTab, search, 
       <View style={[s.tabWrap, { backgroundColor: colors.card, borderColor: colors.border }]}>
         {(["all", "fav"] as const).map((tab) => {
           const active = activeTab === tab;
+          const count = tab === "all" ? stats.total : stats.favorites;
           return (
             <TouchableOpacity
               key={tab}
@@ -195,30 +263,54 @@ function Header({ colors, t, favCount, totalK, activeTab, setActiveTab, search, 
               onPress={() => setActiveTab(tab)}
             >
               <Text style={[s.tabText, { color: active ? "#fff" : colors.text + "55" }]}>
-                {tab === "all"
-                  ? `Tous (${CONTACTS.length})`
-                  : `Favoris (${favCount})`}
+                {tab === "all" ? `Tous (${count})` : `Favoris (${count})`}
               </Text>
             </TouchableOpacity>
           );
         })}
       </View>
 
-      <Text style={[s.listLabel, { color: colors.text + "40" }]}>
-        {CONTACTS.length} contact{CONTACTS.length > 1 ? "s" : ""}
-      </Text>
+      {beneficiaires.length > 0 && (
+        <Text style={[s.listLabel, { color: colors.text + "40" }]}>
+          {stats.total} contact{stats.total > 1 ? "s" : ""}
+        </Text>
+      )}
     </View>
   );
 }
 
 /* ── Contact card ── */
-function ContactCard({ contact, colors, index }: { contact: Contact; colors: any; index: number }) {
+function ContactCard({ 
+  contact, 
+  colors, 
+  index, 
+  onToggleFavorite, 
+  onDelete, 
+  onTransfer,
+  getInitials,
+  getTimeAgo 
+}: { 
+  contact: Beneficiaire; 
+  colors: any; 
+  index: number;
+  onToggleFavorite: (id: string) => void;
+  onDelete: (id: string, name: string) => void;
+  onTransfer: (contact: Beneficiaire) => void;
+  getInitials: (name: string) => string;
+  getTimeAgo: (date?: string) => string;
+}) {
+  const initial = getInitials(contact.name);
+  const timeAgo = getTimeAgo(contact.lastTransferDate);
+  const amount = contact.lastTransferAmount 
+    ? `${contact.lastTransferAmount.toLocaleString("fr-FR")} XOF`
+    : "Aucun transfert";
+
   return (
     <View style={[s.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
       {/* Avatar */}
       <View style={[s.avatarWrap, { backgroundColor: contact.color + "18" }]}>
         <View style={[s.avatar, { backgroundColor: contact.color }]}>
-          <Text style={s.avatarText}>{contact.initial}</Text>
+          <Text style={s.avatarText}>{initial}</Text>
         </View>
       </View>
 
@@ -227,24 +319,41 @@ function ContactCard({ contact, colors, index }: { contact: Contact; colors: any
         <View style={s.cardTopRow}>
           <Text style={[s.cardName, { color: colors.text }]}>{contact.name}</Text>
           <View style={s.cardTopRight}>
-            {contact.favorite && <Ionicons name="star" size={12} color="#F59E0B" style={{ marginRight: 6 }} />}
-            <Text style={[s.cardTime, { color: colors.text + "35" }]}>{contact.time}</Text>
+            <TouchableOpacity onPress={() => onToggleFavorite(contact.id)} style={{ marginRight: 6 }}>
+              <Ionicons 
+                name={contact.favorite ? "star" : "star-outline"} 
+                size={16} 
+                color={contact.favorite ? "#F59E0B" : colors.text + "40"} 
+              />
+            </TouchableOpacity>
+            {timeAgo && <Text style={[s.cardTime, { color: colors.text + "35" }]}>{timeAgo}</Text>}
           </View>
         </View>
-        <Text style={[s.cardId, { color: colors.text + "40" }]}>{contact.id}</Text>
+        <Text style={[s.cardId, { color: colors.text + "40" }]}>{contact.accountNumber}</Text>
         <View style={s.cardBottom}>
           <View style={[s.bankTag, { backgroundColor: colors.primary + "12" }]}>
             <Ionicons name="business-outline" size={10} color={colors.primary} />
             <Text style={[s.bankText, { color: colors.primary }]}>{contact.bank}</Text>
           </View>
-          <Text style={[s.cardAmount, { color: colors.text + "70" }]}>{contact.amount} XOF</Text>
+          <Text style={[s.cardAmount, { color: colors.text + "70" }]}>{amount}</Text>
         </View>
       </View>
 
-      {/* Action */}
-      <TouchableOpacity style={[s.sendBtn, { backgroundColor: contact.color }]}>
-        <Ionicons name="arrow-forward" size={15} color="#fff" />
-      </TouchableOpacity>
+      {/* Actions */}
+      <View style={s.cardActions}>
+        <TouchableOpacity 
+          style={[s.sendBtn, { backgroundColor: contact.color }]}
+          onPress={() => onTransfer(contact)}
+        >
+          <Ionicons name="arrow-forward" size={15} color="#fff" />
+        </TouchableOpacity>
+        <TouchableOpacity 
+          style={[s.deleteBtn, { backgroundColor: colors.error + "15" }]}
+          onPress={() => onDelete(contact.id, contact.name)}
+        >
+          <Ionicons name="trash-outline" size={14} color={colors.error} />
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }
@@ -316,7 +425,9 @@ const s = StyleSheet.create({
   bankTag: { flexDirection: "row", alignItems: "center", gap: 4, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8 },
   bankText: { fontSize: 10, fontWeight: "600" },
   cardAmount: { fontSize: 12, fontWeight: "600" },
+  cardActions: { gap: 6 },
   sendBtn: { width: 34, height: 34, borderRadius: 17, justifyContent: "center", alignItems: "center" },
+  deleteBtn: { width: 34, height: 34, borderRadius: 17, justifyContent: "center", alignItems: "center" },
 
   // Empty
   empty: { alignItems: "center", paddingVertical: 60, gap: 10 },

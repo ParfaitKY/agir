@@ -9,6 +9,7 @@ import { useI18n } from "../../../app/providers/I18nProvider";
 import { useTheme } from "../../../shared/styles/ThemeProvider";
 import { useVirement } from "../../../domain/compte/useVirement";
 import { useCompteStatistiques } from "../../../domain/compte/useCompteStatistiques";
+import { useBeneficiaires } from "../../../domain/beneficiaires/useBeneficiaires";
 import { secureGetItem } from "../../../shared/utils/secureStorage";
 
 export const TransferScreen: React.FC = () => {
@@ -23,6 +24,7 @@ export const TransferScreen: React.FC = () => {
   const [focusedField, setFocusedField] = useState<string | null>(null);
   const { submit, isLoading, error } = useVirement();
   const { data: compteStats, fetchData: fetchAccounts } = useCompteStatistiques();
+  const { recordTransfer } = useBeneficiaires();
   const [done, setDone] = useState(false);
   const [selectedAccount, setSelectedAccount] = useState<any>(null);
   const [confirmVisible, setConfirmVisible] = useState(false);
@@ -74,6 +76,12 @@ export const TransferScreen: React.FC = () => {
   React.useEffect(() => {
     const run = async () => {
       const params = route.params as any;
+      
+      // Si un bénéficiaire est passé en paramètre, pré-remplir le formulaire
+      if (params?.beneficiary) {
+        setDestinationAccount(sanitize(params.beneficiary.accountNumber || ""));
+      }
+      
       if (params?.account) {
         setSelectedAccount(params.account);
         setSourceAccount(sanitize(params.account.number));
@@ -335,6 +343,12 @@ export const TransferScreen: React.FC = () => {
                   setDone(false);
                   const ok = await submit({ emitter: sourceAccount, beneficiary: destinationAccount, amount });
                   setDone(ok);
+                  
+                  // Enregistrer le transfert dans les bénéficiaires si réussi
+                  if (ok) {
+                    const amountNum = Number(String(amount).replace(/[,\s]/g, ""));
+                    await recordTransfer(destinationAccount, amountNum);
+                  }
                 }}
               >
                 <Ionicons name="checkmark" size={18} color="#fff" />
