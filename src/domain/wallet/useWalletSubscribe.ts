@@ -95,7 +95,14 @@ export const useWalletSubscribe = () => {
       } as any;
       
       const result = await chargerPays(payload);
-      if (result.error) throw result.error;
+      if (result.error) {
+        // Gérer l'erreur 404 spécifiquement
+        const error: any = result.error;
+        if (error?.response?.status === 404 || error?.status === 404) {
+          throw new Error("Service de souscription temporairement indisponible. Veuillez contacter votre agence.");
+        }
+        throw result.error;
+      }
       
       const data: any = result.data;
       const list: ComboPays[] =
@@ -141,7 +148,14 @@ export const useWalletSubscribe = () => {
       } as any;
       
       const result = await listerComptes(payload);
-      if (result.error) throw result.error;
+      if (result.error) {
+        // Gérer l'erreur 404 spécifiquement
+        const error: any = result.error;
+        if (error?.response?.status === 404 || error?.status === 404) {
+          throw new Error("Service de souscription temporairement indisponible. Veuillez contacter votre agence.");
+        }
+        throw result.error;
+      }
       
       const data: any = result.data;
       const list: ComboCompte[] =
@@ -199,7 +213,14 @@ export const useWalletSubscribe = () => {
     } as any;
     
     const result = await demanderToken(payload);
-    if (result.error) throw result.error;
+    if (result.error) {
+      // Gérer l'erreur 404 spécifiquement
+      const error: any = result.error;
+      if (error?.response?.status === 404 || error?.status === 404) {
+        throw new Error("Service de souscription temporairement indisponible. Veuillez contacter votre agence.");
+      }
+      throw result.error;
+    }
     
     const data: any = result.data;
     const res = data?.pvgDemandeTokenResult || data?.data || {};
@@ -233,7 +254,14 @@ export const useWalletSubscribe = () => {
     } as any;
     
     const result = await souscrireMobileBanking(payload);
-    if (result.error) throw result.error;
+    if (result.error) {
+      // Gérer l'erreur 404 spécifiquement
+      const error: any = result.error;
+      if (error?.response?.status === 404 || error?.status === 404) {
+        throw new Error("Service de souscription temporairement indisponible. Veuillez contacter votre agence.");
+      }
+      throw result.error;
+    }
     
     const data: any = result.data;
     const res = data?.pvgSouscriptionMobileBankingResult || data?.data || {};

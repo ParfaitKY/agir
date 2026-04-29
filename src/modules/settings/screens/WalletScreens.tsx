@@ -20,10 +20,45 @@ const WalletScreens: React.FC = () => {
   const [showAccountPicker, setShowAccountPicker] = useState(false);
   const [pickerTarget, setPickerTarget] = useState<"wallet" | "bank">("bank");
   const [focusedField, setFocusedField] = useState<string | null>(null);
+  const [subscribedPhone, setSubscribedPhone] = useState(""); // Numéro de téléphone souscrit
 
   const { data: compteStats, fetchData } = useCompteStatistiques();
-  useEffect(() => { fetchData(); }, []);
+  useEffect(() => { 
+    fetchData(); 
+  }, []);
+  
   const accounts = compteStats?.COMPTES || [];
+  
+  // Initialiser le compte bancaire avec le premier compte (compte de souscription)
+  useEffect(() => {
+    if (accounts.length > 0 && !bankAccount) {
+      setBankAccount(String(accounts[0].NUMEROCOMPTE || ""));
+    }
+  }, [accounts]);
+  
+  // Récupérer le numéro de téléphone de l'utilisateur connecté
+  useEffect(() => {
+    const loadUserPhone = async () => {
+      try {
+        const { secureGetItem } = await import("../../../shared/utils/secureStorage");
+        // Récupérer le numéro de téléphone de l'utilisateur
+        const phone = await secureGetItem("user_phone") || 
+                      await secureGetItem("wallet_subscribed_phone") ||
+                      await secureGetItem("user_login");
+        
+        if (phone) {
+          setSubscribedPhone(phone);
+          setWalletNumber(phone);
+        } else {
+          setSubscribedPhone("Non disponible");
+        }
+      } catch (e) {
+        console.error("Error loading user phone:", e);
+        setSubscribedPhone("Non disponible");
+      }
+    };
+    loadUserPhone();
+  }, []);
 
   React.useLayoutEffect(() => {
     navigation.setOptions({
@@ -83,8 +118,8 @@ const WalletScreens: React.FC = () => {
         {/* ── Type selector ── */}
         <View style={ws.typeRow}>
           {([
-            { key: "walletToBank", icon: "arrow-up-circle", title: t("wallet.type.walletToBank.title"), sub: t("wallet.type.walletToBank.subtitle"), color: colors.primary },
-            { key: "bankToWallet", icon: "arrow-down-circle", title: t("wallet.type.bankToWallet.title"), sub: t("wallet.type.bankToWallet.subtitle"), color: colors.success },
+            { key: "walletToBank", icon: "arrow-up-circle", title: "Transfert vers compte CEDAICI", color: colors.primary },
+            { key: "bankToWallet", icon: "arrow-down-circle", title: "Transfert vers Mobile Money", color: colors.success },
           ] as const).map((opt) => {
             const active = transferType === opt.key;
             return (
@@ -98,7 +133,6 @@ const WalletScreens: React.FC = () => {
                   <Ionicons name={opt.icon as any} size={24} color={active ? "#fff" : opt.color} />
                 </View>
                 <Text style={[ws.typeTitle, { color: active ? "#fff" : colors.text }]}>{opt.title}</Text>
-                <Text style={[ws.typeSub, { color: active ? "rgba(255,255,255,0.7)" : colors.text + "55" }]}>{opt.sub}</Text>
               </TouchableOpacity>
             );
           })}
@@ -117,27 +151,29 @@ const WalletScreens: React.FC = () => {
         {isWalletToBank ? (
           <>
             <Field
-              label={t("wallet.form.walletSource.label")} icon="wallet-outline"
-              value={walletNumber} placeholder="Sélectionner…"
-              onPickerPress={() => { setPickerTarget("wallet"); setShowAccountPicker(true); }}
+              label="Numéro Wallet" icon="phone-portrait-outline"
+              value={subscribedPhone || "Non disponible"}
+              editable={false}
+              placeholder="Numéro de téléphone"
             />
             <Field
-              label={t("wallet.form.bankDest.label")} icon="business-outline"
-              value={bankAccount} onChange={setBankAccount}
-              placeholder={t("wallet.form.bankDest.placeholder") || "Compte bancaire"}
+              label="Compte bancaire destinataire" icon="business-outline"
+              value={bankAccount || (accounts[0]?.NUMEROCOMPTE || "Aucun compte")}
+              editable={false}
+              placeholder="Compte de souscription"
             />
           </>
         ) : (
           <>
             <Field
-              label={t("wallet.form.bankSource.label")} icon="business-outline"
+              label="Compte bancaire source" icon="business-outline"
               value={bankAccount} placeholder="Sélectionner…"
               onPickerPress={() => { setPickerTarget("bank"); setShowAccountPicker(true); }}
             />
             <Field
-              label={t("wallet.form.walletDest.label")} icon="phone-portrait-outline"
+              label="Numéro Mobile Money" icon="phone-portrait-outline"
               value={walletNumber} onChange={setWalletNumber}
-              placeholder={t("wallet.form.walletDest.placeholder") || "Numéro Wallet"}
+              placeholder="Ex: 0123456789"
             />
           </>
         )}
@@ -148,7 +184,7 @@ const WalletScreens: React.FC = () => {
             <Ionicons name="cash-outline" size={17} color={accentColor} />
           </View>
           <View style={ws.fieldBody}>
-            <Text style={[ws.fieldLabel, { color: colors.text + "50" }]}>{t("wallet.form.amount.label")}</Text>
+            <Text style={[ws.fieldLabel, { color: colors.text + "50" }]}>Montant</Text>
             <TextInput
               style={[ws.amountInput, { color: colors.text }]}
               keyboardType="numeric"
@@ -183,13 +219,13 @@ const WalletScreens: React.FC = () => {
           activeOpacity={0.85}
         >
           <Ionicons name="checkmark-circle-outline" size={20} color="#fff" />
-          <Text style={ws.btnText}>{t("wallet.action.submit")}</Text>
+          <Text style={ws.btnText}>Effectuer le transfert</Text>
         </TouchableOpacity>
 
         {/* ── Secure note ── */}
         <View style={ws.secureRow}>
           <Ionicons name="shield-checkmark" size={13} color={colors.success} />
-          <Text style={[ws.secureText, { color: colors.text + "45" }]}>{t("wallet.note.secure")}</Text>
+          <Text style={[ws.secureText, { color: colors.text + "45" }]}>Vos transferts sont sécurisés et cryptés</Text>
         </View>
       </ScrollView>
 

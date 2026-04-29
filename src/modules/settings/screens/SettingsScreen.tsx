@@ -57,10 +57,12 @@ export const SettingsScreen: React.FC = () => {
   const [currentPassword, setCurrentPassword] = React.useState("");
   const [newPassword, setNewPassword] = React.useState("");
   const [confirmPassword, setConfirmPassword] = React.useState("");
+  const [currentPinForSecret, setCurrentPinForSecret] = React.useState(""); // PIN pour valider le changement de secret
   const [passwordError, setPasswordError] = React.useState<string | null>(null);
   const [showCurrentPassword, setShowCurrentPassword] = React.useState(false);
   const [showNewPassword, setShowNewPassword] = React.useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = React.useState(false);
+  const [showCurrentPinForSecret, setShowCurrentPinForSecret] = React.useState(false);
   const [currentPin, setCurrentPin] = React.useState("");
   const [newPin, setNewPin] = React.useState("");
   const [confirmPin, setConfirmPin] = React.useState("");
@@ -77,6 +79,7 @@ export const SettingsScreen: React.FC = () => {
     "normal" | "forget" | null
   >(null);
   const [loadingPin, setLoadingPin] = React.useState(false);
+  const [loadingPassword, setLoadingPassword] = React.useState(false);
 
   const handleLogout = async () => {
     await logout();
@@ -569,6 +572,46 @@ export const SettingsScreen: React.FC = () => {
             <Text style={[styles.modalTitle, { color: colors.text }]}>
               Changer la clé secrète
             </Text>
+            
+            <View
+              style={[
+                styles.inputContainer,
+                {
+                  borderColor: currentPinForSecret.length === 5 ? "#4CAF50" : colors.border,
+                  backgroundColor: colors.background,
+                },
+              ]}
+            >
+              <TextInput
+                style={[styles.inputField, { color: colors.text }]}
+                placeholder="Code PIN actuel (requis)"
+                secureTextEntry={!showCurrentPinForSecret}
+                keyboardType="numeric"
+                value={currentPinForSecret}
+                onChangeText={setCurrentPinForSecret}
+                maxLength={5}
+                placeholderTextColor={colors.text + "80"}
+              />
+              {currentPinForSecret.length === 5 && (
+                <Ionicons
+                  name="checkmark-circle"
+                  size={20}
+                  color="#4CAF50"
+                  style={{ marginRight: 8 }}
+                />
+              )}
+              <TouchableOpacity
+                onPress={() => setShowCurrentPinForSecret(!showCurrentPinForSecret)}
+                style={styles.eyeIcon}
+              >
+                <Ionicons
+                  name={showCurrentPinForSecret ? "eye-off-outline" : "eye-outline"}
+                  size={20}
+                  color={colors.text}
+                />
+              </TouchableOpacity>
+            </View>
+
             <View
               style={[
                 styles.inputContainer,
@@ -674,25 +717,153 @@ export const SettingsScreen: React.FC = () => {
                   styles.actionButton,
                   { backgroundColor: colors.primary },
                 ]}
-                onPress={() => {
+                onPress={async () => {
                   if (newPassword !== confirmPassword) {
                     setPasswordError("Les clés ne correspondent pas");
                     return;
                   }
-                  setPasswordError(null);
-                  console.log("Change secret key", {
-                    currentPassword,
-                    newPassword,
-                  });
-                  setShowChangePasswordModal(false);
-                  setCurrentPassword("");
-                  setNewPassword("");
-                  setConfirmPassword("");
+                  if (!newPassword || newPassword.length < 4) {
+                    setPasswordError("La clé secrète doit contenir au moins 4 caractères");
+                    return;
+                  }
+                  if (!currentPinForSecret || currentPinForSecret.length !== 5) {
+                    setPasswordError("Veuillez saisir votre code PIN actuel (5 chiffres)");
+                    return;
+                  }
+
+                  try {
+                    setLoadingPassword(true);
+                    setPasswordError(null);
+
+                    // Récupérer les informations utilisateur
+                    const userLogin = await secureGetItem("user_login");
+                    const storedSecret = await secureGetItem("user_secret_key");
+                    const storedPin = await secureGetItem("pin_user");
+
+                    if (!userLogin) {
+                      setPasswordError("Impossible de récupérer l'identifiant utilisateur.");
+                      setLoadingPassword(false);
+                      return;
+                    }
+
+                    // Vérifier l'ancienne clé secrète
+                    if (storedSecret && storedSecret !== currentPassword) {
+                      setPasswordError("La clé secrète actuelle est incorrecte.");
+                      setLoadingPassword(false);
+                      return;
+                    }
+
+                    // Vérifier le PIN actuel
+                    if (storedPin) {
+                      const isHash = /^[a-f0-9]{64}$/i.test(storedPin);
+                      let pinMatch = false;
+                      if (isHash) {
+                        const hashedCurrentPin = await Crypto.digestStringAsync(
+                          Crypto.CryptoDigestAlgorithm.SHA256,
+                          currentPinForSecret
+                        );
+                        pinMatch = hashedCurrentPin === storedPin;
+                      } else {
+                        pinMatch = storedPin === currentPinForSecret;
+                      }
+                      
+                      if (!pinMatch) {
+                        setPasswordError("Le code PIN actuel est incorrect.");
+                        setLoadingPassword(false);
+                        return;
+                      }
+                    }
+
+                    // Préparer le payload
+                    const deviceId = await secureGetItem("device_id");
+                    const storedClientId = await secureGetItem("client_id");
+                    
+                    const payload = {
+                      nouveau_login: userLogin,
+                      nouveau_motpasse: currentPinForSecret, // PIN actuel en clair
+                      cle_secrete: newPassword, // Nouvelle clé secrète
+                      device_id: deviceId || "", // Device ID requis par le serveur
+                      client_id: storedClientId || "", // Client ID requis par le serveur
+                      CLIENT_ID: storedClientId || "", // Variante du client_id
+                      CL_IDCLIENT: storedClientId || "", // Autre variante possible
+                      code_cryptage: "Y}@128eVIXfoi7",
+                      // Champs de compatibilité (comme dans InitialSetupScreen)
+                      SL_LOGIN: userLogin,
+                      LOGIN: userLogin,
+                      sl_login: userLogin,
+                    };
+
+                    // Appel API avec X-CLIENT-ID dans les headers
+                    const token = await secureGetItem("auth_token");
+                    
+                    const headers: any = {
+                      "Accept": "application/json",
+                      "Content-Type": "application/json",
+                      ...(token ? { "Authorization": `Bearer ${token}` } : {}),
+                    };
+                    
+                    // Le serveur a besoin du client_id pour valider le token
+                    // On l'ajoute dans les headers malgré le risque CORS
+                    if (storedClientId) {
+                      headers["X-CLIENT-ID"] = String(storedClientId);
+                    }
+
+                    console.log("[Settings] Updating secret key...", { userLogin, clientId: storedClientId });
+                    const result: any = await updateLogin(payload, headers);
+
+                    if (result.error) {
+                      const err = result.error;
+                      const msg = typeof err === 'string' ? err : (err?.response?.data?.message || err?.message || "Erreur lors de la mise à jour");
+                      setPasswordError(msg);
+                      setLoadingPassword(false);
+                      return;
+                    }
+
+                    // Succès : Mise à jour locale
+                    console.log("[Settings] Secret Key Update Success.");
+                    await secureSetItem("user_secret_key", newPassword);
+
+                    // Fermer la modale
+                    setShowChangePasswordModal(false);
+                    setCurrentPassword("");
+                    setNewPassword("");
+                    setConfirmPassword("");
+                    setCurrentPinForSecret("");
+
+                    // Afficher un message et forcer la reconnexion
+                    Alert.alert(
+                      "Succès", 
+                      "Votre clé secrète a été modifiée avec succès. Vous allez être déconnecté pour appliquer les changements.",
+                      [
+                        {
+                          text: "OK",
+                          onPress: async () => {
+                            try {
+                              await logout();
+                            } catch (e) {
+                              console.error("[Settings] Logout error:", e);
+                            }
+                          }
+                        }
+                      ]
+                    );
+
+                  } catch (e: any) {
+                    console.error("[Settings] Change Secret Key Error:", e);
+                    setPasswordError("Une erreur est survenue : " + (e.message || "Inconnue"));
+                  } finally {
+                    setLoadingPassword(false);
+                  }
                 }}
+                disabled={loadingPassword}
               >
-                <Text style={[styles.actionText, { color: "#fff" }]}>
-                  Confirmer
-                </Text>
+                {loadingPassword ? (
+                  <Text style={[styles.actionText, { color: "#fff" }]}>Patientez...</Text>
+                ) : (
+                  <Text style={[styles.actionText, { color: "#fff" }]}>
+                    Confirmer
+                  </Text>
+                )}
               </TouchableOpacity>
             </View>
           </View>
@@ -886,7 +1057,6 @@ export const SettingsScreen: React.FC = () => {
 
                       // 1. Récupération des infos utilisateur nécessaires
                       const userLogin = await secureGetItem("user_login");
-                      const userSecret = await secureGetItem("user_secret_key");
                       const storedPin = await secureGetItem("pin_user");
 
                       if (!userLogin) {
@@ -895,9 +1065,7 @@ export const SettingsScreen: React.FC = () => {
                         return;
                       }
 
-                      // (Optionnel) Vérification de l'ancien PIN si nécessaire
-                      // Note: Ici storedPin est hashé, donc on devrait hasher currentPin pour comparer.
-                      // Mais pour l'instant on fait confiance à l'utilisateur qui est déjà connecté.
+                      // Vérification de l'ancien PIN
                       if (storedPin) {
                          const isHash = /^[a-f0-9]{64}$/i.test(storedPin);
                          let match = false;
@@ -919,42 +1087,42 @@ export const SettingsScreen: React.FC = () => {
                       }
 
                       // 2. Préparation du Payload pour updateLogin
-                      // On utilise le service existant 'updateLogin' qui gère la mise à jour
-                      // login + mot de passe (PIN) + clé secrète.
-                      // On garde le MEME login, on change juste le PIN.
-                      // On suppose que la clé secrète est requise par le serveur pour valider l'opération,
-                      // donc on utilise celle stockée ou on demande à l'utilisateur de la saisir (ici on utilise celle stockée si dispo).
+                      // Pour changer le PIN, on envoie la clé secrète stockée
+                      const userSecret = await secureGetItem("user_secret_key");
+                      const deviceId = await secureGetItem("device_id");
+                      const storedClientId = await secureGetItem("client_id");
                       
-                      // Si pas de clé secrète stockée, on pourrait bloquer ou demander à l'utilisateur, 
-                      // mais essayons avec une chaîne vide ou une valeur par défaut si l'API l'accepte,
-                      // ou alors on affiche une erreur.
-                      const secretKeyToUse = userSecret || ""; 
-
                       const payload = {
                         nouveau_login: userLogin, // On ne change pas le login
                         nouveau_motpasse: newPin, // Le nouveau PIN
-                        cle_secrete: secretKeyToUse,
+                        cle_secrete: userSecret || "", // Clé secrète stockée
+                        device_id: deviceId || "", // Device ID requis par le serveur
+                        client_id: storedClientId || "", // Client ID requis par le serveur
+                        CLIENT_ID: storedClientId || "", // Variante du client_id
+                        CL_IDCLIENT: storedClientId || "", // Autre variante possible
                         code_cryptage: "Y}@128eVIXfoi7",
-                        // Champs de compatibilité
+                        // Champs de compatibilité (comme dans InitialSetupScreen)
                         SL_LOGIN: userLogin,
                         LOGIN: userLogin,
+                        sl_login: userLogin,
                       };
 
-                      // 3. Appel API
-                      // On utilise X-NO-AUTH ou le token actuel selon le besoin.
+                      // 3. Appel API avec X-CLIENT-ID dans les headers
                       const token = await secureGetItem("auth_token");
-                      const clientId = await secureGetItem("client_id");
                       
-                      const headers = {
+                      const headers: any = {
                          "Accept": "application/json",
                          "Content-Type": "application/json",
-                         // On force l'auth si besoin, ou on laisse l'intercepteur faire
                          ...(token ? { "Authorization": `Bearer ${token}` } : {}),
-                         // IMPORTANT: Certains endpoints exigent le X-CLIENT-ID explicitement
-                         ...(clientId ? { "X-CLIENT-ID": String(clientId) } : {}),
                       };
+                      
+                      // Le serveur a besoin du client_id pour valider le token
+                      // On l'ajoute dans les headers malgré le risque CORS
+                      if (storedClientId) {
+                        headers["X-CLIENT-ID"] = String(storedClientId);
+                      }
 
-                      console.log("[Settings] Updating PIN...", { userLogin });
+                      console.log("[Settings] Updating PIN...", { userLogin, clientId: storedClientId });
                       const result: any = await updateLogin(payload, headers);
 
                       if (result.error) {
@@ -973,12 +1141,30 @@ export const SettingsScreen: React.FC = () => {
                       );
                       await secureSetItem("pin_user", hashedNewPin);
 
-                      Alert.alert("Succès", "Votre code PIN a été modifié avec succès.");
-                      
+                      // Fermer la modale
                       setShowChangePinModal(false);
                       setCurrentPin("");
                       setNewPin("");
                       setConfirmPin("");
+
+                      // Afficher un message et forcer la reconnexion
+                      Alert.alert(
+                        "Succès", 
+                        "Votre code PIN a été modifié avec succès. Vous allez être déconnecté pour appliquer les changements.",
+                        [
+                          {
+                            text: "OK",
+                            onPress: async () => {
+                              try {
+                                // Déconnexion pour forcer la reconnexion avec le nouveau PIN
+                                await logout();
+                              } catch (e) {
+                                console.error("[Settings] Logout error:", e);
+                              }
+                            }
+                          }
+                        ]
+                      );
 
                     } catch (e: any) {
                       console.error("[Settings] Change PIN Error:", e);
