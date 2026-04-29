@@ -29,6 +29,10 @@ export const TransferScreen: React.FC = () => {
 
   const sanitize = (s: string) => s.replace(/\D/g, "");
 
+  const handleDestinationAccountChange = (value: string) => {
+    setDestinationAccount(sanitize(value));
+  };
+
   React.useLayoutEffect(() => {
     navigation.setOptions({
       headerShown: true,
@@ -92,7 +96,7 @@ export const TransferScreen: React.FC = () => {
 
   const canSubmit =
     sanitize(sourceAccount).length > 0 &&
-    sanitize(destinationAccount).length > 0 &&
+    sanitize(destinationAccount).length > 8 && // Au moins 8 chiffres
     Number(String(amount).replace(/[,\s]/g, "")) > 0;
 
   const fmtAmount = (v: string) => {
@@ -196,13 +200,23 @@ export const TransferScreen: React.FC = () => {
               placeholder={t("transfer.form.beneficiary.placeholder.internal")}
               placeholderTextColor={colors.text + "55"}
               value={destinationAccount}
-              onChangeText={(v) => setDestinationAccount(sanitize(v))}
+              onChangeText={handleDestinationAccountChange}
               keyboardType="numeric"
               onFocus={() => setFocusedField("benef")}
               onBlur={() => setFocusedField(null)}
             />
           </View>
         </View>
+
+        {/* ── Warning message ── */}
+        {destinationAccount.length > 0 && (
+          <View style={[st.warningBox, { backgroundColor: colors.primary + "08", borderColor: colors.primary + "20" }]}>
+            <Ionicons name="information-circle-outline" size={16} color={colors.primary} />
+            <Text style={[st.warningText, { color: colors.primary }]}>
+              Vérifiez attentivement le numéro de compte du bénéficiaire avant de continuer
+            </Text>
+          </View>
+        )}
 
         {/* ── Amount field ── */}
         <View style={[
@@ -280,7 +294,11 @@ export const TransferScreen: React.FC = () => {
             <View style={[st.modalSummary, { backgroundColor: colors.background, borderColor: colors.border }]}>
               {[
                 { label: "Émetteur", value: sourceAccount, icon: "wallet-outline" as const },
-                { label: "Bénéficiaire", value: destinationAccount, icon: "person-outline" as const },
+                { 
+                  label: "Compte destinataire", 
+                  value: destinationAccount, 
+                  icon: "card-outline" as const 
+                },
               ].map((row, i, arr) => (
                 <View key={i}>
                   <View style={st.modalRow}>
@@ -370,6 +388,10 @@ const st = StyleSheet.create({
   fieldBody: { flex: 1, paddingHorizontal: 12, paddingVertical: 12 },
   fieldLabel: { fontSize: 10, fontWeight: "700", letterSpacing: 0.5, textTransform: "uppercase", marginBottom: 3 },
   fieldInput: { fontSize: 15, fontWeight: "500", padding: 0 },
+
+  // Warning box
+  warningBox: { flexDirection: "row", alignItems: "center", gap: 10, borderRadius: 12, padding: 12, borderWidth: 1, marginBottom: 12 },
+  warningText: { fontSize: 12, flex: 1, lineHeight: 16 },
 
   // Amount
   amountField: { flexDirection: "row", alignItems: "center", borderWidth: 1.5, borderRadius: 16, marginBottom: 16, overflow: "hidden" },
