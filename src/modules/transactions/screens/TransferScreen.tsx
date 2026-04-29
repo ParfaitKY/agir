@@ -190,11 +190,11 @@ export const TransferScreen: React.FC = () => {
             <Ionicons name="person-outline" size={17} color={colors.primary} />
           </View>
           <View style={st.fieldBody}>
-            <Text style={[st.fieldLabel, { color: colors.text + "50" }]}>Compte bénéficiaire</Text>
+            <Text style={[st.fieldLabel, { color: colors.text + "70" }]}>Compte bénéficiaire</Text>
             <TextInput
               style={[st.fieldInput, { color: colors.text }]}
               placeholder={t("transfer.form.beneficiary.placeholder.internal")}
-              placeholderTextColor={colors.text + "30"}
+              placeholderTextColor={colors.text + "55"}
               value={destinationAccount}
               onChangeText={(v) => setDestinationAccount(sanitize(v))}
               keyboardType="numeric"
@@ -213,11 +213,11 @@ export const TransferScreen: React.FC = () => {
             <Ionicons name="cash-outline" size={17} color={colors.primary} />
           </View>
           <View style={st.fieldBody}>
-            <Text style={[st.fieldLabel, { color: colors.text + "50" }]}>Montant</Text>
+            <Text style={[st.fieldLabel, { color: colors.text + "70" }]}>Montant</Text>
             <TextInput
               style={[st.amountInput, { color: colors.text }]}
               placeholder="0"
-              placeholderTextColor={colors.text + "25"}
+              placeholderTextColor={colors.text + "50"}
               keyboardType="numeric"
               value={amount}
               onChangeText={(v) => setAmount(v.replace(/[^0-9.]/g, ""))}
