@@ -1,8 +1,6 @@
 export const BASE_URL =
-//"https://zenithmobilereact-serveur-mgd.app.mgdigitalplus.com/api";
-//"https://zenithmobilereact-serveur-peyrie-test.app.mgdigitalplus.com/api";
-//"https://zenithmobile-serveurreact-cedaiciprod.app.mgdigitalplus.com/api";
-"https://zenithmobile-serveurreact-cedaicitest.app.mgdigitalplus.com/api";
+
+"https://zenithmobile-serveurreact-agirfncestest.app.mgdigitalplus.com/api";
 
 export const CODECRYPTAGE = "Y}@128eVIXfoi7";
 

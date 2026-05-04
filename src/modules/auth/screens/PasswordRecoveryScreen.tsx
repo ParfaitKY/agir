@@ -258,7 +258,7 @@ const PasswordRecoveryScreen: React.FC = () => {
           <View style={[styles.header, { backgroundColor: colors.card }]}>
             <View style={styles.logoBox}>
               <Image
-                source={require("../../../../assets/cedaici-transparent.png")}
+                source={require("../../../../assets/agir-finance-logo.webp")}
                 style={styles.logo}
                 resizeMode="contain"
                 onError={() => setLogoError(true)}

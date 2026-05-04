@@ -72,7 +72,7 @@ const EmailSupportScreen: React.FC = () => {
     }
 
     const to =
-      "info.vallon@cedaici.com,info.treichville@cedaici.com,info.odienne@cedaici.com";
+      "contact@agirfinance.ci,contact@agirfinance.ci,contact@agirfinance.ci";
     const finalSubject =
       subject || `[${motifs.find((m) => m.key === motif)?.label}]`;
     const finalBody = body || t("support.email.body.default");

@@ -89,7 +89,7 @@ const RateAppScreen: React.FC = () => {
         >
           <View style={[styles.logoCircle, { backgroundColor: colors.card, borderColor: colors.border }]}>
             <Image
-              source={require("../../../../assets/cedaici-transparent.png")}
+              source={require("../../../../assets/agir-finance-logo.webp")}
               style={styles.logo}
               resizeMode="contain"
             />

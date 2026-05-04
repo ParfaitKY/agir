@@ -1,36 +1,36 @@
 {
   "expo": {
-    "name": "MyCedaici",
-    "slug": "ZenithMobileV2",
-    "scheme": "cedaici",
+    "name": "Agir Finance",
+    "slug": "AgirFinanceMobile",
+    "scheme": "agirfinance",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/ICON-PHONE.png",
+    "icon": "./assets/agir-finance-logo.webp",
     "userInterfaceStyle": "light",
     "splash": {
-      "image": "./assets/cedaici-transparent.png",
+      "image": "./assets/agir-finance-logo.webp",
       "resizeMode": "contain",
-      "backgroundColor": "#0B1220"
+      "backgroundColor": "#0A0F1E"
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.cedaici.mobile",
+      "bundleIdentifier": "com.agirfinance.mobile",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
         "CFBundleURLTypes": [
           {
-            "CFBundleURLSchemes": ["cedaici"]
+            "CFBundleURLSchemes": ["agirfinance"]
           }
         ]
       }
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/ICON-PHONE.png",
-        "backgroundColor": "#000000"
+        "foregroundImage": "./assets/agir-finance-logo.webp",
+        "backgroundColor": "#0A0F1E"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.cedaici.mobile",
+      "package": "com.agirfinance.mobile",
       "versionCode": 2,
       "intentFilters": [
         {
@@ -39,17 +39,17 @@
           "data": [
             {
               "scheme": "https",
-              "host": "zenithmobile-serveurreact-cedaicitest.app.mgdigitalplus.com",
+              "host": "zenithmobile-serveurreact-agirfncestest.app.mgdigitalplus.com",
               "pathPrefix": "/api/auth/verify"
             },
             {
               "scheme": "https",
-              "host": "zenithmobile-serveurreact-cedaicitest.app.mgdigitalplus.com",
+              "host": "zenithmobile-serveurreact-agirfncestest.app.mgdigitalplus.com",
               "pathPrefix": "/api/auth/ver"
             },
             {
               "scheme": "https",
-              "host": "zenithmobile-serveurreact-cedaicitest.app.mgdigitalplus.com",
+              "host": "zenithmobile-serveurreact-agirfncestest.app.mgdigitalplus.com",
               "pathPrefix": "/auth/verify"
             }
           ],
@@ -58,9 +58,9 @@
         {
           "action": "VIEW",
           "data": [
-            { "scheme": "cedaici", "host": "api", "pathPrefix": "/auth/verify" },
-            { "scheme": "cedaici", "host": "verify" },
-            { "scheme": "cedaici", "host": "auth" }
+            { "scheme": "agirfinance", "host": "api", "pathPrefix": "/auth/verify" },
+            { "scheme": "agirfinance", "host": "verify" },
+            { "scheme": "agirfinance", "host": "auth" }
           ],
           "category": ["BROWSABLE", "DEFAULT"]
         }

@@ -125,7 +125,7 @@ export const AccountDetailsScreen: React.FC = () => {
             <Ionicons name="arrow-back" size={20} color="#fff" />
           </TouchableOpacity>
           <View style={s.navTitleWrap}>
-            <Text style={s.navEyebrow}>CEDAICI SA</Text>
+            <Text style={s.navEyebrow}>AGIR FINANCE</Text>
             <Text style={s.navTitle}>{typeLabel}</Text>
           </View>
           <TouchableOpacity onPress={() => setBalanceVisible(v => !v)} style={s.navEye}>

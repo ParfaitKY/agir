@@ -1023,7 +1023,7 @@ const ProfileScreen: React.FC = () => {
   };
 
   const handleEmail = () => {
-    const email = "support@cedaici.com";
+    const email = "support@agirfinance.ci";
     const subject = encodeURIComponent("Demande de modification de profil");
     const body = encodeURIComponent(
       "Bonjour,\n\nJe souhaite mettre à jour mes informations personnelles. Pourriez-vous m'indiquer la procédure ?\n\nMerci.",

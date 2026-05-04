@@ -253,7 +253,7 @@ const SplashScreen: React.FC = () => {
           }}
         >
           <Image
-            source={require("../../../../assets/cedaici-transparent.png")}
+            source={require("../../../../assets/agir-finance-logo.webp")}
             style={styles.image}
             resizeMode="contain"
           />
@@ -346,7 +346,7 @@ const SplashScreen: React.FC = () => {
                     },
                   ]}
                 >
-                  MyCedaici
+                  AGIR FINANCE
                 </Animated.Text>
               </View>
               {/* Spinner overlay centré */}
@@ -367,7 +367,7 @@ const SplashScreen: React.FC = () => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#0B1220" },
+  container: { flex: 1, backgroundColor: "#0A0F1E" },
   center: {
     flex: 1,
   },

@@ -26,7 +26,7 @@ interface AddBeneficiaireModalProps {
 }
 
 const BANKS = [
-  "CEDAICI SA",
+  "AGIR FINANCE",
   "Ecobank",
   "SGBCI",
   "NSIA Banque",

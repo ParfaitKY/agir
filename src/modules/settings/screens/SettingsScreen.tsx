@@ -355,7 +355,7 @@ export const SettingsScreen: React.FC = () => {
         <View style={st.heroBlob2} />
         <View style={st.heroRow}>
           <View>
-            <Text style={st.heroEyebrow}>CEDAICI</Text>
+            <Text style={st.heroEyebrow}>AGIR FINANCE</Text>
             <Text style={st.heroTitle}>Paramètres</Text>
           </View>
           <View style={[st.heroAvatar, { backgroundColor: "rgba(255,255,255,0.2)" }]}>

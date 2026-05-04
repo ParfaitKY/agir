@@ -334,7 +334,8 @@ export const AppNavigator: React.FC = () => {
           url.includes("auth/verify") ||
           url.includes("auth-success") ||
           url.includes("mgdigitalplus.com/api/auth") ||
-          url.includes("cedaici://");
+          url.includes("agirfncestest.app.mgdigitalplus.com") ||
+          url.includes("agirfinance://");
 
         // ── CAS PRINCIPAL : tout lien d'authentification ───────────────────
         if (isAuthLink) {
@@ -432,7 +433,7 @@ export const AppNavigator: React.FC = () => {
           try {
             const token = getParam("token");
             if (!token) return;
-            const linkPath = url.replace(/^cedaici:\/\//, "");
+            const linkPath = url.replace(/^agirfinance:\/\//, "");
             const serverUrl = `${BASE_URL}/${linkPath}`;
             const response = await fetch(serverUrl, { method: "GET", headers: { "X-NO-AUTH": "true" } });
             const data = await response.json();

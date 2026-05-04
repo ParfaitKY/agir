@@ -461,9 +461,9 @@ const TRANSLATIONS: Translations = {
   },
   // About screen
   "about.hero.title": {
-    fr: "À Propos de CEDAICI SA",
-    en: "About CEDAICI SA",
-    zh: "关于 CEDAICI SA",
+    fr: "À Propos de Agir Finance",
+    en: "About Agir Finance",
+    zh: "关于 Agir Finance",
   },
   "about.hero.subtitle": {
     fr: "Établissement de microfinance agréé en Côte d'Ivoire",
@@ -476,14 +476,14 @@ const TRANSLATIONS: Translations = {
     zh: "介绍",
   },
   "about.presentation.p1": {
-    fr: "La microfinance CEDAICI SA est un établissement de microfinance agréé en Côte d'Ivoire, opérant dans le secteur de l'inclusion financière. Elle fait partie des institutions légales reconnues par le Ministère de l'Économie, engagée à offrir des services financiers adaptés aux petites et moyennes entreprises, aux porteurs de projets, aux ménages et aux populations souvent exclues du système bancaire traditionnel.",
-    en: "CEDAICI SA is a licensed microfinance institution in Ivory Coast, operating in the financial inclusion sector. It is a legally recognized institution by the Ministry of Economy, committed to offering tailored financial services to SMEs, project owners, households, and populations often excluded from traditional banking.",
-    zh: "CEDAICI SA 是科特迪瓦获准的微型金融机构，致力于金融普惠领域。它是经济部认可的合法机构，为中小企业、项目发起人、家庭以及常被传统银行忽视的人群提供适配的金融服务。",
+    fr: "La microfinance Agir Finance est un établissement de microfinance agréé en Côte d'Ivoire, opérant dans le secteur de l'inclusion financière. Elle fait partie des institutions légales reconnues par le Ministère de l'Économie, engagée à offrir des services financiers adaptés aux petites et moyennes entreprises, aux porteurs de projets, aux ménages et aux populations souvent exclues du système bancaire traditionnel.",
+    en: "Agir Finance is a licensed microfinance institution in Ivory Coast, operating in the financial inclusion sector. It is a legally recognized institution by the Ministry of Economy, committed to offering tailored financial services to SMEs, project owners, households, and populations often excluded from traditional banking.",
+    zh: "Agir Finance 是科特迪瓦获准的微型金融机构，致力于金融普惠领域。它是经济部认可的合法机构，为中小企业、项目发起人、家庭以及常被传统银行忽视的人群提供适配的金融服务。",
   },
   "about.presentation.p2": {
-    fr: "CEDAICI SA s'engage à jouer un rôle important dans la facilitation de l'accès au crédit, à l'épargne, et à d'autres services financiers, contribuant ainsi au développement économique local et à la réduction de la pauvreté.",
-    en: "CEDAICI SA is committed to facilitating access to credit, savings, and other financial services, contributing to local economic development and poverty reduction.",
-    zh: "CEDAICI SA 致力于促进获得信贷、储蓄及其他金融服务，从而推动当地经济发展并减少贫困。",
+    fr: "Agir Finance s'engage à jouer un rôle important dans la facilitation de l'accès au crédit, à l'épargne, et à d'autres services financiers, contribuant ainsi au développement économique local et à la réduction de la pauvreté.",
+    en: "Agir Finance is committed to facilitating access to credit, savings, and other financial services, contributing to local economic development and poverty reduction.",
+    zh: "Agir Finance 致力于促进获得信贷、储蓄及其他金融服务，从而推动当地经济发展并减少贫困。",
   },
   "about.governance.title": {
     fr: "Nouvelle Gouvernance 2025",
@@ -491,9 +491,9 @@ const TRANSLATIONS: Translations = {
     zh: "2025 新治理",
   },
   "about.governance.p1": {
-    fr: "En 2025, CEDAICI SA bénéficie d'une gouvernance renouvelée, avec une direction locale ivoirienne conforme aux réformes gouvernementales visant à renforcer la souveraineté économique et la transparence dans le secteur. Cette nouvelle gestion vise à améliorer la rigueur dans la gestion des risques et à accroître la sécurité des opérations financières, tout en élargissant les offres dans une dynamique positive de croissance et de modernisation du secteur de la microfinance en Côte d'Ivoire, avec un accent particulier sur l'inclusion économique et sociale.",
-    en: "In 2025, CEDAICI SA adopts renewed governance with local Ivorian leadership in line with government reforms to strengthen economic sovereignty and transparency. This new management aims to improve risk control, enhance the security of financial operations, and expand offerings to drive growth and modernization in Ivory Coast's microfinance sector, focusing on economic and social inclusion.",
-    zh: "2025 年，CEDAICI SA 采用焕新的治理结构，符合政府改革并由科特迪瓦本地团队领导，以加强经济主权和行业透明度。新的管理将提升风险管控与金融业务安全，同时扩展服务以推动科特迪瓦微型金融行业的增长与现代化，重视经济与社会包容。",
+    fr: "En 2025, Agir Finance bénéficie d'une gouvernance renouvelée, avec une direction locale ivoirienne conforme aux réformes gouvernementales visant à renforcer la souveraineté économique et la transparence dans le secteur. Cette nouvelle gestion vise à améliorer la rigueur dans la gestion des risques et à accroître la sécurité des opérations financières, tout en élargissant les offres dans une dynamique positive de croissance et de modernisation du secteur de la microfinance en Côte d'Ivoire, avec un accent particulier sur l'inclusion économique et sociale.",
+    en: "In 2025, Agir Finance adopts renewed governance with local Ivorian leadership in line with government reforms to strengthen economic sovereignty and transparency. This new management aims to improve risk control, enhance the security of financial operations, and expand offerings to drive growth and modernization in Ivory Coast's microfinance sector, focusing on economic and social inclusion.",
+    zh: "2025 年，Agir Finance 采用焕新的治理结构，符合政府改革并由科特迪瓦本地团队领导，以加强经济主权和行业透明度。新的管理将提升风险管控与金融业务安全，同时扩展服务以推动科特迪瓦微型金融行业的增长与现代化，重视经济与社会包容。",
   },
   "about.commitments.title": {
     fr: "Nos Engagements",
@@ -521,9 +521,9 @@ const TRANSLATIONS: Translations = {
     zh: "多样化金融服务以满足本地需求。",
   },
   "about.commitments.item5": {
-    fr: "CEDAICI SA se positionne comme un levier clé du développement économique inclusif en Côte d'Ivoire.",
-    en: "CEDAICI SA positions itself as a key driver of inclusive economic development in Ivory Coast.",
-    zh: "CEDAICI SA 致力成为科特迪瓦包容性经济发展的关键力量。",
+    fr: "Agir Finance se positionne comme un levier clé du développement économique inclusif en Côte d'Ivoire.",
+    en: "Agir Finance positions itself as a key driver of inclusive economic development in Ivory Coast.",
+    zh: "Agir Finance 致力成为科特迪瓦包容性经济发展的关键力量。",
   },
   "about.info.title": {
     fr: "Informations Clés",
@@ -576,9 +576,9 @@ const TRANSLATIONS: Translations = {
     zh: "我们的社会责任承诺",
   },
   "about.social.p1": {
-    fr: "CEDAICI SA place l'humain au cœur de ses priorités. Nous accompagnons chaque client avec bienveillance et professionnalisme, en étant à l'écoute de ses besoins spécifiques.",
-    en: "CEDAICI SA places people at the heart of its priorities. We support each client with care and professionalism, listening to their specific needs.",
-    zh: "CEDAICI SA 将人置于核心位置。我们以关怀与专业为每位客户提供支持，倾听其特定需求。",
+    fr: "Agir Finance place l'humain au cœur de ses priorités. Nous accompagnons chaque client avec bienveillance et professionnalisme, en étant à l'écoute de ses besoins spécifiques.",
+    en: "Agir Finance places people at the heart of its priorities. We support each client with care and professionalism, listening to their specific needs.",
+    zh: "Agir Finance 将人置于核心位置。我们以关怀与专业为每位客户提供支持，倾听其特定需求。",
   },
   "about.mission.title": {
     fr: "Notre Mission",
@@ -617,15 +617,15 @@ const TRANSLATIONS: Translations = {
   },
   "about.contact.phone.title": { fr: "Téléphone", en: "Phone", zh: "电话" },
   "about.contact.phone.text": {
-    fr: "+225 27 22 22 22 22",
-    en: "+225 27 22 22 22 22",
-    zh: "+225 27 22 22 22 22",
+    fr: "+225 27 00 00 00 00",
+    en: "+225 27 00 00 00 00",
+    zh: "+225 27 00 00 00 00",
   },
   "about.contact.email.title": { fr: "Email", en: "Email", zh: "邮箱" },
   "about.contact.email.text": {
-    fr: "info.vallon@cedaici.com",
-    en: "info.vallon@cedaici.com",
-    zh: "info.vallon@cedaici.com",
+    fr: "info.vallon@agirfinance.ci",
+    en: "info.vallon@agirfinance.ci",
+    zh: "info.vallon@agirfinance.ci",
   },
   "about.contact.address.title": { fr: "Adresse", en: "Address", zh: "地址" },
   "about.contact.address.text": {
@@ -635,9 +635,9 @@ const TRANSLATIONS: Translations = {
   },
   "about.contact.website.title": { fr: "Site web", en: "Website", zh: "网站" },
   "about.contact.website.text": {
-    fr: "www.cedaici.com",
-    en: "www.cedaici.com",
-    zh: "www.cedaici.com",
+    fr: "www.agirfinance.ci",
+    en: "www.agirfinance.ci",
+    zh: "www.agirfinance.ci",
   },
 
   // Privacy screen
@@ -797,9 +797,9 @@ const TRANSLATIONS: Translations = {
     zh: "联系与投诉",
   },
   "privacy.contact.email": {
-    fr: "Email : info.vallon@cedaici.com",
-    en: "Email: info.vallon@cedaici.com",
-    zh: "邮箱：info.vallon@cedaici.com",
+    fr: "Email : info.vallon@agirfinance.ci",
+    en: "Email: info.vallon@agirfinance.ci",
+    zh: "邮箱：info.vallon@agirfinance.ci",
   },
   "privacy.contact.phone": {
     fr: "Téléphone : +225 27 21 51 87 19 ",
@@ -820,9 +820,9 @@ const TRANSLATIONS: Translations = {
   },
   "terms.intro.title": { fr: "Introduction", en: "Introduction", zh: "简介" },
   "terms.intro.p1": {
-    fr: "Cette application appartient à CEDAICI SA, établissement de microfinance agréé en Côte d'Ivoire. En l’utilisant, vous acceptez ces conditions d’utilisation.",
-    en: "This application belongs to CEDAICI SA, a licensed microfinance institution in Ivory Coast. By using it, you accept these terms of use.",
-    zh: "本应用由 CEDAICI SA（科特迪瓦认证微型金融机构）所有。使用本应用即表示您接受本使用条款。",
+    fr: "Cette application appartient à Agir Finance, établissement de microfinance agréé en Côte d'Ivoire. En l’utilisant, vous acceptez ces conditions d’utilisation.",
+    en: "This application belongs to Agir Finance, a licensed microfinance institution in Ivory Coast. By using it, you accept these terms of use.",
+    zh: "本应用由 Agir Finance（科特迪瓦认证微型金融机构）所有。使用本应用即表示您接受本使用条款。",
   },
   "terms.use.title": {
     fr: "1. Utilisation de l’application",
@@ -870,9 +870,9 @@ const TRANSLATIONS: Translations = {
     zh: "5. 条款变更",
   },
   "terms.modifications.p1": {
-    fr: "CEDAICI SA peut mettre à jour ces conditions à tout moment. Les mises à jour prennent effet dès leur publication.",
-    en: "CEDAICI SA may update these terms at any time. Updates take effect upon publication.",
-    zh: "CEDAICI SA 可随时更新这些条款；更新自发布之时起生效。",
+    fr: "Agir Finance peut mettre à jour ces conditions à tout moment. Les mises à jour prennent effet dès leur publication.",
+    en: "Agir Finance may update these terms at any time. Updates take effect upon publication.",
+    zh: "Agir Finance 可随时更新这些条款；更新自发布之时起生效。",
   },
   "terms.contact.title": {
     fr: "6. Contact",
@@ -885,9 +885,9 @@ const TRANSLATIONS: Translations = {
     zh: "电话：+225 27 21 51 87 19 ",
   },
   "terms.contact.email": {
-    fr: "Email : info.vallon@cedaici.com",
-    en: "Email: info.vallon@cedaici.com",
-    zh: "邮箱：info.vallon@cedaici.com",
+    fr: "Email : info.vallon@agirfinance.ci",
+    en: "Email: info.vallon@agirfinance.ci",
+    zh: "邮箱：info.vallon@agirfinance.ci",
   },
   "terms.contact.address": {
     fr: "Adresse : Odienné; Côte d'Ivoire",
@@ -895,9 +895,9 @@ const TRANSLATIONS: Translations = {
     zh: "地址：奥迭内，科特迪瓦",
   },
   "terms.contact.website": {
-    fr: "Site web : www.cedaici.com",
-    en: "Website: www.cedaici.com",
-    zh: "网站：www.cedaici.com",
+    fr: "Site web : www.agirfinance.ci",
+    en: "Website: www.agirfinance.ci",
+    zh: "网站：www.agirfinance.ci",
   },
   "terms.consent.title": { fr: "Consentement", en: "Consent", zh: "同意" },
   "terms.consent.p1": {
@@ -912,14 +912,14 @@ const TRANSLATIONS: Translations = {
     zh: "分享应用",
   },
   "share.subtitle": {
-    fr: "Invitez vos amis et partagez CEDAICI SA pour gérer vos finances facilement !",
-    en: "Invite friends and share CEDAICI SA to manage finances easily!",
-    zh: "邀请朋友一起分享 CEDAICI SA，轻松管理财务！",
+    fr: "Invitez vos amis et partagez Agir Finance pour gérer vos finances facilement !",
+    en: "Invite friends and share Agir Finance to manage finances easily!",
+    zh: "邀请朋友一起分享 Agir Finance，轻松管理财务！",
   },
   "share.message": {
-    fr: "Invitez vos amis et partagez CEDAICI SA pour gérer vos finances facilement !",
-    en: "Invite friends and share CEDAICI SA to manage finances easily!",
-    zh: "邀请朋友一起分享 CEDAICI SA，轻松管理财务！",
+    fr: "Invitez vos amis et partagez Agir Finance pour gérer vos finances facilement !",
+    en: "Invite friends and share Agir Finance to manage finances easily!",
+    zh: "邀请朋友一起分享 Agir Finance，轻松管理财务！",
   },
   "share.download": {
     fr: "Téléchargez l’application",
@@ -1053,9 +1053,9 @@ const TRANSLATIONS: Translations = {
   "settings.logout": { fr: "Se déconnecter", en: "Log out", zh: "退出登录" },
   "settings.version": { fr: "Version", en: "Version", zh: "版本" },
   "settings.copyright": {
-    fr: `© ${new Date().getFullYear()} CEDAICI SA`,
-    en: `© ${new Date().getFullYear()} CEDAICI SA`,
-    zh: `© ${new Date().getFullYear()} CEDAICI SA`,
+    fr: `© ${new Date().getFullYear()} Agir Finance`,
+    en: `© ${new Date().getFullYear()} Agir Finance`,
+    zh: `© ${new Date().getFullYear()} Agir Finance`,
   },
 
   // Navigator titles
@@ -1488,9 +1488,9 @@ const TRANSLATIONS: Translations = {
     zh: "收藏",
   },
   "beneficiaries.help.contact": {
-    fr: "Pour toute question, contactez votre conseiller ou notre service client au +225 27 22 22 22 22",
-    en: "For any questions, contact your advisor or our customer service at +225 27 22 22 22 22",
-    zh: "如有疑问，请联系您的顾问或致电客户服务 +225 27 22 22 22 22",
+    fr: "Pour toute question, contactez votre conseiller ou notre service client au +225 27 00 00 00 00",
+    en: "For any questions, contact your advisor or our customer service at +225 27 00 00 00 00",
+    zh: "如有疑问，请联系您的顾问或致电客户服务 +225 27 00 00 00 00",
   },
 
   // Beneficiaries modal
@@ -2122,9 +2122,9 @@ const TRANSLATIONS: Translations = {
     zh: "轻松管理您的日常操作。",
   },
   "products.detail.description.long": {
-    fr: "Le compte courant CEDAICI SA vous offre une solution complète pour gérer vos finances au quotidien.",
-    en: "CEDAICI SA current account offers a complete solution to manage your daily finances.",
-    zh: "CEDAICI SA 活期账户为您提供全面的解决方案来管理日常财务。",
+    fr: "Le compte courant Agir Finance vous offre une solution complète pour gérer vos finances au quotidien.",
+    en: "Agir Finance current account offers a complete solution to manage your daily finances.",
+    zh: "Agir Finance 活期账户为您提供全面的解决方案来管理日常财务。",
   },
   "products.detail.tab.advantages": {
     fr: "Avantages",
@@ -2288,7 +2288,7 @@ const TRANSLATIONS: Translations = {
     zh: "转账类型",
   },
   "transfer.type.internal.title": {
-    fr: "Virement de compte CEDAICI\nà compte CEDAICI",
+    fr: "Virement de compte Agir Finance\nà compte Agir Finance",
     en: "Internal account to account",
     zh: "内部账户间转账",
   },
@@ -2308,7 +2308,7 @@ const TRANSLATIONS: Translations = {
     zh: "转至其他收款人",
   },
   "transfer.form.internal.title": {
-    fr: "Virement de compte CEDAICI à compte CEDAICI",
+    fr: "Virement de compte Agir Finance à compte Agir Finance",
     en: "Internal transfer",
     zh: "内部转账",
   },

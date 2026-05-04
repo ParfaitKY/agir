@@ -26,31 +26,31 @@ interface Theme {
 
 const lightTheme: Theme = {
   colors: {
-    primary: "#3498db",
-    secondary: "#2c3e50",
+    primary: "#1E5FA8",
+    secondary: "#0A0F1E",
     background: "#f8f9fa",
     card: "#ffffff",
-    text: "#2c3e50",
+    text: "#0A0F1E",
     border: "#e0e0e0",
     notification: "#e74c3c",
     success: "#27ae60",
     error: "#e74c3c",
-    warning: "#f39c12",
+    warning: "#F5C518",
   },
 };
 
 const darkTheme: Theme = {
   colors: {
-    primary: "#3498db",
+    primary: "#2E7DD1",
     secondary: "#ecf0f1",
-    background: "#121212",
-    card: "#1e1e1e",
+    background: "#0A0F1E",
+    card: "#111827",
     text: "#ecf0f1",
-    border: "#333333",
+    border: "#1E3A5F",
     notification: "#e74c3c",
     success: "#27ae60",
     error: "#e74c3c",
-    warning: "#f39c12",
+    warning: "#F5C518",
   },
 };
 

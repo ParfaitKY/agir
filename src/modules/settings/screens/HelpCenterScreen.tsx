@@ -67,7 +67,7 @@ export const HelpCenterScreen: React.FC = () => {
           id: "q4",
           question: "Quels sont les frais de transfert ?",
           answer:
-            "Les transferts entre comptes Cedaici sont gratuits. Les autres frais dépendent du type de transaction et sont indiqués avant validation.",
+            "Les transferts entre comptes Agir Finance sont gratuits. Les autres frais dépendent du type de transaction et sont indiqués avant validation.",
         },
       ],
     },

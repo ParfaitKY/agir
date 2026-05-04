@@ -54,7 +54,7 @@ export const CustomerSupportScreen: React.FC = () => {
       id: "email",
       icon: "mail-outline",
       title: "Envoyer un email",
-      subtitle: "info.vallon@cedaici.com",
+      subtitle: "contact@agirfinance.ci",
       action: () => {
         navigation.navigate("EmailSupport" as never);
       },
@@ -67,7 +67,7 @@ export const CustomerSupportScreen: React.FC = () => {
       subtitle: "Questions fréquentes",
       action: () => {
         // Rediriger vers une page web ou un écran FAQ
-        Linking.openURL("https://www.cedaici.com/faq");
+        Linking.openURL("https://www.agirfinance.ci/faq");
       },
       color: "#FF9800",
     },
@@ -78,7 +78,7 @@ export const CustomerSupportScreen: React.FC = () => {
       subtitle: "Trouver une agence proche",
       action: () => {
         // Ouvrir Google Maps
-        const query = "Agence Cedaici";
+        const query = "Agence Agir Finance";
         const url = Platform.select({
           ios: `maps:0,0?q=${query}`,
           android: `geo:0,0?q=${query}`,
@@ -166,7 +166,7 @@ export const CustomerSupportScreen: React.FC = () => {
               { color: colors.text + "60", marginBottom: 4 },
             ]}
           >
-            info.treichville@cedaici.com / info.odienne@cedaici.com
+            contact@agirfinance.ci / contact@agirfinance.ci
           </Text>
           <Text style={[styles.footerText, { color: colors.text + "60" }]}>
             Horaires d'ouverture : Lundi - Vendredi, 8h00 - 18h00

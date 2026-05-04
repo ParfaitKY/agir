@@ -90,7 +90,7 @@ const InitialSetupScreen: React.FC = () => {
     textMain: isDark ? "#E5E7EB" : "#0F172A",
     textSub: isDark ? "#94A3B8" : "#64748B",
     border: isDark ? "#374151" : "#E5E7EB",
-    primary: "#0066CC",
+    primary: "#1E5FA8",
   };
 
   // Animations
@@ -1113,7 +1113,7 @@ const InitialSetupScreen: React.FC = () => {
         <ScrollView contentContainerStyle={{ padding: 16, flexGrow: 1 }}>
           <View style={styles.logoContainer}>
             <Image
-              source={require("../../../../assets/cedaici-transparent.png")}
+              source={require("../../../../assets/agir-finance-logo.webp")}
               style={styles.logo}
               onError={() => setLogoError(true)}
             />

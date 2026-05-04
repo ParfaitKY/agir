@@ -98,13 +98,13 @@ export const StatementsScreen: React.FC = () => {
     const currency = (n: number) => `${n.toLocaleString("fr-FR")} XOF`;
     return `<!doctype html><html lang="fr"><head><meta charset="utf-8"/><title>Relevé - ${item.month}</title>
     <style>body{font-family:Arial,sans-serif;color:#000;margin:24px}.brand{color:#2F80ED;font-weight:800;font-size:28px}.divider{height:2px;background:#2F80ED;margin:10px 0 20px}.table{width:100%;border-collapse:collapse;margin-top:16px}.table th{background:#2F80ED;color:#fff;padding:10px;font-size:12px}.table td{border-bottom:1px solid #EEE;padding:10px;font-size:12px}.footer{text-align:center;color:#888;font-size:10px;margin-top:24px}</style>
-    </head><body><div style="text-align:center"><div class="brand">CEDAICI SA</div><div style="font-size:20px;font-weight:700">RELEVÉ DE COMPTE</div></div><div class="divider"></div>
+    </head><body><div style="text-align:center"><div class="brand">AGIR FINANCE</div><div style="font-size:20px;font-weight:700">RELEVÉ DE COMPTE</div></div><div class="divider"></div>
     <div style="border:1px solid #E5EAF0;border-radius:8px;padding:14px"><div>Période: <span style="float:right">${item.month}</span></div><div>Dates: <span style="float:right">${item.range}</span></div><div>Compte: <span style="float:right">${number}</span></div><div>Titulaire: <span style="float:right">${holder}</span></div></div>
     <table class="table"><thead><tr><th>Date</th><th>Description</th><th>Débit</th><th>Crédit</th><th>Solde</th></tr></thead><tbody>
     ${rows.map(r => `<tr><td>${r.date}</td><td>${r.desc}</td><td style="color:${Number(r.debit)>0?"#EB5757":"#777"}">${Number(r.debit)>0?currency(Number(r.debit)):"-"}</td><td style="color:${Number(r.credit)>0?"#27AE60":"#777"}">${Number(r.credit)>0?currency(Number(r.credit)):"-"}</td><td>${currency(r.balance)}</td></tr>`).join("")}
     </tbody></table>
     <div style="border:1px solid #E5EAF0;border-radius:8px;padding:16px;margin-top:20px"><div>Total crédits: <span style="color:#27AE60;font-weight:700">+${currency(totalCredit)}</span></div><div>Total débits: <span style="color:#EB5757;font-weight:700">-${currency(totalDebit)}</span></div></div>
-    <div class="footer">Généré le ${new Date().toLocaleString("fr-FR")} · CEDAICI SA · Abidjan, Côte d'Ivoire</div></body></html>`;
+    <div class="footer">Généré le ${new Date().toLocaleString("fr-FR")} · AGIR FINANCE · Abidjan, Côte d'Ivoire</div></body></html>`;
   };
 
   const handleDownload = async (item: { month: string; range: string }, idx: number) => {

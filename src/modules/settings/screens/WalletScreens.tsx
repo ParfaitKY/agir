@@ -118,7 +118,7 @@ const WalletScreens: React.FC = () => {
         {/* ── Type selector ── */}
         <View style={ws.typeRow}>
           {([
-            { key: "walletToBank", icon: "arrow-up-circle", title: "Transfert vers compte CEDAICI", color: colors.primary },
+            { key: "walletToBank", icon: "arrow-up-circle", title: "Transfert vers compte Agir Finance", color: colors.primary },
             { key: "bankToWallet", icon: "arrow-down-circle", title: "Transfert vers Mobile Money", color: colors.success },
           ] as const).map((opt) => {
             const active = transferType === opt.key;

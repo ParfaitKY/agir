@@ -34,7 +34,7 @@ const TermsOfUseScreen: React.FC = () => {
         {/* Hero */}
         <View style={styles.hero}>
           <Image
-            source={require("../../../../assets/cedaici-transparent.png")}
+            source={require("../../../../assets/agir-finance-logo.webp")}
             style={styles.heroLogo}
             resizeMode="contain"
           />

@@ -19,7 +19,7 @@ const ShareAppScreen: React.FC = () => {
   const { t } = useI18n();
   const { colors } = useTheme();
 
-  const appUrl = "https://cedaici.com/app";
+  const appUrl = "https://agirfinance.ci/app";
   const shareMessage = `${t("share.message")}\n${t(
     "share.download"
   )} : ${appUrl}`;
@@ -98,7 +98,7 @@ const ShareAppScreen: React.FC = () => {
 
   const shareEmail = async () => {
     const mailUrl = `mailto:?subject=${encodeURIComponent(
-      "CEDAICI SA"
+      "AGIR FINANCE"
     )}&body=${encodeURIComponent(shareMessage)}`;
     const can = await Linking.canOpenURL(mailUrl);
     if (!can) {
@@ -148,7 +148,7 @@ const ShareAppScreen: React.FC = () => {
             ]}
           >
             <Image
-              source={require("../../../../assets/cedaici-transparent.png")}
+              source={require("../../../../assets/agir-finance-logo.webp")}
               style={styles.logo}
               resizeMode="contain"
             />

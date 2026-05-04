@@ -325,7 +325,7 @@ const PinLoginScreen: React.FC = () => {
               style={[pinStyles.keyButton, pinStyles.biometricButton]}
               onPress={handleBiometricLogin}
             >
-              <Ionicons name="finger-print" size={24} color="#007AFF" />
+              <Ionicons name="finger-print" size={24} color="#1E5FA8" />
             </TouchableOpacity>
             
             {keypadNumbers[9] && (
@@ -407,8 +407,8 @@ const pinStyles = StyleSheet.create({
     marginHorizontal: 8,
   },
   pinDotFilled: {
-    backgroundColor: "#007AFF",
-    borderColor: "#007AFF",
+    backgroundColor: "#1E5FA8",
+    borderColor: "#1E5FA8",
   },
   forgotLink: {
     marginBottom: 32,
@@ -447,7 +447,7 @@ const pinStyles = StyleSheet.create({
     color: "#1A1A1A",
   },
   biometricButton: {
-    borderColor: "#007AFF",
+    borderColor: "#1E5FA8",
   },
   deleteButton: {
     borderColor: "#FF3B30",
