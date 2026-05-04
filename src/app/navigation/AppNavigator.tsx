@@ -77,8 +77,6 @@ const CustomTabBar = ({
   colors,
   isGuestMode,
 }: any) => {
-  const [showFeatureUnavailableModal, setShowFeatureUnavailableModal] =
-    React.useState(false);
   const { useSafeAreaInsets } = require("react-native-safe-area-context");
   const insets = useSafeAreaInsets();
 
@@ -133,10 +131,6 @@ const CustomTabBar = ({
         const isRestricted = isGuestMode && restrictedScreens.includes(route.name);
 
         const onPress = () => {
-          if (route.name === "Products") {
-            setShowFeatureUnavailableModal(true);
-            return;
-          }
           if (isRestricted) {
             handleGuestRestriction();
           } else {
@@ -157,9 +151,9 @@ const CustomTabBar = ({
               alignItems: "center",
               justifyContent: "center",
               paddingVertical: 4,
-              opacity: isRestricted && route.name !== "Products" ? 0.45 : 1,
+              opacity: isRestricted ? 0.45 : 1,
             }}
-            disabled={isRestricted && route.name !== "Products"}
+            disabled={isRestricted}
           >
             {/* Active pill indicator */}
             {isFocused && (
@@ -207,52 +201,6 @@ const CustomTabBar = ({
           </TouchableOpacity>
         );
       })}
-
-      <Modal
-        transparent
-        visible={showFeatureUnavailableModal}
-        animationType="fade"
-        onRequestClose={() => setShowFeatureUnavailableModal(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View
-            style={[
-              styles.modalContainer,
-              { backgroundColor: colors.card, borderColor: colors.border },
-            ]}
-          >
-            <View style={styles.modalHeader}>
-              <Text style={[styles.modalTitle, { color: colors.text }]}>
-                Module indisponible
-              </Text>
-              <TouchableOpacity
-                onPress={() => setShowFeatureUnavailableModal(false)}
-                style={styles.closeBtn}
-              >
-                <Ionicons name="close" size={20} color={colors.text} />
-              </TouchableOpacity>
-            </View>
-
-            <View style={{ padding: 20, alignItems: "center" }}>
-              <Ionicons
-                name="construct-outline"
-                size={48}
-                color={colors.warning || "#FFC107"}
-                style={{ marginBottom: 16 }}
-              />
-              <Text
-                style={{
-                  fontSize: 16,
-                  color: colors.text,
-                  textAlign: "center",
-                }}
-              >
-                Fonctionnalité à venir
-              </Text>
-            </View>
-          </View>
-        </View>
-      </Modal>
     </View>
   );
 };

@@ -251,10 +251,24 @@ const OtpVerifyScreen: React.FC = () => {
         setVerifyError(errMsg);
         return;
       }
+      
+      // Succès: Marquer l'utilisateur comme authentifié et aller au Dashboard
+      console.log("[OtpVerify] OTP validated successfully, navigating to Dashboard");
+      
       try {
         (route as any)?.params?.onSuccess?.();
       } catch {}
-      navigation.goBack();
+      
+      // Naviguer directement vers le Dashboard au lieu de goBack()
+      // Cela évite de redemander le PIN
+      if (navigation.reset) {
+        navigation.reset({
+          index: 0,
+          routes: [{ name: "Main" }],
+        });
+      } else {
+        navigation.navigate("Main");
+      }
     } catch {
       setVerifyError("Échec de la validation du code.");
     }

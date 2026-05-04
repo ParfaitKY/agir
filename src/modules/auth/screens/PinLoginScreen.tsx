@@ -124,7 +124,8 @@ const PinLoginScreen: React.FC = () => {
     setError(null);
     const timeout = setTimeout(async () => {
       try {
-        await loginWithPin(pin);
+        // Utiliser skipServerValidation=true pour éviter l'envoi d'OTP lors du déverrouillage
+        await loginWithPin(pin, true);
         setPinSuccess(true);
         Vibration.vibrate(30);
         setTimeout(() => {

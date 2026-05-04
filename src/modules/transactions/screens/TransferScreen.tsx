@@ -55,7 +55,7 @@ export const TransferScreen: React.FC = () => {
       ),
       headerTitle: () => (
         <View style={{ alignItems: "center" }}>
-          <Text style={{ fontSize: 11, fontWeight: "700", color: colors.text + "45", letterSpacing: 1.5, textTransform: "uppercase" }}>
+          <Text style={{ fontSize: 11, fontWeight: "700", color: colors.text + "70", letterSpacing: 1.5, textTransform: "uppercase" }}>
             Transactions
           </Text>
           <Text style={{ fontSize: 17, fontWeight: "800", color: colors.text, letterSpacing: -0.3 }}>
@@ -202,11 +202,11 @@ export const TransferScreen: React.FC = () => {
             <Ionicons name="person-outline" size={17} color={colors.primary} />
           </View>
           <View style={st.fieldBody}>
-            <Text style={[st.fieldLabel, { color: colors.text + "70" }]}>Compte bénéficiaire</Text>
+            <Text style={[st.fieldLabel, { color: colors.text + "80" }]}>Compte bénéficiaire</Text>
             <TextInput
               style={[st.fieldInput, { color: colors.text }]}
               placeholder={t("transfer.form.beneficiary.placeholder.internal")}
-              placeholderTextColor={colors.text + "55"}
+              placeholderTextColor={colors.text + "70"}
               value={destinationAccount}
               onChangeText={handleDestinationAccountChange}
               keyboardType="numeric"
@@ -235,11 +235,11 @@ export const TransferScreen: React.FC = () => {
             <Ionicons name="cash-outline" size={17} color={colors.primary} />
           </View>
           <View style={st.fieldBody}>
-            <Text style={[st.fieldLabel, { color: colors.text + "70" }]}>Montant</Text>
+            <Text style={[st.fieldLabel, { color: colors.text + "80" }]}>Montant</Text>
             <TextInput
               style={[st.amountInput, { color: colors.text }]}
               placeholder="0"
-              placeholderTextColor={colors.text + "50"}
+              placeholderTextColor={colors.text + "70"}
               keyboardType="numeric"
               value={amount}
               onChangeText={(v) => setAmount(v.replace(/[^0-9.]/g, ""))}
@@ -266,15 +266,15 @@ export const TransferScreen: React.FC = () => {
 
         {/* ── Submit ── */}
         <TouchableOpacity
-          style={[st.btn, { backgroundColor: canSubmit ? colors.primary : colors.primary + "40" }]}
+          style={[st.btn, { backgroundColor: canSubmit ? colors.primary : colors.border, opacity: canSubmit ? 1 : 0.7 }]}
           activeOpacity={0.85}
           onPress={() => { if (canSubmit && !isLoading) setConfirmVisible(true); }}
         >
           {isLoading
-            ? <ActivityIndicator color="#fff" size="small" />
+            ? <ActivityIndicator color={canSubmit ? "#fff" : colors.text} size="small" />
             : <>
-                <Ionicons name="checkmark-circle-outline" size={20} color="#fff" />
-                <Text style={st.btnText}>{t("transfer.action.submit")}</Text>
+                <Ionicons name="checkmark-circle-outline" size={20} color={canSubmit ? "#fff" : colors.text} />
+                <Text style={[st.btnText, { color: canSubmit ? "#fff" : colors.text }]}>{t("transfer.action.submit")}</Text>
               </>
           }
         </TouchableOpacity>
@@ -282,7 +282,7 @@ export const TransferScreen: React.FC = () => {
         {/* ── Secure note ── */}
         <View style={st.secureRow}>
           <Ionicons name="shield-checkmark" size={13} color={colors.success} />
-          <Text style={[st.secureText, { color: colors.text + "45" }]}>{t("transfer.note.secure")}</Text>
+          <Text style={[st.secureText, { color: colors.text + "80" }]}>{t("transfer.note.secure")}</Text>
         </View>
 
       </ScrollView>
@@ -297,7 +297,7 @@ export const TransferScreen: React.FC = () => {
               <Ionicons name="swap-horizontal" size={28} color={colors.primary} />
             </View>
             <Text style={[st.modalTitle, { color: colors.text }]}>Confirmer le virement</Text>
-            <Text style={[st.modalSub, { color: colors.text + "50" }]}>Vérifiez les informations avant de valider</Text>
+            <Text style={[st.modalSub, { color: colors.text + "70" }]}>Vérifiez les informations avant de valider</Text>
 
             <View style={[st.modalSummary, { backgroundColor: colors.background, borderColor: colors.border }]}>
               {[
@@ -314,7 +314,7 @@ export const TransferScreen: React.FC = () => {
                       <Ionicons name={row.icon} size={14} color={colors.primary} />
                     </View>
                     <View style={{ flex: 1 }}>
-                      <Text style={[st.modalRowLabel, { color: colors.text + "50" }]}>{row.label}</Text>
+                      <Text style={[st.modalRowLabel, { color: colors.text + "70" }]}>{row.label}</Text>
                       <Text style={[st.modalRowValue, { color: colors.text }]}>{row.value}</Text>
                     </View>
                   </View>

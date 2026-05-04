@@ -49,12 +49,25 @@ httpClient.interceptors.request.use(async (config) => {
   return config;
 });
 
+// Timestamp du dernier login réussi — évite la déconnexion immédiate après connexion
+let _lastLoginAt = 0;
+export function markLoginSuccess() {
+  _lastLoginAt = Date.now();
+}
+
+// Compteur de 401/403 consécutifs — on ne déconnecte qu'après plusieurs échecs
+let _authFailCount = 0;
+const AUTH_FAIL_THRESHOLD = 3;   // nombre d'échecs consécutifs avant logout
+const LOGIN_GRACE_MS = 30_000;   // 30 s de grâce après un login réussi
+
 httpClient.interceptors.response.use(
   (response) => {
     if (__DEV__) console.log("[http] response", {
       url: response.config?.url,
       status: response.status,
     });
+    // Réinitialiser le compteur d'échecs sur toute réponse réussie
+    _authFailCount = 0;
     return response;
   },
   (error) => {
@@ -69,13 +82,28 @@ httpClient.interceptors.response.use(
       const msg = String(
         error?.response?.data?.message || error?.message || "",
       ).toLowerCase();
+
       // Détection des erreurs de token (401, 403 ou message explicite)
       const tokenIssue =
         /token/.test(msg) && /(expir|invalid|expire|invalide)/.test(msg);
 
       if (status === 401 || status === 403 || tokenIssue) {
-        console.log("[http] Auth expired or invalid, triggering global logout");
-        emit("auth:expired", { status, msg });
+        _authFailCount++;
+
+        const withinGrace = Date.now() - _lastLoginAt < LOGIN_GRACE_MS;
+
+        console.log(
+          `[http] Auth error (${status}) — failCount=${_authFailCount}, withinGrace=${withinGrace}`,
+        );
+
+        // Ne déclencher le logout que si :
+        // 1. On est hors de la période de grâce post-login
+        // 2. ET on a atteint le seuil d'échecs consécutifs
+        if (!withinGrace && _authFailCount >= AUTH_FAIL_THRESHOLD) {
+          console.log("[http] Auth expired — triggering global logout");
+          _authFailCount = 0;
+          emit("auth:expired", { status, msg });
+        }
       }
     } catch (e) {
       console.error("[http] Error in interceptor", e);

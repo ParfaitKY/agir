@@ -9,6 +9,7 @@ import {
 } from "../../shared/utils/secureStorage";
 import { on } from "../../shared/utils/eventBus";
 import { useVerifyTokenV2 } from "../../domain/auth/useVerifyTokenV2";
+import { markLoginSuccess } from "../../services/httpClient";
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -244,6 +245,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         ]) || "";
       if (phone) await secureSetItem("user_phone", String(phone));
       if (address) await secureSetItem("user_address", String(address));
+      markLoginSuccess();
       setIsAuthenticated(true);
       if (finalUser) setUser(finalUser);
     } finally {
@@ -271,6 +273,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         await secureSetItem("pin_user", hashedDefaultPin);
       } catch {}
       await secureSetItem("is_configured", "true");
+      markLoginSuccess();
       setIsAuthenticated(true);
       setUser(guestUser);
     } finally {
@@ -281,21 +284,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const logout = async () => {
     setIsLoading(true);
     try {
-      // 1. Suppression des données de session (Token + UserData en mémoire)
-      await secureDeleteItem("auth_token");
-      await secureDeleteItem("user_data");
-
       // 2. Vérification robuste de la configuration
       // On lit directement le storage pour éviter les problèmes d'état React obsolète
       const storedConfig = await secureGetItem("is_configured");
       const isGuest = user?.username === "invite";
 
-      // IMPORTANT: Pour forcer un "Hard Logout" complet quand demandé,
-      // il faut s'assurer que toutes les données sensibles sont bien effacées.
-      // Le comportement actuel fait un "Soft Logout" par défaut pour les utilisateurs connectés.
-
       // Si c'est un invité OU que l'app n'est pas configurée, on nettoie tout
       if (isGuest || storedConfig !== "true") {
+        // Hard logout : suppression complète du token et des données
+        await secureDeleteItem("auth_token");
+        await secureDeleteItem("user_data");
+
         const GUEST_CLEAR_KEYS = [
           "is_configured",
           "pin_user",
@@ -313,7 +312,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           "solde_globale",
           "compte_statistiques",
           "analyse_derniere_transaction",
-          "work_date", // Ajout de work_date
+          "work_date",
           // "device_id" // NE PAS SUPPRIMER device_id POUR GARDER L'AUTOPLAY
         ];
         for (const k of GUEST_CLEAR_KEYS) {
@@ -328,8 +327,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         } catch {}
         setIsConfigured(false);
       } else {
-        // Sinon (Mode Connecté standard), on GARDE is_configured et pin_user
-        // On s'assure que l'état reflète bien la configuration
+        // Soft Logout : l'app est configurée avec un PIN.
+        // On supprime le token ET user_data pour forcer une ré-authentification via PIN.
+        // Le token sera renouvelé lors du prochain loginWithPin (mode serveur).
+        // On NE supprime PAS is_configured ni pin_user pour permettre le déverrouillage par PIN.
+        await secureDeleteItem("auth_token");
+        await secureDeleteItem("user_data");
         setIsConfigured(true);
       }
 
@@ -391,7 +394,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   // Le paramètre attendu est le PIN en clair; vérification locale via SHA-256
-  const loginWithPin = async (pin: string) => {
+  const loginWithPin = async (pin: string, skipServerValidation: boolean = false) => {
     setIsLoading(true);
     try {
       const storedPin = await secureGetItem("pin_user");
@@ -424,6 +427,74 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         if (!matchStored) {
           // Si la vérif locale échoue, on arrête tout de suite (ne pas tenter le serveur pour éviter blocage)
           throw new Error("Code PIN incorrect");
+        }
+        
+        // Si skipServerValidation est true (déverrouillage par PIN local),
+        // on tente un refresh silencieux du token via le serveur.
+        // Si le serveur est injoignable, on utilise le token existant (mode offline).
+        if (skipServerValidation) {
+          console.log("[AuthProvider] PIN validated locally (unlock mode), attempting silent token refresh");
+
+          // Tenter un refresh silencieux du token
+          try {
+            const lg = await secureGetItem("user_login");
+            if (lg) {
+              const body: LoginPayload = {
+                LG_CODELANGUE: "FR",
+                SL_LOGIN: lg,
+                SL_MOTPASSE: pin,
+                TYPEOPERATEUR: "01",
+                TYPEOPERATION: "01",
+                CODECRYPTAGE: "Y}@128eVIXfoi7",
+                TERMINALUUID: "",
+              };
+              const result: any = await loginApi(body);
+              if (!result?.error) {
+                const data: any = result?.data;
+                const token =
+                  data?.token ||
+                  data?.jwt ||
+                  data?.access_token ||
+                  data?.data?.token ||
+                  data?.result?.token;
+                if (token) {
+                  await secureSetItem("auth_token", String(token));
+                  console.log("[AuthProvider] Silent token refresh successful");
+
+                  // Sauvegarder les données de session mises à jour
+                  const normalize = (raw: any) => {
+                    const d = raw?.data ?? raw;
+                    if (Array.isArray(d)) return d[0] ?? {};
+                    if (Array.isArray(d?.data)) return d.data[0] ?? {};
+                    if (Array.isArray(d?.result)) return d.result[0] ?? {};
+                    if (Array.isArray(d?.payload)) return d.payload[0] ?? {};
+                    if (d?.data && typeof d.data === "object") return d.data;
+                    return d ?? {};
+                  };
+                  const block = normalize(data);
+                  const agencyCode =
+                    block?.AG_CODEAGENCE || block?.CODE_AGENCE || block?.AGENCE || block?.CODEAGENCE || "";
+                  if (agencyCode) await secureSetItem("user_agency", String(agencyCode));
+                  const workDate =
+                    block?.JT_DATEJOURNEETRAVAIL || block?.DATE_JOURNEE_TRAVAIL || block?.DATE_TRAVAIL || block?.WORK_DATE || "";
+                  if (workDate) await secureSetItem("work_date", String(workDate));
+                  const codeOp = block?.OP_CODEOPERATEURGESTIONNAIRECOMPTEMOBILE;
+                  if (codeOp) await secureSetItem("code_operateur", String(codeOp));
+                }
+              }
+            }
+          } catch (refreshErr) {
+            // Refresh silencieux échoué (hors ligne ou erreur réseau) — on continue avec le token existant
+            console.log("[AuthProvider] Silent token refresh failed (offline?), using existing token");
+          }
+
+          if (userData) {
+            setUser(JSON.parse(userData));
+          }
+          markLoginSuccess();
+          setIsAuthenticated(true);
+          setIsLoading(false);
+          return;
         }
       } else {
         // --- CAS 2: Pas de PIN local (Mode Restauration/Nouvel appareil) ---
@@ -596,6 +667,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         if (phone) await secureSetItem("user_phone", String(phone));
         if (address) await secureSetItem("user_address", String(address));
 
+        markLoginSuccess();
         setIsAuthenticated(true);
         if (finalUser) setUser(finalUser);
       }
