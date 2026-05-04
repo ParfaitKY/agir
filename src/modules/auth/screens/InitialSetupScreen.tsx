@@ -1154,77 +1154,58 @@ const InitialSetupScreen: React.FC = () => {
             ) : step === 1 ? (
               <>
               <View style={[styles.card, { backgroundColor: palette.card }]}>
-                <RNText style={[styles.label, { color: palette.textMain }]}>Login</RNText>
+                <RNText style={[styles.label, { color: palette.textMain }]}>
+                  {t("initial.labels.accountNumber")}
+                </RNText>
                 <TextInput
-                  value={loginInput}
-                  onChangeText={setLoginInput}
-                  placeholder="Votre identifiant"
+                  ref={authTokenRef}
+                  value={authToken}
+                  onChangeText={setAuthToken}
+                  placeholder={t("initial.placeholders.accountNumber")}
                   style={[
                     styles.input,
                     {
-                      borderColor: palette.border,
-                      backgroundColor: "#FFFFFF",
-                      color: "#0F172A",
+                      borderColor: verifyError
+                        ? "#DC2626"
+                        : authToken.length > 3
+                          ? palette.primary
+                          : palette.border,
+                      backgroundColor: isDark ? "#111827" : "#FFFFFF",
+                      color: palette.textMain,
                     },
                   ]}
-                  placeholderTextColor="#94A3B8"
+                  placeholderTextColor={palette.textSub}
                   autoCapitalize="none"
-                  editable={!loginLoading}
+                  autoCorrect={false}
+                  editable={!loadingVerify && !isLoading}
                 />
 
-                <RNText style={[styles.label, { color: palette.textMain }]}>Mot de passe</RNText>
-                <View style={styles.inputContainer}>
-                  <TextInput
-                    value={passwordInput}
-                    onChangeText={setPasswordInput}
-                    placeholder="Votre mot de passe"
-                    style={[
-                      styles.input,
-                      {
-                        borderColor: palette.border,
-                        backgroundColor: "#FFFFFF",
-                        color: "#0F172A",
-                        paddingRight: 40,
-                      },
-                    ]}
-                    placeholderTextColor="#94A3B8"
-                    secureTextEntry={!showPassword}
-                    editable={!loginLoading}
-                  />
-                  <TouchableOpacity
-                    onPress={() => setShowPassword((v) => !v)}
-                    style={styles.iconOverlay}
-                  >
-                    <MaterialIcons
-                      name={showPassword ? "visibility" : "visibility-off"}
-                      size={20}
-                      color={palette.primary}
-                    />
-                  </TouchableOpacity>
-                </View>
-
-                {loginError && (
+                {verifyError && (
                   <RNText
                     style={[
                       styles.error,
                       isDark ? { backgroundColor: "#7F1D1D", color: "#FCA5A5" } : {},
                     ]}
                   >
-                    {loginError}
+                    {verifyError}
                   </RNText>
                 )}
 
-                <TouchableOpacity
-                  style={[styles.button, { marginTop: 4, backgroundColor: palette.primary }]}
-                  onPress={handleLoginSubmit}
-                  disabled={loginLoading}
-                >
-                  {loginLoading ? (
-                    <ActivityIndicator color="#FFF" />
-                  ) : (
-                    <RNText style={styles.buttonText}>Se connecter</RNText>
-                  )}
-                </TouchableOpacity>
+                {showVerifyButton && (
+                  <TouchableOpacity
+                    style={[styles.button, { marginTop: 4, backgroundColor: palette.primary }]}
+                    onPress={handleVerifyToken}
+                    disabled={loadingVerify || isLoading}
+                  >
+                    {loadingVerify || isLoading ? (
+                      <ActivityIndicator color="#FFF" />
+                    ) : (
+                      <RNText style={styles.buttonText}>
+                        {t("initial.actions.verify")}
+                      </RNText>
+                    )}
+                  </TouchableOpacity>
+                )}
 
                 <TouchableOpacity
                   style={[
