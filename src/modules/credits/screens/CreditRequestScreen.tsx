@@ -2,6 +2,7 @@ import React, { useState, useLayoutEffect } from "react";
 import {
   View, Text, StyleSheet, TextInput, TouchableOpacity,
   ScrollView, KeyboardAvoidingView, Platform, Alert, Modal, FlatList,
+  ActivityIndicator,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { useTheme } from "../../../shared/styles/ThemeProvider";
@@ -9,17 +10,47 @@ import { useI18n } from "../../../app/providers/I18nProvider";
 import { Ionicons } from "@expo/vector-icons";
 import { secureGetItem, secureSetItem } from "../../../shared/utils/secureStorage";
 import { demandeCredit } from "../../../services/credit/demandeCredit";
+import { useCreditProduits } from "../../../domain/credit/useCreditProduits";
+import { CODECRYPTAGE } from "../../../services/endpoints";
 
-const COUNTRIES = ["AFGHANISTAN","AFRIQUE DU SUD","ALG�RIE","ALLEMAGNE","ANGOLA","ARABIE SAOUDITE","ARGENTINE","AUSTRALIE","AUTRICHE","BELGIQUE","B�NIN","BR�SIL","BURKINA FASO","BURUNDI","CAMEROUN","CANADA","CENTRAFRIQUE","CHILI","CHINE","COLOMBIE","COMORES","CONGO","CONGO (RDC)","C�TE D'IVOIRE","DANEMARK","DJIBOUTI","�GYPTE","�MIRATS ARABES UNIS","ESPAGNE","�TATS-UNIS","�THIOPIE","FRANCE","GABON","GAMBIE","GHANA","GR�CE","GUIN�E","GUIN�E-BISSAU","INDE","INDON�SIE","IRAK","IRAN","IRLANDE","ISRA�L","ITALIE","JAPON","KENYA","LIBAN","LIBYE","MADAGASCAR","MALAISIE","MALI","MAROC","MAURITANIE","MEXIQUE","NIGER","NIG�RIA","NORV�GE","NOUVELLE-Z�LANDE","OMAN","OUGANDA","PAKISTAN","PAYS-BAS","P�ROU","PHILIPPINES","POLOGNE","PORTUGAL","QATAR","ROUMANIE","ROYAUME-UNI","RUSSIE","RWANDA","S�N�GAL","SINGAPOUR","SOMALIE","SOUDAN","SRI LANKA","SU�DE","SUISSE","SYRIE","TANZANIE","TCHAD","THA�LANDE","TOGO","TUNISIE","TURQUIE","UKRAINE","VENEZUELA","VIETNAM","ZAMBIE","ZIMBABWE"];
+// Listes de fallback si l'API ne retourne pas de produits
+const FALLBACK_TYPES = ["Particulier", "Entreprise"];
+const FALLBACK_NATURES = ["Consommation", "Immobilier", "Agricole", "Equipement"];
+const FALLBACK_PERIODICITES = ["Mensuelle", "Trimestrielle", "Semestrielle", "Annuelle"];
+const FALLBACK_ID_TYPES = ["CNI", "Passeport", "Permis de conduire", "Attestation"];
+const FALLBACK_VILLES = ["Abidjan", "Bouake", "Daloa", "Yamoussoukro", "San-Pedro", "Korhogo", "Man"];
+const FALLBACK_COMMUNES = ["Cocody", "Plateau", "Yopougon", "Abobo", "Adjame", "Marcory", "Treichville", "Attiecoube"];
+const FALLBACK_OBJETS = ["Achat equipement", "Fonds de roulement", "Construction", "Renovation", "Vehicule", "Education"];
 
-/* --- Picker bottom-sheet --- */
+const COUNTRIES = [
+  "Afghanistan","Afrique du Sud","Algerie","Allemagne","Angola","Arabie Saoudite",
+  "Argentine","Australie","Autriche","Belgique","Benin","Bresil","Burkina Faso",
+  "Burundi","Cameroun","Canada","Centrafrique","Chili","Chine","Colombie","Comores",
+  "Congo","Congo (RDC)","Cote d'Ivoire","Danemark","Djibouti","Egypte",
+  "Emirats Arabes Unis","Espagne","Etats-Unis","Ethiopie","France","Gabon","Gambie",
+  "Ghana","Grece","Guinee","Guinee-Bissau","Inde","Indonesie","Irak","Iran",
+  "Irlande","Israel","Italie","Japon","Kenya","Liban","Libye","Madagascar",
+  "Malaisie","Mali","Maroc","Mauritanie","Mexique","Niger","Nigeria","Norvege",
+  "Nouvelle-Zelande","Oman","Ouganda","Pakistan","Pays-Bas","Perou","Philippines",
+  "Pologne","Portugal","Qatar","Roumanie","Royaume-Uni","Russie","Rwanda","Senegal",
+  "Singapour","Somalie","Soudan","Sri Lanka","Suede","Suisse","Syrie","Tanzanie",
+  "Tchad","Thailande","Togo","Tunisie","Turquie","Ukraine","Venezuela","Vietnam",
+  "Zambie","Zimbabwe",
+];
+
+/* ─── PickerSheet ─────────────────────────────────────────────────────────── */
 const PickerSheet = ({
-  label, value, options, onSelect, searchable = false,
-}: { label: string; value: string; options: string[]; onSelect: (v: string) => void; searchable?: boolean }) => {
+  label, value, options, onSelect, searchable = false, loading = false,
+}: {
+  label: string; value: string; options: string[];
+  onSelect: (v: string) => void; searchable?: boolean; loading?: boolean;
+}) => {
   const { colors } = useTheme();
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState("");
-  const filtered = searchable ? options.filter(o => o.toLowerCase().includes(q.toLowerCase())) : options;
+  const filtered = searchable
+    ? options.filter(o => o.toLowerCase().includes(q.toLowerCase()))
+    : options;
   const hasValue = !!value;
 
   return (
@@ -28,12 +59,17 @@ const PickerSheet = ({
         style={[ps.row, { backgroundColor: colors.card, borderColor: hasValue ? colors.primary + "60" : colors.border }]}
         onPress={() => { setQ(""); setOpen(true); }}
         activeOpacity={0.7}
+        disabled={loading}
       >
         <View style={ps.rowLeft}>
-          <Text style={[ps.rowLabel, { color: colors.text + "60" }]}>{label}</Text>
-          <Text style={[ps.rowValue, { color: hasValue ? colors.text : colors.text + "40" }]}>
-            {value || "S�lectionner�"}
-          </Text>
+          <Text style={[ps.rowLabel, { color: colors.text + "70" }]}>{label}</Text>
+          {loading ? (
+            <ActivityIndicator size="small" color={colors.primary} style={{ marginTop: 2 }} />
+          ) : (
+            <Text style={[ps.rowValue, { color: hasValue ? colors.text : colors.text + "40" }]}>
+              {value || "Selectionner..."}
+            </Text>
+          )}
         </View>
         <View style={[ps.chevronWrap, { backgroundColor: colors.primary + "15" }]}>
           <Ionicons name="chevron-down" size={16} color={colors.primary} />
@@ -55,7 +91,7 @@ const PickerSheet = ({
                 <Ionicons name="search-outline" size={15} color={colors.text + "50"} />
                 <TextInput
                   style={[ps.searchInput, { color: colors.text }]}
-                  placeholder="Rechercher�"
+                  placeholder="Rechercher..."
                   placeholderTextColor={colors.text + "40"}
                   value={q}
                   onChangeText={setQ}
@@ -67,6 +103,9 @@ const PickerSheet = ({
               data={filtered}
               keyExtractor={i => i}
               keyboardShouldPersistTaps="handled"
+              ListEmptyComponent={
+                <Text style={[ps.emptyText, { color: colors.text + "50" }]}>Aucun resultat</Text>
+              }
               renderItem={({ item }) => {
                 const selected = item === value;
                 return (
@@ -108,28 +147,34 @@ const ps = StyleSheet.create({
   searchInput: { flex: 1, fontSize: 14 },
   option: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingVertical: 14, borderBottomWidth: 1 },
   optionText: { fontSize: 15 },
+  emptyText: { textAlign: "center", paddingVertical: 24, fontSize: 14 },
 });
 
-/* --- Text field --- */
-const Field = ({ label, icon, value, onChange, placeholder, keyboardType = "default", colors }: {
+/* ─── Field ──────────────────────────────────────────────────────────────── */
+const Field = ({ label, icon, value, onChange, placeholder, keyboardType = "default", colors, multiline = false }: {
   label: string; icon: string; value: string; onChange: (v: string) => void;
-  placeholder?: string; keyboardType?: any; colors: any;
+  placeholder?: string; keyboardType?: any; colors: any; multiline?: boolean;
 }) => {
   const [focused, setFocused] = useState(false);
   return (
-    <View style={[fs.wrap, { backgroundColor: colors.card, borderColor: focused ? colors.primary : (value ? colors.primary + "50" : colors.border) }]}>
-      <View style={[fs.iconWrap, { backgroundColor: colors.primary + "15" }]}>
+    <View style={[fs.wrap, {
+      backgroundColor: colors.card,
+      borderColor: focused ? colors.primary : (value ? colors.primary + "50" : colors.border),
+      alignItems: multiline ? "flex-start" : "center",
+    }]}>
+      <View style={[fs.iconWrap, { backgroundColor: colors.primary + "15", paddingTop: multiline ? 12 : 0 }]}>
         <Ionicons name={icon as any} size={16} color={colors.primary} />
       </View>
       <View style={fs.inner}>
-        <Text style={[fs.label, { color: colors.text + "60" }]}>{label}</Text>
+        <Text style={[fs.label, { color: colors.text + "70" }]}>{label}</Text>
         <TextInput
-          style={[fs.input, { color: colors.text }]}
+          style={[fs.input, { color: colors.text }, multiline && { height: 72, textAlignVertical: "top" }]}
           placeholder={placeholder || label}
           placeholderTextColor={colors.text + "35"}
           value={value}
           onChangeText={onChange}
           keyboardType={keyboardType}
+          multiline={multiline}
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
         />
@@ -140,7 +185,7 @@ const Field = ({ label, icon, value, onChange, placeholder, keyboardType = "defa
 
 const fs = StyleSheet.create({
   wrap: {
-    flexDirection: "row", alignItems: "center",
+    flexDirection: "row",
     borderWidth: 1.5, borderRadius: 14, marginBottom: 12, overflow: "hidden",
   },
   iconWrap: { width: 48, alignSelf: "stretch", justifyContent: "center", alignItems: "center" },
@@ -149,36 +194,49 @@ const fs = StyleSheet.create({
   input: { fontSize: 15, fontWeight: "500", padding: 0 },
 });
 
-/* --- Main screen --- */
+/* ─── Main Screen ────────────────────────────────────────────────────────── */
 export const CreditRequestScreen: React.FC = () => {
   const navigation = useNavigation();
   const { colors } = useTheme();
   const { t } = useI18n();
 
+  const { produits, historique, isLoading, isLoadingHistory, error, fetchProduits, fetchHistorique } = useCreditProduits();
+
   const [viewMode, setViewMode] = useState<"history" | "form">("history");
   const [historyFilter, setHistoryFilter] = useState<"PENDING" | "APPROVED" | "REJECTED">("PENDING");
-  const [requests, setRequests] = useState<any[]>([]);
   const [step, setStep] = useState(1);
   const [successVisible, setSuccessVisible] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
-  // Form state
-  const [type, setType] = useState("Particulier");
-  const [nature, setNature] = useState("Consommation");
-  const [product, setProduct] = useState("Produit A");
-  const [activity, setActivity] = useState("Commerce");
-  const [object, setObject] = useState("Achat �quipement");
+  // Form state — step 1
+  const [type, setType] = useState("");
+  const [nature, setNature] = useState("");
+  const [selectedProduit, setSelectedProduit] = useState("");
+  const [selectedProduitCode, setSelectedProduitCode] = useState("");
+  const [activity, setActivity] = useState("");
+  const [activityCode, setActivityCode] = useState("");
+  const [object, setObject] = useState("");
+  const [objectCode, setObjectCode] = useState("");
   const [descActivity, setDescActivity] = useState("");
   const [amount, setAmount] = useState("");
+
+  // Form state — step 2
   const [periodicity, setPeriodicity] = useState("Mensuelle");
+  const [periodicityCode, setPeriodicityCode] = useState("01");
   const [duration, setDuration] = useState("");
   const [deferred, setDeferred] = useState("0");
-  const [country, setCountry] = useState("C�TE D'IVOIRE");
-  const [birthCountry, setBirthCountry] = useState("C�TE D'IVOIRE");
+  const [country, setCountry] = useState("Cote d'Ivoire");
+  const [birthCountry, setBirthCountry] = useState("Cote d'Ivoire");
   const [idType, setIdType] = useState("CNI");
   const [idNumber, setIdNumber] = useState("");
-  const [city, setCity] = useState("ABIDJAN");
-  const [commune, setCommune] = useState("COCODY");
+  const [city, setCity] = useState("Abidjan");
+  const [commune, setCommune] = useState("Cocody");
   const [location, setLocation] = useState("");
+
+  React.useEffect(() => {
+    fetchProduits();
+    fetchHistorique();
+  }, []);
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -190,68 +248,153 @@ export const CreditRequestScreen: React.FC = () => {
     });
   }, [navigation, colors]);
 
-  React.useEffect(() => { loadRequests(); }, []);
+  // Listes derivees des produits API ou fallback
+  const produitLabels = produits.length > 0
+    ? produits.map(p => p.PS_LIBELLE || p.PT_LIBELLE || "Produit").filter(Boolean)
+    : ["Produit A", "Produit B", "Produit C"];
 
-  const loadRequests = async () => {
-    try {
-      const stored = await secureGetItem("local_credit_requests");
-      const data = stored ? JSON.parse(stored) : [];
-      setRequests(data.filter((i: any) => !String(i.id).startsWith("mock-")));
-    } catch {}
+  const activiteLabels = produits.length > 0
+    ? [...new Set(produits.map(p => p.TA_LIBELLE || p.AC_LIBELLE).filter(Boolean) as string[])]
+    : FALLBACK_NATURES;
+
+  const objetLabels = produits.length > 0
+    ? [...new Set(produits.map(p => p.OF_LIBELLE).filter(Boolean) as string[])]
+    : FALLBACK_OBJETS;
+
+  const handleSelectProduit = (label: string) => {
+    setSelectedProduit(label);
+    const found = produits.find(p => (p.PS_LIBELLE || p.PT_LIBELLE) === label);
+    if (found) {
+      setSelectedProduitCode(found.PS_CODESOUSPRODUIT || "");
+      // Pre-remplir le taux si disponible
+    }
+  };
+
+  const handleSelectActivite = (label: string) => {
+    setActivity(label);
+    const found = produits.find(p => (p.TA_LIBELLE || p.AC_LIBELLE) === label);
+    if (found) setActivityCode(found.TA_CODETYPEACTIVITE || found.AC_CODEACTIVITE || "");
+  };
+
+  const handleSelectObjet = (label: string) => {
+    setObject(label);
+    const found = produits.find(p => p.OF_LIBELLE === label);
+    if (found) setObjectCode(found.OF_CODEOBJETFINANCEMENT || "");
   };
 
   const handleNext = () => {
-    if (!descActivity || !amount) { Alert.alert(t("common.error"), t("common.fillAllFields")); return; }
+    if (!descActivity.trim() || !amount.trim()) {
+      Alert.alert("Champs requis", "Veuillez remplir la description et le montant.");
+      return;
+    }
+    if (isNaN(Number(amount.replace(/\s/g, ""))) || Number(amount.replace(/\s/g, "")) <= 0) {
+      Alert.alert("Montant invalide", "Veuillez saisir un montant valide.");
+      return;
+    }
     setStep(2);
   };
 
   const handleFinish = async () => {
-    if (!duration || !idNumber || !location) { Alert.alert(t("common.error"), t("common.fillAllFields")); return; }
+    if (!duration.trim() || !idNumber.trim() || !location.trim()) {
+      Alert.alert("Champs requis", "Veuillez remplir tous les champs obligatoires.");
+      return;
+    }
+    setSubmitting(true);
     try {
       const clientId = await secureGetItem("client_id");
       const userAgency = await secureGetItem("user_agency");
-      const userOperator = await secureGetItem("user_operator");
-      const fmt = (d: Date) => `${String(d.getDate()).padStart(2,"0")}/${String(d.getMonth()+1).padStart(2,"0")}/${d.getFullYear()}`;
-      const now = new Date();
-      const end = new Date(now); end.setMonth(end.getMonth() + (parseInt(duration) || 2));
+      const userOperator = await secureGetItem("code_operateur");
+      const token = await secureGetItem("auth_token");
 
-      await demandeCredit({
-        LG_CODELANGUE: "FR", AG_CODEAGENCE: userAgency || "1000",
-        OF_CODEOBJETFINANCEMENT: "01", PS_CODESOUSPRODUIT: "00153",
-        TA_CODETYPEACTIVITE: "09", AC_CODEACTIVITE: "0007", AT_CODEACTIVITE: "00013",
-        CL_IDCLIENT: clientId || "100000000011",
-        CR_DESCRIPTIONACTIVITE: descActivity, CO_CODECOMMUNE: "0000000005",
+      const fmt = (d: Date) =>
+        `${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}/${d.getFullYear()}`;
+      const now = new Date();
+      const end = new Date(now);
+      end.setMonth(end.getMonth() + (parseInt(duration) || 12));
+
+      const headers: Record<string, string> = {};
+      if (token) headers["Authorization"] = `Bearer ${token}`;
+
+      const res = await demandeCredit({
+        LG_CODELANGUE: "FR",
+        AG_CODEAGENCE: userAgency || "1000",
+        OF_CODEOBJETFINANCEMENT: objectCode || "01",
+        PS_CODESOUSPRODUIT: selectedProduitCode || "00153",
+        TA_CODETYPEACTIVITE: activityCode || "09",
+        AC_CODEACTIVITE: activityCode || "0007",
+        AT_CODEACTIVITE: activityCode || "00013",
+        CL_IDCLIENT: clientId || "",
+        CR_DESCRIPTIONACTIVITE: descActivity,
+        CO_CODECOMMUNE: "0000000005",
         CR_ADRESSEGEOGRAPHIQUEACTIVITE: location,
         CR_MONTANTCREDIT: amount.replace(/\D/g, ""),
-        CR_DATEREMBOURSEMENT: fmt(end), CR_TAUX: "12", CR_DUREE: duration,
-        CR_DIFFERE: deferred || "0", PE_CODEPERIODICITE: "01",
-        OP_CODEOPERATEUR: userOperator || "100000033", TYPEOPERATION: "0",
-        CR_DATEMISEENPLACE: fmt(now), CODECRYPTAGE: "Y}@128eVIXfoi7",
-      });
+        CR_DATEREMBOURSEMENT: fmt(end),
+        CR_TAUX: "12",
+        CR_DUREE: duration,
+        CR_DIFFERE: deferred || "0",
+        PE_CODEPERIODICITE: periodicityCode,
+        OP_CODEOPERATEUR: userOperator || "",
+        TYPEOPERATION: "0",
+        CR_DATEMISEENPLACE: fmt(now),
+        CODECRYPTAGE,
+      }, headers);
 
-      const newReq = { id: Date.now(), amount: parseFloat(amount) || 0, date: now.toISOString().split("T")[0], status: "APPROVED", type: nature };
+      if ((res as any)?.error) {
+        const msg = (res as any).error?.response?.data?.message || (res as any).error?.message || "Erreur lors de la soumission.";
+        Alert.alert("Erreur", msg);
+        return;
+      }
+
+      // Sauvegarder localement
+      const newReq = {
+        id: Date.now(),
+        amount: parseFloat(amount.replace(/\D/g, "")) || 0,
+        date: now.toISOString().split("T")[0],
+        status: "PENDING",
+        type: selectedProduit || nature || "Credit",
+        nature: nature,
+      };
       const reqStr = await secureGetItem("local_credit_requests");
       const reqs = reqStr ? JSON.parse(reqStr) : [];
       reqs.push(newReq);
       await secureSetItem("local_credit_requests", JSON.stringify(reqs));
-      loadRequests();
+
+      await fetchHistorique();
       setSuccessVisible(true);
     } catch (e: any) {
-      Alert.alert("Erreur", e.message);
+      Alert.alert("Erreur", e?.message || "Une erreur est survenue.");
+    } finally {
+      setSubmitting(false);
     }
   };
 
+  // Historique local (fallback si API indisponible)
+  const localRequestsRef = React.useRef<any[]>([]);
+  const [localRequests, setLocalRequests] = React.useState<any[]>([]);
+
+  React.useEffect(() => {
+    secureGetItem("local_credit_requests").then(s => {
+      if (s) {
+        const local = JSON.parse(s).filter((i: any) => !String(i.id).startsWith("mock-"));
+        localRequestsRef.current = local;
+        setLocalRequests(local);
+      }
+    });
+  }, [successVisible]);
+
   const statusMeta = (s: string) => {
-    if (s === "APPROVED") return { label: "Valid�e", color: colors.success, bg: colors.success + "15", icon: "checkmark-circle" };
-    if (s === "REJECTED") return { label: "Rejet�e", color: colors.error, bg: colors.error + "15", icon: "close-circle" };
-    return { label: "En cours", color: colors.primary, bg: colors.primary + "15", icon: "time" };
+    if (s === "APPROVED") return { label: "Validee", color: colors.success, bg: colors.success + "15", icon: "checkmark-circle" as const };
+    if (s === "REJECTED") return { label: "Rejetee", color: colors.error, bg: colors.error + "15", icon: "close-circle" as const };
+    return { label: "En cours", color: colors.primary, bg: colors.primary + "15", icon: "time" as const };
   };
 
-  /* -- History view -- */
+  /* ── Vue historique ── */
   if (viewMode === "history") {
-    const filtered = requests.filter(r => r.status === historyFilter);
     const TABS: Array<"PENDING" | "APPROVED" | "REJECTED"> = ["PENDING", "APPROVED", "REJECTED"];
-    const tabLabels: Record<string, string> = { PENDING: "En cours", APPROVED: "Valid�es", REJECTED: "Rejet�es" };
+    const tabLabels: Record<string, string> = { PENDING: "En cours", APPROVED: "Validees", REJECTED: "Rejetees" };
+
+    const allRequests = historique.length > 0 ? historique : localRequests;
+    const filtered = allRequests.filter((r: any) => r.status === historyFilter);
 
     return (
       <View style={[sc.root, { backgroundColor: colors.background }]}>
@@ -259,7 +402,9 @@ export const CreditRequestScreen: React.FC = () => {
         <View style={[sc.hero, { backgroundColor: colors.primary }]}>
           <View>
             <Text style={sc.heroSub}>Mes demandes</Text>
-            <Text style={sc.heroTitle}>{requests.length} demande{requests.length !== 1 ? "s" : ""}</Text>
+            <Text style={sc.heroTitle}>
+              {isLoadingHistory ? "..." : `${allRequests.length} demande${allRequests.length !== 1 ? "s" : ""}`}
+            </Text>
           </View>
           <View style={[sc.heroIcon, { backgroundColor: "rgba(255,255,255,0.2)" }]}>
             <Ionicons name="document-text-outline" size={28} color="#fff" />
@@ -281,42 +426,57 @@ export const CreditRequestScreen: React.FC = () => {
           })}
         </View>
 
-        <FlatList
-          data={filtered}
-          keyExtractor={i => String(i.id)}
-          contentContainerStyle={{ padding: 16, paddingBottom: 100 }}
-          ListEmptyComponent={
-            <View style={sc.empty}>
-              <Ionicons name="file-tray-outline" size={56} color={colors.text + "20"} />
-              <Text style={[sc.emptyText, { color: colors.text + "40" }]}>Aucune demande</Text>
-            </View>
-          }
-          renderItem={({ item }) => {
-            const meta = statusMeta(item.status);
-            return (
-              <View style={[sc.reqCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
-                <View style={[sc.reqAccent, { backgroundColor: meta.color }]} />
-                <View style={[sc.reqIconWrap, { backgroundColor: meta.bg }]}>
-                  <Ionicons name={meta.icon as any} size={22} color={meta.color} />
-                </View>
-                <View style={sc.reqBody}>
-                  <View style={sc.reqTopRow}>
-                    <Text style={[sc.reqType, { color: colors.text }]}>{item.type}</Text>
-                    <View style={[sc.badge, { backgroundColor: meta.bg }]}>
-                      <Text style={[sc.badgeText, { color: meta.color }]}>{meta.label}</Text>
-                    </View>
-                  </View>
-                  <Text style={[sc.reqAmount, { color: colors.primary }]}>
-                    {new Intl.NumberFormat("fr-FR").format(item.amount)} XOF
-                  </Text>
-                  <Text style={[sc.reqDate, { color: colors.text + "50" }]}>Demand� le {item.date}</Text>
-                </View>
+        {isLoadingHistory ? (
+          <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+            <ActivityIndicator color={colors.primary} size="large" />
+          </View>
+        ) : (
+          <FlatList
+            data={filtered}
+            keyExtractor={i => String(i.id)}
+            contentContainerStyle={{ padding: 16, paddingBottom: 100 }}
+            ListEmptyComponent={
+              <View style={sc.empty}>
+                <Ionicons name="file-tray-outline" size={56} color={colors.text + "20"} />
+                <Text style={[sc.emptyText, { color: colors.text + "40" }]}>Aucune demande</Text>
+                <Text style={[sc.emptySubText, { color: colors.text + "30" }]}>
+                  Appuyez sur "Nouvelle demande" pour commencer
+                </Text>
               </View>
-            );
-          }}
-        />
+            }
+            renderItem={({ item }) => {
+              const meta = statusMeta(item.status);
+              return (
+                <View style={[sc.reqCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+                  <View style={[sc.reqAccent, { backgroundColor: meta.color }]} />
+                  <View style={[sc.reqIconWrap, { backgroundColor: meta.bg }]}>
+                    <Ionicons name={meta.icon} size={22} color={meta.color} />
+                  </View>
+                  <View style={sc.reqBody}>
+                    <View style={sc.reqTopRow}>
+                      <Text style={[sc.reqType, { color: colors.text }]}>{item.type}</Text>
+                      <View style={[sc.badge, { backgroundColor: meta.bg }]}>
+                        <Text style={[sc.badgeText, { color: meta.color }]}>{meta.label}</Text>
+                      </View>
+                    </View>
+                    <Text style={[sc.reqAmount, { color: colors.primary }]}>
+                      {new Intl.NumberFormat("fr-FR").format(item.amount)} XOF
+                    </Text>
+                    <Text style={[sc.reqDate, { color: colors.text + "50" }]}>
+                      {item.date ? `Demande le ${item.date}` : ""}
+                    </Text>
+                  </View>
+                </View>
+              );
+            }}
+          />
+        )}
 
-        <TouchableOpacity style={sc.fab} onPress={() => { setStep(1); setViewMode("form"); }} activeOpacity={0.85}>
+        <TouchableOpacity
+          style={sc.fab}
+          onPress={() => { setStep(1); setViewMode("form"); }}
+          activeOpacity={0.85}
+        >
           <View style={[sc.fabGrad, { backgroundColor: colors.primary }]}>
             <Ionicons name="add" size={22} color="#fff" />
             <Text style={sc.fabText}>Nouvelle demande</Text>
@@ -326,16 +486,19 @@ export const CreditRequestScreen: React.FC = () => {
     );
   }
 
-  /* -- Form view -- */
-  const stepTitles = ["Informations du cr�dit", "Informations personnelles"];
-  const stepIcons = ["card-outline", "person-outline"];
+  /* ── Vue formulaire ── */
+  const stepTitles = ["Informations du credit", "Informations personnelles"];
+  const stepIcons: Array<"card-outline" | "person-outline"> = ["card-outline", "person-outline"];
 
   return (
     <View style={[sc.root, { backgroundColor: colors.background }]}>
       <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={{ flex: 1 }}>
-        <ScrollView contentContainerStyle={sc.formScroll} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-
-          {/* Back */}
+        <ScrollView
+          contentContainerStyle={sc.formScroll}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
+          {/* Retour */}
           <TouchableOpacity style={sc.backRow} onPress={() => setViewMode("history")}>
             <Ionicons name="arrow-back" size={20} color={colors.primary} />
             <Text style={[sc.backText, { color: colors.primary }]}>Retour aux demandes</Text>
@@ -367,31 +530,88 @@ export const CreditRequestScreen: React.FC = () => {
             })}
           </View>
 
-          {/* Step header card */}
+          {/* En-tete etape */}
           <View style={[sc.stepHeader, { backgroundColor: colors.primary + "12", borderColor: colors.primary + "25" }]}>
             <View style={[sc.stepHeaderIcon, { backgroundColor: colors.primary + "20" }]}>
-              <Ionicons name={stepIcons[step - 1] as any} size={22} color={colors.primary} />
+              <Ionicons name={stepIcons[step - 1]} size={22} color={colors.primary} />
             </View>
             <View>
-              <Text style={[sc.stepHeaderLabel, { color: colors.text + "60" }]}>�tape {step} sur 2</Text>
+              <Text style={[sc.stepHeaderLabel, { color: colors.text + "70" }]}>Etape {step} sur 2</Text>
               <Text style={[sc.stepHeaderTitle, { color: colors.text }]}>{stepTitles[step - 1]}</Text>
             </View>
           </View>
 
-          {/* Form fields */}
+          {/* Chargement produits */}
+          {isLoading && (
+            <View style={[sc.loadingBox, { backgroundColor: colors.card, borderColor: colors.border }]}>
+              <ActivityIndicator color={colors.primary} size="small" />
+              <Text style={[sc.loadingText, { color: colors.text + "70" }]}>
+                Chargement des produits de credit...
+              </Text>
+            </View>
+          )}
+
+          {/* Champs */}
           <View style={sc.formCard}>
             {step === 1 && (
               <>
-                <PickerSheet label={t("credit.request.type")} value={type} options={["Particulier", "Entreprise"]} onSelect={setType} />
-                <PickerSheet label={t("credit.request.nature")} value={nature} options={["Consommation", "Immobilier", "Agricole"]} onSelect={setNature} />
-                <PickerSheet label={t("credit.request.product")} value={product} options={["Produit A", "Produit B", "Produit C"]} onSelect={setProduct} />
-                <PickerSheet label={t("credit.request.activity")} value={activity} options={["Commerce", "Services", "Industrie"]} onSelect={setActivity} />
-                <PickerSheet label={t("credit.request.object")} value={object} options={["Achat �quipement", "Fonds de roulement"]} onSelect={setObject} />
-                <Field label={t("credit.request.descActivity")} icon="document-text-outline" value={descActivity} onChange={setDescActivity} colors={colors} />
-                <Field label={t("credit.request.amount")} icon="cash-outline" value={amount} onChange={setAmount} keyboardType="numeric" placeholder="Ex : 500 000" colors={colors} />
+                <PickerSheet
+                  label="Type de client"
+                  value={type}
+                  options={FALLBACK_TYPES}
+                  onSelect={setType}
+                />
+                <PickerSheet
+                  label="Nature du credit"
+                  value={nature}
+                  options={FALLBACK_NATURES}
+                  onSelect={setNature}
+                />
+                <PickerSheet
+                  label="Produit de credit"
+                  value={selectedProduit}
+                  options={produitLabels}
+                  onSelect={handleSelectProduit}
+                  loading={isLoading}
+                />
+                <PickerSheet
+                  label="Activite"
+                  value={activity}
+                  options={activiteLabels}
+                  onSelect={handleSelectActivite}
+                  loading={isLoading}
+                />
+                <PickerSheet
+                  label="Objet du financement"
+                  value={object}
+                  options={objetLabels}
+                  onSelect={handleSelectObjet}
+                  loading={isLoading}
+                />
+                <Field
+                  label="Description de l'activite"
+                  icon="document-text-outline"
+                  value={descActivity}
+                  onChange={setDescActivity}
+                  colors={colors}
+                  multiline
+                />
+                <Field
+                  label="Montant demande (XOF)"
+                  icon="cash-outline"
+                  value={amount}
+                  onChange={setAmount}
+                  keyboardType="numeric"
+                  placeholder="Ex : 500 000"
+                  colors={colors}
+                />
 
-                <TouchableOpacity style={[sc.btn, { backgroundColor: colors.primary }]} onPress={handleNext} activeOpacity={0.85}>
-                  <Text style={sc.btnText}>{t("credit.request.next")}</Text>
+                <TouchableOpacity
+                  style={[sc.btn, { backgroundColor: colors.primary }]}
+                  onPress={handleNext}
+                  activeOpacity={0.85}
+                >
+                  <Text style={sc.btnText}>Suivant</Text>
                   <Ionicons name="arrow-forward" size={18} color="#fff" />
                 </TouchableOpacity>
               </>
@@ -399,25 +619,105 @@ export const CreditRequestScreen: React.FC = () => {
 
             {step === 2 && (
               <>
-                <PickerSheet label={t("credit.request.periodicity")} value={periodicity} options={["Mensuelle", "Trimestrielle", "Annuelle"]} onSelect={setPeriodicity} />
-                <Field label={t("credit.request.duration")} icon="time-outline" value={duration} onChange={setDuration} keyboardType="numeric" placeholder="Ex : 24 mois" colors={colors} />
-                <Field label={t("credit.request.deferred")} icon="hourglass-outline" value={deferred} onChange={setDeferred} keyboardType="numeric" colors={colors} />
-                <PickerSheet label={t("credit.request.country")} value={country} options={["C�TE D'IVOIRE"]} onSelect={setCountry} />
-                <PickerSheet label={t("credit.request.birthCountry")} value={birthCountry} options={COUNTRIES} onSelect={setBirthCountry} searchable />
-                <PickerSheet label={t("credit.request.idType")} value={idType} options={["CNI", "PASSEPORT", "PERMIS DE CONDUIRE", "ATTESTATION"]} onSelect={setIdType} />
-                <Field label={t("credit.request.idNumber")} icon="id-card-outline" value={idNumber} onChange={setIdNumber} colors={colors} />
-                <PickerSheet label={t("credit.request.city")} value={city} options={["ABIDJAN", "BOUAK�", "DALOA", "YAMOUSSOUKRO", "SAN-P�DRO"]} onSelect={setCity} />
-                <PickerSheet label={t("credit.request.commune")} value={commune} options={["COCODY", "PLATEAU", "YOPOUGON", "ABOBO", "ADJAM�", "MARCORY", "TREICHVILLE"]} onSelect={setCommune} />
-                <Field label={t("credit.request.location")} icon="location-outline" value={location} onChange={setLocation} colors={colors} />
+                <PickerSheet
+                  label="Periodicite de remboursement"
+                  value={periodicity}
+                  options={FALLBACK_PERIODICITES}
+                  onSelect={(v) => {
+                    setPeriodicity(v);
+                    const codes: Record<string, string> = {
+                      "Mensuelle": "01", "Trimestrielle": "03",
+                      "Semestrielle": "06", "Annuelle": "12",
+                    };
+                    setPeriodicityCode(codes[v] || "01");
+                  }}
+                />
+                <Field
+                  label="Duree (en mois)"
+                  icon="time-outline"
+                  value={duration}
+                  onChange={setDuration}
+                  keyboardType="numeric"
+                  placeholder="Ex : 24"
+                  colors={colors}
+                />
+                <Field
+                  label="Differe (en mois)"
+                  icon="hourglass-outline"
+                  value={deferred}
+                  onChange={setDeferred}
+                  keyboardType="numeric"
+                  placeholder="0"
+                  colors={colors}
+                />
+                <PickerSheet
+                  label="Pays de residence"
+                  value={country}
+                  options={["Cote d'Ivoire"]}
+                  onSelect={setCountry}
+                />
+                <PickerSheet
+                  label="Pays de naissance"
+                  value={birthCountry}
+                  options={COUNTRIES}
+                  onSelect={setBirthCountry}
+                  searchable
+                />
+                <PickerSheet
+                  label="Type de piece d'identite"
+                  value={idType}
+                  options={FALLBACK_ID_TYPES}
+                  onSelect={setIdType}
+                />
+                <Field
+                  label="Numero de piece"
+                  icon="id-card-outline"
+                  value={idNumber}
+                  onChange={setIdNumber}
+                  colors={colors}
+                />
+                <PickerSheet
+                  label="Ville"
+                  value={city}
+                  options={FALLBACK_VILLES}
+                  onSelect={setCity}
+                />
+                <PickerSheet
+                  label="Commune"
+                  value={commune}
+                  options={FALLBACK_COMMUNES}
+                  onSelect={setCommune}
+                />
+                <Field
+                  label="Adresse geographique"
+                  icon="location-outline"
+                  value={location}
+                  onChange={setLocation}
+                  colors={colors}
+                />
 
                 <View style={sc.btnRow}>
-                  <TouchableOpacity style={[sc.btnSecondary, { borderColor: colors.border }]} onPress={() => setStep(1)} activeOpacity={0.8}>
+                  <TouchableOpacity
+                    style={[sc.btnSecondary, { borderColor: colors.border }]}
+                    onPress={() => setStep(1)}
+                    activeOpacity={0.8}
+                  >
                     <Ionicons name="arrow-back" size={16} color={colors.text} />
-                    <Text style={[sc.btnSecondaryText, { color: colors.text }]}>{t("credit.request.previous")}</Text>
+                    <Text style={[sc.btnSecondaryText, { color: colors.text }]}>Precedent</Text>
                   </TouchableOpacity>
-                  <TouchableOpacity style={[sc.btnPrimary, { backgroundColor: colors.primary }]} onPress={handleFinish} activeOpacity={0.85}>
-                    <Text style={sc.btnText}>{t("credit.request.finish")}</Text>
-                    <Ionicons name="checkmark" size={18} color="#fff" />
+                  <TouchableOpacity
+                    style={[sc.btnPrimary, { backgroundColor: submitting ? colors.primary + "80" : colors.primary }]}
+                    onPress={handleFinish}
+                    disabled={submitting}
+                    activeOpacity={0.85}
+                  >
+                    {submitting
+                      ? <ActivityIndicator color="#fff" size="small" />
+                      : <>
+                          <Text style={sc.btnText}>Soumettre</Text>
+                          <Ionicons name="checkmark" size={18} color="#fff" />
+                        </>
+                    }
                   </TouchableOpacity>
                 </View>
               </>
@@ -426,20 +726,28 @@ export const CreditRequestScreen: React.FC = () => {
         </ScrollView>
       </KeyboardAvoidingView>
 
-      {/* Success modal */}
+      {/* Modal succes */}
       <Modal visible={successVisible} transparent animationType="fade" onRequestClose={() => {}}>
         <View style={sc.modalOverlay}>
           <View style={[sc.modalCard, { backgroundColor: colors.card }]}>
             <View style={[sc.modalIconWrap, { backgroundColor: colors.success + "20" }]}>
               <Ionicons name="checkmark-circle" size={64} color={colors.success} />
             </View>
-            <Text style={[sc.modalTitle, { color: colors.text }]}>Demande envoy�e !</Text>
+            <Text style={[sc.modalTitle, { color: colors.text }]}>Demande envoyee !</Text>
             <Text style={[sc.modalSub, { color: colors.text + "70" }]}>
-              Votre demande de cr�dit a �t� soumise avec succ�s. Vous serez contact� sous 48h.
+              Votre demande de credit a ete soumise avec succes. Vous serez contacte sous 48h.
             </Text>
             <TouchableOpacity
               style={[sc.modalBtn, { backgroundColor: colors.success }]}
-              onPress={() => { setSuccessVisible(false); navigation.goBack(); }}
+              onPress={() => {
+                setSuccessVisible(false);
+                setStep(1);
+                setViewMode("history");
+                // Reset form
+                setType(""); setNature(""); setSelectedProduit(""); setActivity("");
+                setObject(""); setDescActivity(""); setAmount("");
+                setDuration(""); setDeferred("0"); setIdNumber(""); setLocation("");
+              }}
             >
               <Text style={sc.modalBtnText}>Parfait !</Text>
             </TouchableOpacity>
@@ -453,7 +761,6 @@ export const CreditRequestScreen: React.FC = () => {
 const sc = StyleSheet.create({
   root: { flex: 1 },
 
-  // Hero
   hero: {
     flexDirection: "row", justifyContent: "space-between", alignItems: "center",
     margin: 16, borderRadius: 20, padding: 20,
@@ -462,15 +769,11 @@ const sc = StyleSheet.create({
   heroTitle: { color: "#fff", fontSize: 24, fontWeight: "800", marginTop: 2 },
   heroIcon: { width: 52, height: 52, borderRadius: 26, justifyContent: "center", alignItems: "center" },
 
-  // Tab bar
-  tabBar: {
-    flexDirection: "row", borderBottomWidth: 1,
-  },
+  tabBar: { flexDirection: "row", borderBottomWidth: 1 },
   tabItem: { flex: 1, alignItems: "center", paddingVertical: 14, position: "relative" },
   tabText: { fontSize: 13, fontWeight: "600" },
   tabUnderline: { position: "absolute", bottom: 0, left: "15%", right: "15%", height: 2.5, borderRadius: 2 },
 
-  // Request card
   reqCard: {
     flexDirection: "row", alignItems: "center",
     borderRadius: 16, marginBottom: 10, borderWidth: 1, overflow: "hidden",
@@ -480,17 +783,16 @@ const sc = StyleSheet.create({
   reqIconWrap: { width: 44, height: 44, borderRadius: 22, justifyContent: "center", alignItems: "center", margin: 12 },
   reqBody: { flex: 1, paddingVertical: 12, paddingRight: 12 },
   reqTopRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 4 },
-  reqType: { fontSize: 14, fontWeight: "700" },
+  reqType: { fontSize: 14, fontWeight: "700", flex: 1, marginRight: 8 },
   badge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8 },
   badgeText: { fontSize: 11, fontWeight: "700" },
   reqAmount: { fontSize: 18, fontWeight: "800", marginBottom: 2 },
   reqDate: { fontSize: 11 },
 
-  // Empty
-  empty: { alignItems: "center", paddingVertical: 60, gap: 12 },
-  emptyText: { fontSize: 14 },
+  empty: { alignItems: "center", paddingVertical: 60, gap: 10 },
+  emptyText: { fontSize: 15, fontWeight: "600" },
+  emptySubText: { fontSize: 13, textAlign: "center" },
 
-  // FAB
   fab: { position: "absolute", bottom: 24, left: 16, right: 16 },
   fabGrad: {
     flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 10,
@@ -499,12 +801,10 @@ const sc = StyleSheet.create({
   },
   fabText: { color: "#fff", fontSize: 15, fontWeight: "700" },
 
-  // Form
   formScroll: { padding: 16, paddingBottom: 60 },
   backRow: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 20 },
   backText: { fontSize: 14, fontWeight: "600" },
 
-  // Stepper
   stepper: { flexDirection: "row", alignItems: "center", marginBottom: 20 },
   stepItem: { alignItems: "center", gap: 6 },
   stepCircle: { width: 32, height: 32, borderRadius: 16, justifyContent: "center", alignItems: "center" },
@@ -512,7 +812,6 @@ const sc = StyleSheet.create({
   stepLabel: { fontSize: 10, fontWeight: "600", textAlign: "center", maxWidth: 80 },
   stepLine: { flex: 1, height: 2, marginHorizontal: 8, marginBottom: 20 },
 
-  // Step header
   stepHeader: {
     flexDirection: "row", alignItems: "center", gap: 14,
     borderRadius: 16, padding: 16, borderWidth: 1, marginBottom: 16,
@@ -521,12 +820,14 @@ const sc = StyleSheet.create({
   stepHeaderLabel: { fontSize: 11, fontWeight: "600" },
   stepHeaderTitle: { fontSize: 16, fontWeight: "700", marginTop: 2 },
 
-  // Form card
-  formCard: {
-    borderRadius: 0,
+  loadingBox: {
+    flexDirection: "row", alignItems: "center", gap: 10,
+    borderRadius: 12, padding: 12, borderWidth: 1, marginBottom: 12,
   },
+  loadingText: { fontSize: 13 },
 
-  // Buttons
+  formCard: { borderRadius: 0 },
+
   btn: {
     flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 10,
     borderRadius: 16, paddingVertical: 16, marginTop: 8,
@@ -545,7 +846,6 @@ const sc = StyleSheet.create({
     shadowColor: "#000", shadowOpacity: 0.15, shadowOffset: { width: 0, height: 4 }, shadowRadius: 10, elevation: 4,
   },
 
-  // Success modal
   modalOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.55)", justifyContent: "center", alignItems: "center", padding: 24 },
   modalCard: { width: "100%", borderRadius: 24, padding: 28, alignItems: "center" },
   modalIconWrap: { width: 100, height: 100, borderRadius: 50, justifyContent: "center", alignItems: "center", marginBottom: 20 },

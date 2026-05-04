@@ -25,5 +25,7 @@ export const ENDPOINTS = {
   BLOQUE_COMPTE: "/compte/blocages-compte",
   DERNIERES_OPERATIONS_CLIENT: "/compte/dernieres-operations-client",
   CREDIT_DEMANDE: "/credit/demande",
+  CREDIT_PRODUITS: "/credit/produits",
+  CREDIT_HISTORIQUE: "/credit/historique",
   VERIFY_OTP_SIMPLE: "/auth/verify-otp-simple",
 };

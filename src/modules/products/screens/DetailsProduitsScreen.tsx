@@ -9,10 +9,10 @@ import {
 } from "react-native";
 import { useRoute, useNavigation, RouteProp } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { Ionicons } from "@expo/vector-icons";
 import { useI18n } from "../../../app/providers/I18nProvider";
 import { useTheme } from "../../../shared/styles/ThemeProvider";
 
-// Définir les types pour les paramètres de navigation
 type RootStackParamList = {
   ProductDetailPage:
     | {
@@ -20,21 +20,23 @@ type RootStackParamList = {
           title: string;
           subtitle: string;
           status?: string;
+          statusKey?: "active" | "pending" | "closed";
+          statusColor?: string;
+          description?: string;
+          features?: string[];
           advantages?: string[];
           conditions?: string[];
+          solde?: number;
+          agence?: string;
+          typeCode?: string;
+          icon?: string;
         };
       }
     | undefined;
 };
 
-type ProductDetailRouteProp = RouteProp<
-  RootStackParamList,
-  "ProductDetailPage"
->;
-type ProductDetailNavigationProp = NativeStackNavigationProp<
-  RootStackParamList,
-  "ProductDetailPage"
->;
+type ProductDetailRouteProp = RouteProp<RootStackParamList, "ProductDetailPage">;
+type ProductDetailNavigationProp = NativeStackNavigationProp<RootStackParamList, "ProductDetailPage">;
 
 const ProductDetailPage: React.FC = () => {
   const route = useRoute<ProductDetailRouteProp>();
@@ -44,9 +46,11 @@ const ProductDetailPage: React.FC = () => {
 
   const { product } = route.params || {};
 
-  const [activeTab, setActiveTab] = useState<"Avantages" | "Conditions">(
-    "Avantages"
-  );
+  const [activeTab, setActiveTab] = useState<"Avantages" | "Conditions">("Avantages");
+  const [showSubscribeModal, setShowSubscribeModal] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+
+  const fmt = (n: number) => new Intl.NumberFormat("fr-FR").format(Math.round(n));
 
   const advantages: string[] = product?.advantages ?? [
     t("products.detail.adv.cardIncluded"),
@@ -60,177 +64,136 @@ const ProductDetailPage: React.FC = () => {
     t("products.detail.cond.idProof"),
     t("products.detail.cond.addressProof"),
   ];
-  const [showSubscribeModal, setShowSubscribeModal] = useState(false);
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const productName =
-    product?.title || t("products.detail.title.currentAccount");
+
+  const productName = product?.title || t("products.detail.title.currentAccount");
+
+  const statusColor =
+    product?.statusColor ??
+    (product?.statusKey === "active"
+      ? colors.success
+      : product?.statusKey === "pending"
+      ? colors.warning
+      : colors.text + "60");
+
+  const statusLabel =
+    product?.status || t("products.detail.status.available");
 
   return (
-    <ScrollView style={styles.container}>
-      {/* <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-        <Text>← Retour</Text>
-      </TouchableOpacity> */}
+    <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
 
-      <View
-        style={[
-          styles.productCard,
-          { backgroundColor: colors.card, borderColor: colors.border },
-        ]}
-      >
-        <View style={styles.iconCircle}>
-          <Text style={styles.icon}>📘</Text>
+      {/* Carte produit */}
+      <View style={[styles.productCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+        <View style={[styles.iconCircle, { backgroundColor: colors.primary + "15", borderColor: colors.border }]}>
+          <Ionicons
+            name={(product?.icon as any) || "card-outline"}
+            size={32}
+            color={colors.primary}
+          />
         </View>
-        <Text style={[styles.title, { color: colors.text }]}>
-          {product?.title || t("products.detail.title.currentAccount")}
-        </Text>
+        <Text style={[styles.title, { color: colors.text }]}>{productName}</Text>
         <Text style={[styles.subtitle, { color: colors.primary }]}>
           {product?.subtitle || t("products.detail.subtitle.dailyManagement")}
         </Text>
-        <Text
-          style={[
-            styles.status,
-            { backgroundColor: colors.success + "20", color: colors.success },
-          ]}
-        >
-          <Text
-            style={[
-              styles.statusboule,
-              { color: colors.success, transform: [{ translateY: 3 }] },
-            ]}
-          >
-            ●
-          </Text>
-          <Text style={[styles.statusDisponible, { color: colors.success }]}>
-            {product?.status || t("products.detail.status.available")}
-          </Text>
-        </Text>
+        <View style={[styles.statusBadge, { backgroundColor: statusColor + "20" }]}>
+          <View style={[styles.statusDot, { backgroundColor: statusColor }]} />
+          <Text style={[styles.statusText, { color: statusColor }]}>{statusLabel}</Text>
+        </View>
       </View>
 
-      <View
-        style={[
-          styles.descriptionCard,
-          { backgroundColor: colors.card, borderColor: colors.border },
-        ]}
-      >
+      {/* Informations du compte */}
+      {(product?.solde !== undefined || product?.agence || product?.typeCode) && (
+        <View style={[styles.infoCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Informations du compte</Text>
+
+          {product?.solde !== undefined && (
+            <View style={styles.infoRow}>
+              <View style={[styles.infoIconBg, { backgroundColor: colors.primary + "12" }]}>
+                <Ionicons name="wallet-outline" size={16} color={colors.primary} />
+              </View>
+              <View style={styles.infoTexts}>
+                <Text style={[styles.infoLabel, { color: colors.text + "70" }]}>Solde disponible</Text>
+                <Text style={[styles.infoValue, { color: colors.text }]}>{fmt(product.solde)} XOF</Text>
+              </View>
+            </View>
+          )}
+
+          {!!product?.agence && (
+            <View style={styles.infoRow}>
+              <View style={[styles.infoIconBg, { backgroundColor: colors.primary + "12" }]}>
+                <Ionicons name="business-outline" size={16} color={colors.primary} />
+              </View>
+              <View style={styles.infoTexts}>
+                <Text style={[styles.infoLabel, { color: colors.text + "70" }]}>Agence</Text>
+                <Text style={[styles.infoValue, { color: colors.text }]}>{product.agence}</Text>
+              </View>
+            </View>
+          )}
+
+          {!!product?.typeCode && (
+            <View style={styles.infoRow}>
+              <View style={[styles.infoIconBg, { backgroundColor: colors.primary + "12" }]}>
+                <Ionicons name="pricetag-outline" size={16} color={colors.primary} />
+              </View>
+              <View style={styles.infoTexts}>
+                <Text style={[styles.infoLabel, { color: colors.text + "70" }]}>Type de produit</Text>
+                <Text style={[styles.infoValue, { color: colors.text }]}>{product.typeCode}</Text>
+              </View>
+            </View>
+          )}
+        </View>
+      )}
+
+      {/* Description */}
+      <View style={[styles.descriptionCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
         <Text style={[styles.sectionTitle, { color: colors.text }]}>
           {t("products.detail.section.description")}
         </Text>
         <Text style={{ color: colors.text }}>
-          {t("products.detail.description.short")}
+          {product?.description || t("products.detail.description.short")}
         </Text>
-        <Text style={[styles.enteteText, { color: colors.text + "80" }]}>
+        <Text style={[styles.enteteText, { color: colors.text + "70" }]}>
           {t("products.detail.description.long")}
         </Text>
       </View>
 
       {/* Tabs */}
-      <View
-        style={[
-          styles.tabsRow,
-          { backgroundColor: colors.card, borderColor: colors.border },
-        ]}
-      >
-        {[
-          t("products.detail.tab.advantages"),
-          t("products.detail.tab.conditions"),
-        ].map((tab) => (
-          <TouchableOpacity
-            key={tab}
-            style={[
-              styles.tabBtn,
-              activeTab === tab && [
-                styles.activeTab,
-                {
-                  backgroundColor: colors.primary,
-                  borderBottomColor: colors.primary,
-                },
-              ],
-            ]}
-            onPress={() =>
-              setActiveTab(
-                (tab === t("products.detail.tab.conditions")
-                  ? "Conditions"
-                  : "Avantages") as "Avantages" | "Conditions"
-              )
-            }
-          >
-            <Text
+      <View style={[styles.tabsRow, { backgroundColor: colors.card, borderColor: colors.border }]}>
+        {[t("products.detail.tab.advantages"), t("products.detail.tab.conditions")].map((tab) => {
+          const isActive = activeTab === (tab === t("products.detail.tab.conditions") ? "Conditions" : "Avantages");
+          return (
+            <TouchableOpacity
+              key={tab}
               style={[
-                styles.tabText,
-                activeTab === tab
-                  ? [styles.tabTextActive, { color: "#fff" }]
-                  : [styles.tabTextInactive, { color: colors.text }],
+                styles.tabBtn,
+                isActive && [styles.activeTab, { backgroundColor: colors.primary, borderBottomColor: colors.primary }],
               ]}
+              onPress={() =>
+                setActiveTab(
+                  tab === t("products.detail.tab.conditions") ? "Conditions" : "Avantages"
+                )
+              }
             >
-              {tab}
-            </Text>
-          </TouchableOpacity>
-        ))}
+              <Text style={[styles.tabText, isActive ? { color: "#fff", fontWeight: "600" } : { color: colors.text }]}>
+                {tab}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
       </View>
 
-      {activeTab === "Avantages" && (
-        <View
-          style={[
-            styles.floatingCard,
-            { backgroundColor: colors.card, borderColor: colors.border },
-          ]}
-        >
-          {advantages.map((adv, i) => (
-            <View key={i} style={styles.itemRow}>
-              <View
-                style={[
-                  styles.outerCircle,
-                  { backgroundColor: colors.primary + "20" },
-                ]}
-              >
-                <View
-                  style={[
-                    styles.innerCircle,
-                    { backgroundColor: colors.primary },
-                  ]}
-                >
-                  <Text style={styles.checkMark}>✓</Text>
-                </View>
+      {/* Contenu des tabs */}
+      <View style={[styles.floatingCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+        {(activeTab === "Avantages" ? advantages : conditions).map((item, i) => (
+          <View key={i} style={styles.itemRow}>
+            <View style={[styles.outerCircle, { backgroundColor: colors.primary + "20" }]}>
+              <View style={[styles.innerCircle, { backgroundColor: colors.primary }]}>
+                <Text style={styles.checkMark}>✓</Text>
               </View>
-              <Text style={[styles.advItem, { color: colors.text }]}>
-                {adv}
-              </Text>
             </View>
-          ))}
-        </View>
-      )}
-
-      {activeTab === "Conditions" && (
-        <View
-          style={[
-            styles.floatingCard,
-            { backgroundColor: colors.card, borderColor: colors.border },
-          ]}
-        >
-          {conditions.map((cond, i) => (
-            <View key={i} style={styles.itemRow}>
-              <View
-                style={[
-                  styles.outerCircle,
-                  { backgroundColor: colors.primary + "20" },
-                ]}
-              >
-                <View
-                  style={[
-                    styles.innerCircle,
-                    { backgroundColor: colors.primary },
-                  ]}
-                >
-                  <Text style={styles.checkMark}>✓</Text>
-                </View>
-              </View>
-              <Text style={[styles.advItem, { color: colors.text }]}>
-                {cond}
-              </Text>
-            </View>
-          ))}
-        </View>
-      )}
+            <Text style={[styles.advItem, { color: colors.text }]}>{item}</Text>
+          </View>
+        ))}
+      </View>
 
       <TouchableOpacity
         style={[styles.subscribeBtn, { backgroundColor: colors.primary }]}
@@ -241,19 +204,10 @@ const ProductDetailPage: React.FC = () => {
         </Text>
       </TouchableOpacity>
 
-      <View
-        style={[styles.helping, { backgroundColor: colors.warning + "10" }]}
-      >
+      <View style={[styles.helping, { backgroundColor: colors.warning + "10" }]}>
         <View style={styles.itemRow}>
-          <View
-            style={[
-              styles.outerCircle,
-              { backgroundColor: colors.warning + "20" },
-            ]}
-          >
-            <View
-              style={[styles.innerCircle, { backgroundColor: colors.warning }]}
-            >
+          <View style={[styles.outerCircle, { backgroundColor: colors.warning + "20" }]}>
+            <View style={[styles.innerCircle, { backgroundColor: colors.warning }]}>
               <Text style={styles.exclamationMark}>!</Text>
             </View>
           </View>
@@ -263,6 +217,7 @@ const ProductDetailPage: React.FC = () => {
         </View>
       </View>
 
+      {/* Modal confirmation */}
       <Modal
         transparent
         visible={showSubscribeModal}
@@ -270,12 +225,7 @@ const ProductDetailPage: React.FC = () => {
         onRequestClose={() => setShowSubscribeModal(false)}
       >
         <View style={styles.modalOverlay}>
-          <View
-            style={[
-              styles.modalCard,
-              { backgroundColor: colors.card, borderColor: colors.border },
-            ]}
-          >
+          <View style={[styles.modalCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
             <Text style={[styles.modalTitle, { color: colors.text }]}>
               {`${t("products.detail.modal.confirm.prefix")} ${productName} ?`}
             </Text>
@@ -288,14 +238,8 @@ const ProductDetailPage: React.FC = () => {
                 <Text style={{ color: colors.text }}>{t("common.cancel")}</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[
-                  styles.modalActionConfirm,
-                  { backgroundColor: colors.primary },
-                ]}
-                onPress={() => {
-                  setShowSubscribeModal(false);
-                  setShowSuccessModal(true);
-                }}
+                style={[styles.modalActionConfirm, { backgroundColor: colors.primary }]}
+                onPress={() => { setShowSubscribeModal(false); setShowSuccessModal(true); }}
                 activeOpacity={0.8}
               >
                 <Text style={{ color: "#fff" }}>{t("common.confirm")}</Text>
@@ -305,6 +249,7 @@ const ProductDetailPage: React.FC = () => {
         </View>
       </Modal>
 
+      {/* Modal succès */}
       <Modal
         transparent
         visible={showSuccessModal}
@@ -312,12 +257,7 @@ const ProductDetailPage: React.FC = () => {
         onRequestClose={() => setShowSuccessModal(false)}
       >
         <View style={styles.modalOverlay}>
-          <View
-            style={[
-              styles.modalCard,
-              { backgroundColor: colors.card, borderColor: colors.border },
-            ]}
-          >
+          <View style={[styles.modalCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
             <Text style={[styles.modalTitle, { color: colors.success }]}>
               {t("common.success")}
             </Text>
@@ -326,10 +266,7 @@ const ProductDetailPage: React.FC = () => {
             </Text>
             <View style={styles.modalActions}>
               <TouchableOpacity
-                style={[
-                  styles.modalActionConfirm,
-                  { backgroundColor: colors.success },
-                ]}
+                style={[styles.modalActionConfirm, { backgroundColor: colors.success }]}
                 onPress={() => setShowSuccessModal(false)}
                 activeOpacity={0.8}
               >
@@ -343,215 +280,111 @@ const ProductDetailPage: React.FC = () => {
   );
 };
 
-// Tu peux garder ton style inchangé
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 16 },
   backButton: { marginBottom: 16 },
   productCard: {
-    marginBottom: 16,
-    padding: 16,
-    backgroundColor: "#fff",
-    borderRadius: 20,
-    alignItems: "center",
-    paddingVertical: 30,
-    paddingHorizontal: 20,
-    marginVertical: 10,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 6,
-    elevation: 6, // Android shadow
+    marginBottom: 16, padding: 20,
+    borderRadius: 20, alignItems: "center",
+    paddingVertical: 30, paddingHorizontal: 20, marginVertical: 10,
+    shadowColor: "#000", shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1, shadowRadius: 6, elevation: 5,
     borderWidth: 1,
-    borderColor: "#e0e0e0",
   },
   iconCircle: {
-    width: 60, // largeur du cercle
-    height: 60,
-    backgroundColor: "#e5f1ffff", // hauteur du cercle (même que la largeur)
-    borderRadius: 30, // moitié de la largeur/hauteur pour faire un cercle
-    borderWidth: 1, // épaisseur du contour
-    borderColor: "#ccc", // couleur du contour
-    justifyContent: "center",
-    alignItems: "center", // pour centrer l'emoji
-    shadowColor: "#000", // ombre légère
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.2,
-    shadowRadius: 1,
-    marginBottom: 10,
-    elevation: 2, // nécessaire sur Android
+    width: 64, height: 64, borderRadius: 32,
+    justifyContent: "center", alignItems: "center",
+    marginBottom: 12, borderWidth: 1,
+    shadowColor: "#000", shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1, shadowRadius: 2, elevation: 2,
   },
+  title: { fontSize: 20, fontWeight: "bold", marginTop: 8, textAlign: "center" },
+  subtitle: { fontSize: 14, fontWeight: "500", marginBottom: 12, marginTop: 4, textAlign: "center" },
+  statusBadge: {
+    flexDirection: "row", alignItems: "center",
+    paddingHorizontal: 14, paddingVertical: 7, borderRadius: 20,
+  },
+  statusDot: { width: 7, height: 7, borderRadius: 4, marginRight: 6 },
+  statusText: { fontSize: 13, fontWeight: "600" },
 
-  icon: { fontSize: 32 },
-  title: { fontSize: 20, fontWeight: "bold", marginTop: 10 },
-  titleespace: { padding: 10 },
-  subtitle: { fontSize: 14, color: "#0066CC", marginBottom: 10, marginTop: 4 },
-  status: {
-    padding: 10,
-    backgroundColor: "#d1ffd4ff",
-    color: "#008809ff",
-    borderRadius: 15,
+  infoCard: {
+    marginBottom: 16, padding: 16, borderRadius: 20,
+    marginVertical: 8, borderWidth: 1,
+    shadowColor: "#000", shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06, shadowRadius: 4, elevation: 3,
   },
-  statusboule: { fontSize: 14, marginBottom: 8 },
-  statusDisponible: { fontSize: 14, marginLeft: 4 },
+  infoRow: { flexDirection: "row", alignItems: "center", gap: 12, paddingVertical: 10 },
+  infoIconBg: { width: 34, height: 34, borderRadius: 17, justifyContent: "center", alignItems: "center" },
+  infoTexts: { flex: 1 },
+  infoLabel: { fontSize: 11, fontWeight: "600", textTransform: "uppercase", letterSpacing: 0.4 },
+  infoValue: { fontSize: 15, fontWeight: "600", marginTop: 2 },
+
   descriptionCard: {
-    marginBottom: 16,
-    padding: 16,
-    backgroundColor: "#fff",
-    borderRadius: 20,
-    marginVertical: 15,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    elevation: 5, // pour Android
-    borderWidth: 1,
-    borderColor: "#e0e0e0",
+    marginBottom: 16, padding: 16, borderRadius: 20,
+    marginVertical: 8, borderWidth: 1,
+    shadowColor: "#000", shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06, shadowRadius: 4, elevation: 3,
   },
-  sectionTitle: { fontSize: 18, fontWeight: "bold", marginBottom: 8 },
-  enteteText: { color: "#747474ff", marginTop: 10 },
+  sectionTitle: { fontSize: 17, fontWeight: "bold", marginBottom: 8 },
+  enteteText: { marginTop: 10, fontSize: 13, lineHeight: 20 },
+
   tabsRow: {
-    flexDirection: "row",
-    marginBottom: 16,
-    justifyContent: "space-around",
-    backgroundColor: "#fff",
-    color: "#000",
-    borderRadius: 20,
-    padding: 8,
-    marginVertical: 15,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 6,
-    elevation: 4,
-    borderWidth: 1,
-    borderColor: "#e0e0e0",
+    flexDirection: "row", marginBottom: 16,
+    justifyContent: "space-around", borderRadius: 20,
+    padding: 8, marginVertical: 12,
+    shadowColor: "#000", shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06, shadowRadius: 4, elevation: 3, borderWidth: 1,
   },
   tabBtn: {
-    flex: 1,
-    padding: 12,
-    alignItems: "center",
-    borderBottomWidth: 2,
-    borderBottomColor: "transparent",
+    flex: 1, padding: 12, alignItems: "center",
+    borderBottomWidth: 2, borderBottomColor: "transparent",
   },
-  activeTab: {
-    borderBottomColor: "#0066CC",
-    backgroundColor: "#0066CC",
-    borderRadius: 15,
-  },
-  tabText: { fontSize: 16 },
-  tabTextInactive: {
-    color: "#000", // texte noir par défaut
-    fontSize: 16,
-  },
-
-  tabTextActive: {
-    color: "#fff", // texte blanc quand actif
-    fontSize: 16,
-    fontWeight: "600",
-  },
+  activeTab: { borderRadius: 14 },
+  tabText: { fontSize: 15 },
 
   helping: {
-    marginTop: 15,
-    backgroundColor: "#d3e9ffff",
-    paddingTop: 15,
-    paddingHorizontal: 10,
+    marginTop: 15, paddingTop: 15, paddingHorizontal: 10,
+    borderRadius: 12, marginBottom: 20,
   },
-
   floatingCard: {
-    backgroundColor: "#fff",
-    padding: 16,
-    borderRadius: 20,
-    marginVertical: 2,
-    marginBottom: 20,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    elevation: 5,
-    borderWidth: 1,
-    borderColor: "#e0e0e0",
+    padding: 16, borderRadius: 20,
+    marginVertical: 2, marginBottom: 20,
+    shadowColor: "#000", shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06, shadowRadius: 4, elevation: 3, borderWidth: 1,
   },
-
-  itemRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 12,
-  },
-
+  itemRow: { flexDirection: "row", alignItems: "center", marginBottom: 12 },
   outerCircle: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    backgroundColor: "#cce5ff", // bleu ciel
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 8,
+    width: 22, height: 22, borderRadius: 11,
+    justifyContent: "center", alignItems: "center", marginRight: 10,
   },
-
   innerCircle: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    backgroundColor: "#0066CC", // bleu foncé
-    justifyContent: "center",
-    alignItems: "center",
+    width: 14, height: 14, borderRadius: 7,
+    justifyContent: "center", alignItems: "center",
   },
-
-  exclamationMark: {
-    color: "#fff",
-    fontSize: 10,
-    fontWeight: "bold",
-  },
-
-  checkMark: {
-    color: "#fff",
-    fontSize: 10,
-    fontWeight: "bold",
-  },
-
-  advItem: {
-    marginBottom: 8,
-    fontSize: 14,
-    color: "#000",
-    flexShrink: 1,
-  },
+  exclamationMark: { color: "#fff", fontSize: 10, fontWeight: "bold" },
+  checkMark: { color: "#fff", fontSize: 10, fontWeight: "bold" },
+  advItem: { fontSize: 14, flexShrink: 1, lineHeight: 20 },
 
   subscribeBtn: {
-    backgroundColor: "#0066CC",
-    padding: 16,
-    alignItems: "center",
-    borderRadius: 8,
+    padding: 16, alignItems: "center", borderRadius: 14, marginBottom: 12,
   },
-  subscribeText: { color: "#fff", fontWeight: "bold" },
+  subscribeText: { fontWeight: "bold", fontSize: 16 },
+
   modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.35)",
-    justifyContent: "center",
-    alignItems: "center",
+    flex: 1, backgroundColor: "rgba(0,0,0,0.35)",
+    justifyContent: "center", alignItems: "center",
   },
-  modalCard: {
-    width: "88%",
-    borderRadius: 16,
-    padding: 16,
-    borderWidth: 1,
-  },
+  modalCard: { width: "88%", borderRadius: 16, padding: 16, borderWidth: 1 },
   modalTitle: { fontSize: 18, fontWeight: "800", marginBottom: 8 },
   modalText: { fontSize: 16, marginBottom: 16 },
   modalActions: { flexDirection: "row", justifyContent: "space-between" },
   modalAction: {
-    flex: 1,
-    paddingVertical: 12,
-    alignItems: "center",
-    borderWidth: 1,
-    borderRadius: 8,
-    marginRight: 8,
+    flex: 1, paddingVertical: 12, alignItems: "center",
+    borderWidth: 1, borderRadius: 8, marginRight: 8,
   },
   modalActionConfirm: {
-    flex: 1,
-    paddingVertical: 12,
-    alignItems: "center",
-    borderRadius: 8,
-    marginLeft: 8,
+    flex: 1, paddingVertical: 12, alignItems: "center",
+    borderRadius: 8, marginLeft: 8,
   },
 });
 

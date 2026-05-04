@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
+﻿import React, { createContext, useContext, useState, useEffect } from "react";
 import * as Crypto from "expo-crypto";
 import NetInfo from "@react-native-community/netinfo";
 import { login as loginApi, LoginPayload } from "../../services/auth/login";
@@ -70,10 +70,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       const configured = await secureGetItem("is_configured");
 
       // Step 2: Verify Initial Token (V2 Requirement)
-      // "lorsque l’utilisateur s’est déjà connecte ... il faut toujour verifirer le authtoken"
       if (configured === "true") {
-        // Vérifier la connectivité avant d'appeler le serveur.
-        // Si hors ligne, on garde la session locale sans déconnecter.
+        // Si l'utilisateur a un PIN configure, on ne verifie PAS le token d'initialisation.
+        // Le PIN est suffisant pour deverrouiller la session (soft logout).
+        // Verifier auth_token_init ici causerait une deconnexion si le token initial est expire,
+        // forcant l'utilisateur a repasser par InitialSetup -> OtpVerify -> envoi d'OTP inutile.
+        const storedPin = await secureGetItem("pin_user");
+        if (storedPin) {
+          console.log("PIN configured - skipping token verification, going to PinLogin");
+          const token = await secureGetItem("auth_token");
+          const userData = await secureGetItem("user_data");
+          if (token && userData) {
+            setIsAuthenticated(true);
+            setUser(JSON.parse(userData));
+          }
+          setIsConfigured(true);
+          setIsLoading(false);
+          return;
+        }
+
+        // Pas de PIN -> premiere configuration ou reset complet.
         let isOnline = true;
         try {
           const netState = await NetInfo.fetch();
@@ -81,7 +97,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         } catch {}
 
         if (!isOnline) {
-          console.log("Offline at startup — skipping token verification, keeping local session");
+          console.log("Offline at startup - skipping token verification, keeping local session");
           const token = await secureGetItem("auth_token");
           const userData = await secureGetItem("user_data");
           if (token && userData) {

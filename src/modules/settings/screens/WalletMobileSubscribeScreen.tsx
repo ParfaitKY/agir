@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -9,326 +9,298 @@ import {
   FlatList,
   ScrollView,
   Alert,
+  ActivityIndicator,
 } from "react-native";
 import { useTheme } from "../../../shared/styles/ThemeProvider";
+import { useCompteStatistiques } from "../../../domain/compte/useCompteStatistiques";
+import { secureSetItem } from "../../../shared/utils/secureStorage";
 
-// Données en dur
+// Pays en dur — liste UEMOA + pays courants
 const PAYS_DATA = [
-  { PY_CODEPAYS: "0001", PY_LIBELLE: "CÔTE D'IVOIRE" },
-  { PY_CODEPAYS: "0002", PY_LIBELLE: "BURKINA FASO" },
-  { PY_CODEPAYS: "0003", PY_LIBELLE: "MALI" },
-  { PY_CODEPAYS: "0004", PY_LIBELLE: "SÉNÉGAL" },
-  { PY_CODEPAYS: "0005", PY_LIBELLE: "BÉNIN" },
-  { PY_CODEPAYS: "0006", PY_LIBELLE: "TOGO" },
-];
-
-const COMPTES_DATA = [
-  { CO_CODECOMPTE: "001", NUMEROCOMPTE: "1000COC00007919001", SOLDE: "2 212 500 FCFA" },
-  { CO_CODECOMPTE: "002", NUMEROCOMPTE: "1000COC00007919002", SOLDE: "500 000 FCFA" },
-  { CO_CODECOMPTE: "003", NUMEROCOMPTE: "1000COC00007919003", SOLDE: "1 000 000 FCFA" },
+  { code: "CI", label: "Cote d'Ivoire" },
+  { code: "BF", label: "Burkina Faso" },
+  { code: "ML", label: "Mali" },
+  { code: "SN", label: "Senegal" },
+  { code: "BJ", label: "Benin" },
+  { code: "TG", label: "Togo" },
+  { code: "GN", label: "Guinee" },
+  { code: "NE", label: "Niger" },
+  { code: "CM", label: "Cameroun" },
+  { code: "GA", label: "Gabon" },
+  { code: "FR", label: "France" },
+  { code: "BE", label: "Belgique" },
+  { code: "CA", label: "Canada" },
 ];
 
 const WalletMobileSubscribeScreen: React.FC = () => {
   const { colors } = useTheme();
-  const [title] = useState("Souscription");
+  const { data: compteStats, fetchData, isLoading: loadingComptes } = useCompteStatistiques();
 
-  // États
   const [submitting, setSubmitting] = useState(false);
   const [modalPays, setModalPays] = useState(false);
   const [modalCompte, setModalCompte] = useState(false);
-  
+
   const [form, setForm] = useState<{
-    cmb_compte?: string;
-    cmb_pays?: string;
-    chp_telephone?: string;
-    chp_email?: string;
-    chp_localisation?: string;
-  }>({ cmb_pays: "0001" });
-  
-  const [errors, setErrors] = useState<{
-    email?: string;
-    telephone?: string;
     compte?: string;
-    pays?: string;
-    localisation?: string;
-  }>({});
+    compteLabel?: string;
+    pays: string;
+    paysLabel: string;
+    telephone: string;
+    email: string;
+    localisation: string;
+  }>({
+    pays: "CI",
+    paysLabel: "Cote d'Ivoire",
+    telephone: "",
+    email: "",
+    localisation: "",
+  });
 
-  const accent = colors.primary;
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
-  // Trouver le pays sélectionné
-  const selectedCountry = PAYS_DATA.find((p) => p.PY_CODEPAYS === form.cmb_pays);
-  const selectedCountryLabel = selectedCountry?.PY_LIBELLE || "CÔTE D'IVOIRE";
+  // Charger les comptes reels au montage
+  useEffect(() => {
+    fetchData();
+  }, []);
 
-  // Trouver le compte sélectionné
-  const selectedCompte = COMPTES_DATA.find((c) => c.CO_CODECOMPTE === form.cmb_compte);
-  const selectedCompteLabel = selectedCompte 
-    ? `${selectedCompte.NUMEROCOMPTE} • ${selectedCompte.SOLDE}` 
-    : "Compte (obligatoire)";
+  // Pre-remplir le premier compte quand les donnees arrivent
+  useEffect(() => {
+    const comptes = compteStats?.COMPTES || [];
+    if (comptes.length > 0 && !form.compte) {
+      const first = comptes[0];
+      const num = String(first.NUMEROCOMPTE || first.CO_CODECOMPTE || "");
+      setForm(f => ({ ...f, compte: num, compteLabel: num }));
+    }
+  }, [compteStats]);
 
-  // Validation
+  const comptes = (compteStats?.COMPTES || []).map(c => ({
+    code: String(c.NUMEROCOMPTE || c.CO_CODECOMPTE || ""),
+    label: String(c.NUMEROCOMPTE || c.CO_CODECOMPTE || ""),
+    solde: Number(c.SOLDE || 0),
+    type: String(c.CO_INTITULECOMPTE || c.PD_LIBELLE || "Compte"),
+  }));
+
+  const fmt = (n: number) => new Intl.NumberFormat("fr-FR").format(Math.round(n));
+
   function validate() {
-    const next: any = {};
-    const tel = String(form.chp_telephone || "").trim();
-    const mail = String(form.chp_email || "").trim();
-    const loc = String(form.chp_localisation || "").trim();
-    const compte = String(form.cmb_compte || "").trim();
-    const pays = String(form.cmb_pays || "").trim();
-    const emailRegex =
-      /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-    
-    if (!compte) next.compte = "Le compte est obligatoire.";
-    if (!pays) next.pays = "Le pays est obligatoire.";
-    if (!tel || tel.length < 10 || tel.length > 15 || !/^[\d]{6,15}$/.test(tel))
-      next.telephone = "Veuillez renseigner un numéro de téléphone correct.";
-    if (tel && tel.length < 10)
-      next.telephone = "La taille minimum valable de saisie est 10.";
+    const next: Record<string, string> = {};
+    const tel = form.telephone.trim();
+    const mail = form.email.trim();
+    const loc = form.localisation.trim();
+    const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!form.compte) next.compte = "Le compte est obligatoire.";
+    if (!tel) next.telephone = "Le telephone est obligatoire.";
+    else if (!/^\d{8,15}$/.test(tel)) next.telephone = "Numero de telephone invalide (8 a 15 chiffres).";
+    if (!mail) next.email = "L'email est obligatoire.";
+    else if (!emailRe.test(mail)) next.email = "Adresse email invalide.";
     if (!loc) next.localisation = "La localisation est obligatoire.";
-    if (!mail) next.email = "Le champ Email est obligatoire.";
-    if (mail && !emailRegex.test(mail))
-      next.email = "Veuillez renseigner un email correct.";
-    
+
     setErrors(next);
     return Object.keys(next).length === 0;
   }
 
-  // Soumission
   async function handleSubmit() {
     if (!validate()) return;
-    
+    setSubmitting(true);
     try {
-      setSubmitting(true);
-      
-      // Simuler un délai de traitement
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // Sauvegarder le numéro de téléphone souscrit
-      try {
-        const { secureSetItem } = await import("../../../shared/utils/secureStorage");
-        await secureSetItem("wallet_subscribed_phone", form.chp_telephone || "");
-      } catch (e) {
-        console.error("Error saving subscribed phone:", e);
-      }
-      
-      // Afficher un message de succès
+      // Simulation d'un traitement (pas d'appel API)
+      await new Promise(resolve => setTimeout(resolve, 1200));
+
+      // Sauvegarder localement
+      await secureSetItem("wallet_subscribed_phone", form.telephone);
+      await secureSetItem("wallet_subscribed_compte", form.compte || "");
+
       Alert.alert(
-        "Demande enregistrée", 
-        "Votre demande de souscription au Mobile Banking a été enregistrée. Vous serez contacté par votre agence pour finaliser l'activation.",
-        [
-          {
-            text: "OK",
-            onPress: () => {
-              // Réinitialiser le formulaire
-              setForm({ cmb_pays: "0001" });
-              setErrors({});
-            }
-          }
-        ]
+        "Demande enregistree",
+        "Votre demande de souscription au Mobile Banking a ete enregistree avec succes. Votre agence vous contactera pour finaliser l'activation.",
+        [{
+          text: "OK",
+          onPress: () => {
+            setForm({
+              pays: "CI",
+              paysLabel: "Cote d'Ivoire",
+              telephone: "",
+              email: "",
+              localisation: "",
+            });
+            setErrors({});
+          },
+        }]
       );
-    } catch (e: any) {
-      Alert.alert("Erreur", "Une erreur est survenue lors de l'enregistrement de votre demande.");
+    } catch {
+      Alert.alert("Erreur", "Une erreur est survenue. Veuillez reessayer.");
     } finally {
       setSubmitting(false);
     }
   }
 
   return (
-    <ScrollView style={[styles.screen, { backgroundColor: colors.background }]}>
-      <Text style={[styles.header, { color: colors.text }]}>{title}</Text>
-      <View style={[styles.card, { backgroundColor: colors.card }]}>
-        <Text style={[styles.cardTitle, { color: colors.text }]}>
-          Compte mobile
-        </Text>
-        
-        <Text style={[styles.label, { color: colors.text }]}>Compte</Text>
-        <Pressable
-          style={[
-            styles.select,
-            {
-              borderColor: colors.border,
-              backgroundColor: colors.background,
-            },
-          ]}
-          onPress={() => setModalCompte(true)}
-        >
-          <Text style={[styles.placeholder, form.cmb_compte && { color: colors.text }]}>
-            {selectedCompteLabel}
-          </Text>
-        </Pressable>
-        {errors.compte ? (
-          <Text style={styles.error}>{errors.compte}</Text>
-        ) : null}
+    <ScrollView
+      style={[styles.screen, { backgroundColor: colors.background }]}
+      keyboardShouldPersistTaps="handled"
+    >
+      <Text style={[styles.header, { color: colors.text }]}>Souscription</Text>
 
+      <View style={[styles.card, { backgroundColor: colors.card }]}>
+        <Text style={[styles.cardTitle, { color: colors.text }]}>Compte mobile</Text>
+
+        {/* Compte */}
+        <Text style={[styles.label, { color: colors.text }]}>Compte</Text>
+        {loadingComptes ? (
+          <View style={[styles.select, { borderColor: colors.border, backgroundColor: colors.background, justifyContent: "center" }]}>
+            <ActivityIndicator size="small" color={colors.primary} />
+          </View>
+        ) : (
+          <Pressable
+            style={[styles.select, { borderColor: errors.compte ? "#ff6b6b" : colors.border, backgroundColor: colors.background }]}
+            onPress={() => setModalCompte(true)}
+          >
+            <Text style={[styles.selectText, { color: form.compte ? colors.text : colors.text + "50" }]}>
+              {form.compte || "Selectionner un compte (obligatoire)"}
+            </Text>
+          </Pressable>
+        )}
+        {errors.compte ? <Text style={styles.error}>{errors.compte}</Text> : null}
+
+        {/* Pays */}
         <Text style={[styles.label, { color: colors.text }]}>Pays</Text>
         <Pressable
-          style={[
-            styles.select,
-            {
-              borderColor: colors.border,
-              backgroundColor: colors.background,
-            },
-          ]}
+          style={[styles.select, { borderColor: colors.border, backgroundColor: colors.background }]}
           onPress={() => setModalPays(true)}
         >
-          <Text style={[styles.placeholder, { color: colors.text }]}>
-            {selectedCountryLabel}
-          </Text>
+          <Text style={[styles.selectText, { color: colors.text }]}>{form.paysLabel}</Text>
         </Pressable>
-        {errors.pays ? <Text style={styles.error}>{errors.pays}</Text> : null}
 
-        <Text style={[styles.label, { color: colors.text }]}>Téléphone</Text>
+        {/* Telephone */}
+        <Text style={[styles.label, { color: colors.text }]}>Telephone</Text>
         <TextInput
-          style={[
-            styles.input,
-            {
-              borderColor: colors.border,
-              backgroundColor: colors.background,
-              color: colors.text,
-            },
-          ]}
-          keyboardType="number-pad"
-          placeholder="Téléphone • Ex.: 0123456789 (obligatoire)"
-          placeholderTextColor={colors.text + "60"}
-          value={form.chp_telephone || ""}
-          onChangeText={(t) => setForm({ ...form, chp_telephone: t })}
+          style={[styles.input, {
+            borderColor: errors.telephone ? "#ff6b6b" : colors.border,
+            backgroundColor: colors.background,
+            color: colors.text,
+          }]}
+          keyboardType="phone-pad"
+          placeholder="Ex : 0102030405 (obligatoire)"
+          placeholderTextColor={colors.text + "50"}
+          value={form.telephone}
+          onChangeText={t => setForm(f => ({ ...f, telephone: t.replace(/\D/g, "") }))}
         />
-        {errors.telephone ? (
-          <Text style={styles.error}>{errors.telephone}</Text>
-        ) : null}
+        {errors.telephone ? <Text style={styles.error}>{errors.telephone}</Text> : null}
 
+        {/* Email */}
         <Text style={[styles.label, { color: colors.text }]}>Email</Text>
         <TextInput
-          style={[
-            styles.input,
-            {
-              borderColor: colors.border,
-              backgroundColor: colors.background,
-              color: colors.text,
-            },
-          ]}
+          style={[styles.input, {
+            borderColor: errors.email ? "#ff6b6b" : colors.border,
+            backgroundColor: colors.background,
+            color: colors.text,
+          }]}
           keyboardType="email-address"
+          autoCapitalize="none"
           placeholder="Votre adresse email (obligatoire)"
-          placeholderTextColor={colors.text + "60"}
-          value={form.chp_email || ""}
-          onChangeText={(t) => setForm({ ...form, chp_email: t })}
+          placeholderTextColor={colors.text + "50"}
+          value={form.email}
+          onChangeText={t => setForm(f => ({ ...f, email: t }))}
         />
         {errors.email ? <Text style={styles.error}>{errors.email}</Text> : null}
 
+        {/* Localisation */}
         <Text style={[styles.label, { color: colors.text }]}>Localisation</Text>
         <TextInput
-          style={[
-            styles.input,
-            {
-              borderColor: colors.border,
-              backgroundColor: colors.background,
-              color: colors.text,
-            },
-          ]}
-          placeholder="Localisation (obligatoire)"
-          placeholderTextColor={colors.text + "60"}
-          value={form.chp_localisation || ""}
-          onChangeText={(t) => setForm({ ...form, chp_localisation: t })}
+          style={[styles.input, {
+            borderColor: errors.localisation ? "#ff6b6b" : colors.border,
+            backgroundColor: colors.background,
+            color: colors.text,
+          }]}
+          placeholder="Votre adresse / localisation (obligatoire)"
+          placeholderTextColor={colors.text + "50"}
+          value={form.localisation}
+          onChangeText={t => setForm(f => ({ ...f, localisation: t }))}
         />
-        {errors.localisation ? (
-          <Text style={styles.error}>{errors.localisation}</Text>
-        ) : null}
+        {errors.localisation ? <Text style={styles.error}>{errors.localisation}</Text> : null}
 
+        {/* Bouton */}
         <Pressable
-          style={[
-            styles.button,
-            { backgroundColor: accent },
-            submitting && styles.buttonDisabled,
-          ]}
+          style={[styles.button, { backgroundColor: colors.primary }, submitting && styles.buttonDisabled]}
           onPress={handleSubmit}
           disabled={submitting}
         >
-          <Text style={styles.buttonText}>
-            {submitting ? "TRAITEMENT..." : "VALIDER"}
-          </Text>
+          {submitting
+            ? <ActivityIndicator color="#fff" size="small" />
+            : <Text style={styles.buttonText}>VALIDER</Text>
+          }
         </Pressable>
       </View>
 
       {/* Modal Pays */}
-      <Modal visible={modalPays} transparent animationType="slide">
-        <View style={styles.modalOverlay}>
-          <View style={[styles.modalContent, { backgroundColor: colors.card }]}>
-            <Text style={[styles.modalTitle, { color: colors.text }]}>
-              Sélectionner un pays
-            </Text>
+      <Modal visible={modalPays} transparent animationType="slide" onRequestClose={() => setModalPays(false)}>
+        <View style={styles.overlay}>
+          <View style={[styles.sheet, { backgroundColor: colors.card }]}>
+            <View style={[styles.handle, { backgroundColor: colors.border }]} />
+            <Text style={[styles.sheetTitle, { color: colors.text }]}>Selectionner un pays</Text>
             <FlatList
               data={PAYS_DATA}
-              keyExtractor={(item) => item.PY_CODEPAYS}
+              keyExtractor={i => i.code}
               renderItem={({ item }) => (
                 <Pressable
-                  style={[
-                    styles.modalItem,
-                    { 
-                      backgroundColor: colors.background,
-                      borderColor: colors.border,
-                    }
-                  ]}
+                  style={[styles.sheetItem, { borderBottomColor: colors.border },
+                    item.code === form.pays && { backgroundColor: colors.primary + "12" }]}
                   onPress={() => {
-                    setForm({ ...form, cmb_pays: item.PY_CODEPAYS });
+                    setForm(f => ({ ...f, pays: item.code, paysLabel: item.label }));
                     setModalPays(false);
                   }}
                 >
-                  <Text style={[styles.modalItemText, { color: colors.text }]}>
-                    {item.PY_LIBELLE}
+                  <Text style={[styles.sheetItemText, { color: item.code === form.pays ? colors.primary : colors.text }]}>
+                    {item.label}
                   </Text>
                 </Pressable>
               )}
             />
-            <Pressable
-              style={[styles.closeButton, { backgroundColor: colors.border }]}
-              onPress={() => setModalPays(false)}
-            >
-              <Text style={[styles.closeButtonText, { color: colors.text }]}>
-                Fermer
-              </Text>
+            <Pressable style={[styles.closeBtn, { backgroundColor: colors.border }]} onPress={() => setModalPays(false)}>
+              <Text style={[styles.closeBtnText, { color: colors.text }]}>Fermer</Text>
             </Pressable>
           </View>
         </View>
       </Modal>
 
       {/* Modal Compte */}
-      <Modal visible={modalCompte} transparent animationType="slide">
-        <View style={styles.modalOverlay}>
-          <View style={[styles.modalContent, { backgroundColor: colors.card }]}>
-            <Text style={[styles.modalTitle, { color: colors.text }]}>
-              Sélectionner un compte
-            </Text>
-            <FlatList
-              data={COMPTES_DATA}
-              keyExtractor={(item) => item.CO_CODECOMPTE}
-              renderItem={({ item }) => (
-                <Pressable
-                  style={[
-                    styles.modalItem,
-                    { 
-                      backgroundColor: colors.background,
-                      borderColor: colors.border,
-                    }
-                  ]}
-                  onPress={() => {
-                    setForm({ ...form, cmb_compte: item.CO_CODECOMPTE });
-                    setModalCompte(false);
-                  }}
-                >
-                  <Text style={[styles.modalItemText, { color: colors.text }]}>
-                    {item.NUMEROCOMPTE}
-                  </Text>
-                  <Text style={[styles.modalItemSubtext, { color: colors.text + "80" }]}>
-                    Solde: {item.SOLDE}
-                  </Text>
-                </Pressable>
-              )}
-            />
-            <Pressable
-              style={[styles.closeButton, { backgroundColor: colors.border }]}
-              onPress={() => setModalCompte(false)}
-            >
-              <Text style={[styles.closeButtonText, { color: colors.text }]}>
-                Fermer
-              </Text>
+      <Modal visible={modalCompte} transparent animationType="slide" onRequestClose={() => setModalCompte(false)}>
+        <View style={styles.overlay}>
+          <View style={[styles.sheet, { backgroundColor: colors.card }]}>
+            <View style={[styles.handle, { backgroundColor: colors.border }]} />
+            <Text style={[styles.sheetTitle, { color: colors.text }]}>Selectionner un compte</Text>
+            {comptes.length === 0 ? (
+              <View style={{ padding: 24, alignItems: "center" }}>
+                <Text style={[styles.sheetItemText, { color: colors.text + "60" }]}>
+                  Aucun compte disponible
+                </Text>
+              </View>
+            ) : (
+              <FlatList
+                data={comptes}
+                keyExtractor={i => i.code}
+                renderItem={({ item }) => (
+                  <Pressable
+                    style={[styles.sheetItem, { borderBottomColor: colors.border },
+                      item.code === form.compte && { backgroundColor: colors.primary + "12" }]}
+                    onPress={() => {
+                      setForm(f => ({ ...f, compte: item.code, compteLabel: item.label }));
+                      setModalCompte(false);
+                    }}
+                  >
+                    <Text style={[styles.sheetItemText, { color: item.code === form.compte ? colors.primary : colors.text }]}>
+                      {item.label}
+                    </Text>
+                    <Text style={[styles.sheetItemSub, { color: colors.text + "60" }]}>
+                      {item.type} — {fmt(item.solde)} XOF
+                    </Text>
+                  </Pressable>
+                )}
+              />
+            )}
+            <Pressable style={[styles.closeBtn, { backgroundColor: colors.border }]} onPress={() => setModalCompte(false)}>
+              <Text style={[styles.closeBtnText, { color: colors.text }]}>Fermer</Text>
             </Pressable>
           </View>
         </View>
@@ -339,68 +311,39 @@ const WalletMobileSubscribeScreen: React.FC = () => {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, padding: 16 },
-  header: { fontSize: 18, fontWeight: "600", marginBottom: 12 },
-  card: { borderRadius: 12, padding: 16 },
-  cardTitle: { fontSize: 18, fontWeight: "700", marginBottom: 12 },
-  label: { fontSize: 12, marginTop: 10, marginBottom: 6 },
-  select: { borderWidth: 1, borderRadius: 10, padding: 12 },
-  input: {
-    borderWidth: 1,
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    height: 44,
-    marginBottom: 6,
+  header: { fontSize: 18, fontWeight: "700", marginBottom: 12 },
+  card: { borderRadius: 16, padding: 16, marginBottom: 24 },
+  cardTitle: { fontSize: 17, fontWeight: "700", marginBottom: 16 },
+  label: { fontSize: 12, fontWeight: "600", marginTop: 12, marginBottom: 6 },
+  select: {
+    borderWidth: 1.5, borderRadius: 10, padding: 12, minHeight: 44,
+    justifyContent: "center",
   },
-  placeholder: { color: "#9AA0A6" },
+  selectText: { fontSize: 14 },
+  input: {
+    borderWidth: 1.5, borderRadius: 10,
+    paddingHorizontal: 12, height: 44, fontSize: 14,
+  },
   error: { color: "#ff6b6b", fontSize: 12, marginTop: 4 },
   button: {
-    borderRadius: 10,
-    paddingVertical: 12,
-    marginTop: 16,
-    alignItems: "center",
+    borderRadius: 12, paddingVertical: 14, marginTop: 20,
+    alignItems: "center", justifyContent: "center", minHeight: 50,
   },
   buttonDisabled: { opacity: 0.6 },
-  buttonText: { color: "#fff", fontWeight: "800", letterSpacing: 1 },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.6)",
-    justifyContent: "center",
-    padding: 24,
+  buttonText: { color: "#fff", fontWeight: "800", fontSize: 15, letterSpacing: 1 },
+
+  overlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "flex-end" },
+  sheet: { borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 20, maxHeight: "70%" },
+  handle: { width: 40, height: 4, borderRadius: 2, alignSelf: "center", marginBottom: 16 },
+  sheetTitle: { fontSize: 17, fontWeight: "700", marginBottom: 12 },
+  sheetItem: {
+    paddingVertical: 14, paddingHorizontal: 4,
+    borderBottomWidth: 1,
   },
-  modalContent: {
-    borderRadius: 16,
-    padding: 20,
-    maxHeight: "80%",
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: "700",
-    marginBottom: 16,
-  },
-  modalItem: {
-    padding: 16,
-    marginBottom: 8,
-    borderRadius: 8,
-    borderWidth: 1,
-  },
-  modalItemText: {
-    fontSize: 14,
-    fontWeight: "600",
-  },
-  modalItemSubtext: {
-    fontSize: 12,
-    marginTop: 4,
-  },
-  closeButton: {
-    marginTop: 12,
-    padding: 12,
-    borderRadius: 8,
-    alignItems: "center",
-  },
-  closeButtonText: {
-    fontSize: 14,
-    fontWeight: "600",
-  },
+  sheetItemText: { fontSize: 15, fontWeight: "500" },
+  sheetItemSub: { fontSize: 12, marginTop: 3 },
+  closeBtn: { marginTop: 12, padding: 12, borderRadius: 10, alignItems: "center" },
+  closeBtnText: { fontSize: 14, fontWeight: "600" },
 });
 
 export default WalletMobileSubscribeScreen;

@@ -88,12 +88,26 @@ const OtpVerifyScreen: React.FC = () => {
       if (!numeroCompte || !deviceId) return;
 
       const isAutoplay = (route as any)?.params?.isAutoplay;
+
+      // ── GUARD : Si l'utilisateur est déjà configuré (soft logout / déverrouillage),
+      // on ne doit PAS envoyer d'OTP. L'OTP n'est nécessaire que lors de la
+      // première configuration ou d'un reset complet.
+      const { secureGetItem: getItem } = await import("../../../shared/utils/secureStorage");
+      const isConfigured = await getItem("is_configured");
+      const storedPin = await getItem("pin_user");
+
+      if (isConfigured === "true" && storedPin) {
+        console.log("[OtpVerify] Already configured — skipping silentOtp to avoid unwanted OTP email");
+        setRequiresManual(false);
+        setSilentOk(false);
+        setLoadingSilent(false);
+        return;
+      }
+
       console.log(`[OtpVerify] Starting check. isAutoplay=${isAutoplay}`);
 
       setLoadingSilent(true);
       setSilentOk(false);
-      // Si Autoplay est faux, on force le mode manuel dès le départ
-      // Mais on lance quand même la requête pour générer l'OTP (et l'envoyer par mail)
       setRequiresManual(isAutoplay === false);
 
       try {
