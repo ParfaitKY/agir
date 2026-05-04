@@ -32,16 +32,20 @@ export const DashboardScreen: React.FC = () => {
     useState(false);
   const [showAllTransactions, setShowAllTransactions] = useState(false);
   const [isBalanceHidden, setIsBalanceHidden] = useState(false);
+  const [isRefreshingBalance, setIsRefreshingBalance] = useState(false);
   const { t, tText } = useI18n();
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const { isAuthenticated, user } = useAuth();
 
   const {
+    data: soldeData,
+    isLoading: loadingSolde,
     fetchData: fetchSolde,
   } = useSoldeGlobale();
   const {
     data: compteStats,
+    isLoading: loadingStats,
     fetchData: fetchCompteStats,
   } = useCompteStatistiques();
 
@@ -100,23 +104,24 @@ export const DashboardScreen: React.FC = () => {
     return () => clearInterval(id);
   }, []);
 
-  // Fonction pour basculer la visibilité du solde et rafraîchir les données
+  // Rafraîchit le solde depuis l'API et bascule la visibilité
   const toggleBalanceVisibility = async () => {
-    const nextHiddenState = !isBalanceHidden;
-    setIsBalanceHidden(nextHiddenState);
+    if (handleGuestRestriction("la vérification du solde")) return;
 
-    // Si on s'apprête à afficher le solde (nextHiddenState est false)
-    if (!nextHiddenState) {
-      if (handleGuestRestriction("la vérification du solde")) return;
-
+    if (isBalanceHidden) {
+      // Révéler : on rafraîchit d'abord depuis l'API
+      setIsRefreshingBalance(true);
       try {
-        // Déclencher les appels API pour mettre à jour le solde
-        // On utilise fetchCompteStats car realTotalBalance dépend de compteStats
-        await Promise.all([fetchSolde(), fetchCompteStats()]);
+        await Promise.all([fetchSolde(), fetchCompteStats(), fetchRecent()]);
       } catch (err) {
         console.error("Erreur lors de la mise à jour du solde:", err);
-        // L'erreur est déjà gérée dans les hooks (soldeError, compteStatsError)
+      } finally {
+        setIsRefreshingBalance(false);
       }
+      setIsBalanceHidden(false);
+    } else {
+      // Cacher : pas besoin d'appel API
+      setIsBalanceHidden(true);
     }
   };
   const timeText = new Intl.DateTimeFormat("fr-FR", {
@@ -169,19 +174,22 @@ export const DashboardScreen: React.FC = () => {
       0,
   );
 
-  // Solde global : priorité à SOLDE_GLOBAL du serveur (2212500 dans les logs)
-  const soldeFromRecent = recentStats?.solde ?? (recentStats as any)?.SOLDE ?? null;
-
-  const realTotalBalance = (compteStats?.COMPTES || []).reduce(
+  // Solde disponible réel : somme des SOLDE de chaque compte (hors montant bloqué)
+  // SOLDE = solde disponible, SOLDE_GLOBAL = solde total incluant montant bloqué
+  const soldeDisponible = (compteStats?.COMPTES || []).reduce(
     (sum, account) => sum + (Number(account.SOLDE) || 0),
     0,
   );
 
+  // Fallback sur recentStats si compteStats pas encore chargé
+  const soldeFromRecent = recentStats?.solde ?? (recentStats as any)?.SOLDE ?? null;
+
   const soldeGlobalFromStats =
-    (compteStats?.SOLDE_GLOBAL != null ? Number(compteStats.SOLDE_GLOBAL) : null) ??
-    soldeFromRecent ??
-    (realTotalBalance > 0 ? realTotalBalance : null) ??
-    0;
+    soldeDisponible > 0
+      ? soldeDisponible
+      : soldeFromRecent ?? 0;
+
+  const isLoadingBalance = isRefreshingBalance || loadingSolde || loadingStats;
 
   // Fonction pour gérer les restrictions en mode invité
   const handleGuestRestriction = (_featureName: string) => {
@@ -730,12 +738,21 @@ export const DashboardScreen: React.FC = () => {
               <TouchableOpacity
                 style={styles.eyeBtn}
                 onPress={toggleBalanceVisibility}
+                disabled={isRefreshingBalance}
               >
-                <Ionicons
-                  name={isBalanceHidden ? "eye-off-outline" : "eye-outline"}
-                  size={20}
-                  color={colors.text}
-                />
+                {isRefreshingBalance ? (
+                  <Ionicons
+                    name="sync-outline"
+                    size={20}
+                    color={colors.primary}
+                  />
+                ) : (
+                  <Ionicons
+                    name={isBalanceHidden ? "eye-off-outline" : "eye-outline"}
+                    size={20}
+                    color={colors.text}
+                  />
+                )}
               </TouchableOpacity>
             </View>
             <View style={styles.balanceSection}>
@@ -745,7 +762,7 @@ export const DashboardScreen: React.FC = () => {
               <Text style={[styles.balance, { color: colors.primary }]}>
                 {isBalanceHidden
                   ? "••••••••"
-                  : loadingRecent && !soldeGlobalFromStats
+                  : isLoadingBalance
                     ? t("dashboard.loading")
                     : `${fmt(soldeGlobalFromStats)} XOF`}
               </Text>
